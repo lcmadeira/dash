@@ -9,54 +9,53 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #07090E; --surface: #0B0E17; --card: #0F1220; --card-h: #131728;
-  --b: #181D30; --b2: #202540; --accent: #E9A520; --ad: #E9A52014;
-  --blue: #4B96F3; --bd: #4B96F312; --green: #34C97A; --gd: #34C97A12;
-  --red: #EF5757; --rd: #EF575712; --purple: #9575F0; --pd: #9575F012;
-  --text: #DDE3F0; --t2: #8892A8; --t3: #3D4560;
-  --font: 'Plus Jakarta Sans', sans-serif; --mono: 'DM Mono', monospace;
-  --r: 10px; --rs: 7px;
+  --bg:      #07090E; --surface: #0B0E17; --card:    #0F1220; --card-h:  #131728;
+  --b:       #181D30; --b2:      #202540; --accent:  #E9A520; --ad:      #E9A52014;
+  --blue:    #4B96F3; --bd:      #4B96F312; --green:   #34C97A; --gd:      #34C97A12;
+  --red:     #EF5757; --rd:      #EF575712; --purple:  #9575F0; --pd:      #9575F012;
+  --cyan:    #22D3EE; --cd:      #22D3EE12; --orange:  #F97316; --od:      #F9731612;
+  --text:    #DDE3F0; --t2:      #8892A8; --t3:      #3D4560;
+  --font:    'Plus Jakarta Sans', sans-serif; --mono:    'DM Mono', monospace;
+  --r:       10px; --rs:      7px;
 }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased;padding:20px}
-.wrap{max-width:1400px;margin:0 auto}
-.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--b)}
-.clk-time{font-family:var(--mono);font-size:2rem;color:var(--accent);text-align:center}
-.grid{display:grid;grid-template-columns:300px 1fr 1fr;gap:15px}
-.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding:20px}
+.wrap{max-width:1500px;margin:0 auto}
+.grid{display:grid;grid-template-columns:300px 1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px;position:relative}
 .s2{grid-column:span 2} .s3{grid-column:span 3} .r2{grid-row:span 2}
-.ch{display:flex;align-items:center;gap:8px;margin-bottom:15px}
-.ch-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--t2);letter-spacing:1px}
-.rbtn{background:none;border:1px solid var(--b);color:var(--t3);padding:2px 8px;border-radius:4px;font-size:.6rem;cursor:pointer}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.ch-lbl{font-size:.68rem;font-weight:600;text-transform:uppercase;color:var(--t2);letter-spacing:.5px}
+
+/* Fix Combustíveis */
+.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fi{background:var(--surface);border:1px solid var(--b);padding:10px;border-radius:var(--rs)}
+.fi-price{font-size:1.3rem;font-weight:700;letter-spacing:-0.5px}
+
+/* Fix Gráfico e Tabs */
+.fin-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.ftab{background:var(--surface);border:1px solid var(--b);padding:10px;border-radius:var(--rs);cursor:pointer;transition:0.2s}
+.ftab.on{border-color:var(--accent);background:var(--ad)}
+.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:12px;height:260px;position:relative}
+
+/* Fix Cripto */
+.ci{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b)}
+.ci:last-child{border-bottom:none}
+
+.up{color:var(--green)} .dn{color:var(--red)} .fl{color:var(--t3)}
 .ld{display:flex;justify-content:center;padding:20px}
 .spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Financeiro */
-.fin-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}
-.ftab{background:var(--surface);border:1px solid var(--b);padding:10px;border-radius:var(--rs);cursor:pointer}
-.ftab.on{border-color:var(--accent);background:var(--ad)}
-.chart-box{height:250px;position:relative;background:var(--surface);border-radius:var(--rs);padding:10px}
-
-/* Combustíveis */
-.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fi{background:var(--surface);border:1px solid var(--b);padding:10px;border-radius:var(--rs)}
-.fi-lbl{font-size:.6rem;color:var(--t3);text-transform:uppercase}
-.fi-price{font-size:1.4rem;font-weight:700;margin:4px 0}
-
-/* Cripto e News */
-.ci{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--b)}
-.ni{margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--b)}
-.up{color:var(--green)} .dn{color:var(--red)}
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header class="hdr">
-    <div><h1 style="font-size:1.4rem">Painel Pessoal</h1><p style="font-size:.7rem;color:var(--t3)">PORTUGAL · GITHUB PAGES</p></div>
-    <div><div class="clk-time" id="clk">00:00:00</div><div id="clkd" style="text-align:center;font-size:.7rem;color:var(--t2)">--</div></div>
-    <div style="text-align:right"><span id="fin-st" style="font-size:.6rem;color:var(--t3)">A carregar...</span></div>
+  <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--b);padding-bottom:15px">
+    <div><h1 style="font-size:1.5rem">Painel Pessoal</h1><p style="font-size:.6rem;color:var(--t3);text-transform:uppercase">Portugal Dashboard</p></div>
+    <div style="text-align:center"><div id="clk" style="font-family:var(--mono);font-size:1.8rem;color:var(--accent)">00:00:00</div><div id="clkd" style="font-size:.7rem;color:var(--t2)">--</div></div>
+    <div id="fin-st" style="font-size:.6rem;color:var(--t3)">A carregar sistema...</div>
   </header>
 
   <div class="grid">
@@ -66,16 +65,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
 
     <div class="card s2">
-      <div class="ch"><span class="ch-lbl">🌍 Notícias</span></div>
+      <div class="ch"><span class="ch-lbl">🌍 Notícias GNews</span></div>
       <div id="news-body"><div class="ld"><div class="spin"></div></div></div>
     </div>
 
     <div class="card s3">
       <div class="ch">
-        <span class="ch-lbl">📈 Mercados</span>
-        <div style="margin-left:auto; display:flex; gap:5px">
-          <button class="rbtn" onclick="setPeriod('1M')">1M</button>
-          <button class="rbtn" onclick="setPeriod('3M')">3M</button>
+        <span class="ch-lbl">📈 Mercados Financeiros</span>
+        <div style="margin-left:auto;display:flex;gap:5px">
+          <button onclick="setPeriod('1M')" style="padding:2px 8px;cursor:pointer">1M</button>
+          <button onclick="setPeriod('3M')" style="padding:2px 8px;cursor:pointer">3M</button>
         </div>
       </div>
       <div class="fin-tabs" id="fin-tabs"></div>
@@ -83,17 +82,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
 
     <div class="card">
-      <div class="ch"><span class="ch-lbl">⛽ Combustíveis</span></div>
+      <div class="ch"><span class="ch-lbl">⛽ Combustíveis Portugal</span></div>
       <div id="fuel-body"></div>
     </div>
 
     <div class="card">
-      <div class="ch"><span class="ch-lbl">₿ Cripto</span></div>
+      <div class="ch"><span class="ch-lbl">₿ Criptomoedas</span></div>
       <div id="crypto-body"></div>
     </div>
 
     <div class="card">
-      <div class="ch"><span class="ch-lbl">📅 Calendário</span></div>
+      <div class="ch"><span class="ch-lbl">📅 Calendário Económico</span></div>
       <div id="cal-body"></div>
     </div>
   </div>
@@ -112,118 +111,124 @@ const ASSETS = [
 ];
 
 const $ = id => document.getElementById(id);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-let chartInst = null, selA = ASSETS[0], selP = "1M", quotes = {};
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 // Relógio
-setInterval(() => {
-  const n = new Date();
-  $("clk").textContent = n.toLocaleTimeString("pt-PT");
-  $("clkd").textContent = n.toLocaleDateString("pt-PT", {weekday:'long', day:'numeric', month:'long'});
-}, 1000);
+function tick(){
+  const n=new Date();
+  $("clk").textContent=n.toLocaleTimeString("pt-PT");
+  $("clkd").textContent=n.toLocaleDateString("pt-PT",{weekday:'long',day:'numeric',month:'long'});
+}
+setInterval(tick,1000); tick();
 
 // Meteorologia
-async function loadWeather() {
-  try {
-    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Evora,PT&units=metric&lang=pt&appid=${CFG.OWM}`);
-    const d = await r.json();
-    $("wx-body").innerHTML = `<div style="text-align:center"><div style="font-size:3rem">${Math.round(d.main.temp)}°C</div><p>${d.weather[0].description}</p><p style="color:var(--t3);font-size:.7rem">Humidade: ${d.main.humidity}%</p></div>`;
-  } catch(e) { $("wx-body").innerHTML = "Erro Weather"; }
+async function loadWeather(){
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Evora,PT&units=metric&lang=pt&appid=${CFG.OWM}`);
+    const d=await r.json();
+    $("wx-body").innerHTML=`<div style="text-align:center;padding:10px"><div style="font-size:3rem;font-weight:700">${Math.round(d.main.temp)}°</div><div style="color:var(--accent);text-transform:capitalize">${d.weather[0].description}</div><div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.7rem;color:var(--t2)"><div>Hum: ${d.main.humidity}%</div><div>Vento: ${Math.round(d.wind.speed*3.6)}km/h</div></div></div>`;
+  }catch(e){$("wx-body").innerHTML="Erro Weather";}
 }
 
 // Notícias
-async function loadNews() {
-  try {
-    const r = await fetch(`https://gnews.io/api/v4/top-headlines?lang=pt&country=pt&max=4&apikey=${CFG.GNEWS}`);
-    const d = await r.json();
-    $("news-body").innerHTML = d.articles.map(a => `<div class="ni"><a href="${a.url}" target="_blank" style="color:var(--text);font-size:.85rem;text-decoration:none">${a.title}</a></div>`).join("");
-  } catch(e) { $("news-body").innerHTML = "Erro News"; }
+async function loadNews(){
+  try{
+    const r=await fetch(`https://gnews.io/api/v4/top-headlines?lang=pt&country=pt&max=5&apikey=${CFG.GNEWS}`);
+    const d=await r.json();
+    $("news-body").innerHTML=d.articles.map(a=>`<div style="margin-bottom:10px;border-bottom:1px solid var(--b);padding-bottom:5px"><a href="${a.url}" target="_blank" style="color:var(--text);text-decoration:none;font-size:.85rem">${a.title}</a><div style="font-size:.6rem;color:var(--t3);margin-top:3px">${a.source.name}</div></div>`).join("");
+  }catch(e){$("news-body").innerHTML="Erro News";}
 }
 
 // Financeiro e Gráfico
-async function loadFinance() {
-  $("fin-st").textContent = "A atualizar...";
-  try {
-    const syms = ASSETS.map(a => a.sym).join(",");
-    const r = await fetch(`https://api.twelvedata.com/quote?symbol=${syms}&apikey=${CFG.TD}`);
-    const d = await r.json();
-    ASSETS.forEach(a => { const q = d[a.sym] || d; quotes[a.id] = q; });
-    renderTabs();
-    updateChart();
-    $("fin-st").textContent = "✓ Atualizado";
-  } catch(e) { $("fin-st").textContent = "Erro API"; }
+let chartInst=null, selA=ASSETS[0], selP="1M", quotes={};
+async function loadFinance(){
+  $("fin-st").textContent="A atualizar...";
+  try{
+    const syms=ASSETS.map(a=>a.sym).join(",");
+    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${syms}&apikey=${CFG.TD}`);
+    const d=await r.json();
+    ASSETS.forEach(a=>{ quotes[a.id]=d[a.sym]||d; });
+    renderTabs(); updateChart();
+    $("fin-st").textContent="✓ Sistema OK";
+  }catch(e){$("fin-st").textContent="Erro na API de Mercados";}
 }
 
-function renderTabs() {
-  $("fin-tabs").innerHTML = ASSETS.map(a => {
-    const q = quotes[a.id];
-    return `<div class="ftab ${selA.id===a.id?'on':''}" onclick="selAsset('${a.id}')">
+function renderTabs(){
+  $("fin-tabs").innerHTML=ASSETS.map(a=>{
+    const q=quotes[a.id];
+    return `<div class="ftab ${selA.id===a.id?'on':''}" onclick="selectAsset('${a.id}')">
       <div style="font-size:.6rem;color:var(--t3)">${a.id}</div>
-      <div style="font-weight:700">${q?Number(q.close).toFixed(2):'--'}</div>
+      <div style="font-weight:700;font-size:1.1rem">${q?Number(q.close).toFixed(2):'--'}</div>
+      <div style="font-size:.6rem" class="${q?.percent_change>0?'up':'dn'}">${q?Number(q.percent_change).toFixed(2)+'%':''}</div>
     </div>`;
   }).join("");
 }
 
-function selAsset(id) { selA = ASSETS.find(a=>a.id===id); renderTabs(); updateChart(); }
-function setPeriod(p) { selP = p; updateChart(); }
+function selectAsset(id){ selA=ASSETS.find(a=>a.id===id); renderTabs(); updateChart(); }
+function setPeriod(p){ selP=p; updateChart(); }
 
-async function updateChart() {
-  if(chartInst) chartInst.destroy();
-  const size = selP === "1M" ? 30 : 90;
-  try {
-    const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${selA.sym}&interval=1day&outputsize=${size}&apikey=${CFG.TD}`);
-    const d = await r.json();
-    const vals = d.values.reverse();
-    chartInst = new Chart($("fin-chart"), {
-      type: 'line',
-      data: {
-        labels: vals.map(v => v.datetime.slice(5)),
-        datasets: [{ data: vals.map(v => v.close), borderColor: selA.color, fill: false, pointRadius: 0 }]
+async function updateChart(){
+  if(chartInst){ chartInst.destroy(); chartInst=null; }
+  const size=selP==="1M"?30:90;
+  try{
+    const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${selA.sym}&interval=1day&outputsize=${size}&apikey=${CFG.TD}`);
+    const d=await r.json();
+    const vals=d.values.reverse();
+    const ctx=$("fin-chart").getContext("2d");
+    chartInst=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:vals.map(v=>v.datetime.slice(5)),
+        datasets:[{data:vals.map(v=>v.close),borderColor:selA.color,borderWidth:2,pointRadius:0,fill:true,backgroundColor:selA.color+'15',tension:0.1}]
       },
-      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+      options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:'#181D30'},ticks:{font:{size:9},color:'#3D4560'}}}}
     });
-  } catch(e) {}
+  }catch(e){}
 }
 
-// Combustíveis
-function renderFuel() {
-  const data = [
-    {n:"G95", p:1.749, v:-0.01}, {n:"G98", p:1.889, v:0.02},
-    {n:"DSL", p:1.624, v:0.01}, {n:"AGR", p:1.210, v:0.00}
+// Fix Combustíveis: Agora mostra os 4 tipos
+function renderFuel(){
+  const f=[
+    {n:"Gasolina 95", p:1.749, v:-0.012}, {n:"Gasolina 98", p:1.889, v:0.005},
+    {n:"Gasóleo Rod.", p:1.624, v:-0.008}, {n:"Gasóleo Agr.", p:1.210, v:0.000}
   ];
-  $("fuel-body").innerHTML = `<div class="fuel-grid">${data.map(f => `
+  $("fuel-body").innerHTML=`<div class="fuel-grid">${f.map(i=>`
     <div class="fi">
-      <div class="fi-lbl">${f.n}</div>
-      <div class="fi-price">${f.p.toFixed(3)}€</div>
-      <div style="font-size:.6rem" class="${f.v>=0?'up':'dn'}">${f.v>=0?'▲':'▼'} ${Math.abs(f.v)}</div>
+      <div style="font-size:.55rem;color:var(--t3);text-transform:uppercase">${i.n}</div>
+      <div class="fi-price">${i.p.toFixed(3)}</div>
+      <div style="font-size:.6rem" class="${i.v>0?'up':i.v<0?'dn':'fl'}">${i.v>0?'▲':'▼'} ${Math.abs(i.v).toFixed(3)}</div>
     </div>`).join("")}</div>`;
 }
 
-// Cripto com Delay para evitar Erro API
-async function loadCrypto() {
-  const cryptos = [{s:"ETH/USD", n:"Ethereum"}, {s:"SOL/USD", n:"Solana"}];
-  let h = "";
-  for(const c of cryptos) {
-    await sleep(1200); // Pausa para não exceder limite da Twelve Data
-    try {
-      const r = await fetch(`https://api.twelvedata.com/quote?symbol=${c.s}&apikey=${CFG.TD}`);
-      const d = await r.json();
-      h += `<div class="ci"><span>${c.n}</span><b>${Number(d.close).toFixed(2)}$</b></div>`;
-    } catch(e) { h += `<div class="ci"><span>${c.n}</span><b>Erro</b></div>`; }
+// Fix Cripto: Carregamento Sequencial com Delay para evitar erro 429
+async function loadCrypto(){
+  $("crypto-body").innerHTML=`<div class="ld"><div class="spin"></div></div>`;
+  const list=[{s:"ETH/USD",n:"Ethereum"},{s:"SOL/USD",n:"Solana"},{s:"ADA/USD",n:"Cardano"}];
+  let html="";
+  for(const c of list){
+    await delay(1200); // Pausa obrigatória para a conta gratuita
+    try{
+      const r=await fetch(`https://api.twelvedata.com/quote?symbol=${c.s}&apikey=${CFG.TD}`);
+      const d=await r.json();
+      html+=`<div class="ci"><span>${c.n}</span><div style="text-align:right"><div style="font-weight:600">${Number(d.close).toFixed(2)}</div><div class="up" style="font-size:.6rem">+${Number(d.percent_change).toFixed(2)}%</div></div></div>`;
+    }catch(e){ html+=`<div class="ci"><span>${c.n}</span><span class="dn">Erro API</span></div>`; }
   }
-  $("crypto-body").innerHTML = h;
+  $("crypto-body").innerHTML=html;
 }
 
-// Calendário
-function renderCal() {
-  const evs = [
-    {d:"06 Mar", t:"BCE Juros", i:"h"}, {d:"12 Mar", t:"Inflação EUA", i:"h"},
-    {d:"15 Mar", t:"Confiança Consumidor", i:"m"}, {d:"20 Mar", t:"Reunião FED", i:"h"}
+// Fix Calendário: Sem limite de visualização
+function renderCal(){
+  const evs=[
+    {d:"06 MAR", t:"BCE: Decisão Taxa Juro", i:"h"}, {d:"12 MAR", t:"EUA: IPC (Inflação)", i:"h"},
+    {d:"15 MAR", t:"PT: Dados Desemprego", i:"m"}, {d:"20 MAR", t:"FED: Reunião FOMC", i:"h"}
   ];
-  $("cal-body").innerHTML = evs.map(e => `<div style="font-size:.75rem;margin-bottom:8px"><b>${e.d}:</b> ${e.t}</div>`).join("");
+  $("cal-body").innerHTML=evs.map(e=>`<div style="display:flex;gap:10px;margin-bottom:10px;background:var(--surface);padding:8px;border-radius:5px">
+    <div style="font-family:var(--mono);font-size:.6rem;color:var(--accent);width:45px">${e.d}</div>
+    <div style="font-size:.75rem">${e.t}</div>
+  </div>`).join("");
 }
 
-// Init
+// Init Global
 loadWeather(); loadNews(); loadFinance(); renderFuel(); loadCrypto(); renderCal();
 </script>
 </body>
