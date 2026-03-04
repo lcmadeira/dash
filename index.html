@@ -37,6 +37,7 @@
   --r:       10px;
   --rs:      7px;
 }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:15px}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -47,7 +48,7 @@ a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 button{font-family:var(--font);cursor:pointer}
 
-/* ── Layout ── */
+/* Layout */
 .wrap{max-width:1520px;margin:0 auto;padding:20px 16px 48px}
 .hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
 .brand{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1}
@@ -59,23 +60,18 @@ button{font-family:var(--font);cursor:pointer}
 .dot{width:5px;height:5px;border-radius:50%}
 .pill.ok{border-color:#34C97A33;color:var(--green);background:var(--gd)}
 .pill.ok .dot{background:var(--green);animation:blink 2s infinite}
-.pill.err{border-color:#EF575733;color:var(--red);background:var(--rd)}
-.pill.err .dot{background:var(--red)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* Grid */
 .grid{display:grid;grid-template-columns:280px 1fr 1fr;gap:12px;align-items:start}
 .s2{grid-column:span 2}
 .s3{grid-column:span 3}
 .r2{grid-row:span 2}
 
-/* Card */
 .card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
 .card:hover{border-color:var(--b2);background:var(--card-h)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .stripe{position:absolute;top:0;left:0;right:0;height:2px}
 
-/* Card header */
 .ch{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .ch-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .ch-lbl{font-size:.68rem;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--t2)}
@@ -84,14 +80,12 @@ button{font-family:var(--font);cursor:pointer}
 .rbtn{background:none;border:1px solid var(--b);border-radius:5px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s}
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
 
-/* Loader / Error */
 .ld{display:flex;align-items:center;justify-content:center;min-height:80px}
 .spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{font-size:.73rem;color:var(--red);font-family:var(--mono);padding:12px 0;line-height:1.6}
-.src{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:10px;padding-top:8px;border-top:1px solid var(--b);line-height:1.6}
 
-/* ── Weather ── */
+/* Meteorologia */
 .wx-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
 .wx-ico{font-size:3.5rem;line-height:1;filter:drop-shadow(0 2px 14px rgba(233,165,32,.35))}
 .wx-temp{font-size:3rem;font-weight:700;line-height:1;letter-spacing:-1px}
@@ -103,642 +97,344 @@ button{font-family:var(--font);cursor:pointer}
 .wx-sl{font-size:.6rem;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
 .wx-sv{font-size:.88rem;font-weight:600;color:var(--accent);margin-top:2px}
 
-/* ── Forecast strip ── */
-.fc-strip{display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:2px}
-.fc-item{flex:1;min-width:52px;background:rgba(233,165,32,.05);border:1px solid var(--b);border-radius:var(--rs);padding:7px 6px;text-align:center}
-.fc-day{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;margin-bottom:3px}
-.fc-ico{font-size:1.2rem;line-height:1;margin-bottom:3px}
-.fc-t{font-size:.75rem;font-weight:600}
-.fc-td{font-size:.68rem;color:var(--t2)}
-
-/* ── News ── */
-.news-wrap{max-height:290px;overflow-y:auto;padding-right:2px}
-.ni{padding:9px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:.15s}
-.ni:last-child{border-bottom:none;padding-bottom:0}
-.ni:hover .ni-title{color:var(--accent)}
-.ni-meta{display:flex;gap:6px;align-items:center;margin-bottom:3px}
-.ni-src{font-family:var(--mono);font-size:.57rem;color:var(--t3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
-.ni-tag{font-size:.54rem;padding:2px 5px;border-radius:3px;font-family:var(--mono);text-transform:uppercase;font-weight:500}
-.tpt{background:rgba(233,165,32,.12);color:var(--accent)}
-.twld{background:rgba(75,150,243,.12);color:var(--blue)}
-.ni-time{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-left:auto}
-.ni-title{font-size:.8rem;line-height:1.45;color:var(--text);transition:color .15s}
-
-/* ── Finance ── */
+/* Finanças */
 .fin-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;margin-bottom:12px}
-.ftab{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:border-color .15s,background .15s}
-.ftab:hover{border-color:var(--b2)}
+.ftab{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:all .15s}
 .ftab.on{border-color:var(--accent);background:var(--ad)}
-.ft-ticker{font-family:var(--mono);font-size:.57rem;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:1px}
-.ft-name{font-size:.67rem;color:var(--t2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ft-price{font-size:1.1rem;font-weight:700;letter-spacing:-.3px;line-height:1}
+.ft-ticker{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-bottom:1px}
+.ft-price{font-size:1.1rem;font-weight:700;line-height:1}
 .ft-chg{font-family:var(--mono);font-size:.6rem;margin-top:3px}
 
 .chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;height:240px;position:relative}
 .chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-.ch-name{font-size:.88rem;font-weight:600}
-.ch-price{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin-top:2px}
-.ch-pct{font-family:var(--mono);font-size:.62rem;margin-top:2px}
 .periods{display:flex;gap:4px}
-.pbtn{background:none;border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.6rem;color:var(--t3);transition:all .15s}
-.pbtn:hover,.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
-.chart-msg{text-align:center;padding:28px 16px;font-family:var(--mono);font-size:.7rem;color:var(--t3);line-height:1.8;display:none}
+.pbtn{background:none;border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.6rem;color:var(--t3)}
+.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
 
-/* ── Market Stats ── */
-.mstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.mstat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
-.mstat:hover{border-color:var(--b2)}
-.mstat-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.mstat-val{font-size:1.3rem;font-weight:700;letter-spacing:-.3px;line-height:1}
-.mstat-sub{font-size:.68rem;color:var(--t2);margin-top:3px}
-.mstat-chg{font-family:var(--mono);font-size:.6rem;margin-top:4px}
-
-/* ── Crypto ── */
-.crypto-list{display:flex;flex-direction:column;gap:7px}
-.ci{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;transition:border-color .15s}
-.ci:hover{border-color:var(--b2)}
-.ci-sym{font-family:var(--mono);font-size:.6rem;color:var(--t3);width:44px;flex-shrink:0;text-transform:uppercase}
-.ci-name{font-size:.75rem;color:var(--t2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-price{font-size:.9rem;font-weight:600;letter-spacing:-.2px;text-align:right;flex-shrink:0}
-.ci-chg{font-family:var(--mono);font-size:.6rem;text-align:right;flex-shrink:0;min-width:52px}
-
-/* ── Fuel ── */
-.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.fi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
-.fi:hover{border-color:var(--b2)}
-.fi-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
-.fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
-
-/* ── Electricity ── */
-.elec-top{display:flex;gap:8px;margin-bottom:12px}
-.ekpi{flex:1;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 11px}
-.ekpi-lbl{font-family:var(--mono);font-size:.57rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.ekpi-val{font-size:1.35rem;font-weight:700;letter-spacing:-.3px;line-height:1}
-.ekpi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
-.ekpi-chg{font-family:var(--mono);font-size:.6rem;margin-top:4px;display:flex;align-items:center;gap:2px}
-.bar-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
-.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.bar-rl{font-size:.68rem;color:var(--t2);width:62px;flex-shrink:0;font-weight:500}
-.bar-bg{flex:1;height:5px;background:var(--b);border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
-.bar-rv{font-family:var(--mono);font-size:.6rem;color:var(--t2);width:66px;text-align:right;flex-shrink:0}
-.ebadges{display:flex;gap:7px;margin-top:10px}
-.ebadge{flex:1;border-radius:var(--rs);padding:8px;text-align:center}
-.ebadge-val{font-size:1.2rem;font-weight:700;line-height:1}
-.ebadge-lbl{font-family:var(--mono);font-size:.57rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
-
-/* ── Calendar / Events ── */
-.ev-list{display:flex;flex-direction:column;gap:6px}
-.ev{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;transition:border-color .15s}
-.ev:hover{border-color:var(--b2)}
-.ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.ev-body{flex:1;min-width:0}
-.ev-title{font-size:.8rem;font-weight:500;line-height:1.35}
-.ev-meta{font-family:var(--mono);font-size:.58rem;color:var(--t3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
-.ev-imp{font-family:var(--mono);font-size:.55rem;padding:1px 6px;border-radius:3px;font-weight:500;flex-shrink:0;margin-top:2px}
-.imp-h{background:rgba(239,87,87,.15);color:var(--red)}
-.imp-m{background:rgba(233,165,32,.15);color:var(--accent)}
-.imp-l{background:rgba(52,201,122,.12);color:var(--green)}
-
-/* ── Notes ── */
-.notes-list{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;margin-bottom:10px;padding-right:2px}
-.note{display:flex;gap:9px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;align-items:flex-start;transition:border-color .15s}
-.note:hover{border-color:var(--b2)}
-.note-bar{width:3px;border-radius:2px;align-self:stretch;min-height:14px;flex-shrink:0}
-.note-body{flex:1;min-width:0}
-.note-txt{font-size:.8rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+/* Notas */
+.notes-list{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;margin-bottom:10px}
+.note{display:flex;gap:9px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;position:relative}
+.note-bar{width:3px;border-radius:2px;align-self:stretch}
+.note-txt{font-size:.8rem;line-height:1.5;white-space:pre-wrap}
 .note-ts{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:3px}
-.note-del{background:none;border:none;color:var(--t3);font-size:.7rem;padding:2px 4px;border-radius:4px;opacity:0;transition:all .15s;flex-shrink:0}
+.note-del{background:none;border:none;color:var(--t3);position:absolute;top:8px;right:8px;cursor:pointer;opacity:0;transition:.15s}
 .note:hover .note-del{opacity:1}
-.note-del:hover{color:var(--red);background:var(--rd)}
-.note-form{display:flex;flex-direction:column;gap:7px}
-textarea.nta{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:.8rem;resize:none;outline:none;width:100%;min-height:56px;transition:border-color .2s;line-height:1.5}
-textarea.nta:focus{border-color:var(--accent)}
-textarea.nta::placeholder{color:var(--t3)}
-.note-row{display:flex;align-items:center;gap:6px}
-.nc{width:14px;height:14px;border-radius:50%;border:2px solid transparent;transition:all .15s;flex-shrink:0}
-.nc.on{border-color:white;transform:scale(1.2)}
-.bsave{margin-left:auto;background:var(--accent);color:#07090E;border:none;border-radius:5px;padding:5px 15px;font-family:var(--font);font-size:.7rem;font-weight:600;letter-spacing:.2px;transition:opacity .15s}
-.bsave:hover{opacity:.85}
-.bsave:disabled{opacity:.3;cursor:not-allowed}
+textarea.nta{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;color:var(--text);width:100%;min-height:56px;resize:none;outline:none;font-family:inherit}
+.nc{width:14px;height:14px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.nc.on{border-color:white}
+.bsave{margin-left:auto;background:var(--accent);color:#07090E;border:none;padding:5px 15px;border-radius:5px;font-weight:600;font-size:.7rem}
 
-/* colour helpers */
+/* Helpers */
 .up{color:var(--green)}
 .dn{color:var(--red)}
 .fl{color:var(--t3)}
-
-/* Responsive */
-@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.s3{grid-column:span 2}.r2{grid-row:auto}}
-@media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
 </style>
 </head>
 <body>
+
 <div class="wrap">
-
-<header class="hdr">
-  <div>
-    <div class="brand">Painel Pessoal</div>
-    <div class="brand-sub">Dashboard · Portugal</div>
-  </div>
-  <div>
-    <div class="clk-time" id="clk"></div>
-    <div class="clk-date" id="clkd"></div>
-  </div>
-  <div class="pills" id="pills"></div>
-</header>
-
-<div class="grid">
-
-  <div class="card r2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🌡️</div>
-      <span class="ch-lbl">Meteorologia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div>
+  <header class="hdr">
+    <div>
+      <div class="brand">Painel Pessoal</div>
+      <div class="brand-sub">Dashboard · GitHub Pages</div>
     </div>
-    <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="card">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
-      <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt')">↺</button></div>
+    <div>
+      <div class="clk-time" id="clk">00:00:00</div>
+      <div class="clk-date" id="clkd">...</div>
     </div>
-    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
-  </div>
+    <div class="pills" id="pills"></div>
+  </header>
 
-  <div class="card">
-    <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--bd)">🌍</div>
-      <span class="ch-lbl">Notícias · Mundo</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('world')">↺</button></div>
-    </div>
-    <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="card">
-    <div class="stripe" style="background:var(--green)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--gd)">⛽</div>
-      <span class="ch-lbl">Combustíveis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderFuel()">↺</button></div>
-    </div>
-    <div id="fuel-body"></div>
-  </div>
-
-  <div class="card">
-    <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--bd)">⚡</div>
-      <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderElec()">↺</button></div>
-    </div>
-    <div id="elec-body"></div>
-  </div>
-
-  <div class="card s3">
-    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">📈</div>
-      <span class="ch-lbl">Mercados Financeiros</span>
-      <div class="ch-r">
-        <span class="badge" id="fin-st">a carregar…</span>
-        <button class="rbtn" onclick="loadAllQuotes()">↺</button>
+  <div class="grid">
+    <div class="card r2">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--ad)">🌡️</div>
+        <span class="ch-lbl">Meteorologia</span>
+        <div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div>
       </div>
+      <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
     </div>
-    <div class="fin-tabs" id="fin-tabs"></div>
-    <div class="chart-box">
-      <div class="chart-top">
-        <div>
-          <div class="ch-name" id="ch-name">—</div>
-          <div class="ch-price" id="ch-price">—</div>
-          <div class="ch-pct" id="ch-pct"></div>
-        </div>
-        <div class="periods">
-          <button class="pbtn" onclick="setPeriod('5D')">5D</button>
-          <button class="pbtn on" onclick="setPeriod('1M')">1M</button>
-          <button class="pbtn" onclick="setPeriod('3M')">3M</button>
-          <button class="pbtn" onclick="setPeriod('6M')">6M</button>
-          <button class="pbtn" onclick="setPeriod('1A')">1A</button>
+
+    <div class="card s2">
+      <div class="stripe" style="background:var(--blue)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--bd)">🌍</div>
+        <span class="ch-lbl">Notícias · Mundo</span>
+        <div class="ch-r"><button class="rbtn" onclick="loadNews()">↺</button></div>
+      </div>
+      <div id="news-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+
+    <div class="card s3">
+      <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue))"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--ad)">📈</div>
+        <span class="ch-lbl">Mercados Financeiros</span>
+        <div class="ch-r">
+          <span class="badge" id="fin-st">...</span>
+          <button class="rbtn" onclick="reloadFin()">↺</button>
         </div>
       </div>
-      <div class="chart-msg" id="chart-msg"></div>
-      <canvas id="fin-chart"></canvas>
+      <div class="fin-tabs" id="fin-tabs"></div>
+      <div class="chart-box">
+        <div class="chart-top">
+          <div>
+            <div id="ch-name" style="font-weight:600">--</div>
+            <div id="ch-price" style="font-size:1.5rem;font-weight:700">--</div>
+          </div>
+          <div class="periods">
+            <button class="pbtn" onclick="setPeriod('1M')">1M</button>
+            <button class="pbtn on" onclick="setPeriod('3M')">3M</button>
+            <button class="pbtn" onclick="setPeriod('1Y')">1Y</button>
+          </div>
+        </div>
+        <canvas id="fin-chart"></canvas>
+      </div>
     </div>
-    <div class="src">✦ Twelve Data API · CORS nativo · Rate limit: 8 req/min</div>
-  </div>
 
-  <div class="card">
-    <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--od)">₿</div>
-      <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto()">↺</button></div>
-    </div>
-    <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="card">
-    <div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--pd)">🔭</div>
-      <span class="ch-lbl">Indicadores</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats()">↺</button></div>
-    </div>
-    <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="card">
-    <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">📅</div>
-      <span class="ch-lbl">Calendário Económico</span>
-    </div>
-    <div id="cal-body"></div>
-  </div>
-
-  <div class="card s2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">📝</div>
-      <span class="ch-lbl">Notas Pessoais</span>
-      <div class="ch-r"><span class="badge" id="n-count">0 notas</span></div>
-    </div>
-    <div class="notes-list" id="notes-list"></div>
-    <div class="note-form">
-      <textarea class="nta" id="nta" placeholder="Escreve uma nota… (Ctrl+Enter para guardar)" rows="2"></textarea>
-      <div class="note-row">
-        <button class="nc on" style="background:#E9A520" data-c="amber" onclick="pickNc(this)"></button>
-        <button class="nc"    style="background:#4B96F3" data-c="blue"  onclick="pickNc(this)"></button>
-        <button class="nc"    style="background:#34C97A" data-c="green" onclick="pickNc(this)"></button>
-        <button class="nc"    style="background:#EF5757" data-c="red"   onclick="pickNc(this)"></button>
-        <button class="nc"    style="background:#9575F0" data-c="purple"onclick="pickNc(this)"></button>
-        <button class="bsave" id="bsave" onclick="addNote()" disabled>+ Guardar</button>
+    <div class="card s3">
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--ad)">📝</div>
+        <span class="ch-lbl">Notas</span>
+        <div class="ch-r"><span class="badge" id="n-count">0</span></div>
+      </div>
+      <div class="notes-list" id="notes-list"></div>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <textarea class="nta" id="nta" placeholder="Escreve algo..."></textarea>
+        <div style="display:flex; align-items:center; gap:8px">
+          <div class="nc on" style="background:var(--accent)" data-c="amber" onclick="pickNc(this)"></div>
+          <div class="nc" style="background:var(--blue)" data-c="blue" onclick="pickNc(this)"></div>
+          <div class="nc" style="background:var(--red)" data-c="red" onclick="pickNc(this)"></div>
+          <button class="bsave" id="bsave" onclick="addNote()" disabled>Guardar</button>
+        </div>
       </div>
     </div>
   </div>
-
-</div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
-   ▶▶ CONFIG
-══════════════════════════════════════════════════════ */
+/* CONFIGURAÇÃO */
 const CFG = {
-  OWM_KEY:  "629e7f02ba9f3025f188390200242378", 
-  TD_KEY:   "ac8049c9d6c34e40bf50b758be66c056",
-  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f", 
-  CITY:     "Évora",
+  OWM: "629e7f02ba9f3025f188390200242378",
+  TD: "ac8049c9d6c34e40bf50b758be66c056",
+  GNEWS: "37ba83efc653917c93a2669c49019c6f",
+  CITY: "Évora,PT"
 };
 
-/* ── Pills ── */
-const APIS = [{n:"OWM",k:CFG.OWM_KEY},{n:"TD",k:CFG.TD_KEY},{n:"GNEWS",k:CFG.GNEWS_KEY}];
-document.getElementById("pills").innerHTML = APIS.map(a => {
-  const ok = a.k && a.k.length > 10;
-  return `<span class="pill ${ok?"ok":"err"}"><span class="dot"></span>${a.n}</span>`;
-}).join("");
+const ASSETS = [
+  {id:"SPY", name:"S&P 500 ETF", sym:"SPY", color:"#4B96F3"},
+  {id:"BTC", name:"Bitcoin", sym:"BTC/USD", color:"#F97316"},
+  {id:"EDP", name:"EDP Portugal", sym:"EDP.LS", color:"#EF5757"},
+  {id:"EUR", name:"EUR/USD", sym:"EUR/USD", color:"#34C97A"}
+];
 
-/* ── Clock ── */
-function tick() {
+/* UTILS */
+const $ = id => document.getElementById(id);
+const fmt = (v, d=2) => Number(v).toLocaleString("pt-PT", {minimumFractionDigits:d, maximumFractionDigits:d});
+const NC_C = { amber: "#E9A520", blue: "#4B96F3", red: "#EF5757" };
+
+/* RELÓGIO */
+function updateClock() {
   const n = new Date();
-  document.getElementById("clk").textContent  = n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  document.getElementById("clkd").textContent = n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  $("clk").textContent = n.toLocaleTimeString("pt-PT");
+  $("clkd").textContent = n.toLocaleDateString("pt-PT", {weekday:'long', day:'numeric', month:'long'});
 }
-tick(); setInterval(tick,1000);
+setInterval(updateClock, 1000); updateClock();
 
-/* ── Utils ── */
-const $  = id => document.getElementById(id);
-const ld = () => `<div class="ld"><div class="spin"></div></div>`;
-const er = m  => `<p class="err">⚠ ${m}</p>`;
-
-function chg(v, d=2) {
-  if (v==null || isNaN(v)) return "";
-  const c=v>0?"up":v<0?"dn":"fl", s=v>0?"▲":v<0?"▼":"—";
-  return `<span class="${c}">${s} ${Math.abs(v).toFixed(d)}%</span>`;
-}
-function fmtP(v,d=2){ return Number(v).toLocaleString("pt-PT",{minimumFractionDigits:d,maximumFractionDigits:Math.max(d,4)}); }
-function ago(iso){
-  if(!iso) return "";
-  const m=Math.floor((Date.now()-new Date(iso))/60000);
-  if(m<1) return "agora"; if(m<60) return `há ${m}m`;
-  const h=Math.floor(m/60); return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;
-}
-const WX={thunderstorm:"⛈️",drizzle:"🌦️",rain:"🌧️",snow:"❄️",mist:"🌫️",fog:"🌫️",haze:"🌫️",clear:"☀️",clouds:"☁️"};
-const wxI=d=>{const l=(d||"").toLowerCase();for(const[k,v] of Object.entries(WX))if(l.includes(k))return v;return"🌤️"};
-const DIRS=["N","NE","E","SE","S","SW","W","NW"];
-const d2d=d=>DIRS[Math.round(d/45)%8];
-
-/* ── Proxy Fetch ── */
+/* PROXY FETCH */
 async function fetchP(url) {
-  // Simplificado para usar apenas corsproxy.io que é o mais estável para GitHub Pages
-  try {
-    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    if(!r.ok) throw new Error("Proxy error");
-    return await r.json();
-  } catch (e) {
-    const r = await fetch(url); // Fallback direto
-    return await r.json();
+  const proxies = [
+    u => u,
+    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`
+  ];
+  for (let p of proxies) {
+    try {
+      const res = await fetch(p(url));
+      const data = await res.json();
+      return data.contents ? JSON.parse(data.contents) : data;
+    } catch(e) {}
   }
 }
 
-/* ════════════════════════════════════════════════════
-   METEOROLOGIA
-════════════════════════════════════════════════════ */
+/* METEOROLOGIA */
 async function loadWeather() {
-  $("wx-body").innerHTML = ld();
   try {
-    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(CFG.CITY)},PT&appid=${CFG.OWM_KEY}&units=metric&lang=pt&cnt=40`;
-    const j = await fetchP(url);
-    const cur = j.list[0];
-    const d = {
-      temp:Math.round(cur.main.temp), feels:Math.round(cur.main.feels_like),
-      min:Math.round(cur.main.temp_min), max:Math.round(cur.main.temp_max),
-      hum:cur.main.humidity, wind:Math.round(cur.wind.speed*3.6),
-      dir:d2d(cur.wind.deg||0), desc:cur.weather[0].description,
-      ico:wxI(cur.weather[0].main), city:j.city.name,
-      pressure:cur.main.pressure, vis:cur.visibility?Math.round(cur.visibility/1000):null,
-    };
-    const days={}; j.list.forEach(e=>{const day=e.dt_txt.slice(0,10); if(!days[day]||e.dt_txt.includes("12:00")) days[day]=e;});
-    const fc=Object.entries(days).slice(0,5);
-    const dayNames=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-
+    const data = await fetchP(`https://api.openweathermap.org/data/2.5/weather?q=${CFG.CITY}&units=metric&lang=pt&appid=${CFG.OWM}`);
     $("wx-body").innerHTML = `
       <div class="wx-top">
-        <span class="wx-ico">${d.ico}</span>
+        <span class="wx-ico">☀️</span>
         <div>
-          <div class="wx-temp">${d.temp}<span class="wx-unit">°C</span></div>
-          <div class="wx-desc">${d.desc}</div>
-          <div class="wx-loc">${d.city} · PT</div>
+          <div class="wx-temp">${Math.round(data.main.temp)}<span class="wx-unit">°C</span></div>
+          <div class="wx-desc">${data.weather[0].description}</div>
+          <div class="wx-loc">${data.name}</div>
         </div>
       </div>
       <div class="wx-grid">
-        ${[["Sinto",`${d.feels}°C`],["Humid.",`${d.hum}%`],["Vento",`${d.wind}kmh ${d.dir}`],["Min/Máx",`${d.min}°/${d.max}°`]]
-          .map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
-      </div>
-      <div class="fc-strip">
-        ${fc.map(([dateStr,e])=>{
-          const dn=dayNames[new Date(dateStr).getDay()];
-          return `<div class="fc-item">
-            <div class="fc-day">${dn}</div>
-            <div class="fc-ico">${wxI(e.weather[0].main)}</div>
-            <div class="fc-t">${Math.round(e.main.temp_max)}°</div>
-          </div>`;
-        }).join("")}
+        <div class="wx-s"><div class="wx-sl">Humidade</div><div class="wx-sv">${data.main.humidity}%</div></div>
+        <div class="wx-s"><div class="wx-sl">Vento</div><div class="wx-sv">${Math.round(data.wind.speed*3.6)} km/h</div></div>
       </div>`;
-  } catch(e) { $("wx-body").innerHTML = er("Erro Weather"); }
+  } catch(e) { $("wx-body").innerHTML = `<p class="err">Erro ao carregar clima</p>`; }
 }
 
-/* ════════════════════════════════════════════════════
-   NOTÍCIAS
-════════════════════════════════════════════════════ */
-async function loadNews(scope) {
-  const el=$(scope==="pt"?"news-pt":"news-world");
-  el.innerHTML=ld();
+/* NOTÍCIAS */
+async function loadNews() {
   try {
-    const isPT = scope==="pt";
-    let url = isPT 
-      ? `https://gnews.io/api/v4/search?q=portugal&lang=pt&country=pt&max=6&apikey=${CFG.GNEWS_KEY}`
-      : `https://gnews.io/api/v4/top-headlines?topic=world&lang=en&max=6&apikey=${CFG.GNEWS_KEY}`;
-    
-    const j = await fetchP(url);
-    const arts = (j.articles || []).slice(0, 5);
-    el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
-      <div class="ni" onclick="window.open('${a.url}','_blank')">
-        <div class="ni-meta">
-          <span class="ni-src">${a.source.name}</span>
-          <span class="ni-time">${ago(a.publishedAt)}</span>
-        </div>
-        <div class="ni-title">${a.title}</div>
-      </div>`).join("")}</div>`;
-  } catch(e){ el.innerHTML=er("Erro Notícias"); }
+    const data = await fetchP(`https://gnews.io/api/v4/top-headlines?lang=pt&country=pt&max=5&apikey=${CFG.GNEWS}`);
+    $("news-body").innerHTML = data.articles.map(a => `
+      <div style="margin-bottom:10px; border-bottom:1px solid var(--b); padding-bottom:8px">
+        <a href="${a.url}" target="_blank" style="font-size:0.85rem; font-weight:500; display:block; margin-bottom:4px">${a.title}</a>
+        <span style="font-size:0.65rem; color:var(--t3)">${a.source.name}</span>
+      </div>`).join("");
+  } catch(e) { $("news-body").innerHTML = `<p class="err">Erro ao carregar notícias</p>`; }
 }
 
-/* ════════════════════════════════════════════════════
-   FINANÇAS (Otimizado Twelve Data)
-════════════════════════════════════════════════════ */
-const ASSETS = [
-  {id:"SPX",   name:"S&P 500",      sym:"SPY",       color:"#4B96F3"},
-  {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",       color:"#9575F0"},
-  {id:"PSI",   name:"PSI-20",       sym:"EDP.LS",    color:"#E9A520"},
-  {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD",   color:"#34C97A"}
-];
+/* FINANCEIRO (Batch e Memory Safe) */
+let quotes = {}, selA = ASSETS[0], selP = "3M", chartInst = null;
 
-let quotes={}, selA=ASSETS[0], selP="1M", chartInst=null;
-
-async function tdGet(endpoint, params) {
-  const qs = new URLSearchParams({...params, apikey:CFG.TD_KEY});
-  const r = await fetch(`https://api.twelvedata.com${endpoint}?${qs}`);
-  const j = await r.json();
-  if(j.status==="error") throw new Error(j.message);
-  return j;
-}
-
-// BATCH REQUEST: Carrega todos os preços de uma vez para poupar créditos
-async function loadAllQuotes() {
-  $("fin-st").textContent="A atualizar...";
+async function reloadFin() {
+  $("fin-st").textContent = "Carregando...";
   try {
-    const symbols = ASSETS.map(a => a.sym).join(",");
-    const j = await tdGet("/quote", { symbol: symbols });
+    // BATCH REQUEST: Pede todos os símbolos de uma vez (poupa créditos da API)
+    const syms = ASSETS.map(a => a.sym).join(",");
+    const data = await fetch(`https://api.twelvedata.com/quote?symbol=${syms}&apikey=${CFG.TD}`).then(r => r.json());
     
     ASSETS.forEach(a => {
-      const q = j[a.sym] || j; // Twelve data retorna objeto simples se for só 1 sym
-      quotes[a.id] = {
-        price: parseFloat(q.close || q.price || 0),
-        change: parseFloat(q.percent_change || 0)
-      };
+      const q = data[a.sym] || data; 
+      quotes[a.id] = { price: q.close || q.price, change: q.percent_change };
     });
     
     renderTabs();
-    updChartHdr();
-    if(!chartInst) loadChart();
-    $("fin-st").textContent="✓ Atualizado";
-  } catch(e) { 
-    $("fin-st").textContent="Erro API";
-    console.error(e);
-  }
+    loadChart();
+    $("fin-st").textContent = "OK";
+  } catch(e) { $("fin-st").textContent = "Erro API"; }
 }
 
-function renderTabs(){
-  $("fin-tabs").innerHTML=ASSETS.map(a=>{
-    const q=quotes[a.id], on=selA.id===a.id?"on":"";
-    return `<div class="ftab ${on}" onclick="selAsset('${a.id}')">
+function renderTabs() {
+  $("fin-tabs").innerHTML = ASSETS.map(a => {
+    const q = quotes[a.id];
+    const isUp = q?.change >= 0;
+    return `
+    <div class="ftab ${selA.id === a.id ? 'on' : ''}" onclick="selectAsset('${a.id}')">
       <div class="ft-ticker">${a.id}</div>
-      ${q?`<div class="ft-price" style="color:${a.color}">${fmtP(q.price)}</div>
-           <div class="ft-chg">${chg(q.change)}</div>`
-         :`<div class="ld" style="min-height:20px"><div class="spin" style="width:10px;height:10px"></div></div>`}
+      <div class="ft-price">${q ? fmt(q.price) : '--'}</div>
+      <div class="ft-chg ${isUp?'up':'dn'}">${q ? (isUp?'▲':'▼') + Math.abs(q.change).toFixed(2) + '%' : ''}</div>
     </div>`;
   }).join("");
 }
 
-function updChartHdr(){
-  const q=quotes[selA.id];
-  $("ch-name").textContent=selA.name;
-  $("ch-name").style.color=selA.color;
-  if(q){ $("ch-price").textContent=fmtP(q.price); $("ch-pct").innerHTML=chg(q.change); }
-}
-
-function selAsset(id){
-  selA=ASSETS.find(a=>a.id===id);
-  renderTabs(); updChartHdr(); loadChart();
-}
-
-function setPeriod(p){
-  selP=p;
-  document.querySelectorAll(".pbtn").forEach(b=>b.classList.toggle("on",b.textContent===p));
+function selectAsset(id) {
+  selA = ASSETS.find(a => a.id === id);
+  renderTabs();
   loadChart();
 }
 
-async function loadChart(){
-  const msg=$("chart-msg"), cv=$("fin-chart");
-  msg.style.display="none"; cv.style.display="block";
-  
-  // Destruir instância antiga para prevenir fuga de memória
-  if(chartInst) {
-    chartInst.destroy();
-    chartInst = null;
-  }
+function setPeriod(p) {
+  selP = p;
+  document.querySelectorAll(".pbtn").forEach(b => b.classList.toggle("on", b.textContent === p));
+  loadChart();
+}
+
+async function loadChart() {
+  const q = quotes[selA.id];
+  $("ch-name").textContent = selA.name;
+  $("ch-price").textContent = q ? fmt(q.price) : "--";
+
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
 
   try {
-    const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP];
-    const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out});
-    const pts=[...j.values].reverse();
-    const labels=pts.map(p=>p.datetime.slice(5));
-    const values=pts.map(p=>parseFloat(p.close));
+    const size = selP === "1M" ? 22 : selP === "3M" ? 64 : 250;
+    const data = await fetch(`https://api.twelvedata.com/time_series?symbol=${selA.sym}&interval=1day&outputsize=${size}&apikey=${CFG.TD}`).then(r => r.json());
     
-    const ctx=cv.getContext("2d");
+    const values = data.values.reverse();
+    const labels = values.map(v => v.datetime.slice(5));
+    const prices = values.map(v => parseFloat(v.close));
+
+    const ctx = $("fin-chart").getContext("2d");
     chartInst = new Chart(ctx, {
-      type:"line",
-      data:{
+      type: 'line',
+      data: {
         labels,
-        datasets:[{
-          data:values,
-          borderColor:selA.color,
-          borderWidth:2,
-          pointRadius:0,
-          tension:0.2,
+        datasets: [{
+          data: prices,
+          borderColor: selA.color,
+          borderWidth: 2,
+          pointRadius: 0,
           fill: true,
-          backgroundColor: selA.color + "10"
+          backgroundColor: selA.color + "10",
+          tension: 0.1
         }]
       },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false, // IMPORTANTE: Impede o crescimento infinito
-        plugins:{legend:{display:false}},
-        scales:{
-          x:{grid:{display:false},ticks:{color:"#3D4560",font:{size:9}}},
-          y:{grid:{color:"#181D30"},ticks:{color:"#3D4560",font:{size:9}}}
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // PREVINE EXPANSÃO INFINITA
+        plugins: { legend: { display: false } },
+        scales: { 
+          x: { display: false },
+          y: { grid: { color: "#181D30" }, ticks: { font: { size: 9 } } }
         }
       }
     });
-  } catch(e){
-    cv.style.display="none"; msg.style.display="block"; msg.textContent="Erro Gráfico";
+  } catch(e) {}
+}
+
+/* NOTAS */
+let notes = JSON.parse(localStorage.getItem("p_notes") || "[]"), ncol = "amber";
+
+function renderNotes() {
+  $("n-count").textContent = notes.length;
+  if (notes.length === 0) {
+    $("notes-list").innerHTML = `<p style="color:var(--t3); font-size:0.75rem; text-align:center; padding:20px">Sem notas.</p>`;
+    return;
   }
-}
-
-/* ════════════════════════════════════════════════════
-   OUTROS (Crypto, Stats, Fuel, Elec)
-════════════════════════════════════════════════════ */
-async function loadCrypto(){
-  $("crypto-body").innerHTML=ld();
-  try {
-    const j=await tdGet("/quote",{symbol:"BTC/USD,ETH/USD,SOL/USD"});
-    const list = ["BTC/USD","ETH/USD","SOL/USD"];
-    $("crypto-body").innerHTML=`<div class="crypto-list">${list.map(s=>{
-      const q=j[s]||j;
-      return `<div class="ci">
-        <span class="ci-sym">${s.split("/")[0]}</span>
-        <div class="ci-price">${fmtP(q.close,0)}</div>
-        <div class="ci-chg">${chg(parseFloat(q.percent_change))}</div>
-      </div>`;
-    }).join("")}</div>`;
-  } catch(e){ $("crypto-body").innerHTML=er("Erro Crypto"); }
-}
-
-async function loadMarketStats(){
-  $("mstats-body").innerHTML=ld();
-  try {
-    const j=await tdGet("/quote",{symbol:"VIX,XAU/USD"});
-    const vix = j["VIX"] || j;
-    const gold = j["XAU/USD"] || j;
-    $("mstats-body").innerHTML=`<div class="mstat-grid">
-      <div class="mstat"><div class="mstat-lbl">VIX</div><div class="mstat-val">${fmtP(vix.close)}</div></div>
-      <div class="mstat"><div class="mstat-lbl">OURO</div><div class="mstat-val">${fmtP(gold.close,0)}</div></div>
-    </div>`;
-  } catch(e){ $("mstats-body").innerHTML=er("Erro Stats"); }
-}
-
-function renderFuel(){
-  $("fuel-body").innerHTML=`<div class="fuel-grid">
-    <div class="fi"><div class="fi-lbl">G95</div><div class="fi-price">1.749</div><div class="fi-chg dn">▼ 0.012</div></div>
-    <div class="fi"><div class="fi-lbl">DSL</div><div class="fi-price">1.624</div><div class="fi-chg up">▲ 0.005</div></div>
-  </div>`;
-}
-
-function renderElec(){
-  $("elec-body").innerHTML=`<div class="ekpi">
-    <div class="ekpi-lbl">Preço Spot MIBEL</div>
-    <div class="ekpi-val">84.20 <span style="font-size:0.6rem">€/MWh</span></div>
-  </div>`;
-}
-
-const EVENTS = [
-  {title:"Decisão BCE Juros", date:"06 Mar", country:"🇪🇺", imp:"h"},
-  {title:"NFP Emprego EUA", date:"07 Mar", country:"🇺🇸", imp:"h"}
-];
-
-function renderCalendar(){
-  $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
-    <div class="ev">
-      <div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":"var(--accent)"}"></div>
-      <div class="ev-body">
-        <div class="ev-title">${e.country} ${e.title}</div>
-        <div class="ev-meta">${e.date}</div>
-      </div>
-    </div>`).join("")}</div>`;
-}
-
-/* ════════════════════════════════════════════════════
-   NOTAS
-════════════════════════════════════════════════════ */
-let ncol="amber", notes=JSON.parse(localStorage.getItem("notes_v5")||"[]");
-function saveNotes(){ localStorage.setItem("notes_v5",JSON.stringify(notes)); renderNotes(); }
-function renderNotes(){
-  $("n-count").textContent=notes.length;
-  $("notes-list").innerHTML=notes.map(n=>`
+  $("notes-list").innerHTML = notes.map(n => `
     <div class="note">
-      <div class="note-bar" style="background:${n.c}"></div>
+      <div class="note-bar" style="background:${NC_C[n.c]}"></div>
       <div class="note-body">
         <div class="note-txt">${n.t}</div>
+        <div class="note-ts">${n.d}</div>
       </div>
       <button class="note-del" onclick="delNote(${n.id})">✕</button>
     </div>`).join("");
 }
-function addNote(){
-  const ta=$("nta"),txt=ta.value.trim(); if(!txt) return;
-  notes.unshift({id:Date.now(),t:txt,c:ncol});
-  ta.value=""; $("bsave").disabled=true; saveNotes();
-}
-function delNote(id){ notes=notes.filter(n=>n.id!==id); saveNotes(); }
-function pickNc(btn){ ncol=btn.style.background; document.querySelectorAll(".nc").forEach(b=>b.classList.toggle("on",b===btn)); }
-$("nta").addEventListener("input",e=>{$("bsave").disabled=!e.target.value.trim()});
-renderNotes();
 
-/* ── Início ── */
+function addNote() {
+  const t = $("nta").value.trim();
+  if (!t) return;
+  notes.unshift({
+    id: Date.now(),
+    t,
+    c: ncol,
+    d: new Date().toLocaleString("pt-PT", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"})
+  });
+  $("nta").value = "";
+  $("bsave").disabled = true;
+  saveNotes();
+}
+
+function saveNotes() {
+  localStorage.setItem("p_notes", JSON.stringify(notes));
+  renderNotes();
+}
+
+function delNote(id) {
+  notes = notes.filter(n => n.id !== id);
+  saveNotes();
+}
+
+function pickNc(el) {
+  ncol = el.dataset.c;
+  document.querySelectorAll(".nc").forEach(b => b.classList.toggle("on", b === el));
+}
+
+$("nta").addEventListener("input", e => $("bsave").disabled = !e.target.value.trim());
+
+/* INIT */
 loadWeather();
-loadNews("pt");
-loadNews("world");
-loadAllQuotes();
-loadCrypto();
-loadMarketStats();
-renderFuel();
-renderElec();
-renderCalendar();
+loadNews();
+reloadFin();
+renderNotes();
 </script>
 </body>
 </html>
