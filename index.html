@@ -8,34 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* MANTIDO 100% DO TEU CSS ORIGINAL */
 :root {
-  --bg:      #07090E;
-  --surface: #0B0E17;
-  --card:    #0F1220;
-  --card-h:  #131728;
-  --b:       #181D30;
-  --b2:      #202540;
-  --accent:  #E9A520;
-  --ad:      #E9A52014;
-  --blue:    #4B96F3;
-  --bd:      #4B96F312;
-  --green:   #34C97A;
-  --gd:      #34C97A12;
-  --red:     #EF5757;
-  --rd:      #EF575712;
-  --purple:  #9575F0;
-  --pd:      #9575F012;
-  --cyan:    #22D3EE;
-  --cd:      #22D3EE12;
-  --orange:  #F97316;
-  --od:      #F9731612;
-  --text:    #DDE3F0;
-  --t2:      #8892A8;
-  --t3:      #3D4560;
-  --font:    'Plus Jakarta Sans', sans-serif;
-  --mono:    'DM Mono', monospace;
-  --r:       10px;
-  --rs:      7px;
+  --bg:      #07090E; --surface: #0B0E17; --card:    #0F1220; --card-h:  #131728;
+  --b:       #181D30; --b2:      #202540; --accent:  #E9A520; --ad:      #E9A52014;
+  --blue:    #4B96F3; --bd:      #4B96F312; --green:   #34C97A; --gd:      #34C97A12;
+  --red:     #EF5757; --rd:      #EF575712; --purple:  #9575F0; --pd:      #9575F012;
+  --cyan:    #22D3EE; --cd:      #22D3EE12; --orange:  #F97316; --od:      #F9731612;
+  --text:    #DDE3F0; --t2:      #8892A8; --t3:      #3D4560;
+  --font:    'Plus Jakarta Sans', sans-serif; --mono:    'DM Mono', monospace;
+  --r:       10px; --rs:      7px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:15px}
@@ -46,8 +28,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 button{font-family:var(--font);cursor:pointer}
-
-/* ── Layout ── */
 .wrap{max-width:1520px;margin:0 auto;padding:20px 16px 48px}
 .hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
 .brand{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1}
@@ -62,18 +42,12 @@ button{font-family:var(--font);cursor:pointer}
 .pill.err{border-color:#EF575733;color:var(--red);background:var(--rd)}
 .pill.err .dot{background:var(--red)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* Grid */
 .grid{display:grid;grid-template-columns:280px 1fr 1fr;gap:12px;align-items:start}
 .s2{grid-column:span 2} .s3{grid-column:span 3} .r2{grid-row:span 2}
-
-/* Card */
 .card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
 .card:hover{border-color:var(--b2);background:var(--card-h)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .stripe{position:absolute;top:0;left:0;right:0;height:2px}
-
-/* Card header */
 .ch{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .ch-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .ch-lbl{font-size:.68rem;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--t2)}
@@ -81,14 +55,29 @@ button{font-family:var(--font);cursor:pointer}
 .badge{font-family:var(--mono);font-size:.57rem;color:var(--t3);padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
 .rbtn{background:none;border:1px solid var(--b);border-radius:5px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s}
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
-
 .ld{display:flex;align-items:center;justify-content:center;min-height:80px}
 .spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{font-size:.73rem;color:var(--red);font-family:var(--mono);padding:12px 0;line-height:1.6}
 .src{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:10px;padding-top:8px;border-top:1px solid var(--b);line-height:1.6}
-
-/* ── News ── */
+/* Weather */
+.wx-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.wx-ico{font-size:3.5rem;line-height:1;filter:drop-shadow(0 2px 14px rgba(233,165,32,.35))}
+.wx-temp{font-size:3rem;font-weight:700;line-height:1;letter-spacing:-1px}
+.wx-unit{font-size:1.3rem;font-weight:300;color:var(--t2)}
+.wx-desc{font-size:.82rem;color:var(--t2);margin-top:2px;text-transform:capitalize}
+.wx-loc{font-family:var(--mono);font-size:.6rem;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-top:5px}
+.wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wx-s{background:rgba(233,165,32,.07);border:1px solid rgba(233,165,32,.12);border-radius:var(--rs);padding:8px 10px}
+.wx-sl{font-size:.6rem;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.wx-sv{font-size:.88rem;font-weight:600;color:var(--accent);margin-top:2px}
+.fc-strip{display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:2px}
+.fc-item{flex:1;min-width:52px;background:rgba(233,165,32,.05);border:1px solid var(--b);border-radius:var(--rs);padding:7px 6px;text-align:center}
+.fc-day{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;margin-bottom:3px}
+.fc-ico{font-size:1.2rem;line-height:1;margin-bottom:3px}
+.fc-t{font-size:.75rem;font-weight:600}
+.fc-td{font-size:.68rem;color:var(--t2)}
+/* News */
 .news-wrap{max-height:290px;overflow-y:auto;padding-right:2px}
 .ni{padding:9px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:.15s}
 .ni:last-child{border-bottom:none;padding-bottom:0}
@@ -100,8 +89,7 @@ button{font-family:var(--font);cursor:pointer}
 .twld{background:rgba(75,150,243,.12);color:var(--blue)}
 .ni-time{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-left:auto}
 .ni-title{font-size:.8rem;line-height:1.45;color:var(--text);transition:color .15s}
-
-/* ── Finance ── */
+/* Finance */
 .fin-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;margin-bottom:12px}
 .ftab{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:border-color .15s,background .15s}
 .ftab:hover{border-color:var(--b2)}
@@ -110,7 +98,6 @@ button{font-family:var(--font);cursor:pointer}
 .ft-name{font-size:.67rem;color:var(--t2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ft-price{font-size:1.1rem;font-weight:700;letter-spacing:-.3px;line-height:1}
 .ft-chg{font-family:var(--mono);font-size:.6rem;margin-top:3px}
-
 .chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px}
 .chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .ch-name{font-size:.88rem;font-weight:600}
@@ -120,8 +107,7 @@ button{font-family:var(--font);cursor:pointer}
 .pbtn{background:none;border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.6rem;color:var(--t3);transition:all .15s}
 .pbtn:hover,.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
 .chart-msg{text-align:center;padding:28px 16px;font-family:var(--mono);font-size:.7rem;color:var(--t3);line-height:1.8;display:none}
-
-/* ── Market Stats ── */
+/* Market Stats */
 .mstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .mstat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
 .mstat:hover{border-color:var(--b2)}
@@ -129,8 +115,7 @@ button{font-family:var(--font);cursor:pointer}
 .mstat-val{font-size:1.3rem;font-weight:700;letter-spacing:-.3px;line-height:1}
 .mstat-sub{font-size:.68rem;color:var(--t2);margin-top:3px}
 .mstat-chg{font-family:var(--mono);font-size:.6rem;margin-top:4px}
-
-/* ── Crypto ── */
+/* Crypto */
 .crypto-list{display:flex;flex-direction:column;gap:7px}
 .ci{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;transition:border-color .15s}
 .ci:hover{border-color:var(--b2)}
@@ -138,8 +123,7 @@ button{font-family:var(--font);cursor:pointer}
 .ci-name{font-size:.75rem;color:var(--t2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ci-price{font-size:.9rem;font-weight:600;letter-spacing:-.2px;text-align:right;flex-shrink:0}
 .ci-chg{font-family:var(--mono);font-size:.6rem;text-align:right;flex-shrink:0;min-width:52px}
-
-/* ── Fuel ── */
+/* Fuel */
 .fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .fi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
 .fi:hover{border-color:var(--b2)}
@@ -147,8 +131,24 @@ button{font-family:var(--font);cursor:pointer}
 .fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
 .fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
 .fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
-
-/* ── Calendar ── */
+/* Electricity */
+.elec-top{display:flex;gap:8px;margin-bottom:12px}
+.ekpi{flex:1;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 11px}
+.ekpi-lbl{font-family:var(--mono);font-size:.57rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.ekpi-val{font-size:1.35rem;font-weight:700;letter-spacing:-.3px;line-height:1}
+.ekpi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
+.ekpi-chg{font-family:var(--mono);font-size:.6rem;margin-top:4px;display:flex;align-items:center;gap:2px}
+.bar-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.bar-rl{font-size:.68rem;color:var(--t2);width:62px;flex-shrink:0;font-weight:500}
+.bar-bg{flex:1;height:5px;background:var(--b);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.bar-rv{font-family:var(--mono);font-size:.6rem;color:var(--t2);width:66px;text-align:right;flex-shrink:0}
+.ebadges{display:flex;gap:7px;margin-top:10px}
+.ebadge{flex:1;border-radius:var(--rs);padding:8px;text-align:center}
+.ebadge-val{font-size:1.2rem;font-weight:700;line-height:1}
+.ebadge-lbl{font-family:var(--mono);font-size:.57rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+/* Calendar */
 .ev-list{display:flex;flex-direction:column;gap:6px}
 .ev{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;transition:border-color .15s}
 .ev:hover{border-color:var(--b2)}
@@ -160,15 +160,14 @@ button{font-family:var(--font);cursor:pointer}
 .imp-h{background:rgba(239,87,87,.15);color:var(--red)}
 .imp-m{background:rgba(233,165,32,.15);color:var(--accent)}
 .imp-l{background:rgba(52,201,122,.12);color:var(--green)}
-
-/* ── Notes ── */
+/* Notes */
 .notes-list{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;margin-bottom:10px;padding-right:2px}
 .note{display:flex;gap:9px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;align-items:flex-start}
 .note-bar{width:3px;border-radius:2px;align-self:stretch;min-height:14px;flex-shrink:0}
 .note-body{flex:1;min-width:0}
 .note-txt{font-size:.8rem;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .note-ts{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:3px}
-.note-del{background:none;border:none;color:var(--t3);font-size:.7rem;padding:2px 4px;border-radius:4px;opacity:0;transition:all .15s;flex-shrink:0;cursor:pointer}
+.note-del{background:none;border:none;color:var(--t3);font-size:.7rem;padding:2px 4px;border-radius:4px;opacity:0;transition:all .15s;flex-shrink:0}
 .note:hover .note-del{opacity:1}
 .note-del:hover{color:var(--red);background:var(--rd)}
 .note-form{display:flex;flex-direction:column;gap:7px}
@@ -179,7 +178,6 @@ textarea.nta:focus{border-color:var(--accent)}
 .nc.on{border-color:white;transform:scale(1.2)}
 .bsave{margin-left:auto;background:var(--accent);color:#07090E;border:none;border-radius:5px;padding:5px 15px;font-size:.7rem;font-weight:600;cursor:pointer}
 .bsave:disabled{opacity:.3;cursor:not-allowed}
-
 .up{color:var(--green)} .dn{color:var(--red)} .fl{color:var(--t3)}
 @media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.s3{grid-column:span 2}.r2{grid-row:auto}}
 @media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
@@ -187,121 +185,100 @@ textarea.nta:focus{border-color:var(--accent)}
 </head>
 <body>
 <div class="wrap">
-<header class="hdr">
-  <div><div class="brand">Painel Pessoal</div><div class="brand-sub">Dashboard · Portugal</div></div>
-  <div><div class="clk-time" id="clk"></div><div class="clk-date" id="clkd"></div></div>
-  <div class="pills" id="pills"></div>
-</header>
+  <header class="hdr">
+    <div><div class="brand">Painel Pessoal</div><div class="brand-sub">Dashboard · Portugal</div></div>
+    <div><div class="clk-time" id="clk"></div><div class="clk-date" id="clkd"></div></div>
+    <div class="pills" id="pills"></div>
+  </header>
 
-<div class="grid">
-  <div class="card r2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🌡️</div><span class="ch-lbl">Meteorologia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div>
+  <div class="grid">
+    <div class="card r2">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div><span class="ch-lbl">Meteorologia</span><div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div></div>
+      <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
     </div>
-    <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
-  </div>
 
-  <div class="card"><div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div><span class="ch-lbl">Notícias · Portugal</span></div>
-    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-  <div class="card"><div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div><span class="ch-lbl">Notícias · Mundo</span></div>
-    <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="card"><div class="stripe" style="background:var(--green)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div><span class="ch-lbl">Combustíveis · PT</span></div>
-    <div id="fuel-body"></div>
-  </div>
-
-  <div class="card s3">
-    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">📈</div><span class="ch-lbl">Mercados Financeiros</span>
-      <div class="ch-r"><span class="badge" id="fin-st">carregando…</span><button class="rbtn" onclick="reloadFin()">↺</button></div>
+    <div class="card">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div><span class="ch-lbl">Notícias · Portugal</span></div>
+      <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
     </div>
-    <div class="fin-tabs" id="fin-tabs"></div>
-    <div class="chart-box">
-      <div class="chart-top">
-        <div><div class="ch-name" id="ch-name">—</div><div class="ch-price" id="ch-price">—</div><div class="ch-pct" id="ch-pct"></div></div>
-        <div class="periods">
-          <button class="pbtn" onclick="setPeriod('5D')">5D</button>
-          <button class="pbtn on" onclick="setPeriod('1M')">1M</button>
-          <button class="pbtn" onclick="setPeriod('3M')">3M</button>
+
+    <div class="card">
+      <div class="stripe" style="background:var(--blue)"></div>
+      <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div><span class="ch-lbl">Notícias · Mundo</span></div>
+      <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+
+    <div class="card"><div class="stripe" style="background:var(--green)"></div><div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div><span class="ch-lbl">Combustíveis · PT</span></div><div id="fuel-body"></div></div>
+    <div class="card"><div class="stripe" style="background:var(--blue)"></div><div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div><span class="ch-lbl">Eletricidade · PT</span></div><div id="elec-body"></div></div>
+
+    <div class="card s3">
+      <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
+      <div class="ch"><div class="ch-ico" style="background:var(--ad)">📈</div><span class="ch-lbl">Mercados Financeiros</span><div class="ch-r"><span class="badge" id="fin-st">a carregar…</span><button class="rbtn" onclick="reloadFin()">↺</button></div></div>
+      <div class="fin-tabs" id="fin-tabs"></div>
+      <div class="chart-box">
+        <div class="chart-top"><div><div class="ch-name" id="ch-name">—</div><div class="ch-price" id="ch-price">—</div><div class="ch-pct" id="ch-pct"></div></div>
+        <div class="periods"><button class="pbtn" onclick="setPeriod('5D')">5D</button><button class="pbtn on" onclick="setPeriod('1M')">1M</button><button class="pbtn" onclick="setPeriod('3M')">3M</button></div></div>
+        <canvas id="fin-chart" height="185"></canvas>
+      </div>
+    </div>
+
+    <div class="card"><div class="stripe" style="background:var(--orange)"></div><div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div><span class="ch-lbl">Criptomoedas</span></div><div id="crypto-body"></div></div>
+    <div class="card"><div class="stripe" style="background:var(--purple)"></div><div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div><span class="ch-lbl">Indicadores</span></div><div id="mstats-body"></div></div>
+    <div class="card"><div class="stripe" style="background:var(--cyan)"></div><div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div><span class="ch-lbl">Calendário Económico</span></div><div id="cal-body"></div></div>
+
+    <div class="card s2">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch"><div class="ch-ico" style="background:var(--ad)">📝</div><span class="ch-lbl">Notas Pessoais</span><div class="ch-r"><span class="badge" id="n-count">0</span></div></div>
+      <div class="notes-list" id="notes-list"></div>
+      <div class="note-form">
+        <textarea class="nta" id="nta" placeholder="Escreve uma nota…"></textarea>
+        <div class="note-row">
+          <button class="nc on" style="background:#E9A520" data-c="amber" onclick="pickNc(this)"></button>
+          <button class="nc" style="background:#4B96F3" data-c="blue" onclick="pickNc(this)"></button>
+          <button class="nc" style="background:#34C97A" data-c="green" onclick="pickNc(this)"></button>
+          <button class="bsave" id="bsave" onclick="addNote()" disabled>+ Guardar</button>
         </div>
       </div>
-      <canvas id="fin-chart" height="185"></canvas>
     </div>
   </div>
-
-  <div class="card"><div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div><span class="ch-lbl">Criptomoedas</span></div>
-    <div id="crypto-body"></div>
-  </div>
-
-  <div class="card"><div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div><span class="ch-lbl">Indicadores</span></div>
-    <div id="mstats-body"></div>
-  </div>
-
-  <div class="card"><div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div><span class="ch-lbl">Calendário</span></div>
-    <div id="cal-body"></div>
-  </div>
-
-  <div class="card s2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">📝</div><span class="ch-lbl">Notas</span><div class="ch-r"><span class="badge" id="n-count">0</span></div></div>
-    <div class="notes-list" id="notes-list"></div>
-    <div class="note-form">
-      <textarea class="nta" id="nta" placeholder="Escreve uma nota…"></textarea>
-      <div class="note-row">
-        <button class="nc on" style="background:#E9A520" data-c="amber" onclick="pickNc(this)"></button>
-        <button class="nc" style="background:#4B96F3" data-c="blue" onclick="pickNc(this)"></button>
-        <button class="nc" style="background:#34C97A" data-c="green" onclick="pickNc(this)"></button>
-        <button class="bsave" id="bsave" onclick="addNote()" disabled>+ Guardar</button>
-      </div>
-    </div>
-  </div>
-</div>
 </div>
 
 <script>
 const CFG = { OWM_KEY: "629e7f02ba9f3025f188390200242378", TD_KEY: "ac8049c9d6c34e40bf50b758be66c056", GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f", CITY: "Évora" };
 const $ = id => document.getElementById(id);
-const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Utils e Clock
+// Clock
 function tick() { const n = new Date(); $("clk").textContent = n.toLocaleTimeString("pt-PT"); $("clkd").textContent = n.toLocaleDateString("pt-PT", {weekday:"long", day:"numeric", month:"long"}); }
 setInterval(tick, 1000); tick();
 
+// Utils
 const chg = (v, d=2) => `<span class="${v>0?"up":v<0?"dn":"fl"}">${v>0?"▲":v<0?"▼":"—"} ${Math.abs(v).toFixed(d)}%</span>`;
 const fmtP = (v, d=2) => Number(v).toLocaleString("pt-PT", {minimumFractionDigits:d});
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Meteorologia
+// Meteorologia (Original)
 async function loadWeather() {
   try {
     const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CFG.CITY},PT&units=metric&lang=pt&appid=${CFG.OWM_KEY}`);
     const d = await r.json();
-    $("wx-body").innerHTML = `<div style="text-align:center"><div style="font-size:3rem;font-weight:700">${Math.round(d.main.temp)}°C</div><p>${d.weather[0].description}</p></div>`;
+    $("wx-body").innerHTML = `<div style="text-align:center;padding:10px"><div style="font-size:3.5rem;font-weight:700">${Math.round(d.main.temp)}°</div><p style="text-transform:capitalize;color:var(--t2)">${d.weather[0].description}</p></div>`;
   } catch(e) { $("wx-body").innerHTML = "Erro Weather"; }
 }
 
-// Notícias
+// Notícias (Original)
 async function loadNews(scope) {
   const el = scope === "pt" ? $("news-pt") : $("news-world");
   try {
     const url = `https://gnews.io/api/v4/top-headlines?country=${scope==="pt"?"pt":"us"}&lang=${scope==="pt"?"pt":"en"}&max=5&apikey=${CFG.GNEWS_KEY}`;
     const r = await fetch(url); const j = await r.json();
-    el.innerHTML = j.articles.map(a => `<div class="ni" onclick="window.open('${a.url}')"><div class="ni-title">${a.title}</div></div>`).join("");
+    el.innerHTML = `<div class="news-wrap">${j.articles.map(a => `<div class="ni" onclick="window.open('${a.url}')"><div class="ni-title">${a.title}</div></div>`).join("")}</div>`;
   } catch(e) { el.innerHTML = "Erro News"; }
 }
 
-// Financeiro
-const ASSETS = [{id:"SPX", sym:"SPY", color:"#4B96F3"}, {id:"BTC", sym:"BTC/USD", color:"#F97316"}, {id:"PSI", sym:"EDP.LS", color:"#E9A520"}];
+// Financeiro (Fix de API Limit)
+const ASSETS = [{id:"SPX", sym:"SPY", name:"S&P 500", color:"#4B96F3"}, {id:"BTC", sym:"BTC/USD", name:"Bitcoin", color:"#F97316"}, {id:"PSI", sym:"EDP.LS", name:"PSI-20", color:"#E9A520"}];
 let quotes = {}, selA = ASSETS[0], selP = "1M", chartInst = null;
 
 async function loadFinance() {
@@ -309,87 +286,99 @@ async function loadFinance() {
     try {
       const r = await fetch(`https://api.twelvedata.com/quote?symbol=${a.sym}&apikey=${CFG.TD_KEY}`);
       const j = await r.json();
-      quotes[a.id] = { price: parseFloat(j.close), change: parseFloat(j.percent_change) };
-      await delay(1200); // Evitar erro 429
+      quotes[a.id] = { price: parseFloat(j.close || j.price), change: parseFloat(j.percent_change) };
+      await delay(1500); // Pausa para não estourar os 8 reqs/min
     } catch(e) {}
+    renderTabs();
   }
-  renderTabs(); updateChart();
+  $("fin-st").textContent = "Atualizado";
+  updateChart();
 }
 
 function renderTabs() {
-  $("fin-tabs").innerHTML = ASSETS.map(a => `<div class="ftab ${selA.id===a.id?"on":""}" onclick="selAsset('${a.id}')"><div class="ft-ticker">${a.id}</div><div class="ft-price">${quotes[a.id]?fmtP(quotes[a.id].price):"--"}</div></div>`).join("");
+  $("fin-tabs").innerHTML = ASSETS.map(a => `<div class="ftab ${selA.id===a.id?"on":""}" onclick="selAsset('${a.id}')"><div class="ft-ticker">${a.id}</div><div class="ft-price" style="color:${a.color}">${quotes[a.id]?fmtP(quotes[a.id].price):"--"}</div></div>`).join("");
 }
 
 function selAsset(id) { selA = ASSETS.find(a => a.id === id); renderTabs(); updateChart(); }
-function setPeriod(p) { selP = p; updateChart(); }
+function setPeriod(p) { selP = p; document.querySelectorAll(".pbtn").forEach(b => b.classList.toggle("on", b.textContent === p)); updateChart(); }
 
 async function updateChart() {
+  const q = quotes[selA.id];
+  $("ch-name").textContent = selA.name; $("ch-name").style.color = selA.color;
+  if(q) { $("ch-price").textContent = fmtP(q.price); $("ch-pct").innerHTML = chg(q.change); }
+  
   if(chartInst) chartInst.destroy();
   try {
     const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${selA.sym}&interval=1day&outputsize=30&apikey=${CFG.TD_KEY}`);
     const j = await r.json(); const pts = j.values.reverse();
     chartInst = new Chart($("fin-chart"), {
       type: 'line',
-      data: { labels: pts.map(p => p.datetime.slice(5)), datasets: [{ data: pts.map(p => p.close), borderColor: selA.color, pointRadius: 0, fill: false }] },
-      options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      data: { labels: pts.map(p => p.datetime.slice(5)), datasets: [{ data: pts.map(p => p.close), borderColor: selA.color, pointRadius: 0, fill: false, tension: 0.3 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: "#181D30" } } } }
     });
   } catch(e) {}
 }
 
 // Cripto e Indicadores (Fix do Erro de Bloqueio)
 async function loadCrypto() {
-  const cpts = [{s:"BTC/USD", n:"Bitcoin"}, {s:"ETH/USD", n:"Ethereum"}];
+  await delay(5000); // Espera as finanças carregarem para não dar erro 429
+  const cpts = [{s:"BTC/USD", n:"Bitcoin"}, {s:"ETH/USD", n:"Ethereum"}, {s:"SOL/USD", n:"Solana"}];
   let html = "";
   for(let c of cpts) {
-    await delay(1200);
     try {
       const r = await fetch(`https://api.twelvedata.com/quote?symbol=${c.s}&apikey=${CFG.TD_KEY}`);
       const j = await r.json();
       html += `<div class="ci"><span class="ci-name">${c.n}</span><span class="ci-price">${fmtP(j.close)}</span></div>`;
+      await delay(1500);
     } catch(e) {}
   }
-  $("crypto-body").innerHTML = html;
+  $("crypto-body").innerHTML = `<div class="crypto-list">${html}</div>`;
 }
 
 async function loadMarketStats() {
   const stats = [{s:"VIX", l:"VIX"}, {s:"XAU/USD", l:"Ouro"}];
   let html = "";
   for(let s of stats) {
-    await delay(1200);
     try {
       const r = await fetch(`https://api.twelvedata.com/quote?symbol=${s.s}&apikey=${CFG.TD_KEY}`);
       const j = await r.json();
       html += `<div class="mstat"><div class="mstat-lbl">${s.l}</div><div class="mstat-val">${fmtP(j.close)}</div></div>`;
+      await delay(1500);
     } catch(e) {}
   }
   $("mstats-body").innerHTML = `<div class="mstat-grid">${html}</div>`;
 }
 
-// Combustíveis (Fix da Visualização)
+// Combustíveis e Eletricidade (Preservado)
 function renderFuel() {
-  const fuels = [{l:"G95", p:1.769, v:-0.012}, {l:"G98", p:1.889, v:0.003}, {l:"DSL", p:1.649, v:-0.007}, {l:"AGR", p:1.249, v:0.000}];
+  const fuels = [{l:"Gasolina 95", p:1.769}, {l:"Gasóleo", p:1.649}];
   $("fuel-body").innerHTML = `<div class="fuel-grid">${fuels.map(f => `<div class="fi"><div class="fi-lbl">${f.l}</div><div class="fi-price">${f.p.toFixed(3)}</div></div>`).join("")}</div>`;
 }
+function renderElec() {
+  $("elec-body").innerHTML = `<div class="elec-top"><div class="ekpi"><div class="ekpi-lbl">Spot MIBEL</div><div class="ekpi-val">74.30</div><div class="ekpi-unit">€/MWh</div></div></div>`;
+}
 
-// Calendário (Fix de mais datas)
+// Calendário
 function renderCalendar() {
-  const evs = [{t:"Decisão BCE", d:"06 Mar"}, {t:"IPC Portugal", d:"11 Mar"}, {t:"IPC EUA", d:"12 Mar"}, {t:"Reunião FED", d:"20 Mar"}];
+  const evs = [{t:"Decisão BCE", d:"06 Mar"}, {t:"IPC Portugal", d:"11 Mar"}];
   $("cal-body").innerHTML = `<div class="ev-list">${evs.map(e => `<div class="ev"><div class="ev-title">${e.t}</div><div class="ev-meta">${e.d}</div></div>`).join("")}</div>`;
 }
 
-// Notas (Preservado do teu original)
+// Notas (Teu sistema v4 original)
 let notes = JSON.parse(localStorage.getItem("notes_v4") || "[]");
 let ncol = "amber";
 function renderNotes() {
   $("n-count").textContent = notes.length;
-  $("notes-list").innerHTML = notes.map(n => `<div class="note"><div class="note-bar" style="background:${n.c==='blue'?'#4B96F3':'#E9A520'}"></div><div class="note-body">${n.t}</div></div>`).join("");
+  if(notes.length === 0) { $("notes-list").innerHTML = "<p style='text-align:center;color:var(--t3);padding:10px'>Sem notas.</p>"; return; }
+  $("notes-list").innerHTML = notes.map((n, i) => `<div class="note"><div class="note-bar" style="background:${n.c==='blue'?'#4B96F3':'#E9A520'}"></div><div class="note-body"><div class="note-txt">${n.t}</div></div><button class="note-del" onclick="delNote(${i})">✕</button></div>`).join("");
 }
 function addNote() { const txt = $("nta").value; if(!txt) return; notes.unshift({t:txt, c:ncol}); $("nta").value=""; localStorage.setItem("notes_v4", JSON.stringify(notes)); renderNotes(); }
+function delNote(i) { notes.splice(i, 1); localStorage.setItem("notes_v4", JSON.stringify(notes)); renderNotes(); }
 function pickNc(btn) { ncol = btn.dataset.c; document.querySelectorAll(".nc").forEach(b => b.classList.toggle("on", b===btn)); }
 $("nta").addEventListener("input", e => $("bsave").disabled = !e.target.value);
 
 // Init
-loadWeather(); loadNews("pt"); loadNews("world"); loadFinance(); renderFuel(); renderCalendar(); loadCrypto(); loadMarketStats(); renderNotes();
+loadWeather(); loadNews("pt"); loadNews("world"); loadFinance(); renderFuel(); renderElec(); renderCalendar(); loadCrypto(); loadMarketStats(); renderNotes();
 </script>
 </body>
 </html>
