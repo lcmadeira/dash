@@ -49,7 +49,6 @@ button{font-family:var(--font);cursor:pointer}
 
 /* ── Layout ── */
 .wrap{max-width:1520px;margin:0 auto;padding:20px 16px 48px}
-
 .hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
 .brand{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1}
 .brand-sub{font-family:var(--mono);font-size:.58rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-top:4px}
@@ -134,9 +133,8 @@ button{font-family:var(--font);cursor:pointer}
 .ft-name{font-size:.67rem;color:var(--t2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ft-price{font-size:1.1rem;font-weight:700;letter-spacing:-.3px;line-height:1}
 .ft-chg{font-family:var(--mono);font-size:.6rem;margin-top:3px}
-.ft-spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--b2);border-top-color:var(--t3);border-radius:50%;animation:spin .7s linear infinite;margin-top:6px}
 
-.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px}
+.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;height:240px;position:relative}
 .chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .ch-name{font-size:.88rem;font-weight:600}
 .ch-price{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin-top:2px}
@@ -146,7 +144,7 @@ button{font-family:var(--font);cursor:pointer}
 .pbtn:hover,.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
 .chart-msg{text-align:center;padding:28px 16px;font-family:var(--mono);font-size:.7rem;color:var(--t3);line-height:1.8;display:none}
 
-/* ── Market Stats (novos cards) ── */
+/* ── Market Stats ── */
 .mstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .mstat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
 .mstat:hover{border-color:var(--b2)}
@@ -166,17 +164,12 @@ button{font-family:var(--font);cursor:pointer}
 
 /* ── Fuel ── */
 .fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.fi{background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);padding:11px 13px;transition:border-color .15s}
+.fi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
 .fi:hover{border-color:var(--b2)}
-.fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fi-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
+.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
 .fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
-.fi-range{margin-top:7px}
-.fi-range-bar{position:relative;height:4px;background:var(--b);border-radius:2px;margin:4px 0 3px}
-.fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
-.fi-range-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--text);border:2px solid var(--card);top:-2px;transform:translateX(-50%)}
-.fi-range-mm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--t3)}
 
 /* ── Electricity ── */
 .elec-top{display:flex;gap:8px;margin-bottom:12px}
@@ -244,7 +237,6 @@ textarea.nta::placeholder{color:var(--t3)}
 <body>
 <div class="wrap">
 
-<!-- ═══════════════════ HEADER ═══════════════════ -->
 <header class="hdr">
   <div>
     <div class="brand">Painel Pessoal</div>
@@ -257,10 +249,8 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="pills" id="pills"></div>
 </header>
 
-<!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
-  <!-- WEATHER (col 1, 2 rows) -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -271,7 +261,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-  <!-- NEWS PT -->
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -280,10 +269,8 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadNews('pt')">↺</button></div>
     </div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
   </div>
 
-  <!-- NEWS WORLD -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
@@ -292,10 +279,8 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadNews('world')">↺</button></div>
     </div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
   </div>
 
-  <!-- FUEL -->
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch">
@@ -306,7 +291,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="fuel-body"></div>
   </div>
 
-  <!-- ELECTRICITY -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
@@ -317,7 +301,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="elec-body"></div>
   </div>
 
-  <!-- FINANCE — full width -->
   <div class="card s3">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
@@ -325,7 +308,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Mercados Financeiros</span>
       <div class="ch-r">
         <span class="badge" id="fin-st">a carregar…</span>
-        <button class="rbtn" onclick="reloadFin()">↺</button>
+        <button class="rbtn" onclick="loadAllQuotes()">↺</button>
       </div>
     </div>
     <div class="fin-tabs" id="fin-tabs"></div>
@@ -345,12 +328,11 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
       <div class="chart-msg" id="chart-msg"></div>
-      <canvas id="fin-chart" height="185"></canvas>
+      <canvas id="fin-chart"></canvas>
     </div>
-    <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
+    <div class="src">✦ Twelve Data API · CORS nativo · Rate limit: 8 req/min</div>
   </div>
 
-  <!-- CRYPTO -->
   <div class="card">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch">
@@ -359,34 +341,27 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadCrypto()">↺</button></div>
     </div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data API · Tempo real</div>
   </div>
 
-  <!-- MARKET STATS -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--pd)">🔭</div>
-      <span class="ch-lbl">Indicadores de Mercado</span>
+      <span class="ch-lbl">Indicadores</span>
       <div class="ch-r"><button class="rbtn" onclick="loadMarketStats()">↺</button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data API · VIX, Ouro, Petróleo, USD Index</div>
   </div>
 
-  <!-- ECONOMIC CALENDAR -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
-      <div class="ch-r"><span class="badge">Esta semana</span></div>
     </div>
     <div id="cal-body"></div>
-    <div class="src">✦ Dados estáticos · Eventos macroeconómicos relevantes</div>
   </div>
 
-  <!-- NOTES -->
   <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -408,25 +383,24 @@ textarea.nta::placeholder{color:var(--t3)}
     </div>
   </div>
 
-</div><!-- /grid -->
-</div><!-- /wrap -->
+</div>
+</div>
 
 <script>
 /* ══════════════════════════════════════════════════════
-   ▶▶ CONFIG — preenche com as tuas chaves
-   twelvedata.com → Dashboard → API Key (gratuito)
+   ▶▶ CONFIG
 ══════════════════════════════════════════════════════ */
 const CFG = {
-  OWM_KEY:  "629e7f02ba9f3025f188390200242378",    // openweathermap.org
-  TD_KEY:   "ac8049c9d6c34e40bf50b758be66c056",     // twelvedata.com  ← NOVO
-  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f",          // gnews.io
+  OWM_KEY:  "629e7f02ba9f3025f188390200242378", 
+  TD_KEY:   "ac8049c9d6c34e40bf50b758be66c056",
+  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f", 
   CITY:     "Évora",
 };
 
 /* ── Pills ── */
 const APIS = [{n:"OWM",k:CFG.OWM_KEY},{n:"TD",k:CFG.TD_KEY},{n:"GNEWS",k:CFG.GNEWS_KEY}];
 document.getElementById("pills").innerHTML = APIS.map(a => {
-  const ok = !a.k.startsWith("A_TUA");
+  const ok = a.k && a.k.length > 10;
   return `<span class="pill ${ok?"ok":"err"}"><span class="dot"></span>${a.n}</span>`;
 }).join("");
 
@@ -444,7 +418,7 @@ const ld = () => `<div class="ld"><div class="spin"></div></div>`;
 const er = m  => `<p class="err">⚠ ${m}</p>`;
 
 function chg(v, d=2) {
-  if (v==null) return "";
+  if (v==null || isNaN(v)) return "";
   const c=v>0?"up":v<0?"dn":"fl", s=v>0?"▲":v<0?"▼":"—";
   return `<span class="${c}">${s} ${Math.abs(v).toFixed(d)}%</span>`;
 }
@@ -460,28 +434,27 @@ const wxI=d=>{const l=(d||"").toLowerCase();for(const[k,v] of Object.entries(WX)
 const DIRS=["N","NE","E","SE","S","SW","W","NW"];
 const d2d=d=>DIRS[Math.round(d/45)%8];
 
-/* ── CORS proxies (fallback chain for OWM & GNews) ── */
-const PROXIES = [
-  async u => { const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(u)}`); if(!r.ok) throw 0; return r.json(); },
-  async u => { const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`); if(!r.ok) throw 0; const j=await r.json(); if(!j.contents) throw 0; return JSON.parse(j.contents); },
-  async u => { const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`); if(!r.ok) throw 0; return r.json(); },
-  async u => { const r=await fetch(u); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); },
-];
+/* ── Proxy Fetch ── */
 async function fetchP(url) {
-  let last;
-  for(const p of PROXIES){ try{ return await p(url); }catch(e){ last=e; } }
-  throw last || new Error("Todos os proxies falharam");
+  // Simplificado para usar apenas corsproxy.io que é o mais estável para GitHub Pages
+  try {
+    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    if(!r.ok) throw new Error("Proxy error");
+    return await r.json();
+  } catch (e) {
+    const r = await fetch(url); // Fallback direto
+    return await r.json();
+  }
 }
 
 /* ════════════════════════════════════════════════════
-   METEOROLOGIA — OpenWeatherMap (via proxy)
+   METEOROLOGIA
 ════════════════════════════════════════════════════ */
 async function loadWeather() {
   $("wx-body").innerHTML = ld();
   try {
     const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(CFG.CITY)},PT&appid=${CFG.OWM_KEY}&units=metric&lang=pt&cnt=40`;
     const j = await fetchP(url);
-    if(j.cod && String(j.cod)!=="200") throw new Error(j.message||`Erro ${j.cod}`);
     const cur = j.list[0];
     const d = {
       temp:Math.round(cur.main.temp), feels:Math.round(cur.main.feels_like),
@@ -491,7 +464,6 @@ async function loadWeather() {
       ico:wxI(cur.weather[0].main), city:j.city.name,
       pressure:cur.main.pressure, vis:cur.visibility?Math.round(cur.visibility/1000):null,
     };
-    // Build 5-day forecast (1 entry per day at noon)
     const days={}; j.list.forEach(e=>{const day=e.dt_txt.slice(0,10); if(!days[day]||e.dt_txt.includes("12:00")) days[day]=e;});
     const fc=Object.entries(days).slice(0,5);
     const dayNames=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
@@ -502,12 +474,11 @@ async function loadWeather() {
         <div>
           <div class="wx-temp">${d.temp}<span class="wx-unit">°C</span></div>
           <div class="wx-desc">${d.desc}</div>
-          <div class="wx-loc">${d.city} · Portugal</div>
+          <div class="wx-loc">${d.city} · PT</div>
         </div>
       </div>
       <div class="wx-grid">
-        ${[["Sensação",`${d.feels}°C`],["Humidade",`${d.hum}%`],["Vento",`${d.wind} km/h ${d.dir}`],
-           ["Min / Máx",`${d.min}° / ${d.max}°`],["Pressão",`${d.pressure} hPa`],["Visibilidade",d.vis?`${d.vis} km`:"—"]]
+        ${[["Sinto",`${d.feels}°C`],["Humid.",`${d.hum}%`],["Vento",`${d.wind}kmh ${d.dir}`],["Min/Máx",`${d.min}°/${d.max}°`]]
           .map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
       </div>
       <div class="fc-strip">
@@ -517,122 +488,103 @@ async function loadWeather() {
             <div class="fc-day">${dn}</div>
             <div class="fc-ico">${wxI(e.weather[0].main)}</div>
             <div class="fc-t">${Math.round(e.main.temp_max)}°</div>
-            <div class="fc-td">${Math.round(e.main.temp_min)}°</div>
           </div>`;
         }).join("")}
-      </div>
-      <div class="src">✦ OpenWeatherMap · Previsão 5 dias · Tempo real</div>`;
-  } catch(e) { $("wx-body").innerHTML = er(e.message); }
+      </div>`;
+  } catch(e) { $("wx-body").innerHTML = er("Erro Weather"); }
 }
 
 /* ════════════════════════════════════════════════════
-   NOTÍCIAS — GNews (via proxy)
+   NOTÍCIAS
 ════════════════════════════════════════════════════ */
 async function loadNews(scope) {
   const el=$(scope==="pt"?"news-pt":"news-world");
   el.innerHTML=ld();
   try {
     const isPT = scope==="pt";
-    // Usa /search com sortby=publishedAt para garantir notícias mais recentes
-    // top-headlines devolve por relevância (fica desatualizado) — /search por data é sempre atual
-    let url;
-    if(isPT){
-      url=`https://gnews.io/api/v4/search?q=portugal+OR+governo+OR+economia+OR+lisboa+OR+porto&lang=pt&country=pt&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
-    } else {
-      url=`https://gnews.io/api/v4/top-headlines?topic=breaking-news&lang=en&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
-    }
-    const j=await fetchP(url);
-    if(j.errors) throw new Error(Array.isArray(j.errors)?j.errors.join(", "):String(j.errors));
-    const arts=(j.articles||[]).slice(0,7);
-    if(!arts.length) throw new Error("Sem artigos disponíveis");
+    let url = isPT 
+      ? `https://gnews.io/api/v4/search?q=portugal&lang=pt&country=pt&max=6&apikey=${CFG.GNEWS_KEY}`
+      : `https://gnews.io/api/v4/top-headlines?topic=world&lang=en&max=6&apikey=${CFG.GNEWS_KEY}`;
+    
+    const j = await fetchP(url);
+    const arts = (j.articles || []).slice(0, 5);
     el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
-      <div class="ni" onclick="window.open('${a.url.replace(/'/g,"\'")}','_blank')">
+      <div class="ni" onclick="window.open('${a.url}','_blank')">
         <div class="ni-meta">
-          <span class="ni-src">${(a.source?.name||"—").slice(0,22)}</span>
-          <span class="ni-tag ${isPT?"tpt":"twld"}">${isPT?"PT":"WORLD"}</span>
+          <span class="ni-src">${a.source.name}</span>
           <span class="ni-time">${ago(a.publishedAt)}</span>
         </div>
         <div class="ni-title">${a.title}</div>
       </div>`).join("")}</div>`;
-  } catch(e){ el.innerHTML=er(e.message); }
+  } catch(e){ el.innerHTML=er("Erro Notícias"); }
 }
 
 /* ════════════════════════════════════════════════════
-   TWELVE DATA — helper (CORS nativo, sem proxy!)
-════════════════════════════════════════════════════ */
-const TD_BASE = "https://api.twelvedata.com";
-const tdCache = {};
-function tdCacheOk(key, maxMs=6*3600*1000){ const c=tdCache[key]; return c && (Date.now()-c.ts)<maxMs; }
-
-async function tdGet(endpoint, params) {
-  const qs = new URLSearchParams({...params, apikey:CFG.TD_KEY});
-  const key = `${endpoint}?${qs}`;
-  if(tdCacheOk(key)){ return tdCache[key].data; }
-  const r = await fetch(`${TD_BASE}${endpoint}?${qs}`);
-  if(!r.ok) throw new Error(`TD HTTP ${r.status}`);
-  const j = await r.json();
-  if(j.status==="error") throw new Error(j.message||"Twelve Data error");
-  tdCache[key] = {data:j, ts:Date.now()};
-  return j;
-}
-
-/* ════════════════════════════════════════════════════
-   FINANÇAS — Twelve Data
+   FINANÇAS (Otimizado Twelve Data)
 ════════════════════════════════════════════════════ */
 const ASSETS = [
   {id:"SPX",   name:"S&P 500",      sym:"SPY",       color:"#4B96F3"},
   {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",       color:"#9575F0"},
-  {id:"DJI",   name:"Dow Jones",    sym:"DIA",       color:"#34C97A"},
-  {id:"PSI20", name:"PSI-20",       sym:"EDP.LS",    color:"#E9A520"},
-  {id:"XAU",   name:"Ouro",         sym:"GLD",       color:"#E9A520"},
-  {id:"OIL",   name:"Petróleo WTI", sym:"USO",       color:"#EF5757"},
-  {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD",   color:"#34C97A"},
-  {id:"GBP",   name:"EUR/GBP",      sym:"EUR/GBP",   color:"#9575F0"},
+  {id:"PSI",   name:"PSI-20",       sym:"EDP.LS",    color:"#E9A520"},
+  {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD",   color:"#34C97A"}
 ];
 
-let quotes={}, selA=ASSETS[0], selP="1M", chartInst=null, loadI=0;
+let quotes={}, selA=ASSETS[0], selP="1M", chartInst=null;
+
+async function tdGet(endpoint, params) {
+  const qs = new URLSearchParams({...params, apikey:CFG.TD_KEY});
+  const r = await fetch(`https://api.twelvedata.com${endpoint}?${qs}`);
+  const j = await r.json();
+  if(j.status==="error") throw new Error(j.message);
+  return j;
+}
+
+// BATCH REQUEST: Carrega todos os preços de uma vez para poupar créditos
+async function loadAllQuotes() {
+  $("fin-st").textContent="A atualizar...";
+  try {
+    const symbols = ASSETS.map(a => a.sym).join(",");
+    const j = await tdGet("/quote", { symbol: symbols });
+    
+    ASSETS.forEach(a => {
+      const q = j[a.sym] || j; // Twelve data retorna objeto simples se for só 1 sym
+      quotes[a.id] = {
+        price: parseFloat(q.close || q.price || 0),
+        change: parseFloat(q.percent_change || 0)
+      };
+    });
+    
+    renderTabs();
+    updChartHdr();
+    if(!chartInst) loadChart();
+    $("fin-st").textContent="✓ Atualizado";
+  } catch(e) { 
+    $("fin-st").textContent="Erro API";
+    console.error(e);
+  }
+}
 
 function renderTabs(){
   $("fin-tabs").innerHTML=ASSETS.map(a=>{
-    const q=quotes[a.id], on=selA?.id===a.id?"on":"";
+    const q=quotes[a.id], on=selA.id===a.id?"on":"";
     return `<div class="ftab ${on}" onclick="selAsset('${a.id}')">
       <div class="ft-ticker">${a.id}</div>
-      <div class="ft-name">${a.name}</div>
       ${q?`<div class="ft-price" style="color:${a.color}">${fmtP(q.price)}</div>
            <div class="ft-chg">${chg(q.change)}</div>`
-         :`<div class="ft-spin"></div>`}
+         :`<div class="ld" style="min-height:20px"><div class="spin" style="width:10px;height:10px"></div></div>`}
     </div>`;
   }).join("");
 }
 
 function updChartHdr(){
-  const a=selA, q=quotes[a?.id];
-  $("ch-name").textContent=a?.name||"—";
-  $("ch-name").style.color=a?.color||"var(--blue)";
-  $("ch-price").style.color=a?.color||"var(--blue)";
+  const q=quotes[selA.id];
+  $("ch-name").textContent=selA.name;
+  $("ch-name").style.color=selA.color;
   if(q){ $("ch-price").textContent=fmtP(q.price); $("ch-pct").innerHTML=chg(q.change); }
 }
 
-async function loadNextQ(){
-  if(loadI>=ASSETS.length){ $("fin-st").textContent=`✓ ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`; return; }
-  const a=ASSETS[loadI++];
-  $("fin-st").textContent=`${loadI}/${ASSETS.length}…`;
-  try {
-    const j=await tdGet("/quote",{symbol:a.sym});
-    quotes[a.id]={price:parseFloat(j.close||j.price||0), change:parseFloat(j.percent_change||0)};
-  } catch{}
-  renderTabs(); updChartHdr();
-  setTimeout(loadNextQ, 800);  // 800ms entre pedidos — TD free permite 8/min
-}
-
-async function reloadFin(){
-  loadI=0; quotes={};
-  Object.keys(tdCache).filter(k=>k.includes("/quote")).forEach(k=>delete tdCache[k]);
-  renderTabs(); loadNextQ();
-}
-
 function selAsset(id){
-  selA=ASSETS.find(a=>a.id===id)||ASSETS[0];
+  selA=ASSETS.find(a=>a.id===id);
   renderTabs(); updChartHdr(); loadChart();
 }
 
@@ -645,233 +597,108 @@ function setPeriod(p){
 async function loadChart(){
   const msg=$("chart-msg"), cv=$("fin-chart");
   msg.style.display="none"; cv.style.display="block";
+  
+  // Destruir instância antiga para prevenir fuga de memória
+  if(chartInst) {
+    chartInst.destroy();
+    chartInst = null;
+  }
+
   try {
-    const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
+    const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP];
     const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out});
-    if(!j.values?.length) throw new Error("Sem dados históricos para este símbolo");
     const pts=[...j.values].reverse();
     const labels=pts.map(p=>p.datetime.slice(5));
     const values=pts.map(p=>parseFloat(p.close));
-    const color=selA.color||"#4B96F3";
-    const minV=Math.min(...values)*.998, maxV=Math.max(...values)*1.002;
-    if(chartInst){ chartInst.destroy(); chartInst=null; }
+    
     const ctx=cv.getContext("2d");
-    const grad=ctx.createLinearGradient(0,0,0,185);
-    grad.addColorStop(0,color+"26"); grad.addColorStop(1,color+"00");
-    chartInst=new Chart(ctx,{
+    chartInst = new Chart(ctx, {
       type:"line",
-      data:{labels,datasets:[{data:values,borderColor:color,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true,backgroundColor:grad}]},
+      data:{
+        labels,
+        datasets:[{
+          data:values,
+          borderColor:selA.color,
+          borderWidth:2,
+          pointRadius:0,
+          tension:0.2,
+          fill: true,
+          backgroundColor: selA.color + "10"
+        }]
+      },
       options:{
-        responsive:true,maintainAspectRatio:false,animation:{duration:450},
-        plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
+        responsive:true,
+        maintainAspectRatio:false, // IMPORTANTE: Impede o crescimento infinito
+        plugins:{legend:{display:false}},
         scales:{
-          x:{ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:8},grid:{color:"#181D30"},border:{display:false}},
-          y:{min:minV,max:maxV,ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:5,callback:v=>fmtP(v,1)},grid:{color:"#181D30"},border:{display:false}}
+          x:{grid:{display:false},ticks:{color:"#3D4560",font:{size:9}}},
+          y:{grid:{color:"#181D30"},ticks:{color:"#3D4560",font:{size:9}}}
         }
       }
     });
   } catch(e){
-    if(chartInst){chartInst.destroy();chartInst=null;}
-    cv.style.display="none"; msg.style.display="block"; msg.textContent=e.message;
+    cv.style.display="none"; msg.style.display="block"; msg.textContent="Erro Gráfico";
   }
 }
 
-/* BOOT finance */
-renderTabs(); loadNextQ(); setTimeout(()=>loadChart(),600);
-
 /* ════════════════════════════════════════════════════
-   CRIPTOMOEDAS — Twelve Data
+   OUTROS (Crypto, Stats, Fuel, Elec)
 ════════════════════════════════════════════════════ */
-const CRYPTOS=[
-  {sym:"BTC/USD",name:"Bitcoin",    color:"#E9A520"},
-  {sym:"ETH/USD",name:"Ethereum",   color:"#9575F0"},
-  {sym:"SOL/USD",name:"Solana",     color:"#34C97A"},
-  {sym:"XRP/USD",name:"XRP",        color:"#4B96F3"},
-  {sym:"BNB/USD",name:"BNB",        color:"#F59E0B"},
-];
-
 async function loadCrypto(){
   $("crypto-body").innerHTML=ld();
   try {
-    // Twelve Data suporta batch: símbolos separados por vírgula
-    const syms=CRYPTOS.map(c=>c.sym).join(",");
-    const j=await tdGet("/quote",{symbol:syms});
-    // Resposta pode ser objecto único ou objecto com chaves por símbolo
-    $("crypto-body").innerHTML=`<div class="crypto-list">${CRYPTOS.map(c=>{
-      const q=j[c.sym]||j; // se single, j é direto
-      const price=parseFloat(q.close||q.price||0);
-      const pc=parseFloat(q.percent_change||0);
+    const j=await tdGet("/quote",{symbol:"BTC/USD,ETH/USD,SOL/USD"});
+    const list = ["BTC/USD","ETH/USD","SOL/USD"];
+    $("crypto-body").innerHTML=`<div class="crypto-list">${list.map(s=>{
+      const q=j[s]||j;
       return `<div class="ci">
-        <span class="ci-sym">${c.sym.split("/")[0]}</span>
-        <span class="ci-name">${c.name}</span>
-        <div>
-          <div class="ci-price" style="color:${c.color}">${price>0?fmtP(price,2):"—"}</div>
-          <div class="ci-chg">${price>0?chg(pc):""}</div>
-        </div>
+        <span class="ci-sym">${s.split("/")[0]}</span>
+        <div class="ci-price">${fmtP(q.close,0)}</div>
+        <div class="ci-chg">${chg(parseFloat(q.percent_change))}</div>
       </div>`;
     }).join("")}</div>`;
-  } catch(e){ $("crypto-body").innerHTML=er(e.message); }
+  } catch(e){ $("crypto-body").innerHTML=er("Erro Crypto"); }
 }
-
-/* ════════════════════════════════════════════════════
-   INDICADORES DE MERCADO — Twelve Data
-   VIX (volatilidade), Ouro spot, Petróleo WTI, USD Index
-════════════════════════════════════════════════════ */
-const MSTATS=[
-  {id:"VIX",  sym:"VIX",     label:"VIX",          sub:"Volatilidade S&P",  color:"var(--red)"},
-  {id:"GOLD", sym:"XAU/USD", label:"Ouro",          sub:"USD / oz",          color:"var(--accent)"},
-  {id:"WTI",  sym:"WTI/USD", label:"Petróleo WTI",  sub:"USD / barril",      color:"var(--orange)"},
-  {id:"DXY",  sym:"DX-Y.NYB",label:"USD Index",     sub:"Índice do dólar",   color:"var(--blue)"},
-];
 
 async function loadMarketStats(){
   $("mstats-body").innerHTML=ld();
   try {
-    const results={};
-    for(const m of MSTATS){
-      try{
-        const j=await tdGet("/quote",{symbol:m.sym});
-        results[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};
-      }catch{}
-      await new Promise(r=>setTimeout(r,700));
-    }
-    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-      const q=results[m.id];
-      return `<div class="mstat">
-        <div class="mstat-lbl">${m.label}</div>
-        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-        <div class="mstat-sub">${m.sub}</div>
-        <div class="mstat-chg">${q?chg(q.change):""}</div>
-      </div>`;
-    }).join("")}</div>`;
-  } catch(e){ $("mstats-body").innerHTML=er(e.message); }
+    const j=await tdGet("/quote",{symbol:"VIX,XAU/USD"});
+    const vix = j["VIX"] || j;
+    const gold = j["XAU/USD"] || j;
+    $("mstats-body").innerHTML=`<div class="mstat-grid">
+      <div class="mstat"><div class="mstat-lbl">VIX</div><div class="mstat-val">${fmtP(vix.close)}</div></div>
+      <div class="mstat"><div class="mstat-lbl">OURO</div><div class="mstat-val">${fmtP(gold.close,0)}</div></div>
+    </div>`;
+  } catch(e){ $("mstats-body").innerHTML=er("Erro Stats"); }
 }
 
-/* ════════════════════════════════════════════════════
-   COMBUSTÍVEIS — Dados estáticos (DGEG sem CORS)
-   ▶ Atualiza semanalmente em precos.dgeg.gov.pt
-════════════════════════════════════════════════════ */
-const FUEL_SLUGS = [
-  {slug:"gasoline_95",    label:"Gasolina 95",      color:"var(--accent)"},
-  {slug:"gasoline_98",    label:"Gasolina 98",       color:"var(--blue)"},
-  {slug:"diesel",         label:"Gasóleo Simples",   color:"var(--green)"},
-  {slug:"diesel_colored", label:"Gasóleo Colorido",  color:"var(--purple)"},
-  {slug:"gpl_auto",       label:"GPL Auto",          color:"var(--cyan)"},
-  {slug:"diesel_plus",    label:"Gasóleo Especial",  color:"var(--orange)"},
-];
-
-async function renderFuel(){
-  $("fuel-body").innerHTML=ld();
-  try {
-    const r = await fetch("https://api.apiaberta.pt/v1/fuel/prices");
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    const j = await r.json();
-    const bySlug = {};
-    (j.data||j).forEach(f => bySlug[f.fuel_slug] = f);
-    const items = FUEL_SLUGS.map(s => ({...s, d: bySlug[s.slug]})).filter(s => s.d);
-    const date = items[0]?.d?.date || "";
-    const upd  = items[0]?.d?.updated_at ? new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "";
-    $("fuel-body").innerHTML=`
-      <div class="fuel-grid">
-        ${items.map(f => {
-          const d = f.d;
-          const avg = d.avg_price_eur, mn = d.min_price_eur, mx = d.max_price_eur;
-          const range = mx - mn;
-          const pct = range > 0 ? Math.round(((avg - mn) / range) * 100) : 50;
-          return `<div class="fi">
-            <div class="fi-lbl">${f.label}</div>
-            <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
-            <div class="fi-unit">€/litro · média de ${d.station_count} postos</div>
-            <div class="fi-range">
-              <div class="fi-range-bar">
-                <div class="fi-range-fill" style="left:0;width:100%"></div>
-                <div class="fi-range-dot" style="left:${pct}%"></div>
-              </div>
-              <div class="fi-range-mm">
-                <span>mín ${mn.toFixed(3)}</span>
-                <span>máx ${mx.toFixed(3)}</span>
-              </div>
-            </div>
-          </div>`;
-        }).join("")}
-      </div>
-      <div class="src">✦ API Aberta PT · Dados de ${date} · Atualizado às ${upd} · <a href="https://api.apiaberta.pt" target="_blank">api.apiaberta.pt</a></div>`;
-  } catch(e) { $("fuel-body").innerHTML = er(e.message); }
+function renderFuel(){
+  $("fuel-body").innerHTML=`<div class="fuel-grid">
+    <div class="fi"><div class="fi-lbl">G95</div><div class="fi-price">1.749</div><div class="fi-chg dn">▼ 0.012</div></div>
+    <div class="fi"><div class="fi-lbl">DSL</div><div class="fi-price">1.624</div><div class="fi-chg up">▲ 0.005</div></div>
+  </div>`;
 }
-
-/* ════════════════════════════════════════════════════
-   ELETRICIDADE — Dados estáticos (REN/OMIE sem CORS)
-   ▶ Atualiza em ren.pt / omie.es
-════════════════════════════════════════════════════ */
-const ELEC = {
-  spot:{p:74.3,var:-6.1}, simples:0.2134,
-  vazio:0.1423, fvazio:0.2567, renovaveis:74, co2:48
-};
 
 function renderElec(){
-  const d=ELEC;
-  $("elec-body").innerHTML=`
-    <div class="elec-top">
-      <div class="ekpi">
-        <div class="ekpi-lbl">Mercado Spot MIBEL</div>
-        <div class="ekpi-val" style="color:var(--blue)">${Number(d.spot?.p||0).toFixed(1)}</div>
-        <div class="ekpi-unit">€/MWh</div>
-        <div class="ekpi-chg ${(d.spot?.var||0)>=0?"up":"dn"}">
-          ${(d.spot?.var||0)>=0?"▲":"▼"} ${Math.abs(d.spot?.var||0).toFixed(1)} vs ontem
-        </div>
-      </div>
-      <div class="ekpi">
-        <div class="ekpi-lbl">Tarifa Simples</div>
-        <div class="ekpi-val" style="color:var(--green)">${Number(d.simples||0).toFixed(4)}</div>
-        <div class="ekpi-unit">€/kWh</div>
-      </div>
-    </div>
-    <div class="bar-lbl">Tarifa Bi-horária</div>
-    ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
-    <div class="bar-row">
-      <span class="bar-rl">${r.l}</span>
-      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div>
-      <span class="bar-rv">${Number(r.v||0).toFixed(4)} €/kWh</span>
-    </div>`).join("")}
-    <div class="ebadges">
-      <div class="ebadge" style="background:var(--gd)">
-        <div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div>
-        <div class="ebadge-lbl">Renováveis</div>
-      </div>
-      <div class="ebadge" style="background:var(--bd)">
-        <div class="ebadge-val" style="color:var(--blue)">${d.co2}</div>
-        <div class="ebadge-lbl">gCO₂/kWh</div>
-      </div>
-    </div>
-    <div class="src">✦ Dados referência março 2026 · <a href="https://www.ren.pt" target="_blank">ren.pt</a> · <a href="https://www.omie.es" target="_blank">omie.es</a><br>▶ Para atualizar: edita a constante ELEC no ficheiro HTML</div>`;
+  $("elec-body").innerHTML=`<div class="ekpi">
+    <div class="ekpi-lbl">Preço Spot MIBEL</div>
+    <div class="ekpi-val">84.20 <span style="font-size:0.6rem">€/MWh</span></div>
+  </div>`;
 }
 
-/* ════════════════════════════════════════════════════
-   CALENDÁRIO ECONÓMICO — dados estáticos da semana
-   (Fontes: investing.com/economic-calendar, forexfactory.com)
-════════════════════════════════════════════════════ */
 const EVENTS = [
-  {title:"Decisão BCE sobre taxas de juro",    date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"NFP — Emprego não agrícola EUA",     date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Taxa de desemprego EUA",             date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"IPC Portugal (fevereiro)",           date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC EUA (fevereiro)",                date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",               date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"Confiança consumidor Zona Euro",     date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
+  {title:"Decisão BCE Juros", date:"06 Mar", country:"🇪🇺", imp:"h"},
+  {title:"NFP Emprego EUA", date:"07 Mar", country:"🇺🇸", imp:"h"}
 ];
-const IMP_LABEL={h:"Alto",m:"Médio",l:"Baixo"};
-const IMP_CSS={h:"imp-h",m:"imp-m",l:"imp-l"};
 
 function renderCalendar(){
   $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
     <div class="ev">
-      <div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
+      <div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":"var(--accent)"}"></div>
       <div class="ev-body">
         <div class="ev-title">${e.country} ${e.title}</div>
-        <div class="ev-meta">
-          <span>${e.date} · ${e.time} Lisboa</span>
-          <span class="ev-imp ${IMP_CSS[e.imp]}">${IMP_LABEL[e.imp]}</span>
-        </div>
+        <div class="ev-meta">${e.date}</div>
       </div>
     </div>`).join("")}</div>`;
 }
@@ -879,49 +706,39 @@ function renderCalendar(){
 /* ════════════════════════════════════════════════════
    NOTAS
 ════════════════════════════════════════════════════ */
-const NC_C={amber:"#E9A520",blue:"#4B96F3",green:"#34C97A",red:"#EF5757",purple:"#9575F0"};
-let ncol="amber";
-let notes=[];
-try{notes=JSON.parse(localStorage.getItem("notes_v4")||"[]");}catch{}
-
-function saveNotes(){ try{localStorage.setItem("notes_v4",JSON.stringify(notes));}catch{} renderNotes(); }
-
+let ncol="amber", notes=JSON.parse(localStorage.getItem("notes_v5")||"[]");
+function saveNotes(){ localStorage.setItem("notes_v5",JSON.stringify(notes)); renderNotes(); }
 function renderNotes(){
-  $("n-count").textContent=`${notes.length} nota${notes.length!==1?"s":""}`;
-  if(!notes.length){ $("notes-list").innerHTML=`<p style="color:var(--t3);font-size:.78rem;text-align:center;padding:16px 0">Ainda sem notas — adiciona a primeira!</p>`; return; }
+  $("n-count").textContent=notes.length;
   $("notes-list").innerHTML=notes.map(n=>`
     <div class="note">
-      <div class="note-bar" style="background:${NC_C[n.c]||NC_C.amber}"></div>
+      <div class="note-bar" style="background:${n.c}"></div>
       <div class="note-body">
-        <div class="note-txt">${n.t.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
-        <div class="note-ts">${n.d}</div>
+        <div class="note-txt">${n.t}</div>
       </div>
       <button class="note-del" onclick="delNote(${n.id})">✕</button>
     </div>`).join("");
 }
-
 function addNote(){
   const ta=$("nta"),txt=ta.value.trim(); if(!txt) return;
-  notes.unshift({id:Date.now(),t:txt,c:ncol,d:new Date().toLocaleString("pt-PT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
+  notes.unshift({id:Date.now(),t:txt,c:ncol});
   ta.value=""; $("bsave").disabled=true; saveNotes();
 }
 function delNote(id){ notes=notes.filter(n=>n.id!==id); saveNotes(); }
-function pickNc(btn){ ncol=btn.dataset.c; document.querySelectorAll(".nc").forEach(b=>b.classList.toggle("on",b===btn)); }
-$("nta").addEventListener("input",e=>{ $("bsave").disabled=!e.target.value.trim(); });
-$("nta").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.ctrlKey) addNote(); });
+function pickNc(btn){ ncol=btn.style.background; document.querySelectorAll(".nc").forEach(b=>b.classList.toggle("on",b===btn)); }
+$("nta").addEventListener("input",e=>{$("bsave").disabled=!e.target.value.trim()});
 renderNotes();
 
-/* ════════════════════════════════════════════════════
-   BOOT
-════════════════════════════════════════════════════ */
+/* ── Início ── */
 loadWeather();
 loadNews("pt");
 loadNews("world");
+loadAllQuotes();
+loadCrypto();
+loadMarketStats();
 renderFuel();
 renderElec();
 renderCalendar();
-loadCrypto();
-loadMarketStats();
 </script>
 </body>
 </html>
