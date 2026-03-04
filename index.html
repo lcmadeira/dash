@@ -166,12 +166,17 @@ button{font-family:var(--font);cursor:pointer}
 
 /* ── Fuel ── */
 .fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.fi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
+.fi{background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);padding:11px 13px;transition:border-color .15s}
 .fi:hover{border-color:var(--b2)}
-.fi-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
+.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
 .fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
+.fi-range{margin-top:7px}
+.fi-range-bar{position:relative;height:4px;background:var(--b);border-radius:2px;margin:4px 0 3px}
+.fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
+.fi-range-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--text);border:2px solid var(--card);top:-2px;transform:translateX(-50%)}
+.fi-range-mm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--t3)}
 
 /* ── Electricity ── */
 .elec-top{display:flex;gap:8px;margin-bottom:12px}
@@ -746,32 +751,52 @@ async function loadMarketStats(){
    COMBUSTÍVEIS — Dados estáticos (DGEG sem CORS)
    ▶ Atualiza semanalmente em precos.dgeg.gov.pt
 ════════════════════════════════════════════════════ */
-const FUEL = {
-  g95:{p:1.769,v:-0.012}, g98:{p:1.889,v:0.003},
-  gsl:{p:1.649,v:-0.007}, gslc:{p:1.249,v:0.000},
-  ref:"DGEG · semana 09/2026"
-};
+const FUEL_SLUGS = [
+  {slug:"gasoline_95",    label:"Gasolina 95",      color:"var(--accent)"},
+  {slug:"gasoline_98",    label:"Gasolina 98",       color:"var(--blue)"},
+  {slug:"diesel",         label:"Gasóleo Simples",   color:"var(--green)"},
+  {slug:"diesel_colored", label:"Gasóleo Colorido",  color:"var(--purple)"},
+  {slug:"gpl_auto",       label:"GPL Auto",          color:"var(--cyan)"},
+  {slug:"diesel_plus",    label:"Gasóleo Especial",  color:"var(--orange)"},
+];
 
-function renderFuel(){
-  const fuels=[
-    {k:"g95", l:"Gasolina 95",      c:"var(--accent)"},
-    {k:"g98", l:"Gasolina 98",      c:"var(--blue)"},
-    {k:"gsl", l:"Gasóleo",          c:"var(--green)"},
-    {k:"gslc",l:"Gasóleo Colorido", c:"var(--purple)"},
-  ];
-  $("fuel-body").innerHTML=`
-    <div class="fuel-grid">
-      ${fuels.map(f=>{const i=FUEL[f.k];if(!i)return"";return`
-        <div class="fi">
-          <div class="fi-lbl">${f.l}</div>
-          <div class="fi-price" style="color:${f.c}">${Number(i.p).toFixed(3)}</div>
-          <div class="fi-unit">€ / litro</div>
-          <div class="fi-chg ${i.v>0?"up":i.v<0?"dn":"fl"}">
-            ${i.v>0?"▲":i.v<0?"▼":"—"} ${Math.abs(i.v).toFixed(3)}€
-          </div>
-        </div>`;}).join("")}
-    </div>
-    <div class="src">✦ ${FUEL.ref} · <a href="https://precos.dgeg.gov.pt" target="_blank">precos.dgeg.gov.pt</a><br>▶ Para atualizar: edita a constante FUEL no ficheiro HTML</div>`;
+async function renderFuel(){
+  $("fuel-body").innerHTML=ld();
+  try {
+    const r = await fetch("https://api.apiaberta.pt/v1/fuel/prices");
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    const bySlug = {};
+    (j.data||j).forEach(f => bySlug[f.fuel_slug] = f);
+    const items = FUEL_SLUGS.map(s => ({...s, d: bySlug[s.slug]})).filter(s => s.d);
+    const date = items[0]?.d?.date || "";
+    const upd  = items[0]?.d?.updated_at ? new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "";
+    $("fuel-body").innerHTML=`
+      <div class="fuel-grid">
+        ${items.map(f => {
+          const d = f.d;
+          const avg = d.avg_price_eur, mn = d.min_price_eur, mx = d.max_price_eur;
+          const range = mx - mn;
+          const pct = range > 0 ? Math.round(((avg - mn) / range) * 100) : 50;
+          return `<div class="fi">
+            <div class="fi-lbl">${f.label}</div>
+            <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
+            <div class="fi-unit">€/litro · média de ${d.station_count} postos</div>
+            <div class="fi-range">
+              <div class="fi-range-bar">
+                <div class="fi-range-fill" style="left:0;width:100%"></div>
+                <div class="fi-range-dot" style="left:${pct}%"></div>
+              </div>
+              <div class="fi-range-mm">
+                <span>mín ${mn.toFixed(3)}</span>
+                <span>máx ${mx.toFixed(3)}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="src">✦ API Aberta PT · Dados de ${date} · Atualizado às ${upd} · <a href="https://api.apiaberta.pt" target="_blank">api.apiaberta.pt</a></div>`;
+  } catch(e) { $("fuel-body").innerHTML = er(e.message); }
 }
 
 /* ════════════════════════════════════════════════════
