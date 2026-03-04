@@ -342,7 +342,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="chart-msg" id="chart-msg"></div>
       <canvas id="fin-chart" height="185" style="max-height:185px"></canvas>
     </div>
-    <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
+    <div class="src">✦ Polygon.io API · Dados em tempo real · Plano gratuito: 5 calls/min</div>
   </div>
 
   <!-- CRYPTO -->
@@ -354,7 +354,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadCrypto()">↺</button></div>
     </div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data API · Tempo real</div>
+    <div class="src">✦ Polygon.io API · Tempo real</div>
   </div>
 
   <!-- MARKET STATS -->
@@ -366,7 +366,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadMarketStats()">↺</button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data API · VIX, Ouro, Petróleo, USD Index</div>
+    <div class="src">✦ Polygon.io API · VIX, Ouro, Petróleo, USD Index</div>
   </div>
 
   <!-- ECONOMIC CALENDAR -->
@@ -409,17 +409,17 @@ textarea.nta::placeholder{color:var(--t3)}
 <script>
 /* ══════════════════════════════════════════════════════
    ▶▶ CONFIG — preenche com as tuas chaves
-   twelvedata.com → Dashboard → API Key (gratuito)
+   polygon.io → Dashboard → API Key (gratuito)
 ══════════════════════════════════════════════════════ */
 const CFG = {
-  OWM_KEY:  "629e7f02ba9f3025f188390200242378",    // openweathermap.org
-  TD_KEY:   "ac8049c9d6c34e40bf50b758be66c056",     // twelvedata.com  ← NOVO
-  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f",          // gnews.io
-  CITY:     "Évora",
+  OWM_KEY:    "629e7f02ba9f3025f188390200242378",    // openweathermap.org
+  POLYGON_KEY:"zXnSKHcjjCMavHJNpbT1xN39SgjfkxgH",       // polygon.io
+  GNEWS_KEY:  "37ba83efc653917c93a2669c49019c6f",     // gnews.io
+  CITY:       "Évora",
 };
 
 /* ── Pills ── */
-const APIS = [{n:"OWM",k:CFG.OWM_KEY},{n:"TD",k:CFG.TD_KEY},{n:"GNEWS",k:CFG.GNEWS_KEY}];
+const APIS = [{n:"OWM",k:CFG.OWM_KEY},{n:"POLY",k:CFG.POLYGON_KEY},{n:"GNEWS",k:CFG.GNEWS_KEY}];
 document.getElementById("pills").innerHTML = APIS.map(a => {
   const ok = !a.k.startsWith("A_TUA");
   return `<span class="pill ${ok?"ok":"err"}"><span class="dot"></span>${a.n}</span>`;
@@ -553,36 +553,84 @@ async function loadNews(scope) {
 }
 
 /* ════════════════════════════════════════════════════
-   TWELVE DATA — helper (CORS nativo, sem proxy!)
+   POLYGON.IO — helper (API gratuita: 5 calls/min)
 ════════════════════════════════════════════════════ */
-const TD_BASE = "https://api.twelvedata.com";
-const tdCache = {};
-function tdCacheOk(key, maxMs=6*3600*1000){ const c=tdCache[key]; return c && (Date.now()-c.ts)<maxMs; }
+const POLY_BASE = "https://api.polygon.io";
+const polyCache = {};
+function polyCacheOk(key, maxMs=6*3600*1000){ const c=polyCache[key]; return c && (Date.now()-c.ts)<maxMs; }
 
-async function tdGet(endpoint, params) {
-  const qs = new URLSearchParams({...params, apikey:CFG.TD_KEY});
-  const key = `${endpoint}?${qs}`;
-  if(tdCacheOk(key)){ return tdCache[key].data; }
-  const r = await fetch(`${TD_BASE}${endpoint}?${qs}`);
-  if(!r.ok) throw new Error(`TD HTTP ${r.status}`);
+async function polyGet(endpoint) {
+  const key = endpoint;
+  if(polyCacheOk(key)){ return polyCache[key].data; }
+  const url = `${POLY_BASE}${endpoint}${endpoint.includes("?")?"&":"?"}apiKey=${CFG.POLYGON_KEY}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`Polygon HTTP ${r.status}`);
   const j = await r.json();
-  if(j.status==="error") throw new Error(j.message||"Twelve Data error");
-  tdCache[key] = {data:j, ts:Date.now()};
+  if(j.status==="ERROR" || j.status==="NOT_AUTHORIZED") throw new Error(j.message||"Polygon error");
+  polyCache[key] = {data:j, ts:Date.now()};
   return j;
 }
 
+// Obter preço atual e variação (stocks/ETFs)
+async function polyQuote(ticker) {
+  try {
+    const snap = await polyGet(`/v2/snapshot/locale/us/markets/stocks/tickers/${ticker}`);
+    if(snap.ticker) {
+      const p = snap.ticker;
+      return { price: p.last?.trade?.p || p.lastQuote?.P || 0, change: p.todaysChangePerc || 0 };
+    }
+  } catch {}
+  // Fallback: último trade
+  try {
+    const t = await polyGet(`/v2/last/trade/${ticker}`);
+    return { price: t.results?.p || 0, change: 0 };
+  } catch { return { price: 0, change: 0 }; }
+}
+
+// Obter dados históricos (aggregates)
+async function polyAggs(ticker, days) {
+  const to = new Date().toISOString().slice(0,10);
+  const from = new Date(Date.now() - days*24*60*60*1000).toISOString().slice(0,10);
+  return polyGet(`/v2/aggs/ticker/${ticker}/range/1/day/${from}/${to}?adjusted=true&sort=asc`);
+}
+
+// Obter forex (moedas)
+async function polyForex(pair) {
+  try {
+    const snap = await polyGet(`/v2/snapshot/locale/global/markets/forex/tickers/C:${pair}`);
+    if(snap.ticker) {
+      const t = snap.ticker;
+      return { price: t.lastQuote?.c || t.min?.c || 0, change: t.todaysChangePerc || 0 };
+    }
+  } catch {}
+  try {
+    const conv = await polyGet(`/v1/last/currencies/${pair.slice(0,3)}/${pair.slice(3)}`);
+    return { price: conv.last?.avg || 0, change: 0 };
+  } catch { return { price: 0, change: 0 }; }
+}
+
+// Obter crypto
+async function polyCrypto(pair) {
+  try {
+    const snap = await polyGet(`/v2/snapshot/locale/global/markets/crypto/tickers/X:${pair}`);
+    if(snap.ticker) {
+      const t = snap.ticker;
+      return { price: t.lastTrade?.p || t.min?.c || 0, change: t.todaysChangePerc || 0 };
+    }
+  } catch { return { price: 0, change: 0 }; }
+}
+
 /* ════════════════════════════════════════════════════
-   FINANÇAS — Twelve Data
+   FINANÇAS — Polygon.io
 ════════════════════════════════════════════════════ */
 const ASSETS = [
-  {id:"SPX",   name:"S&P 500",      sym:"SPY",       color:"#4B96F3"},
-  {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",       color:"#9575F0"},
-  {id:"DJI",   name:"Dow Jones",    sym:"DIA",       color:"#34C97A"},
-  {id:"PSI20", name:"PSI-20",       sym:"PSI20",     color:"#E9A520"},
-  {id:"XAU",   name:"Ouro",         sym:"GLD",       color:"#E9A520"},
-  {id:"OIL",   name:"Petróleo WTI", sym:"USO",       color:"#EF5757"},
-  {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD",   color:"#34C97A"},
-  {id:"GBP",   name:"GBP/USD",      sym:"GBP/USD",   color:"#9575F0"},
+  {id:"SPX",   name:"S&P 500",      sym:"SPY",    type:"stock", color:"#4B96F3"},
+  {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",    type:"stock", color:"#9575F0"},
+  {id:"DJI",   name:"Dow Jones",    sym:"DIA",    type:"stock", color:"#34C97A"},
+  {id:"XAU",   name:"Ouro",         sym:"GLD",    type:"stock", color:"#E9A520"},
+  {id:"OIL",   name:"Petróleo WTI", sym:"USO",    type:"stock", color:"#EF5757"},
+  {id:"EUR",   name:"EUR/USD",      sym:"EURUSD", type:"forex", color:"#34C97A"},
+  {id:"GBP",   name:"GBP/USD",      sym:"GBPUSD", type:"forex", color:"#9575F0"},
 ];
 
 let quotes={}, selA=ASSETS[0], selP="1M", chartInst=null, loadI=0;
@@ -613,16 +661,21 @@ async function loadNextQ(){
   const a=ASSETS[loadI++];
   $("fin-st").textContent=`${loadI}/${ASSETS.length}…`;
   try {
-    const j=await tdGet("/quote",{symbol:a.sym});
-    quotes[a.id]={price:parseFloat(j.close||j.price||0), change:parseFloat(j.percent_change||0)};
-  } catch{}
+    let data;
+    if(a.type==="forex"){
+      data = await polyForex(a.sym);
+    } else {
+      data = await polyQuote(a.sym);
+    }
+    quotes[a.id] = { price: data.price, change: data.change };
+  } catch(e){ console.log("Erro loading", a.sym, e); }
   renderTabs(); updChartHdr();
-  setTimeout(loadNextQ, 800);  // 800ms entre pedidos — TD free permite 8/min
+  setTimeout(loadNextQ, 12000);  // 12s entre pedidos — Polygon free: 5 calls/min
 }
 
 async function reloadFin(){
   loadI=0; quotes={};
-  Object.keys(tdCache).filter(k=>k.includes("/quote")).forEach(k=>delete tdCache[k]);
+  Object.keys(polyCache).forEach(k=>delete polyCache[k]);
   renderTabs(); loadNextQ();
 }
 
@@ -641,12 +694,13 @@ async function loadChart(){
   const msg=$("chart-msg"), cv=$("fin-chart");
   msg.style.display="none"; cv.style.display="block";
   try {
-    const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
-    const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out});
-    if(!j.values?.length) throw new Error("Sem dados históricos para este símbolo");
-    const pts=[...j.values].reverse();
-    const labels=pts.map(p=>p.datetime.slice(5));
-    const values=pts.map(p=>parseFloat(p.close));
+    const days={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
+    let ticker = selA.type==="forex" ? `C:${selA.sym}` : selA.sym;
+    const j=await polyAggs(ticker, days);
+    if(!j.results?.length) throw new Error("Sem dados históricos para este símbolo");
+    const pts=j.results;
+    const labels=pts.map(p=>new Date(p.t).toISOString().slice(5,10));
+    const values=pts.map(p=>p.c); // c = close price
     const color=selA.color||"#4B96F3";
     const minV=Math.min(...values)*.998, maxV=Math.max(...values)*1.002;
     if(chartInst){ chartInst.destroy(); chartInst=null; }
@@ -675,71 +729,71 @@ async function loadChart(){
 renderTabs(); loadNextQ(); setTimeout(()=>loadChart(),600);
 
 /* ════════════════════════════════════════════════════
-   CRIPTOMOEDAS — Twelve Data
+   CRIPTOMOEDAS — Polygon.io
 ════════════════════════════════════════════════════ */
 const CRYPTOS=[
-  {sym:"BTC/USD",name:"Bitcoin",    color:"#E9A520"},
-  {sym:"ETH/USD",name:"Ethereum",   color:"#9575F0"},
-  {sym:"SOL/USD",name:"Solana",     color:"#34C97A"},
-  {sym:"XRP/USD",name:"XRP",        color:"#4B96F3"},
-  {sym:"BNB/USD",name:"BNB",        color:"#F59E0B"},
+  {sym:"BTCUSD",name:"Bitcoin",    color:"#E9A520"},
+  {sym:"ETHUSD",name:"Ethereum",   color:"#9575F0"},
+  {sym:"SOLUSD",name:"Solana",     color:"#34C97A"},
+  {sym:"XRPUSD",name:"XRP",        color:"#4B96F3"},
+  {sym:"BNBUSD",name:"BNB",        color:"#F59E0B"},
 ];
 
 async function loadCrypto(){
   $("crypto-body").innerHTML=ld();
-  try {
-    // Twelve Data suporta batch: símbolos separados por vírgula
-    const syms=CRYPTOS.map(c=>c.sym).join(",");
-    const j=await tdGet("/quote",{symbol:syms});
-    // Resposta pode ser objecto único ou objecto com chaves por símbolo
-    $("crypto-body").innerHTML=`<div class="crypto-list">${CRYPTOS.map(c=>{
-      const q=j[c.sym]||j; // se single, j é direto
-      const price=parseFloat(q.close||q.price||0);
-      const pc=parseFloat(q.percent_change||0);
-      return `<div class="ci">
-        <span class="ci-sym">${c.sym.split("/")[0]}</span>
-        <span class="ci-name">${c.name}</span>
-        <div>
-          <div class="ci-price" style="color:${c.color}">${price>0?fmtP(price,2):"—"}</div>
-          <div class="ci-chg">${price>0?chg(pc):""}</div>
-        </div>
-      </div>`;
-    }).join("")}</div>`;
-  } catch(e){ $("crypto-body").innerHTML=er(e.message); }
+  const results={};
+  for(const c of CRYPTOS){
+    try{
+      const data=await polyCrypto(c.sym);
+      results[c.sym]=data;
+    }catch{}
+    await new Promise(r=>setTimeout(r,12000)); // 12s entre pedidos
+  }
+  $("crypto-body").innerHTML=`<div class="crypto-list">${CRYPTOS.map(c=>{
+    const q=results[c.sym];
+    const price=q?.price||0;
+    const pc=q?.change||0;
+    return `<div class="ci">
+      <span class="ci-sym">${c.sym.slice(0,3)}</span>
+      <span class="ci-name">${c.name}</span>
+      <div>
+        <div class="ci-price" style="color:${c.color}">${price>0?fmtP(price,2):"—"}</div>
+        <div class="ci-chg">${price>0?chg(pc):""}</div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
 }
 
 /* ════════════════════════════════════════════════════
-   INDICADORES DE MERCADO — Twelve Data
+   INDICADORES DE MERCADO — Polygon.io
    VIX (volatilidade), Ouro spot, Petróleo WTI, USD Index
 ════════════════════════════════════════════════════ */
 const MSTATS=[
-  {id:"VIX",  sym:"VIX",     label:"VIX",          sub:"Volatilidade S&P",  color:"var(--red)"},
-  {id:"GOLD", sym:"XAU/USD", label:"Ouro",          sub:"USD / oz",          color:"var(--accent)"},
-  {id:"WTI",  sym:"WTI/USD", label:"Petróleo WTI",  sub:"USD / barril",      color:"var(--orange)"},
-  {id:"DXY",  sym:"DX-Y.NYB",label:"USD Index",     sub:"Índice do dólar",   color:"var(--blue)"},
+  {id:"VIX",  sym:"VIXY",  label:"VIX",          sub:"Volatilidade S&P",  color:"var(--red)"},
+  {id:"GOLD", sym:"GLD",   label:"Ouro",         sub:"ETF XAU",          color:"var(--accent)"},
+  {id:"WTI",  sym:"USO",   label:"Petróleo WTI", sub:"ETF Crude Oil",    color:"var(--orange)"},
+  {id:"DXY",  sym:"UUP",   label:"USD Index",    sub:"ETF Dollar",       color:"var(--blue)"},
 ];
 
 async function loadMarketStats(){
   $("mstats-body").innerHTML=ld();
-  try {
-    const results={};
-    for(const m of MSTATS){
-      try{
-        const j=await tdGet("/quote",{symbol:m.sym});
-        results[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};
-      }catch{}
-      await new Promise(r=>setTimeout(r,700));
-    }
-    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-      const q=results[m.id];
-      return `<div class="mstat">
-        <div class="mstat-lbl">${m.label}</div>
-        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-        <div class="mstat-sub">${m.sub}</div>
-        <div class="mstat-chg">${q?chg(q.change):""}</div>
-      </div>`;
-    }).join("")}</div>`;
-  } catch(e){ $("mstats-body").innerHTML=er(e.message); }
+  const results={};
+  for(const m of MSTATS){
+    try{
+      const data=await polyQuote(m.sym);
+      results[m.id]={price:data.price,change:data.change};
+    }catch{}
+    await new Promise(r=>setTimeout(r,12000)); // 12s entre pedidos
+  }
+  $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
+    const q=results[m.id];
+    return `<div class="mstat">
+      <div class="mstat-lbl">${m.label}</div>
+      <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
+      <div class="mstat-sub">${m.sub}</div>
+      <div class="mstat-chg">${q?chg(q.change):""}</div>
+    </div>`;
+  }).join("")}</div>`;
 }
 
 /* ════════════════════════════════════════════════════
