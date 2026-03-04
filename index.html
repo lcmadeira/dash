@@ -1,440 +1,98 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Painel Pessoal · Portugal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-:root {
-  --bg:      #07090E;
-  --surface: #0B0E17;
-  --card:    #0F1220;
-  --card-h:  #131728;
-  --b:       #181D30;
-  --b2:      #202540;
-  --accent:  #E9A520;
-  --ad:      #E9A52014;
-  --blue:    #4B96F3;
-  --bd:      #4B96F312;
-  --green:   #34C97A;
-  --gd:      #34C97A12;
-  --red:     #EF5757;
-  --rd:      #EF575712;
-  --purple:  #9575F0;
-  --pd:      #9575F012;
-  --cyan:    #22D3EE;
-  --cd:      #22D3EE12;
-  --orange:  #F97316;
-  --od:      #F9731612;
-  --text:    #DDE3F0;
-  --t2:      #8892A8;
-  --t3:      #3D4560;
-  --font:    'Plus Jakarta Sans', sans-serif;
-  --mono:    'DM Mono', monospace;
-  --r:       10px;
-  --rs:      7px;
-}
-
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:15px}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
-a{color:var(--blue);text-decoration:none}
-a:hover{text-decoration:underline}
-button{font-family:var(--font);cursor:pointer}
-
-/* Layout */
-.wrap{max-width:1520px;margin:0 auto;padding:20px 16px 48px}
-.hdr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
-.brand{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.brand-sub{font-family:var(--mono);font-size:.58rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-top:4px}
-.clk-time{font-family:var(--mono);font-size:2rem;font-weight:500;color:var(--accent);letter-spacing:2px;line-height:1;text-align:center}
-.clk-date{font-size:.7rem;color:var(--t2);margin-top:4px;text-align:center}
-.pills{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap;align-items:center}
-.pill{font-family:var(--mono);font-size:.57rem;padding:3px 8px;border-radius:20px;border:1px solid var(--b);color:var(--t3);display:flex;align-items:center;gap:4px}
-.dot{width:5px;height:5px;border-radius:50%}
-.pill.ok{border-color:#34C97A33;color:var(--green);background:var(--gd)}
-.pill.ok .dot{background:var(--green);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-.grid{display:grid;grid-template-columns:280px 1fr 1fr;gap:12px;align-items:start}
-.s2{grid-column:span 2}
-.s3{grid-column:span 3}
-.r2{grid-row:span 2}
-
-.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
-.card:hover{border-color:var(--b2);background:var(--card-h)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.stripe{position:absolute;top:0;left:0;right:0;height:2px}
-
-.ch{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.ch-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.ch-lbl{font-size:.68rem;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--t2)}
-.ch-r{margin-left:auto;display:flex;align-items:center;gap:6px}
-.badge{font-family:var(--mono);font-size:.57rem;color:var(--t3);padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
-.rbtn{background:none;border:1px solid var(--b);border-radius:5px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s}
-.rbtn:hover{color:var(--text);border-color:var(--t2)}
-
-.ld{display:flex;align-items:center;justify-content:center;min-height:80px}
-.spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.err{font-size:.73rem;color:var(--red);font-family:var(--mono);padding:12px 0;line-height:1.6}
-
-/* Meteorologia */
-.wx-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
-.wx-ico{font-size:3.5rem;line-height:1;filter:drop-shadow(0 2px 14px rgba(233,165,32,.35))}
-.wx-temp{font-size:3rem;font-weight:700;line-height:1;letter-spacing:-1px}
-.wx-unit{font-size:1.3rem;font-weight:300;color:var(--t2)}
-.wx-desc{font-size:.82rem;color:var(--t2);margin-top:2px;text-transform:capitalize}
-.wx-loc{font-family:var(--mono);font-size:.6rem;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-top:5px}
-.wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.wx-s{background:rgba(233,165,32,.07);border:1px solid rgba(233,165,32,.12);border-radius:var(--rs);padding:8px 10px}
-.wx-sl{font-size:.6rem;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
-.wx-sv{font-size:.88rem;font-weight:600;color:var(--accent);margin-top:2px}
-
-/* Finanças */
-.fin-tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;margin-bottom:12px}
-.ftab{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:all .15s}
-.ftab.on{border-color:var(--accent);background:var(--ad)}
-.ft-ticker{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-bottom:1px}
-.ft-price{font-size:1.1rem;font-weight:700;line-height:1}
-.ft-chg{font-family:var(--mono);font-size:.6rem;margin-top:3px}
-
-.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;height:240px;position:relative}
-.chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-.periods{display:flex;gap:4px}
-.pbtn{background:none;border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.6rem;color:var(--t3)}
-.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
-
-/* Notas */
-.notes-list{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;margin-bottom:10px}
-.note{display:flex;gap:9px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;position:relative}
-.note-bar{width:3px;border-radius:2px;align-self:stretch}
-.note-txt{font-size:.8rem;line-height:1.5;white-space:pre-wrap}
-.note-ts{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:3px}
-.note-del{background:none;border:none;color:var(--t3);position:absolute;top:8px;right:8px;cursor:pointer;opacity:0;transition:.15s}
-.note:hover .note-del{opacity:1}
-textarea.nta{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;color:var(--text);width:100%;min-height:56px;resize:none;outline:none;font-family:inherit}
-.nc{width:14px;height:14px;border-radius:50%;cursor:pointer;border:2px solid transparent}
-.nc.on{border-color:white}
-.bsave{margin-left:auto;background:var(--accent);color:#07090E;border:none;padding:5px 15px;border-radius:5px;font-weight:600;font-size:.7rem}
-
-/* Helpers */
-.up{color:var(--green)}
-.dn{color:var(--red)}
-.fl{color:var(--t3)}
-</style>
-</head>
-<body>
-
-<div class="wrap">
-  <header class="hdr">
-    <div>
-      <div class="brand">Painel Pessoal</div>
-      <div class="brand-sub">Dashboard · GitHub Pages</div>
-    </div>
-    <div>
-      <div class="clk-time" id="clk">00:00:00</div>
-      <div class="clk-date" id="clkd">...</div>
-    </div>
-    <div class="pills" id="pills"></div>
-  </header>
-
-  <div class="grid">
-    <div class="card r2">
-      <div class="stripe" style="background:var(--accent)"></div>
-      <div class="ch">
-        <div class="ch-ico" style="background:var(--ad)">🌡️</div>
-        <span class="ch-lbl">Meteorologia</span>
-        <div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div>
-      </div>
-      <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
-    </div>
-
-    <div class="card s2">
-      <div class="stripe" style="background:var(--blue)"></div>
-      <div class="ch">
-        <div class="ch-ico" style="background:var(--bd)">🌍</div>
-        <span class="ch-lbl">Notícias · Mundo</span>
-        <div class="ch-r"><button class="rbtn" onclick="loadNews()">↺</button></div>
-      </div>
-      <div id="news-body"><div class="ld"><div class="spin"></div></div></div>
-    </div>
-
-    <div class="card s3">
-      <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue))"></div>
-      <div class="ch">
-        <div class="ch-ico" style="background:var(--ad)">📈</div>
-        <span class="ch-lbl">Mercados Financeiros</span>
-        <div class="ch-r">
-          <span class="badge" id="fin-st">...</span>
-          <button class="rbtn" onclick="reloadFin()">↺</button>
-        </div>
-      </div>
-      <div class="fin-tabs" id="fin-tabs"></div>
-      <div class="chart-box">
-        <div class="chart-top">
-          <div>
-            <div id="ch-name" style="font-weight:600">--</div>
-            <div id="ch-price" style="font-size:1.5rem;font-weight:700">--</div>
-          </div>
-          <div class="periods">
-            <button class="pbtn" onclick="setPeriod('1M')">1M</button>
-            <button class="pbtn on" onclick="setPeriod('3M')">3M</button>
-            <button class="pbtn" onclick="setPeriod('1Y')">1Y</button>
-          </div>
-        </div>
-        <canvas id="fin-chart"></canvas>
-      </div>
-    </div>
-
-    <div class="card s3">
-      <div class="ch">
-        <div class="ch-ico" style="background:var(--ad)">📝</div>
-        <span class="ch-lbl">Notas</span>
-        <div class="ch-r"><span class="badge" id="n-count">0</span></div>
-      </div>
-      <div class="notes-list" id="notes-list"></div>
-      <div style="display:flex; flex-direction:column; gap:8px">
-        <textarea class="nta" id="nta" placeholder="Escreve algo..."></textarea>
-        <div style="display:flex; align-items:center; gap:8px">
-          <div class="nc on" style="background:var(--accent)" data-c="amber" onclick="pickNc(this)"></div>
-          <div class="nc" style="background:var(--blue)" data-c="blue" onclick="pickNc(this)"></div>
-          <div class="nc" style="background:var(--red)" data-c="red" onclick="pickNc(this)"></div>
-          <button class="bsave" id="bsave" onclick="addNote()" disabled>Guardar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-/* CONFIGURAÇÃO */
-const CFG = {
-  OWM: "629e7f02ba9f3025f188390200242378",
-  TD: "ac8049c9d6c34e40bf50b758be66c056",
-  GNEWS: "37ba83efc653917c93a2669c49019c6f",
-  CITY: "Évora,PT"
-};
-
-const ASSETS = [
-  {id:"SPY", name:"S&P 500 ETF", sym:"SPY", color:"#4B96F3"},
-  {id:"BTC", name:"Bitcoin", sym:"BTC/USD", color:"#F97316"},
-  {id:"EDP", name:"EDP Portugal", sym:"EDP.LS", color:"#EF5757"},
-  {id:"EUR", name:"EUR/USD", sym:"EUR/USD", color:"#34C97A"}
-];
-
-/* UTILS */
-const $ = id => document.getElementById(id);
-const fmt = (v, d=2) => Number(v).toLocaleString("pt-PT", {minimumFractionDigits:d, maximumFractionDigits:d});
-const NC_C = { amber: "#E9A520", blue: "#4B96F3", red: "#EF5757" };
-
-/* RELÓGIO */
-function updateClock() {
-  const n = new Date();
-  $("clk").textContent = n.toLocaleTimeString("pt-PT");
-  $("clkd").textContent = n.toLocaleDateString("pt-PT", {weekday:'long', day:'numeric', month:'long'});
-}
-setInterval(updateClock, 1000); updateClock();
-
-/* PROXY FETCH */
-async function fetchP(url) {
-  const proxies = [
-    u => u,
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`
+/* 1. CORREÇÃO COMBUSTÍVEIS: Garante a exibição de todos os itens */
+function renderFuel(){
+  const fuels=[
+    {k:"g95", l:"Gasolina 95",      c:"var(--accent)"},
+    {k:"g98", l:"Gasolina 98",      c:"var(--blue)"},
+    {k:"gsl", l:"Gasóleo",          c:"var(--green)"},
+    {k:"gslc",l:"Gasóleo Colorido", c:"var(--purple)"},
   ];
-  for (let p of proxies) {
-    try {
-      const res = await fetch(p(url));
-      const data = await res.json();
-      return data.contents ? JSON.parse(data.contents) : data;
-    } catch(e) {}
-  }
+  // O segredo aqui é garantir que a fuel-grid não limite o número de linhas
+  $("fuel-body").innerHTML=`
+    <div class="fuel-grid" style="grid-template-columns: 1fr 1fr; display: grid; gap: 7px;">
+      ${fuels.map(f=>{const i=FUEL[f.k];if(!i)return"";return`
+        <div class="fi">
+          <div class="fi-lbl">${f.l}</div>
+          <div class="fi-price" style="color:${f.c}">${Number(i.p).toFixed(3)}</div>
+          <div class="fi-unit">€ / litro</div>
+          <div class="fi-chg ${i.v>0?"up":i.v<0?"dn":"fl"}">
+            ${i.v>0?"▲":i.v<0?"▼":"—"} ${Math.abs(i.v).toFixed(3)}€
+          </div>
+        </div>`;}).join("")}
+    </div>
+    <div class="src">✦ ${FUEL.ref}</div>`;
 }
 
-/* METEOROLOGIA */
-async function loadWeather() {
+/* 2. CORREÇÃO CRIPTO: Adicionado Delay para evitar erro de limite da API */
+async function loadCrypto(){
+  $("crypto-body").innerHTML=ld();
   try {
-    const data = await fetchP(`https://api.openweathermap.org/data/2.5/weather?q=${CFG.CITY}&units=metric&lang=pt&appid=${CFG.OWM}`);
-    $("wx-body").innerHTML = `
-      <div class="wx-top">
-        <span class="wx-ico">☀️</span>
+    const results = [];
+    for(const c of CRYPTOS) {
+      // Fazemos pedidos individuais com pausa para não bloquear a API Key gratuita
+      try {
+        const q = await tdGet("/quote", {symbol: c.sym});
+        results.push({ ...c, q });
+      } catch(e) { console.warn(`Erro no símbolo ${c.sym}`); }
+      await new Promise(r => setTimeout(r, 1000)); // Pausa de 1s entre moedas
+    }
+    
+    $("crypto-body").innerHTML=`<div class="crypto-list">${results.map(res=>{
+      const price=parseFloat(res.q.close||res.q.price||0);
+      const pc=parseFloat(res.q.percent_change||0);
+      return `<div class="ci">
+        <span class="ci-sym">${res.sym.split("/")[0]}</span>
+        <span class="ci-name">${res.name}</span>
         <div>
-          <div class="wx-temp">${Math.round(data.main.temp)}<span class="wx-unit">°C</span></div>
-          <div class="wx-desc">${data.weather[0].description}</div>
-          <div class="wx-loc">${data.name}</div>
+          <div class="ci-price" style="color:${res.color}">${price>0?fmtP(price,2):"—"}</div>
+          <div class="ci-chg">${price>0?chg(pc):""}</div>
+        </div>
+      </div>`;
+    }).join("")}</div>`;
+  } catch(e){ $("crypto-body").innerHTML=er("Erro ao conectar API"); }
+}
+
+/* 3. CORREÇÃO INDICADORES: Tratamento de NaN e Delay */
+async function loadMarketStats(){
+  $("mstats-body").innerHTML=ld();
+  try {
+    let html = `<div class="mstat-grid">`;
+    for(const m of MSTATS){
+      try {
+        const j = await tdGet("/quote", {symbol:m.sym});
+        const price = parseFloat(j.close||j.price);
+        const change = parseFloat(j.percent_change||0);
+        
+        html += `<div class="mstat">
+          <div class="mstat-lbl">${m.label}</div>
+          <div class="mstat-val" style="color:${m.color}">${!isNaN(price)?fmtP(price,2):"—"}</div>
+          <div class="mstat-sub">${m.sub}</div>
+          <div class="mstat-chg">${!isNaN(change)?chg(change):""}</div>
+        </div>`;
+      } catch(e) {
+        html += `<div class="mstat"><div class="mstat-lbl">${m.label}</div><div class="mstat-val">—</div></div>`;
+      }
+      await new Promise(r => setTimeout(r, 1000)); // Vital para evitar o "NaN" por bloqueio
+    }
+    html += `</div>`;
+    $("mstats-body").innerHTML = html;
+  } catch(e){ $("mstats-body").innerHTML=er("Erro nos indicadores"); }
+}
+
+/* 4. CORREÇÃO CALENDÁRIO: Removido limite de itens */
+function renderCalendar(){
+  // Certifica-te que o EVENTS tem todos os itens que desejas mostrar
+  $("cal-body").innerHTML=`<div class="ev-list" style="max-height: none; overflow: visible;">
+    ${EVENTS.map(e=>`
+    <div class="ev">
+      <div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
+      <div class="ev-body">
+        <div class="ev-title">${e.country} ${e.title}</div>
+        <div class="ev-meta">
+          <span>${e.date} · ${e.time}</span>
+          <span class="ev-imp ${IMP_CSS[e.imp]}">${IMP_LABEL[e.imp]}</span>
         </div>
       </div>
-      <div class="wx-grid">
-        <div class="wx-s"><div class="wx-sl">Humidade</div><div class="wx-sv">${data.main.humidity}%</div></div>
-        <div class="wx-s"><div class="wx-sl">Vento</div><div class="wx-sv">${Math.round(data.wind.speed*3.6)} km/h</div></div>
-      </div>`;
-  } catch(e) { $("wx-body").innerHTML = `<p class="err">Erro ao carregar clima</p>`; }
+    </div>`).join("")}</div>`;
 }
-
-/* NOTÍCIAS */
-async function loadNews() {
-  try {
-    const data = await fetchP(`https://gnews.io/api/v4/top-headlines?lang=pt&country=pt&max=5&apikey=${CFG.GNEWS}`);
-    $("news-body").innerHTML = data.articles.map(a => `
-      <div style="margin-bottom:10px; border-bottom:1px solid var(--b); padding-bottom:8px">
-        <a href="${a.url}" target="_blank" style="font-size:0.85rem; font-weight:500; display:block; margin-bottom:4px">${a.title}</a>
-        <span style="font-size:0.65rem; color:var(--t3)">${a.source.name}</span>
-      </div>`).join("");
-  } catch(e) { $("news-body").innerHTML = `<p class="err">Erro ao carregar notícias</p>`; }
-}
-
-/* FINANCEIRO (Batch e Memory Safe) */
-let quotes = {}, selA = ASSETS[0], selP = "3M", chartInst = null;
-
-async function reloadFin() {
-  $("fin-st").textContent = "Carregando...";
-  try {
-    // BATCH REQUEST: Pede todos os símbolos de uma vez (poupa créditos da API)
-    const syms = ASSETS.map(a => a.sym).join(",");
-    const data = await fetch(`https://api.twelvedata.com/quote?symbol=${syms}&apikey=${CFG.TD}`).then(r => r.json());
-    
-    ASSETS.forEach(a => {
-      const q = data[a.sym] || data; 
-      quotes[a.id] = { price: q.close || q.price, change: q.percent_change };
-    });
-    
-    renderTabs();
-    loadChart();
-    $("fin-st").textContent = "OK";
-  } catch(e) { $("fin-st").textContent = "Erro API"; }
-}
-
-function renderTabs() {
-  $("fin-tabs").innerHTML = ASSETS.map(a => {
-    const q = quotes[a.id];
-    const isUp = q?.change >= 0;
-    return `
-    <div class="ftab ${selA.id === a.id ? 'on' : ''}" onclick="selectAsset('${a.id}')">
-      <div class="ft-ticker">${a.id}</div>
-      <div class="ft-price">${q ? fmt(q.price) : '--'}</div>
-      <div class="ft-chg ${isUp?'up':'dn'}">${q ? (isUp?'▲':'▼') + Math.abs(q.change).toFixed(2) + '%' : ''}</div>
-    </div>`;
-  }).join("");
-}
-
-function selectAsset(id) {
-  selA = ASSETS.find(a => a.id === id);
-  renderTabs();
-  loadChart();
-}
-
-function setPeriod(p) {
-  selP = p;
-  document.querySelectorAll(".pbtn").forEach(b => b.classList.toggle("on", b.textContent === p));
-  loadChart();
-}
-
-async function loadChart() {
-  const q = quotes[selA.id];
-  $("ch-name").textContent = selA.name;
-  $("ch-price").textContent = q ? fmt(q.price) : "--";
-
-  if (chartInst) { chartInst.destroy(); chartInst = null; }
-
-  try {
-    const size = selP === "1M" ? 22 : selP === "3M" ? 64 : 250;
-    const data = await fetch(`https://api.twelvedata.com/time_series?symbol=${selA.sym}&interval=1day&outputsize=${size}&apikey=${CFG.TD}`).then(r => r.json());
-    
-    const values = data.values.reverse();
-    const labels = values.map(v => v.datetime.slice(5));
-    const prices = values.map(v => parseFloat(v.close));
-
-    const ctx = $("fin-chart").getContext("2d");
-    chartInst = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          data: prices,
-          borderColor: selA.color,
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: true,
-          backgroundColor: selA.color + "10",
-          tension: 0.1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false, // PREVINE EXPANSÃO INFINITA
-        plugins: { legend: { display: false } },
-        scales: { 
-          x: { display: false },
-          y: { grid: { color: "#181D30" }, ticks: { font: { size: 9 } } }
-        }
-      }
-    });
-  } catch(e) {}
-}
-
-/* NOTAS */
-let notes = JSON.parse(localStorage.getItem("p_notes") || "[]"), ncol = "amber";
-
-function renderNotes() {
-  $("n-count").textContent = notes.length;
-  if (notes.length === 0) {
-    $("notes-list").innerHTML = `<p style="color:var(--t3); font-size:0.75rem; text-align:center; padding:20px">Sem notas.</p>`;
-    return;
-  }
-  $("notes-list").innerHTML = notes.map(n => `
-    <div class="note">
-      <div class="note-bar" style="background:${NC_C[n.c]}"></div>
-      <div class="note-body">
-        <div class="note-txt">${n.t}</div>
-        <div class="note-ts">${n.d}</div>
-      </div>
-      <button class="note-del" onclick="delNote(${n.id})">✕</button>
-    </div>`).join("");
-}
-
-function addNote() {
-  const t = $("nta").value.trim();
-  if (!t) return;
-  notes.unshift({
-    id: Date.now(),
-    t,
-    c: ncol,
-    d: new Date().toLocaleString("pt-PT", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"})
-  });
-  $("nta").value = "";
-  $("bsave").disabled = true;
-  saveNotes();
-}
-
-function saveNotes() {
-  localStorage.setItem("p_notes", JSON.stringify(notes));
-  renderNotes();
-}
-
-function delNote(id) {
-  notes = notes.filter(n => n.id !== id);
-  saveNotes();
-}
-
-function pickNc(el) {
-  ncol = el.dataset.c;
-  document.querySelectorAll(".nc").forEach(b => b.classList.toggle("on", b === el));
-}
-
-$("nta").addEventListener("input", e => $("bsave").disabled = !e.target.value.trim());
-
-/* INIT */
-loadWeather();
-loadNews();
-reloadFin();
-renderNotes();
 </script>
-</body>
-</html>
