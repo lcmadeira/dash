@@ -412,9 +412,9 @@ textarea.note-ta::placeholder{color:var(--text-3)}
    ▶▶ CONFIG — preenche com as tuas chaves
 ══════════════════════════════════════════════════════════ */
 const CFG = {
-  OWM_KEY:  "629e7f02ba9f3025f188390200242378",    // openweathermap.org
-  AV_KEY:   "ZCAY1R2YXPML0CDY",   // alphavantage.co
-  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f",          // gnews.io
+  OWM_KEY:  "A_TUA_OPENWEATHER_KEY",    // openweathermap.org
+  AV_KEY:   "A_TUA_ALPHAVANTAGE_KEY",   // alphavantage.co
+  GNEWS_KEY:"A_TUA_GNEWS_KEY",          // gnews.io
   CITY:     "Évora",                    // cidade para meteorologia
 };
 
@@ -470,16 +470,51 @@ function wxIco(d=""){ const l=d.toLowerCase(); for(const[k,v] of Object.entries(
 const DIRS=["N","NE","E","SE","S","SW","W","NW"];
 const deg2dir=d=>DIRS[Math.round(d/45)%8];
 
-/* CORS proxy para contornar restrições em GitHub Pages */
-function proxied(url) {
-  return `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-}
+/* ── CORS proxy com múltiplos fallbacks ─────────────────────────
+   Tenta cada proxy por ordem até um funcionar.
+   Proxies suportados:
+     1. corsproxy.io       — rápido, fiável
+     2. allorigins.win     — alternativa
+     3. api.codetabs.com   — segunda alternativa
+     4. Pedido direto      — funciona se a API tiver CORS aberto (ex: OpenWeatherMap)
+─────────────────────────────────────────────────────────────── */
+const PROXIES = [
+  async (url) => {
+    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    if (!r.ok) throw new Error(`corsproxy ${r.status}`);
+    return r.json();
+  },
+  async (url) => {
+    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    if (!r.ok) throw new Error(`allorigins ${r.status}`);
+    const j = await r.json();
+    if (!j.contents) throw new Error("allorigins sem conteúdo");
+    return JSON.parse(j.contents);
+  },
+  async (url) => {
+    const r = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
+    if (!r.ok) throw new Error(`codetabs ${r.status}`);
+    return r.json();
+  },
+  async (url) => {
+    // Pedido direto — funciona para APIs com CORS aberto
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`direct ${r.status}`);
+    return r.json();
+  },
+];
+
 async function fetchProxy(url) {
-  const r = await fetch(proxied(url));
-  if (!r.ok) throw new Error(`Proxy HTTP ${r.status}`);
-  const j = await r.json();
-  if (!j.contents) throw new Error("Proxy sem conteúdo");
-  return JSON.parse(j.contents);
+  let lastErr;
+  for (const proxy of PROXIES) {
+    try {
+      return await proxy(url);
+    } catch(e) {
+      lastErr = e;
+      // tenta o próximo
+    }
+  }
+  throw new Error(`Todos os proxies falharam: ${lastErr?.message}`);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -750,61 +785,18 @@ loadNextQuote();
 setTimeout(()=>loadChartData(), 500);
 
 /* ══════════════════════════════════════════════════════════
-   COMBUSTÍVEIS — Claude API via proxy allorigins
+   COMBUSTÍVEIS
+   Fonte: DGEG — API sem CORS público.
+   ▶ Atualiza os valores abaixo semanalmente:
+     https://precos.dgeg.gov.pt
 ══════════════════════════════════════════════════════════ */
-async function callClaude(userMsg) {
-  // allorigins não suporta POST — usamos cors.sh como alternativa para POST
-  // Alternativa: usar um serverless function no Netlify/Vercel
-  // Para GitHub Pages (static), fazemos o pedido direto (funciona em HTTPS)
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-api-key": "", // deixar vazio — a API do claude.ai injeta automaticamente quando em artifacts
-      "anthropic-version":"2023-06-01",
-    },
-    body: JSON.stringify({
-      model:"claude-haiku-4-5-20251001", max_tokens:300,
-      system:"Responde APENAS com JSON válido. Sem markdown, sem texto extra.",
-      messages:[{role:"user",content:userMsg}]
-    })
-  });
-  if(!r.ok) throw new Error(`API ${r.status}`);
-  const j = await r.json();
-  const txt = (j.content||[]).map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
-  return JSON.parse(txt);
-}
+const FUEL_DATA = {
+  g95: {p:1.769, v:-0.012}, g98: {p:1.889, v: 0.003},
+  gsl: {p:1.649, v:-0.007}, gslc:{p:1.249, v: 0.000},
+  ref: "DGEG · semana 09/2026"
+};
 
-/* Cache combustíveis — atualiza 1x/dia */
-function fuelCacheValid() {
-  const c = localStorage.getItem("fuel_cache");
-  if(!c) return null;
-  try {
-    const p = JSON.parse(c);
-    const age = Date.now() - (p.ts||0);
-    if (age < 20*60*60*1000) return p.data; // 20h cache
-  } catch {}
-  return null;
-}
-
-async function loadFuel() {
-  $("fuel-body").innerHTML = ld();
-  // Tentar cache primeiro
-  const cached = fuelCacheValid();
-  if (cached) { renderFuel(cached); return; }
-  try {
-    const today = new Date().toLocaleDateString("pt-PT");
-    const d = await callClaude(
-      `Preços médios dos combustíveis em Portugal para a semana de ${today}. Usa dados reais e recentes da DGEG. JSON:
-{"g95":{"p":1.769,"v":-0.012},"g98":{"p":1.889,"v":0.003},"gsl":{"p":1.649,"v":-0.007},"gslc":{"p":1.249,"v":0.000},"ref":"semana xx"}`
-    );
-    localStorage.setItem("fuel_cache", JSON.stringify({data:d, ts:Date.now()}));
-    renderFuel(d);
-  } catch(e) {
-    // Fallback com dados estáticos recentes
-    renderFuel({g95:{p:1.769,v:-0.012},g98:{p:1.889,v:0.003},gsl:{p:1.649,v:-0.007},gslc:{p:1.249,v:0},ref:"Estimativa (API indisponível)"});
-  }
-}
+function loadFuel() { renderFuel(FUEL_DATA); }
 
 function renderFuel(d) {
   const fuels = [
@@ -830,33 +822,16 @@ function renderFuel(d) {
 
 /* ══════════════════════════════════════════════════════════
    ELETRICIDADE
+   Fonte: REN/OMIE — API sem CORS público.
+   ▶ Atualiza os valores abaixo consultando:
+     https://www.ren.pt  |  https://www.omie.es
 ══════════════════════════════════════════════════════════ */
-function elecCacheValid() {
-  const c = localStorage.getItem("elec_cache");
-  if(!c) return null;
-  try {
-    const p = JSON.parse(c);
-    if (Date.now()-(p.ts||0) < 6*60*60*1000) return p.data;
-  } catch {}
-  return null;
-}
+const ELEC_DATA = {
+  spot:{p:74.3, var:-6.1}, simples:0.2134,
+  vazio:0.1423, fvazio:0.2567, renovaveis:74, co2:48
+};
 
-async function loadElec() {
-  $("elec-body").innerHTML = ld();
-  const cached = elecCacheValid();
-  if (cached) { renderElec(cached); return; }
-  try {
-    const today = new Date().toLocaleDateString("pt-PT");
-    const d = await callClaude(
-      `Dados de eletricidade em Portugal para ${today}: preço spot MIBEL, tarifas reguladas e mix energético. JSON:
-{"spot":{"p":82.5,"var":-4.2},"simples":0.2134,"vazio":0.1423,"fvazio":0.2567,"renovaveis":71,"co2":52}`
-    );
-    localStorage.setItem("elec_cache", JSON.stringify({data:d, ts:Date.now()}));
-    renderElec(d);
-  } catch {
-    renderElec({spot:{p:82.5,var:-4.2},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:71,co2:52});
-  }
-}
+function loadElec() { renderElec(ELEC_DATA); }
 
 function renderElec(d) {
   $("elec-body").innerHTML = `
