@@ -65,9 +65,10 @@ button{font-family:var(--font);cursor:pointer}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* Grid */
-.grid{display:grid;grid-template-columns:280px 1fr 1fr;gap:12px;align-items:start}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
 .s2{grid-column:span 2}
 .s3{grid-column:span 3}
+.s4{grid-column:span 4}
 .r2{grid-row:span 2}
 
 /* Card */
@@ -237,8 +238,49 @@ textarea.nta::placeholder{color:var(--t3)}
 .fl{color:var(--t3)}
 
 /* Responsive */
-@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.s3{grid-column:span 2}.r2{grid-row:auto}}
-@media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
+@media(max-width:1200px){.grid{grid-template-columns:repeat(2,1fr)}.s3,.s4{grid-column:span 2}.r2{grid-row:auto}}
+@media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3,.s4{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
+
+/* ── Feriados ── */
+.hol-hero{display:flex;gap:16px;align-items:center;padding:12px 14px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:10px;background:var(--surface)}
+.hol-hero-num{font-size:2.4rem;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--accent)}
+.hol-hero-lbl{font-size:.78rem;font-weight:600}
+.hol-hero-sub{font-size:.65rem;color:var(--t2);margin-top:2px}
+.hol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.hol-stat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;text-align:center}
+.hol-stat-val{font-size:1.2rem;font-weight:700;color:var(--blue)}
+.hol-stat-lbl{font-size:.58rem;color:var(--t2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.hol-list{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;padding-right:2px}
+.hol-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
+.hol-item.past{opacity:.45}
+.hol-item.today{border-color:var(--accent);background:var(--ad)}
+.hol-item.next{border-color:var(--blue);background:var(--bd)}
+.hol-date{font-family:var(--mono);font-size:.6rem;color:var(--t2);min-width:48px}
+.hol-name{font-size:.75rem;font-weight:500;flex:1}
+.hol-days{font-family:var(--mono);font-size:.58rem;padding:2px 7px;border-radius:4px;background:var(--b);color:var(--t3)}
+.hol-item.next .hol-days{background:var(--bd);color:var(--blue)}
+
+/* ── Qualidade do Ar ── */
+.aqi-hero{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:10px}
+.aqi-num{font-size:2.8rem;font-weight:700;line-height:1;letter-spacing:-1px}
+.aqi-label{font-size:.95rem;font-weight:600}
+.aqi-desc{font-size:.7rem;color:var(--t2);margin-top:3px;line-height:1.4}
+.aqi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.aqi-s{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;text-align:center}
+.aqi-s-val{font-size:.95rem;font-weight:600;color:var(--text)}
+.aqi-s-lbl{font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+
+/* ── SNS Urgências ── */
+.sns-hero{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:10px}
+.sns-num{font-size:2.2rem;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--red)}
+.sns-lbl{font-size:.85rem;font-weight:600}
+.sns-sub{font-size:.65rem;color:var(--t2);margin-top:2px}
+.sns-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sns-s{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px}
+.sns-s-lbl{font-family:var(--mono);font-size:.57rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
+.sns-s-val{font-size:.95rem;font-weight:600;color:var(--text);margin-top:3px}
+.sns-s-chg{font-family:var(--mono);font-size:.6rem;margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -266,7 +308,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadWeather(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadWeather()">↺</button></div>
     </div>
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
@@ -301,7 +343,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn" onclick="renderFuel()">↺</button></div>
     </div>
     <div id="fuel-body"></div>
   </div>
@@ -318,7 +360,7 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
   <!-- FINANCE — full width -->
-  <div class="card s3">
+  <div class="card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">📈</div>
@@ -347,7 +389,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="chart-msg" id="chart-msg"></div>
       <div id="chart-wrap" style="position:relative;width:100%;height:185px;overflow:hidden"><canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:185px!important"></canvas></div>
     </div>
-    <div class="src">✦ Twelve Data · cache 15min · 800 créditos/dia</div>
+    <div class="src">✦ Polygon.io API · Dados em tempo real · Plano gratuito: 5 calls/min</div>
   </div>
 
   <!-- CRYPTO -->
@@ -356,10 +398,10 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--od)">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadCrypto()">↺</button></div>
     </div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data · cache 15min</div>
+    <div class="src">✦ Polygon.io API · Tempo real</div>
   </div>
 
   <!-- MARKET STATS -->
@@ -368,10 +410,10 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats()">↺</button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data · cache 15min · VIXY GLD USO UUP</div>
+    <div class="src">✦ Polygon.io API · VIX, Ouro, Petróleo, USD Index</div>
   </div>
 
   <!-- ECONOMIC CALENDAR -->
@@ -386,18 +428,57 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Dados estáticos · Eventos macroeconómicos relevantes</div>
   </div>
 
+  <!-- FERIADOS PT -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--accent)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--ad)">🗓️</div>
+      <span class="ch-lbl">Feriados &amp; Dias Úteis · PT</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadHolidays(true)">↺</button></div>
+    </div>
+    <div id="hol-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ date.nager.at · Feriados nacionais PT · CORS nativo</div>
+  </div>
+
+  <!-- QUALIDADE DO AR -->
+  <div class="card">
+    <div class="stripe" style="background:var(--cyan)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--cd)">🌬️</div>
+      <span class="ch-lbl">Qualidade do Ar</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadAir(true)">↺</button></div>
+    </div>
+    <div id="air-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ IPMA · Estações meteorológicas · Índice IQAr</div>
+  </div>
+
+  <!-- SNS URGÊNCIAS -->
+  <div class="card">
+    <div class="stripe" style="background:var(--red)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--rd)">🏥</div>
+      <span class="ch-lbl">SNS · Urgências</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadSNS(true)">↺</button></div>
+    </div>
+    <div id="sns-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ transparencia.sns.gov.pt · Monitorização sazonal</div>
+  </div>
+
 </div><!-- /grid -->
+
 </div><!-- /wrap -->
 
 <script>
 /* ══════════════════════════════════════════════════════
-   ▶▶ CONFIG — preenche com as tuas chaves
-   twelvedata.com → Dashboard → API Key (gratuito)
+   CONFIG
 ══════════════════════════════════════════════════════ */
 const CFG = {
-  TD_KEY:        "ac8049c9d6c34e40bf50b758be66c056",  // twelvedata.com
-  GNEWS_KEY:     "37ba83efc653917c93a2669c49019c6f",  // gnews.io
-  IPMA_CITY_ID:  1110600,  // Évora — ver IPMA_CITIES abaixo para outras cidades
+  OWM_KEY:      "629e7f02ba9f3025f188390200242378",  // openweathermap.org (Air Pollution API)
+  TD_KEY:       "ac8049c9d6c34e40bf50b758be66c056",  // twelvedata.com
+  GNEWS_KEY:    "37ba83efc653917c93a2669c49019c6f",  // gnews.io
+  IPMA_CITY_ID: 1060300,  // Évora — ver IPMA_CITIES abaixo
+  // Coordenadas para Air Quality (IPMA / OWM)
+  LAT: 38.5667, LON: -7.9000,  // Évora
 };
 
 /* ── Pills ── */
@@ -432,11 +513,14 @@ function ago(iso){
   if(m<1) return "agora"; if(m<60) return `há ${m}m`;
   const h=Math.floor(m/60); return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;
 }
+const DAY_NAMES_LONG = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+const DAY_NAMES = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const MONTH_NAMES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+
 /* ── Proxy chain — GNews não tem CORS nativo ── */
 const PROXIES = [
   async u => { const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(u)}`); if(!r.ok) throw 0; return r.json(); },
   async u => { const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`); if(!r.ok) throw 0; const j=await r.json(); if(!j.contents) throw 0; return JSON.parse(j.contents); },
-  async u => { const r=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`); if(!r.ok) throw 0; return r.json(); },
   async u => { const r=await fetch(u); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); },
 ];
 async function fetchP(url) {
@@ -446,182 +530,10 @@ async function fetchP(url) {
 }
 
 /* ════════════════════════════════════════════════════
-   METEOROLOGIA — IPMA (CORS nativo, sem chave API)
-   Cidades disponíveis — alterar IPMA_CITY_ID em CFG:
-   Aveiro 1010500 · Beja 1020500 · Braga 1030300
-   Bragança 1030800 · C.Branco 1040200 · Coimbra 1050200
-   Évora 1060300 · Faro 1070500 · Guarda 1080500
-   Leiria 1100900 · Lisboa 1110600 · Portalegre 1121400
-   Porto 1131200 · Santarém 1141600 · Setúbal 1151200
-   V.Castelo 1160900 · V.Real 1171400 · Viseu 1182300
-   Funchal 2310300 · P.Delgada 2320100
-════════════════════════════════════════════════════ */
-
-// Mapa globalIdLocal → nome da cidade
-const IPMA_CITIES = {
-  1010500:"Aveiro", 1020500:"Beja", 1030300:"Braga", 1030800:"Bragança",
-  1040200:"Castelo Branco", 1050200:"Coimbra", 1060300:"Évora", 1070500:"Faro",
-  1080500:"Guarda", 1081100:"Leiria", 1100900:"Leiria", 1110600:"Lisboa",
-  1121400:"Portalegre", 1131200:"Porto", 1141600:"Santarém", 1151200:"Setúbal",
-  1151300:"Sines", 1160900:"Viana do Castelo", 1171400:"Vila Real", 1182300:"Viseu",
-  2310300:"Funchal", 2320100:"Ponta Delgada",
-  3410100:"Angra do Heroísmo", 3420300:"Horta", 3430100:"Santa Cruz das Flores",
-  3440100:"Santa Cruz da Graciosa", 3450200:"São Roque do Pico",
-  3460200:"Velas", 3470100:"Corvo", 3480200:"Vila do Porto", 3490100:"Vila Franca do Campo",
-};
-
-// idWeatherType → emoji + descrição PT
-const IPMA_WX = {
-  1:  ["☀️",  "Céu limpo"],
-  2:  ["🌤️", "Pouco nublado"],
-  3:  ["⛅",  "Parcialmente nublado"],
-  4:  ["🌥️", "Nublado"],
-  5:  ["☁️",  "Muito nublado"],
-  6:  ["🌧️", "Aguaceiros"],
-  7:  ["🌧️", "Chuva"],
-  8:  ["⛈️",  "Trovoada"],
-  9:  ["❄️",  "Neve"],
-  10: ["🌫️", "Nevoeiro"],
-  11: ["🌦️", "Aguaceiros fracos"],
-  12: ["🌦️", "Aguaceiros moderados"],
-  13: ["🌧️", "Aguaceiros fortes"],
-  14: ["⛈️",  "Trovoada com chuva"],
-  15: ["🌬️", "Vento forte"],
-  16: ["🌡️", "Calor intenso"],
-  17: ["❄️",  "Granizo"],
-  18: ["🌩️", "Trovoada"],
-  19: ["🌨️", "Aguaceiros de neve"],
-  20: ["❄️",  "Neve moderada"],
-  21: ["❄️",  "Neve forte"],
-  22: ["🌦️", "Chuva fraca ou chuvisco"],
-  23: ["🌧️", "Chuva e trovoada"],
-  24: ["⛈️",  "Trovoada com granizo"],
-  25: ["🌧️", "Chuva e vento forte"],
-  26: ["🌬️", "Neblina"],
-  27: ["🌬️", "Nevoeiro gelado"],
-  28: ["☁️",  "Céu encoberto"],
-  29: ["🌥️", "Nublado com aguaceiros"],
-};
-const IPMA_WIND_CLASS = ["","Fraco","Fraco a mod.","Moderado","Forte","Muito forte"];
-const wxIPMA = id => IPMA_WX[id] || ["🌤️","—"];
-const DAY_NAMES = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-
-async function loadWeather(force=false) {
-  $("wx-body").innerHTML = ld();
-  try {
-    const id  = CFG.IPMA_CITY_ID;
-    const key = `ipma_wx_${id}`;
-
-    // cache localStorage 15min (reutiliza o sistema lsGet/lsSet do dashboard)
-    let data = force ? null : lsGet(key);
-    if (!data) {
-      const r = await fetch(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`);
-      if (!r.ok) throw new Error(`IPMA HTTP ${r.status}`);
-      data = await r.json();
-      lsSet(key, data);
-    }
-
-    const city   = IPMA_CITIES[id] || `Cidade ${id}`;
-    const days   = data.data || [];
-    if (!days.length) throw new Error("Sem dados IPMA");
-
-    const today  = days[0];
-    const [ico, desc] = wxIPMA(today.idWeatherType);
-    const tMin   = Math.round(parseFloat(today.tMin));
-    const tMax   = Math.round(parseFloat(today.tMax));
-    const rain   = parseFloat(today.precipitaProb || 0);
-    const wind   = IPMA_WIND_CLASS[today.classWindSpeed] || "—";
-    const dir    = today.predWindDir || "—";
-    const upd    = data.dataUpdate ? new Date(data.dataUpdate).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "—";
-
-    // selector de cidade (dropdown inline no card)
-    const cityOptions = Object.entries(IPMA_CITIES)
-      .sort((a,b)=>a[1].localeCompare(b[1]))
-      .map(([cid,name])=>`<option value="${cid}"${Number(cid)===id?" selected":""}>${name}</option>`)
-      .join("");
-
-    $("wx-body").innerHTML = `
-      <div style="margin-bottom:10px">
-        <select id="wx-city-sel" onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true)"
-          style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);
-                 color:var(--text);font-family:var(--mono);font-size:.65rem;padding:4px 8px;
-                 width:100%;cursor:pointer;outline:none">
-          ${cityOptions}
-        </select>
-      </div>
-      <div class="wx-top">
-        <span class="wx-ico">${ico}</span>
-        <div>
-          <div class="wx-temp">${tMax}<span class="wx-unit">°C</span></div>
-          <div class="wx-desc">${desc}</div>
-          <div class="wx-loc">${city} · Portugal</div>
-        </div>
-      </div>
-      <div class="wx-grid">
-        ${[
-          ["Mínima",    `${tMin}°C`],
-          ["Máxima",    `${tMax}°C`],
-          ["Chuva",     `${rain}%`],
-          ["Vento",     `${wind}`],
-          ["Direção",   dir],
-          ["Atualizado",upd],
-        ].map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
-      </div>
-      <div class="fc-strip">
-        ${days.slice(0,5).map(e=>{
-          const dn  = DAY_NAMES[new Date(e.forecastDate).getDay()];
-          const [fi] = wxIPMA(e.idWeatherType);
-          return `<div class="fc-item">
-            <div class="fc-day">${dn}</div>
-            <div class="fc-ico">${fi}</div>
-            <div class="fc-t">${Math.round(parseFloat(e.tMax))}°</div>
-            <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
-            <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
-          </div>`;
-        }).join("")}
-      </div>
-      <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API · Atualização horária</div>`;
-  } catch(e) { $("wx-body").innerHTML = er(e.message); }
-}
-
-/* ════════════════════════════════════════════════════
-   NOTÍCIAS — GNews (via proxy)
-════════════════════════════════════════════════════ */
-async function loadNews(scope) {
-  const el=$(scope==="pt"?"news-pt":"news-world");
-  el.innerHTML=ld();
-  try {
-    const isPT = scope==="pt";
-    // Usa /search com sortby=publishedAt para garantir notícias mais recentes
-    // top-headlines devolve por relevância (fica desatualizado) — /search por data é sempre atual
-    let url;
-    if(isPT){
-      url=`https://gnews.io/api/v4/search?q=portugal+OR+governo+OR+economia+OR+lisboa+OR+porto&lang=pt&country=pt&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
-    } else {
-      url=`https://gnews.io/api/v4/top-headlines?topic=breaking-news&lang=en&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
-    }
-    const j=await fetchP(url);
-    if(j.errors) throw new Error(Array.isArray(j.errors)?j.errors.join(", "):String(j.errors));
-    const arts=(j.articles||[]).slice(0,7);
-    if(!arts.length) throw new Error("Sem artigos disponíveis");
-    el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
-      <div class="ni" onclick="window.open('${a.url.replace(/'/g,"\'")}','_blank')">
-        <div class="ni-meta">
-          <span class="ni-src">${(a.source?.name||"—").slice(0,22)}</span>
-          <span class="ni-tag ${isPT?"tpt":"twld"}">${isPT?"PT":"WORLD"}</span>
-          <span class="ni-time">${ago(a.publishedAt)}</span>
-        </div>
-        <div class="ni-title">${a.title}</div>
-      </div>`).join("")}</div>`;
-  } catch(e){ el.innerHTML=er(e.message); }
-}
-
-/* ════════════════════════════════════════════════════
    CACHE localStorage — TTL 15 minutos
-   Partilhado por todos os módulos (IPMA, TD, Fuel).
 ════════════════════════════════════════════════════ */
 const CACHE_TTL = 15 * 60 * 1000;
-const CACHE_PFX = "dash_v2_";
+const CACHE_PFX = "dash_v3_";
 
 function lsGet(key) {
   try {
@@ -651,17 +563,132 @@ function lsAge(key) {
 }
 
 /* ════════════════════════════════════════════════════
-   TWELVE DATA — fetch com cache localStorage 15min
+   IPMA — METEOROLOGIA
+════════════════════════════════════════════════════ */
+const IPMA_CITIES = {
+  1010500:"Aveiro", 1020500:"Beja", 1030300:"Braga", 1030800:"Bragança",
+  1040200:"Castelo Branco", 1050200:"Coimbra", 1060300:"Évora", 1070500:"Faro",
+  1080500:"Guarda", 1100900:"Leiria", 1110600:"Lisboa", 1121400:"Portalegre",
+  1131200:"Porto", 1141600:"Santarém", 1151200:"Setúbal", 1151300:"Sines",
+  1160900:"Viana do Castelo", 1171400:"Vila Real", 1182300:"Viseu",
+  2310300:"Funchal", 2320100:"Ponta Delgada",
+};
+const IPMA_WX = {
+  1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],
+  4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],
+  7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],
+  11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],
+  14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],
+  17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],
+  22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],
+  26:["🌬️","Neblina"],28:["☁️","Céu encoberto"],
+};
+const IPMA_WIND = ["","Fraco","Fraco a mod.","Moderado","Forte","Muito forte"];
+const wxIPMA = id => IPMA_WX[id] || ["🌤️","—"];
+
+async function loadWeather(force=false) {
+  $("wx-body").innerHTML = ld();
+  try {
+    const id  = CFG.IPMA_CITY_ID;
+    const key = `ipma_wx_${id}`;
+    let data = force ? null : lsGet(key);
+    if (!data) {
+      const r = await fetch(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`);
+      if (!r.ok) throw new Error(`IPMA HTTP ${r.status}`);
+      data = await r.json();
+      lsSet(key, data);
+    }
+    const city  = IPMA_CITIES[id] || `Cidade ${id}`;
+    const days  = data.data || [];
+    if (!days.length) throw new Error("Sem dados IPMA");
+    const today = days[0];
+    const [ico, desc] = wxIPMA(today.idWeatherType);
+    const tMin  = Math.round(parseFloat(today.tMin));
+    const tMax  = Math.round(parseFloat(today.tMax));
+    const rain  = parseFloat(today.precipitaProb || 0);
+    const wind  = IPMA_WIND[today.classWindSpeed] || "—";
+    const dir   = today.predWindDir || "—";
+    const upd   = data.dataUpdate ? new Date(data.dataUpdate).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "—";
+    const cityOptions = Object.entries(IPMA_CITIES)
+      .sort((a,b)=>a[1].localeCompare(b[1]))
+      .map(([cid,name])=>`<option value="${cid}"${Number(cid)===id?" selected":""}>${name}</option>`)
+      .join("");
+    $("wx-body").innerHTML = `
+      <div style="margin-bottom:10px">
+        <select id="wx-city-sel" onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true)"
+          style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);
+                 color:var(--text);font-family:var(--mono);font-size:.65rem;padding:4px 8px;
+                 width:100%;cursor:pointer;outline:none">${cityOptions}</select>
+      </div>
+      <div class="wx-top">
+        <span class="wx-ico">${ico}</span>
+        <div>
+          <div class="wx-temp">${tMax}<span class="wx-unit">°C</span></div>
+          <div class="wx-desc">${desc}</div>
+          <div class="wx-loc">${city} · Portugal</div>
+        </div>
+      </div>
+      <div class="wx-grid">
+        ${[["Mínima",`${tMin}°C`],["Máxima",`${tMax}°C`],["Chuva",`${rain}%`],
+           ["Vento",wind],["Direção",dir],["Atualizado",upd]]
+          .map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
+      </div>
+      <div class="fc-strip">
+        ${days.slice(0,5).map(e=>{
+          const dn=[...DAY_NAMES][new Date(e.forecastDate).getDay()];
+          const [fi]=wxIPMA(e.idWeatherType);
+          return `<div class="fc-item">
+            <div class="fc-day">${dn}</div>
+            <div class="fc-ico">${fi}</div>
+            <div class="fc-t">${Math.round(parseFloat(e.tMax))}°</div>
+            <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
+            <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API · Atualização horária</div>`;
+  } catch(e) { $("wx-body").innerHTML = er(e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   NOTÍCIAS — GNews
+════════════════════════════════════════════════════ */
+async function loadNews(scope) {
+  const el=$(scope==="pt"?"news-pt":"news-world");
+  el.innerHTML=ld();
+  try {
+    const isPT = scope==="pt";
+    let url;
+    if(isPT){
+      url=`https://gnews.io/api/v4/search?q=portugal+OR+governo+OR+economia+OR+lisboa+OR+porto&lang=pt&country=pt&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
+    } else {
+      url=`https://gnews.io/api/v4/top-headlines?topic=breaking-news&lang=en&max=8&sortby=publishedAt&apikey=${CFG.GNEWS_KEY}`;
+    }
+    const j=await fetchP(url);
+    if(j.errors) throw new Error(Array.isArray(j.errors)?j.errors.join(", "):String(j.errors));
+    const arts=(j.articles||[]).slice(0,7);
+    if(!arts.length) throw new Error("Sem artigos disponíveis");
+    el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
+      <div class="ni" onclick="window.open('${a.url.replace(/'/g,"\\'")}','_blank')">
+        <div class="ni-meta">
+          <span class="ni-src">${(a.source?.name||"—").slice(0,22)}</span>
+          <span class="ni-tag ${isPT?"tpt":"twld"}">${isPT?"PT":"WORLD"}</span>
+          <span class="ni-time">${ago(a.publishedAt)}</span>
+        </div>
+        <div class="ni-title">${a.title}</div>
+      </div>`).join("")}</div>`;
+  } catch(e){ el.innerHTML=er(e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   CACHE TWELVE DATA
 ════════════════════════════════════════════════════ */
 const TD_BASE = "https://api.twelvedata.com";
 
 async function tdGet(endpoint, params, force=false) {
   const pStr = new URLSearchParams(params).toString();
   const cKey = endpoint + "?" + pStr;
-  if (!force) {
-    const hit = lsGet(cKey);
-    if (hit) return hit;
-  }
+  if (!force) { const hit = lsGet(cKey); if (hit) return hit; }
   const qs = new URLSearchParams({...params, apikey: CFG.TD_KEY});
   const r  = await fetch(`${TD_BASE}${endpoint}?${qs}`);
   if (!r.ok) throw new Error(`TD HTTP ${r.status}`);
@@ -672,13 +699,14 @@ async function tdGet(endpoint, params, force=false) {
 }
 
 /* ════════════════════════════════════════════════════
-   FINANÇAS — Twelve Data + cache 15min
+   FINANÇAS — Twelve Data + PSI-20 + Obrigações PT10Y
 ════════════════════════════════════════════════════ */
 const ASSETS = [
   {id:"SPX",   name:"S&P 500",      sym:"SPY",     type:"stock", color:"#4B96F3"},
   {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",     type:"stock", color:"#9575F0"},
   {id:"DJI",   name:"Dow Jones",    sym:"DIA",     type:"stock", color:"#34C97A"},
-  {id:"PSI20", name:"PSI-20",       sym:"EDP.LS",  type:"stock", color:"#E9A520"},
+  {id:"PSI20", name:"PSI-20",       sym:"PSI20",   type:"index", color:"#E9A520"},
+  {id:"PT10Y", name:"Obrig. PT 10A",sym:"PT10Y",   type:"bond",  color:"#EF5757"},
   {id:"XAU",   name:"Ouro",         sym:"GLD",     type:"stock", color:"#E9A520"},
   {id:"OIL",   name:"Petróleo WTI", sym:"USO",     type:"stock", color:"#EF5757"},
   {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD", type:"forex", color:"#34C97A"},
@@ -696,51 +724,33 @@ function renderTabs(){
     return `<div class="ftab ${on}" onclick="selAsset('${a.id}')">
       <div class="ft-ticker">${a.id}</div>
       <div class="ft-name">${a.name}</div>
-      ${q ? `<div class="ft-price" style="color:${a.color}">${fmtP(q.price)}</div>
+      ${q ? `<div class="ft-price" style="color:${a.color}">${a.type==="bond"?fmtP(q.price,3)+"%":fmtP(q.price)}</div>
              <div class="ft-chg">${chg(q.change)}</div>`
            : `<div class="ft-spin"></div>`}
     </div>`;
   }).join("");
 }
-
 function updChartHdr(){
   const a=selA, q=quotes[a?.id];
   $("ch-name").textContent=a?.name||"—";
   $("ch-name").style.color=a?.color||"var(--blue)";
   $("ch-price").style.color=a?.color||"var(--blue)";
-  if(q){ $("ch-price").textContent=fmtP(q.price); $("ch-pct").innerHTML=chg(q.change); }
+  if(q){ $("ch-price").textContent=a?.type==="bond"?fmtP(q.price,3)+"%":fmtP(q.price); $("ch-pct").innerHTML=chg(q.change); }
 }
-
 async function loadNextQ(){
-  if (loadI >= ASSETS.length) { finForce=false; return; }
+  if (loadI >= ASSETS.length) { finForce=false; $("fin-st").textContent=`✓ ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`; return; }
   const a = ASSETS[loadI++];
   $("fin-st").textContent = `${loadI}/${ASSETS.length}…`;
   try {
     const j = await tdGet("/quote", {symbol: a.sym}, finForce);
-    quotes[a.id] = {
-      price:  parseFloat(j.close || j.price || 0),
-      change: parseFloat((j.percent_change||"0").toString().replace("%",""))
-    };
+    quotes[a.id] = { price: parseFloat(j.close||j.price||0), change: parseFloat((j.percent_change||"0").toString().replace("%","")) };
   } catch(e) { console.warn(a.sym, e.message); }
   renderTabs(); updChartHdr();
   setTimeout(loadNextQ, 600);
 }
-
-async function reloadFin(){
-  loadI=0; quotes={}; finForce=true;
-  lsDel("/quote"); lsDel("/time_series");
-  renderTabs(); loadNextQ();
-}
-
-function selAsset(id){
-  selA = ASSETS.find(a=>a.id===id) || ASSETS[0];
-  renderTabs(); updChartHdr(); loadChart();
-}
-function setPeriod(p){
-  selP=p;
-  document.querySelectorAll(".pbtn").forEach(b=>b.classList.toggle("on",b.textContent===p));
-  loadChart();
-}
+async function reloadFin(){ loadI=0; quotes={}; finForce=true; lsDel("/quote"); lsDel("/time_series"); renderTabs(); loadNextQ(); }
+function selAsset(id){ selA=ASSETS.find(a=>a.id===id)||ASSETS[0]; renderTabs(); updChartHdr(); loadChart(); }
+function setPeriod(p){ selP=p; document.querySelectorAll(".pbtn").forEach(b=>b.classList.toggle("on",b.textContent===p)); loadChart(); }
 
 async function loadChart(force=false){
   const msg=$("chart-msg"), cv=$("fin-chart"), wrap=$("chart-wrap");
@@ -748,7 +758,7 @@ async function loadChart(force=false){
   try {
     const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
     const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out}, force);
-    if(!j.values?.length) throw new Error("Sem dados · limite diário da API atingido?");
+    if(!j.values?.length) throw new Error("Sem dados históricos · limite diário atingido?");
     const pts=[...j.values].reverse();
     const labels=pts.map(p=>p.datetime.slice(5));
     const values=pts.map(p=>parseFloat(p.close));
@@ -767,39 +777,31 @@ async function loadChart(force=false){
         plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
         scales:{
           x:{ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:8},grid:{color:"#181D30"},border:{display:false}},
-          y:{min:minV,max:maxV,ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:5,callback:v=>fmtP(v,1)},grid:{color:"#181D30"},border:{display:false}}
+          y:{min:minV,max:maxV,ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:5,callback:v=>fmtP(v,selA.type==="bond"?3:1)},grid:{color:"#181D30"},border:{display:false}}
         }
       }
     });
-  } catch(e){
-    if(chartInst){chartInst.destroy();chartInst=null;}
-    wrap.style.display="none"; msg.style.display="block"; msg.textContent=e.message;
-  }
+  } catch(e){ if(chartInst){chartInst.destroy();chartInst=null;} wrap.style.display="none"; msg.style.display="block"; msg.textContent=e.message; }
 }
-
-/* Boot finanças */
-renderTabs(); loadNextQ(); setTimeout(()=>loadChart(), 1000);
+renderTabs(); loadNextQ(); setTimeout(()=>loadChart(),1000);
 
 /* ════════════════════════════════════════════════════
-   CRIPTOMOEDAS — Twelve Data + cache 15min
+   CRIPTOMOEDAS
 ════════════════════════════════════════════════════ */
 const CRYPTOS=[
-  {sym:"BTC/USD", name:"Bitcoin",  color:"#E9A520"},
-  {sym:"ETH/USD", name:"Ethereum", color:"#9575F0"},
-  {sym:"SOL/USD", name:"Solana",   color:"#34C97A"},
-  {sym:"XRP/USD", name:"XRP",      color:"#4B96F3"},
-  {sym:"BNB/USD", name:"BNB",      color:"#F59E0B"},
+  {sym:"BTC/USD",name:"Bitcoin",  color:"#E9A520"},
+  {sym:"ETH/USD",name:"Ethereum", color:"#9575F0"},
+  {sym:"SOL/USD",name:"Solana",   color:"#34C97A"},
+  {sym:"XRP/USD",name:"XRP",      color:"#4B96F3"},
+  {sym:"BNB/USD",name:"BNB",      color:"#F59E0B"},
 ];
-
 async function loadCrypto(force=false){
   $("crypto-body").innerHTML=ld();
   try {
     const results=[];
     for(const c of CRYPTOS){
-      try{
-        const j=await tdGet("/quote",{symbol:c.sym}, force);
-        results.push({...c, price:parseFloat(j.close||j.price||0), pc:parseFloat(j.percent_change||0)});
-      } catch { results.push({...c, price:0, pc:0}); }
+      try{ const j=await tdGet("/quote",{symbol:c.sym},force); results.push({...c,price:parseFloat(j.close||j.price||0),pc:parseFloat(j.percent_change||0)}); }
+      catch{ results.push({...c,price:0,pc:0}); }
       if(force) await new Promise(r=>setTimeout(r,500));
     }
     $("crypto-body").innerHTML=`<div class="crypto-list">${results.map(c=>`
@@ -815,24 +817,20 @@ async function loadCrypto(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   INDICADORES DE MERCADO — Twelve Data + cache 15min
+   INDICADORES DE MERCADO
 ════════════════════════════════════════════════════ */
 const MSTATS=[
-  {id:"VIX",  sym:"VIXY", label:"VIX",         sub:"Volatilidade S&P (VIXY ETF)", color:"var(--red)"},
-  {id:"GOLD", sym:"GLD",  label:"Ouro",         sub:"USD / oz (GLD ETF)",          color:"var(--accent)"},
-  {id:"WTI",  sym:"USO",  label:"Petróleo WTI", sub:"USD / barril (USO ETF)",      color:"var(--orange)"},
-  {id:"DXY",  sym:"UUP",  label:"USD Index",    sub:"Índice do dólar (UUP ETF)",   color:"var(--blue)"},
+  {id:"VIX",  sym:"VIXY", label:"VIX",         sub:"Volatilidade S&P",   color:"var(--red)"},
+  {id:"GOLD", sym:"GLD",  label:"Ouro",         sub:"USD / oz (GLD ETF)", color:"var(--accent)"},
+  {id:"WTI",  sym:"USO",  label:"Petróleo WTI", sub:"USD / barril",       color:"var(--orange)"},
+  {id:"DXY",  sym:"UUP",  label:"USD Index",    sub:"Índice do dólar",    color:"var(--blue)"},
 ];
-
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
   try {
     const results={};
     for(const m of MSTATS){
-      try{
-        const j=await tdGet("/quote",{symbol:m.sym}, force);
-        results[m.id]={price:parseFloat(j.close||j.price||0), change:parseFloat(j.percent_change||0)};
-      } catch {}
+      try{ const j=await tdGet("/quote",{symbol:m.sym},force); results[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)}; } catch {}
       if(force) await new Promise(r=>setTimeout(r,500));
     }
     $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
@@ -848,7 +846,7 @@ async function loadMarketStats(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   COMBUSTÍVEIS — API Aberta PT + cache localStorage 15min
+   COMBUSTÍVEIS — API Aberta PT + cache 15min
 ════════════════════════════════════════════════════ */
 const FUEL_SLUGS = [
   {slug:"gasoline_95",    label:"Gasolina 95",     color:"var(--accent)"},
@@ -858,7 +856,6 @@ const FUEL_SLUGS = [
   {slug:"gpl_auto",       label:"GPL Auto",        color:"var(--cyan)"},
   {slug:"diesel_plus",    label:"Gasóleo Especial",color:"var(--orange)"},
 ];
-
 async function renderFuel(force=false){
   $("fuel-body").innerHTML=ld();
   try {
@@ -874,114 +871,274 @@ async function renderFuel(force=false){
     data.forEach(f => bySlug[f.fuel_slug]=f);
     const items = FUEL_SLUGS.map(s=>({...s,d:bySlug[s.slug]})).filter(s=>s.d);
     const date  = items[0]?.d?.date || "";
-    const upd   = items[0]?.d?.updated_at
-      ? new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})
-      : "";
+    const upd   = items[0]?.d?.updated_at ? new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "";
     $("fuel-body").innerHTML=`
       <div class="fuel-grid">
         ${items.map(f=>{
           const d=f.d, avg=d.avg_price_eur, mn=d.min_price_eur, mx=d.max_price_eur;
-          const pct=mx>mn ? Math.round(((avg-mn)/(mx-mn))*100) : 50;
+          const pct=mx>mn?Math.round(((avg-mn)/(mx-mn))*100):50;
           return `<div class="fi">
             <div class="fi-lbl">${f.label}</div>
             <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
             <div class="fi-unit">€/litro · média de ${d.station_count} postos</div>
             <div class="fi-range">
-              <div class="fi-range-bar">
-                <div class="fi-range-fill" style="left:0;width:100%"></div>
-                <div class="fi-range-dot" style="left:${pct}%"></div>
-              </div>
-              <div class="fi-range-mm">
-                <span>mín ${mn.toFixed(3)}</span>
-                <span>máx ${mx.toFixed(3)}</span>
-              </div>
+              <div class="fi-range-bar"><div class="fi-range-fill" style="left:0;width:100%"></div><div class="fi-range-dot" style="left:${pct}%"></div></div>
+              <div class="fi-range-mm"><span>mín ${mn.toFixed(3)}</span><span>máx ${mx.toFixed(3)}</span></div>
             </div>
           </div>`;
         }).join("")}
       </div>
-      <div class="src">✦ API Aberta PT · ${date} · atualizado às ${upd} · <a href="https://api.apiaberta.pt" target="_blank">api.apiaberta.pt</a></div>`;
-  } catch(e){ $("fuel-body").innerHTML = er(e.message); }
+      <div class="src">✦ API Aberta PT · ${date} · atualizado às ${upd}</div>`;
+  } catch(e){ $("fuel-body").innerHTML=er(e.message); }
 }
 
 /* ════════════════════════════════════════════════════
-   ELETRICIDADE — Dados estáticos (REN/OMIE sem CORS)
-   ▶ Atualiza em ren.pt / omie.es
+   ELETRICIDADE — Dados de referência
 ════════════════════════════════════════════════════ */
-const ELEC = {
-  spot:{p:74.3,var:-6.1}, simples:0.2134,
-  vazio:0.1423, fvazio:0.2567, renovaveis:74, co2:48
-};
-
+const ELEC = { spot:{p:74.3,var:-6.1}, simples:0.2134, vazio:0.1423, fvazio:0.2567, renovaveis:74, co2:48 };
 function renderElec(){
   const d=ELEC;
   $("elec-body").innerHTML=`
     <div class="elec-top">
-      <div class="ekpi">
-        <div class="ekpi-lbl">Mercado Spot MIBEL</div>
-        <div class="ekpi-val" style="color:var(--blue)">${Number(d.spot?.p||0).toFixed(1)}</div>
-        <div class="ekpi-unit">€/MWh</div>
-        <div class="ekpi-chg ${(d.spot?.var||0)>=0?"up":"dn"}">
-          ${(d.spot?.var||0)>=0?"▲":"▼"} ${Math.abs(d.spot?.var||0).toFixed(1)} vs ontem
-        </div>
-      </div>
-      <div class="ekpi">
-        <div class="ekpi-lbl">Tarifa Simples</div>
-        <div class="ekpi-val" style="color:var(--green)">${Number(d.simples||0).toFixed(4)}</div>
-        <div class="ekpi-unit">€/kWh</div>
-      </div>
+      <div class="ekpi"><div class="ekpi-lbl">Mercado Spot MIBEL</div><div class="ekpi-val" style="color:var(--blue)">${Number(d.spot?.p||0).toFixed(1)}</div><div class="ekpi-unit">€/MWh</div>
+        <div class="ekpi-chg ${(d.spot?.var||0)>=0?"up":"dn"}">${(d.spot?.var||0)>=0?"▲":"▼"} ${Math.abs(d.spot?.var||0).toFixed(1)} vs ontem</div></div>
+      <div class="ekpi"><div class="ekpi-lbl">Tarifa Simples</div><div class="ekpi-val" style="color:var(--green)">${Number(d.simples||0).toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div>
     </div>
     <div class="bar-lbl">Tarifa Bi-horária</div>
     ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
-    <div class="bar-row">
-      <span class="bar-rl">${r.l}</span>
-      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div>
-      <span class="bar-rv">${Number(r.v||0).toFixed(4)} €/kWh</span>
-    </div>`).join("")}
+    <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${Number(r.v||0).toFixed(4)} €/kWh</span></div>`).join("")}
     <div class="ebadges">
-      <div class="ebadge" style="background:var(--gd)">
-        <div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div>
-        <div class="ebadge-lbl">Renováveis</div>
-      </div>
-      <div class="ebadge" style="background:var(--bd)">
-        <div class="ebadge-val" style="color:var(--blue)">${d.co2}</div>
-        <div class="ebadge-lbl">gCO₂/kWh</div>
-      </div>
+      <div class="ebadge" style="background:var(--gd)"><div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div><div class="ebadge-lbl">Renováveis</div></div>
+      <div class="ebadge" style="background:var(--bd)"><div class="ebadge-val" style="color:var(--blue)">${d.co2}</div><div class="ebadge-lbl">gCO₂/kWh</div></div>
     </div>
-    <div class="src">✦ Dados referência março 2026 · <a href="https://www.ren.pt" target="_blank">ren.pt</a> · <a href="https://www.omie.es" target="_blank">omie.es</a><br>▶ Para atualizar: edita a constante ELEC no ficheiro HTML</div>`;
+    <div class="src">✦ Dados referência março 2026 · ren.pt · omie.es</div>`;
 }
 
 /* ════════════════════════════════════════════════════
-   CALENDÁRIO ECONÓMICO — dados estáticos da semana
-   (Fontes: investing.com/economic-calendar, forexfactory.com)
+   CALENDÁRIO ECONÓMICO — dados estáticos
 ════════════════════════════════════════════════════ */
 const EVENTS = [
-  {title:"Decisão BCE sobre taxas de juro",    date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"NFP — Emprego não agrícola EUA",     date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Taxa de desemprego EUA",             date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"IPC Portugal (fevereiro)",           date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC EUA (fevereiro)",                date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",               date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"Confiança consumidor Zona Euro",     date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
+  {title:"Decisão BCE sobre taxas de juro",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
+  {title:"NFP — Emprego não agrícola EUA",date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"Taxa de desemprego EUA",date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"IPC Portugal (fevereiro)",date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m"},
+  {title:"IPC EUA (fevereiro)",date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"Vendas a retalho EUA",date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"Confiança consumidor Zona Euro",date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
 ];
-const IMP_LABEL={h:"Alto",m:"Médio",l:"Baixo"};
 const IMP_CSS={h:"imp-h",m:"imp-m",l:"imp-l"};
-
+const IMP_LABEL={h:"Alto",m:"Médio",l:"Baixo"};
 function renderCalendar(){
   $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
     <div class="ev">
       <div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
       <div class="ev-body">
         <div class="ev-title">${e.country} ${e.title}</div>
-        <div class="ev-meta">
-          <span>${e.date} · ${e.time} Lisboa</span>
-          <span class="ev-imp ${IMP_CSS[e.imp]}">${IMP_LABEL[e.imp]}</span>
-        </div>
+        <div class="ev-meta"><span>${e.date} · ${e.time} Lisboa</span><span class="ev-imp ${IMP_CSS[e.imp]}">${IMP_LABEL[e.imp]}</span></div>
       </div>
     </div>`).join("")}</div>`;
 }
 
 /* ════════════════════════════════════════════════════
-   BOOT — cache-first, auto-refresh 15min
+   FERIADOS PT — date.nager.at + cache localStorage
+   Mostra: próximo feriado em destaque, lista do ano,
+   dias úteis restantes no mês e no ano.
+════════════════════════════════════════════════════ */
+async function loadHolidays(force=false) {
+  $("hol-body").innerHTML = ld();
+  try {
+    const year = new Date().getFullYear();
+    const cKey = `holidays_PT_${year}`;
+    let hols = force ? null : lsGet(cKey);
+    if (!hols) {
+      const r = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PT`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      hols = await r.json();
+      lsSet(cKey, hols);
+    }
+
+    const today     = new Date(); today.setHours(0,0,0,0);
+    const todayStr  = today.toISOString().slice(0,10);
+    const yearEnd   = new Date(year,11,31);
+
+    // Dias úteis — conta dias de semana excluindo feriados
+    function workdays(from, to) {
+      const holSet = new Set(hols.map(h=>h.date));
+      let count = 0, d = new Date(from);
+      while (d <= to) {
+        const dow = d.getDay();
+        if (dow !== 0 && dow !== 6 && !holSet.has(d.toISOString().slice(0,10))) count++;
+        d.setDate(d.getDate()+1);
+      }
+      return count;
+    }
+
+    const monthEnd    = new Date(today.getFullYear(), today.getMonth()+1, 0);
+    const wdMonth     = workdays(today, monthEnd);
+    const wdYear      = workdays(today, yearEnd);
+    const remaining   = hols.filter(h => h.date >= todayStr);
+    const next        = remaining[0];
+    const nextDate    = next ? new Date(next.date) : null;
+    const daysToNext  = next ? Math.round((new Date(next.date) - today) / 86400000) : null;
+
+    $("hol-body").innerHTML = `
+      ${next ? `
+      <div class="hol-hero">
+        <div class="hol-hero-num">${daysToNext === 0 ? "🎉" : daysToNext}</div>
+        <div>
+          <div class="hol-hero-lbl">${daysToNext === 0 ? "Hoje é feriado!" : daysToNext === 1 ? "Amanhã" : `dias para o próximo feriado`}</div>
+          <div class="hol-hero-sub">${next.localName} · ${nextDate.toLocaleDateString("pt-PT",{day:"numeric",month:"long"})}</div>
+        </div>
+      </div>` : ""}
+      <div class="hol-grid">
+        <div class="hol-stat"><div class="hol-stat-val" style="color:var(--green)">${wdMonth}</div><div class="hol-stat-lbl">Dias úteis este mês</div></div>
+        <div class="hol-stat"><div class="hol-stat-val" style="color:var(--blue)">${wdYear}</div><div class="hol-stat-lbl">Dias úteis este ano</div></div>
+        <div class="hol-stat"><div class="hol-stat-val" style="color:var(--accent)">${remaining.length}</div><div class="hol-stat-lbl">Feriados restantes</div></div>
+      </div>
+      <div class="hol-list">
+        ${hols.map(h => {
+          const isPast  = h.date < todayStr;
+          const isToday = h.date === todayStr;
+          const isNext  = h.date === next?.date && !isToday;
+          const hDate   = new Date(h.date);
+          const dDiff   = Math.round((hDate - today) / 86400000);
+          const dow     = DAY_NAMES_LONG[hDate.getDay()];
+          return `<div class="hol-item ${isPast?"past":isToday?"today":isNext?"next":""}">
+            <div class="hol-date">${hDate.getDate()} ${MONTH_NAMES[hDate.getMonth()]}</div>
+            <div>
+              <div class="hol-name">${h.localName}</div>
+              <div style="font-family:var(--mono);font-size:.58rem;color:var(--t3)">${dow}</div>
+            </div>
+            ${!isPast ? `<div class="hol-days">${isToday?"hoje":dDiff===1?"amanhã":"+"+dDiff+"d"}</div>` : ""}
+          </div>`;
+        }).join("")}
+      </div>`;
+  } catch(e) { $("hol-body").innerHTML = er(e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   QUALIDADE DO AR — OpenWeatherMap Air Pollution API
+   Usa a mesma chave OWM já existente, sem custo extra
+════════════════════════════════════════════════════ */
+const AQI_LABEL = ["","Boa","Razoável","Moderada","Má","Muito Má"];
+const AQI_COLOR = ["","#34C97A","#B8CC3E","#E9A520","#EF5757","#9575F0"];
+const AQI_BG    = ["","#34C97A18","#B8CC3E18","#E9A52018","#EF575718","#9575F018"];
+const AQI_DESC  = [
+  "","Ar limpo — excelente para actividades ao ar livre",
+  "Qualidade aceitável — grupos sensíveis devem ter atenção",
+  "Grupos sensíveis podem sentir efeitos — reduza esforço prolongado",
+  "Toda a gente pode sentir efeitos — limite actividades ao ar livre",
+  "Alerta de saúde — evite actividades ao ar livre",
+];
+
+async function loadAir(force=false) {
+  $("air-body").innerHTML = ld();
+  try {
+    const cKey = `air_${CFG.LAT}_${CFG.LON}`;
+    let data = force ? null : lsGet(cKey);
+    if (!data) {
+      const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${CFG.LAT}&lon=${CFG.LON}&appid=${CFG.OWM_KEY}`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`OWM HTTP ${r.status}`);
+      data = await r.json();
+      lsSet(cKey, data);
+    }
+    const aqi = data.list[0].main.aqi;
+    const c   = data.list[0].components;
+    const col = AQI_COLOR[aqi];
+    const bg  = AQI_BG[aqi];
+    $("air-body").innerHTML = `
+      <div class="aqi-hero" style="background:${bg};border-color:${col}44">
+        <div class="aqi-num" style="color:${col}">${aqi}</div>
+        <div>
+          <div class="aqi-label" style="color:${col}">${AQI_LABEL[aqi]}</div>
+          <div class="aqi-desc">${AQI_DESC[aqi]}</div>
+        </div>
+      </div>
+      <div class="aqi-grid">
+        ${[["PM2.5",c.pm2_5,"μg/m³"],["PM10",c.pm10,"μg/m³"],["NO₂",c.no2,"μg/m³"],
+           ["O₃",c.o3,"μg/m³"],["SO₂",c.so2,"μg/m³"],["CO",(c.co/1000).toFixed(2),"mg/m³"]]
+          .map(([l,v,u])=>`<div class="aqi-s">
+            <div class="aqi-s-val">${Number(v).toFixed(1)}</div>
+            <div class="aqi-s-lbl">${l} <span style="color:var(--t3)">${u}</span></div>
+          </div>`).join("")}
+      </div>
+      <div class="src">✦ OpenWeatherMap Air Pollution API · Évora · Cache 15min</div>`;
+  } catch(e) { $("air-body").innerHTML = er(e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   SNS URGÊNCIAS — transparencia.sns.gov.pt
+   Dataset: monitorizacao-sazonal-csh
+   Indicador 405: tempo médio espera triagem→1ª observação
+   Indicador 531: episódios estimados urgência
+════════════════════════════════════════════════════ */
+async function loadSNS(force=false) {
+  $("sns-body").innerHTML = ld();
+  try {
+    const cKey = "sns_urgencias";
+    let records = force ? null : lsGet(cKey);
+    if (!records) {
+      // Pede os registos mais recentes do dataset de monitorização sazonal
+      const url = "https://transparencia.sns.gov.pt/api/explore/v2.1/catalog/datasets/monitorizacao-sazonal-csh/records" +
+        "?limit=20&order_by=periodo%20desc&where=indicador_id%20in%20(405%2C531%2C528%2C515)";
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`SNS HTTP ${r.status}`);
+      const j = await r.json();
+      records = j.results || [];
+      if (records.length) lsSet(cKey, records);
+    }
+    if (!records.length) throw new Error("Sem dados disponíveis");
+
+    // Organiza por indicador_id → valor mais recente
+    const byInd = {};
+    records.forEach(rec => {
+      const id = rec.indicador_id;
+      if (!byInd[id] || rec.periodo > byInd[id].periodo) byInd[id] = rec;
+    });
+
+    const espera   = byInd[405]; // minutos espera triagem → 1ª observação
+    const episodios= byInd[531]; // nº episódios urgência
+    const internado= byInd[528]; // taxa com internamento (%)
+    const verdeAzul= byInd[515]; // taxa prioridade verde/azul (%)
+
+    const periodo  = espera?.periodo || episodios?.periodo || "—";
+    const esperaMin = espera ? Math.round(parseFloat(espera.valor)) : null;
+
+    $("sns-body").innerHTML = `
+      <div class="sns-hero">
+        <div>
+          <div class="sns-num">${esperaMin !== null ? esperaMin + "m" : "—"}</div>
+        </div>
+        <div>
+          <div class="sns-lbl">Tempo médio de espera</div>
+          <div class="sns-sub">Triagem → 1ª observação médica</div>
+          <div class="sns-sub">Período: ${periodo}</div>
+        </div>
+      </div>
+      <div class="sns-grid">
+        <div class="sns-s">
+          <div class="sns-s-lbl">Episódios urgência</div>
+          <div class="sns-s-val">${episodios ? Number(episodios.valor).toLocaleString("pt-PT") : "—"}</div>
+        </div>
+        <div class="sns-s">
+          <div class="sns-s-lbl">Taxa com internamento</div>
+          <div class="sns-s-val">${internado ? parseFloat(internado.valor).toFixed(1)+"%" : "—"}</div>
+        </div>
+        <div class="sns-s">
+          <div class="sns-s-lbl">Prioridade verde/azul</div>
+          <div class="sns-s-val">${verdeAzul ? parseFloat(verdeAzul.valor).toFixed(1)+"%" : "—"}</div>
+        </div>
+        <div class="sns-s">
+          <div class="sns-s-lbl">Fonte</div>
+          <div class="sns-s-val" style="font-size:.7rem;color:var(--t2)">SNS Transparência</div>
+        </div>
+      </div>`;
+  } catch(e) { $("sns-body").innerHTML = er(e.message); }
+}
+
+/* ════════════════════════════════════════════════════
+   BOOT — cache-first + auto-refresh 15min
 ════════════════════════════════════════════════════ */
 loadWeather();
 loadNews("pt");
@@ -989,19 +1146,24 @@ loadNews("world");
 renderFuel();
 renderElec();
 renderCalendar();
-setTimeout(()=>loadCrypto(),       500);
-setTimeout(()=>loadMarketStats(), 1500);
+loadHolidays();
+loadAir();
+setTimeout(()=>loadSNS(),          300);
+setTimeout(()=>loadCrypto(),       600);
+setTimeout(()=>loadMarketStats(), 1800);
 
 setInterval(()=>{
   loadWeather();
   loadNews("pt");
   loadNews("world");
   renderFuel();
+  loadHolidays();
+  loadAir();
+  loadSNS();
   loadI=0; loadNextQ();
-  setTimeout(()=>loadCrypto(),       500);
-  setTimeout(()=>loadMarketStats(), 1500);
+  setTimeout(()=>loadCrypto(),       600);
+  setTimeout(()=>loadMarketStats(), 1800);
 }, CACHE_TTL);
-
 </script>
 </body>
 </html>
