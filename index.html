@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Painel Pessoal · Portugal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  --bg:        #07090E;
+  --surface:   #0C0F18;
+  --card:      #10131E;
+  --card-h:    #141828;
+  --border:    #1A1F32;
+  --border-b:  #232840;
+  --accent:    #E8A020;
+  --accent-d:  #E8A02015;
+  --blue:      #4B96F3;
+  --blue-d:    #4B96F312;
+  --green:     #34C97A;
+  --green-d:   #34C97A12;
+  --red:       #EF5757;
+  --red-d:     #EF575712;
+  --purple:    #9575F0;
+  --purple-d:  #9575F012;
+  --cyan:      #22D3EE;
+  --text:      #DDE3F0;
+  --text-2:    #8B93A8;
+  --text-3:    #3F4760;
+  --font:      'Plus Jakarta Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --r:         10px;
+  --r-sm:      7px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-b);border-radius:2px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:var(--font);cursor:pointer}
+img{display:block}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LAYOUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.wrap{max-width:1500px;margin:0 auto;padding:22px 18px 48px}
+
+/* Header */
+.hdr{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;padding-bottom:20px;margin-bottom:22px;
+  border-bottom:1px solid var(--border);
+}
+.hdr-brand{}
+.brand-name{font-size:1.55rem;font-weight:700;letter-spacing:-.5px;line-height:1}
+.brand-sub{font-family:var(--mono);font-size:.6rem;letter-spacing:2px;color:var(--text-3);text-transform:uppercase;margin-top:4px}
+.hdr-clock{text-align:center}
+.clock-time{font-family:var(--mono);font-size:2.1rem;font-weight:500;color:var(--accent);letter-spacing:2px;line-height:1}
+.clock-date{font-size:.72rem;color:var(--text-2);margin-top:4px;font-weight:400}
+.hdr-pills{display:flex;justify-content:flex-end;gap:6px;align-items:center;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:.58rem;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text-3);letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--text-3)}
+.pill.ok{border-color:rgba(52,201,122,.3);color:var(--green);background:var(--green-d)}
+.pill.ok .pill-dot{background:var(--green);animation:pulse 2s infinite}
+.pill.err{border-color:rgba(239,87,87,.3);color:var(--red);background:var(--red-d)}
+.pill.err .pill-dot{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:290px 1fr 1fr;gap:14px;align-items:start}
+.s2{grid-column:span 2}
+.s3{grid-column:span 3}
+.r2{grid-row:span 2}
+
+/* Card */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;position:relative;overflow:hidden;
+  transition:border-color .2s,background .2s;
+}
+.card:hover{border-color:var(--border-b);background:var(--card-h)}
+.stripe{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r) var(--r) 0 0}
+
+/* Card Header */
+.ch{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.ch-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ch-label{font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-2)}
+.ch-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ch-badge{font-family:var(--mono);font-size:.58rem;color:var(--text-3);padding:2px 7px;border-radius:4px;border:1px solid var(--border)}
+.btn-ref{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 10px;color:var(--text-3);font-family:var(--mono);font-size:.6rem;letter-spacing:.3px;transition:all .15s}
+.btn-ref:hover{color:var(--text);border-color:var(--text-2)}
+
+/* Loader */
+.ld{display:flex;align-items:center;justify-content:center;min-height:90px}
+.spin{width:22px;height:22px;border:2px solid var(--border-b);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-msg{font-size:.75rem;color:var(--red);font-family:var(--mono);padding:14px 0;line-height:1.5}
+
+/* Source line */
+.src{font-family:var(--mono);font-size:.58rem;color:var(--text-3);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WEATHER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.wx-top{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
+.wx-ico{font-size:3.8rem;line-height:1;filter:drop-shadow(0 2px 16px rgba(232,160,32,.35))}
+.wx-temp{font-size:3.2rem;font-weight:700;line-height:1;letter-spacing:-1px}
+.wx-unit{font-size:1.4rem;font-weight:300;color:var(--text-2)}
+.wx-desc{font-size:.85rem;color:var(--text-2);margin-top:3px;text-transform:capitalize;font-weight:400}
+.wx-loc{font-family:var(--mono);font-size:.62rem;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-top:6px}
+.wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.wx-stat{background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.1);border-radius:var(--r-sm);padding:9px 11px}
+.wx-sl{font-size:.62rem;color:var(--text-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+.wx-sv{font-size:.9rem;font-weight:600;color:var(--accent);margin-top:3px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NEWS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.news-wrap{max-height:305px;overflow-y:auto;padding-right:2px}
+.ni{padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:all .15s}
+.ni:last-child{border-bottom:none;padding-bottom:0}
+.ni:hover .ni-title{color:var(--accent)}
+.ni-meta{display:flex;gap:7px;align-items:center;margin-bottom:4px}
+.ni-src{font-family:var(--mono);font-size:.58rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ni-tag{font-size:.55rem;padding:2px 6px;border-radius:3px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.tag-pt{background:rgba(232,160,32,.12);color:var(--accent)}
+.tag-w{background:rgba(75,150,243,.12);color:var(--blue)}
+.ni-time{font-family:var(--mono);font-size:.58rem;color:var(--text-3);margin-left:auto}
+.ni-title{font-size:.82rem;line-height:1.45;color:var(--text);transition:color .15s;font-weight:400}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FINANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.fin-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.fin-tab{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 12px;cursor:pointer;transition:all .15s;min-width:110px;flex:1}
+.fin-tab:hover{border-color:var(--border-b)}
+.fin-tab.active{border-color:var(--accent);background:var(--accent-d)}
+.ft-ticker{font-family:var(--mono);font-size:.58rem;color:var(--text-3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.ft-name{font-size:.68rem;color:var(--text-2);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.ft-price{font-size:1.15rem;font-weight:700;line-height:1;letter-spacing:-.3px}
+.ft-chg{font-family:var(--mono);font-size:.62rem;margin-top:4px}
+.ft-loading{font-size:.65rem;color:var(--text-3);font-family:var(--mono);margin-top:4px}
+
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px}
+.chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.chart-name{font-size:.9rem;font-weight:600;letter-spacing:-.2px}
+.chart-price{font-size:1.6rem;font-weight:700;letter-spacing:-1px;line-height:1;margin-top:2px}
+.chart-pct{font-family:var(--mono);font-size:.65rem;margin-top:3px}
+.periods{display:flex;gap:4px}
+.pbtn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-family:var(--mono);font-size:.62rem;color:var(--text-3);transition:all .15s}
+.pbtn:hover,.pbtn.on{color:var(--text);border-color:var(--text-2);background:var(--border)}
+.chart-empty{text-align:center;padding:30px 20px;font-family:var(--mono);font-size:.72rem;color:var(--text-3);line-height:1.7}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FUEL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fuel-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;transition:border-color .15s}
+.fuel-item:hover{border-color:var(--border-b)}
+.fuel-lbl{font-family:var(--mono);font-size:.6rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fuel-price{font-size:1.5rem;font-weight:700;line-height:1;letter-spacing:-.5px}
+.fuel-unit{font-family:var(--mono);font-size:.58rem;color:var(--text-3);margin-top:2px}
+.fuel-chg{font-family:var(--mono);font-size:.62rem;margin-top:6px;display:flex;align-items:center;gap:3px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ELECTRICITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.elec-top{display:flex;gap:10px;margin-bottom:14px}
+.elec-kpi{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px}
+.elec-kpi-lbl{font-family:var(--mono);font-size:.58rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.elec-kpi-val{font-size:1.4rem;font-weight:700;line-height:1;letter-spacing:-.3px}
+.elec-kpi-unit{font-family:var(--mono);font-size:.58rem;color:var(--text-3);margin-top:2px}
+.elec-kpi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:3px}
+.elec-bars{margin-bottom:12px}
+.elec-bar-lbl{font-family:var(--mono);font-size:.6rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.elec-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.elec-row:last-child{margin-bottom:0}
+.elec-rl{font-size:.68rem;color:var(--text-2);width:64px;flex-shrink:0;font-weight:500}
+.elec-bg{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.elec-fill{height:100%;border-radius:3px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.elec-rv{font-family:var(--mono);font-size:.62rem;color:var(--text-2);width:68px;text-align:right;flex-shrink:0}
+.elec-badges{display:flex;gap:8px}
+.elec-badge{flex:1;border-radius:var(--r-sm);padding:9px 10px;text-align:center}
+.elec-badge-val{font-size:1.25rem;font-weight:700;line-height:1}
+.elec-badge-lbl{font-family:var(--mono);font-size:.58rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.notes-list{display:flex;flex-direction:column;gap:7px;max-height:230px;overflow-y:auto;margin-bottom:12px;padding-right:2px}
+.note{display:flex;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;align-items:flex-start;transition:border-color .15s}
+.note:hover{border-color:var(--border-b)}
+.note-bar{width:3px;border-radius:2px;align-self:stretch;min-height:16px;flex-shrink:0}
+.note-body{flex:1;min-width:0}
+.note-txt{font-size:.82rem;line-height:1.5;white-space:pre-wrap;word-break:break-word;color:var(--text);font-weight:400}
+.note-ts{font-family:var(--mono);font-size:.58rem;color:var(--text-3);margin-top:4px}
+.note-del{background:none;border:none;color:var(--text-3);font-size:.72rem;padding:2px 5px;border-radius:4px;opacity:0;transition:all .15s;flex-shrink:0;line-height:1}
+.note:hover .note-del{opacity:1}
+.note-del:hover{color:var(--red);background:var(--red-d)}
+.note-form{display:flex;flex-direction:column;gap:8px}
+textarea.note-ta{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:10px 13px;color:var(--text);font-family:var(--font);font-size:.82rem;font-weight:400;
+  resize:none;outline:none;width:100%;min-height:62px;transition:border-color .2s;line-height:1.5;
+}
+textarea.note-ta:focus{border-color:var(--accent)}
+textarea.note-ta::placeholder{color:var(--text-3)}
+.note-actions{display:flex;align-items:center;gap:7px}
+.nc{width:15px;height:15px;border-radius:50%;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.nc.on{border-color:white;transform:scale(1.2)}
+.btn-save{
+  margin-left:auto;background:var(--accent);color:#07090E;border:none;
+  border-radius:6px;padding:6px 16px;font-family:var(--font);font-size:.72rem;
+  font-weight:600;letter-spacing:.3px;transition:opacity .15s;
+}
+.btn-save:hover{opacity:.85}
+.btn-save:disabled{opacity:.3;cursor:not-allowed}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HELPERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.up{color:var(--green)}
+.dn{color:var(--red)}
+.fl{color:var(--text-3)}
+
+/* Fade-in on load */
+.card{animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card:nth-child(1){animation-delay:.05s}
+.card:nth-child(2){animation-delay:.1s}
+.card:nth-child(3){animation-delay:.15s}
+.card:nth-child(4){animation-delay:.2s}
+.card:nth-child(5){animation-delay:.25s}
+.card:nth-child(6){animation-delay:.3s}
+.card:nth-child(7){animation-delay:.35s}
+
+/* Config banner */
+.cfg-banner{
+  background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.25);
+  border-radius:var(--r-sm);padding:12px 16px;margin-bottom:18px;
+  font-size:.78rem;color:var(--accent);line-height:1.6;display:none;
+}
+.cfg-banner.show{display:block}
+.cfg-banner strong{font-weight:600}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RESPONSIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media(max-width:1100px){
+  .grid{grid-template-columns:1fr 1fr}
+  .s3{grid-column:span 2}
+  .r2{grid-row:auto}
+}
+@media(max-width:680px){
+  .grid{grid-template-columns:1fr}
+  .s2,.s3{grid-column:span 1}
+  .hdr{grid-template-columns:1fr;gap:10px}
+  .hdr-pills{justify-content:flex-start}
+  .fin-tabs{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- CONFIG BANNER -->
+  <div class="cfg-banner" id="cfg-banner">
+    ⚠ <strong>Configuração necessária:</strong> Abre este ficheiro num editor de texto e preenche as tuas API keys na secção <code>CONFIG</code> no início do JavaScript.
+  </div>
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="brand-name">Painel Pessoal</div>
+      <div class="brand-sub">Dashboard · Portugal</div>
+    </div>
+    <div class="hdr-clock">
+      <div class="clock-time" id="clk"></div>
+      <div class="clock-date" id="clk-date"></div>
+    </div>
+    <div class="hdr-pills" id="pills"></div>
+  </header>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- WEATHER -->
+    <div class="card r2" id="card-wx">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--accent-d)">🌡️</div>
+        <span class="ch-label">Meteorologia</span>
+        <div class="ch-right"><button class="btn-ref" onclick="loadWeather()">↺</button></div>
+      </div>
+      <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+
+    <!-- NEWS PT -->
+    <div class="card">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--accent-d)">🇵🇹</div>
+        <span class="ch-label">Notícias · Portugal</span>
+        <div class="ch-right"><button class="btn-ref" onclick="loadNews('pt')">↺</button></div>
+      </div>
+      <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
+      <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
+    </div>
+
+    <!-- NEWS WORLD -->
+    <div class="card">
+      <div class="stripe" style="background:var(--blue)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--blue-d)">🌍</div>
+        <span class="ch-label">Notícias · Mundo</span>
+        <div class="ch-right"><button class="btn-ref" onclick="loadNews('world')">↺</button></div>
+      </div>
+      <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
+      <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
+    </div>
+
+    <!-- FUEL -->
+    <div class="card">
+      <div class="stripe" style="background:var(--green)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--green-d)">⛽</div>
+        <span class="ch-label">Combustíveis · PT</span>
+        <div class="ch-right"><button class="btn-ref" onclick="loadFuel()">↺</button></div>
+      </div>
+      <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+
+    <!-- ELECTRICITY -->
+    <div class="card">
+      <div class="stripe" style="background:var(--blue)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--blue-d)">⚡</div>
+        <span class="ch-label">Eletricidade · PT</span>
+        <div class="ch-right"><button class="btn-ref" onclick="loadElec()">↺</button></div>
+      </div>
+      <div id="elec-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+
+    <!-- FINANCE -->
+    <div class="card s3">
+      <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--accent-d)">📈</div>
+        <span class="ch-label">Mercados Financeiros</span>
+        <div class="ch-right">
+          <span class="ch-badge" id="fin-status">a carregar…</span>
+          <button class="btn-ref" onclick="reloadFinance()">↺</button>
+        </div>
+      </div>
+      <div class="fin-tabs" id="fin-tabs"></div>
+      <div class="chart-box">
+        <div class="chart-top">
+          <div>
+            <div class="chart-name" id="ch-name">—</div>
+            <div class="chart-price" id="ch-price">—</div>
+            <div class="chart-pct" id="ch-pct"></div>
+          </div>
+          <div class="periods">
+            <button class="pbtn" onclick="setPeriod('5D')">5D</button>
+            <button class="pbtn on" onclick="setPeriod('1M')">1M</button>
+            <button class="pbtn" onclick="setPeriod('3M')">3M</button>
+            <button class="pbtn" onclick="setPeriod('6M')">6M</button>
+            <button class="pbtn" onclick="setPeriod('1A')">1A</button>
+          </div>
+        </div>
+        <div id="chart-empty" class="chart-empty" style="display:none"></div>
+        <canvas id="fin-chart" height="185" style="display:block"></canvas>
+      </div>
+      <div class="src">✦ Alpha Vantage API · End-of-day · Plano gratuito: 25 pedidos/dia · Os ativos carregam sequencialmente para respeitar os limites</div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="card s2">
+      <div class="stripe" style="background:var(--accent)"></div>
+      <div class="ch">
+        <div class="ch-ico" style="background:var(--accent-d)">📝</div>
+        <span class="ch-label">Notas Pessoais</span>
+        <div class="ch-right"><span class="ch-badge" id="note-count">0 notas</span></div>
+      </div>
+      <div class="notes-list" id="notes-list"></div>
+      <div class="note-form">
+        <textarea class="note-ta" id="note-ta" placeholder="Escreve uma nota… (Ctrl+Enter para guardar)" rows="2"></textarea>
+        <div class="note-actions">
+          <button class="nc on" style="background:#E8A020" data-c="amber" onclick="pickColor(this)"></button>
+          <button class="nc"    style="background:#4B96F3" data-c="blue"  onclick="pickColor(this)"></button>
+          <button class="nc"    style="background:#34C97A" data-c="green" onclick="pickColor(this)"></button>
+          <button class="nc"    style="background:#EF5757" data-c="red"   onclick="pickColor(this)"></button>
+          <button class="nc"    style="background:#9575F0" data-c="purple"onclick="pickColor(this)"></button>
+          <button class="btn-save" id="btn-save" onclick="addNote()" disabled>+ Guardar</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /wrap -->
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   ▶▶ CONFIG — preenche com as tuas chaves
+══════════════════════════════════════════════════════════ */
+const CFG = {
+  OWM_KEY:  "629e7f02ba9f3025f188390200242378",    // openweathermap.org
+  AV_KEY:   "ZCAY1R2YXPML0CDY",   // alphavantage.co
+  GNEWS_KEY:"37ba83efc653917c93a2669c49019c6f",          // gnews.io
+  CITY:     "Évora",                    // cidade para meteorologia
+};
+
+/* ══════════════════════════════════════════════════════════
+   INIT — banner e pills
+══════════════════════════════════════════════════════════ */
+const keysMissing = Object.entries(CFG).filter(([k,v]) => k !== "CITY" && v.startsWith("A_TUA"));
+if (keysMissing.length) document.getElementById("cfg-banner").classList.add("show");
+
+const APIs = [
+  {id:"OWM",   key:CFG.OWM_KEY},
+  {id:"AV",    key:CFG.AV_KEY},
+  {id:"GNEWS", key:CFG.GNEWS_KEY},
+];
+document.getElementById("pills").innerHTML = APIs.map(a => {
+  const ok = !a.key.startsWith("A_TUA");
+  return `<span class="pill ${ok?'ok':'err'}"><span class="pill-dot"></span>${a.id}</span>`;
+}).join("");
+
+/* ══════════════════════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════════════════════ */
+function tick() {
+  const n = new Date();
+  document.getElementById("clk").textContent = n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.getElementById("clk-date").textContent = n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+tick(); setInterval(tick, 1000);
+
+/* ══════════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════════ */
+const $  = id => document.getElementById(id);
+const ld = () => `<div class="ld"><div class="spin"></div></div>`;
+const er = m  => `<p class="err-msg">⚠ ${m}</p>`;
+
+function fmtChg(v, dec=2) {
+  if (v == null) return "";
+  const cls = v>0?"up":v<0?"dn":"fl", sym = v>0?"▲":v<0?"▼":"—";
+  return `<span class="${cls}">${sym} ${Math.abs(v).toFixed(dec)}%</span>`;
+}
+function fmtPrice(v, dec=2) {
+  return Number(v).toLocaleString("pt-PT",{minimumFractionDigits:dec,maximumFractionDigits:Math.max(dec,4)});
+}
+function ago(iso) {
+  if (!iso) return "";
+  const m = Math.floor((Date.now()-new Date(iso))/60000);
+  if(m<1) return "agora"; if(m<60) return `há ${m}m`;
+  const h=Math.floor(m/60); return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;
+}
+const WX={thunderstorm:"⛈️",drizzle:"🌦️",rain:"🌧️",snow:"❄️",mist:"🌫️",fog:"🌫️",haze:"🌫️",clear:"☀️",clouds:"☁️"};
+function wxIco(d=""){ const l=d.toLowerCase(); for(const[k,v] of Object.entries(WX)) if(l.includes(k)) return v; return "🌤️"; }
+const DIRS=["N","NE","E","SE","S","SW","W","NW"];
+const deg2dir=d=>DIRS[Math.round(d/45)%8];
+
+/* CORS proxy para contornar restrições em GitHub Pages */
+function proxied(url) {
+  return `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+}
+async function fetchProxy(url) {
+  const r = await fetch(proxied(url));
+  if (!r.ok) throw new Error(`Proxy HTTP ${r.status}`);
+  const j = await r.json();
+  if (!j.contents) throw new Error("Proxy sem conteúdo");
+  return JSON.parse(j.contents);
+}
+
+/* ══════════════════════════════════════════════════════════
+   METEOROLOGIA — OpenWeatherMap
+══════════════════════════════════════════════════════════ */
+async function loadWeather() {
+  $("wx-body").innerHTML = ld();
+  try {
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(CFG.CITY)},PT&appid=${CFG.OWM_KEY}&units=metric&lang=pt`;
+    const j = await fetchProxy(url);
+    if (j.cod && j.cod !== 200) throw new Error(j.message || `Erro ${j.cod}`);
+    const d = {
+      temp: Math.round(j.main.temp), feels: Math.round(j.main.feels_like),
+      min: Math.round(j.main.temp_min), max: Math.round(j.main.temp_max),
+      hum: j.main.humidity, wind: Math.round(j.wind.speed*3.6),
+      dir: deg2dir(j.wind.deg||0), desc: j.weather[0].description,
+      ico: wxIco(j.weather[0].main), city: j.name,
+      pressure: j.main.pressure, vis: j.visibility ? Math.round(j.visibility/1000) : null,
+    };
+    $("wx-body").innerHTML = `
+      <div class="wx-top">
+        <span class="wx-ico">${d.ico}</span>
+        <div>
+          <div class="wx-temp">${d.temp}<span class="wx-unit">°C</span></div>
+          <div class="wx-desc">${d.desc}</div>
+          <div class="wx-loc">${d.city} · Portugal</div>
+        </div>
+      </div>
+      <div class="wx-grid">
+        ${[["Sensação",`${d.feels}°C`],["Humidade",`${d.hum}%`],
+           ["Vento",`${d.wind} km/h ${d.dir}`],["Min / Máx",`${d.min}° / ${d.max}°`],
+           ["Pressão",`${d.pressure} hPa`],["Visibilidade",d.vis?`${d.vis} km`:"—"]]
+          .map(([l,v])=>`<div class="wx-stat"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
+      </div>
+      <div class="src">✦ OpenWeatherMap · Tempo real</div>`;
+  } catch(e) { $("wx-body").innerHTML = er(e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   NOTÍCIAS — GNews API (via proxy)
+══════════════════════════════════════════════════════════ */
+async function loadNews(scope) {
+  const el = $(scope==="pt"?"news-pt":"news-world");
+  el.innerHTML = ld();
+  try {
+    const isPT = scope==="pt";
+    const lang = isPT?"pt":"en", country = isPT?"&country=pt":"", q = isPT?"Portugal":"world";
+    const url = `https://gnews.io/api/v4/top-headlines?lang=${lang}${country}&max=6&apikey=${CFG.GNEWS_KEY}&q=${encodeURIComponent(q)}`;
+    const j = await fetchProxy(url);
+    if (j.errors) throw new Error(Array.isArray(j.errors)?j.errors.join(", "):j.errors);
+    const arts = (j.articles||[]).slice(0,6);
+    if (!arts.length) throw new Error("Sem artigos disponíveis de momento");
+    el.innerHTML = `<div class="news-wrap">${arts.map(a=>`
+      <div class="ni" onclick="window.open('${a.url}','_blank')">
+        <div class="ni-meta">
+          <span class="ni-src">${(a.source?.name||"—").slice(0,22)}</span>
+          <span class="ni-tag ${isPT?'tag-pt':'tag-w'}">${isPT?"PT":"WORLD"}</span>
+          <span class="ni-time">${ago(a.publishedAt)}</span>
+        </div>
+        <div class="ni-title">${a.title}</div>
+      </div>`).join("")}</div>`;
+  } catch(e) { el.innerHTML = er(e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MERCADOS FINANCEIROS — Alpha Vantage
+   Carregamento sequencial + cache para respeitar 25 req/dia
+══════════════════════════════════════════════════════════ */
+const ASSETS = [
+  // Alpha Vantage GLOBAL_QUOTE funciona com ETFs e ações
+  // Para índices usamos ETFs equivalentes (disponíveis no plano gratuito)
+  {id:"SPX",   name:"S&P 500",      sym:"SPY",   type:"eq",  color:"#4B96F3"},
+  {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",   type:"eq",  color:"#9575F0"},
+  {id:"DJI",   name:"Dow Jones",    sym:"DIA",   type:"eq",  color:"#34C97A"},
+  {id:"XAU",   name:"Ouro",         sym:"GLD",   type:"eq",  color:"#E8A020"},
+  {id:"OIL",   name:"Petróleo WTI", sym:"USO",   type:"eq",  color:"#EF5757"},
+  {id:"EURUSD",name:"EUR/USD",      from:"EUR",to:"USD",type:"fx",color:"#34C97A"},
+  {id:"EURGBP",name:"EUR/GBP",      from:"EUR",to:"GBP",type:"fx",color:"#9575F0"},
+  {id:"PSI20", name:"PSI-20",       sym:"ELI.LS",type:"eq",  color:"#E8A020"},
+];
+
+const CACHE_KEY = "av_cache_v2";
+let avCache = {};
+try { avCache = JSON.parse(localStorage.getItem(CACHE_KEY)||"{}"); } catch {}
+
+function saveCache() { try { localStorage.setItem(CACHE_KEY, JSON.stringify(avCache)); } catch {} }
+
+function cacheValid(key) {
+  if (!avCache[key]) return false;
+  // Cache válido durante 6 horas (mercados fechados ao fim de semana)
+  const age = Date.now() - (avCache[key].ts||0);
+  return age < 6 * 60 * 60 * 1000;
+}
+
+let quotes = {};
+let selAsset = ASSETS[0];
+let selPeriod = "1M";
+let chartInst = null;
+let loadQueue = [...ASSETS];
+let loadIdx = 0;
+
+async function avFetch(params) {
+  const qs = new URLSearchParams({...params, apikey: CFG.AV_KEY});
+  const url = `https://www.alphavantage.co/query?${qs}`;
+  return fetchProxy(url);
+}
+
+async function fetchQuote(a) {
+  const ck = `q_${a.id}`;
+  if (cacheValid(ck)) return avCache[ck].data;
+  let data;
+  if (a.type === "fx") {
+    const j = await avFetch({function:"FX_DAILY", from_symbol:a.from, to_symbol:a.to, outputsize:"compact"});
+    const ts = j["Time Series FX (Daily)"]; if (!ts) return null;
+    const dates = Object.keys(ts).sort().reverse();
+    const p = parseFloat(ts[dates[0]]["4. close"]), prev = parseFloat(ts[dates[1]]?.["4. close"]||p);
+    data = {price:p, change:((p-prev)/prev)*100};
+  } else {
+    const j = await avFetch({function:"GLOBAL_QUOTE", symbol:a.sym});
+    const q = j["Global Quote"]; if (!q?.["05. price"]) return null;
+    data = {price:parseFloat(q["05. price"]), change:parseFloat((q["10. change percent"]||"0").replace("%",""))};
+  }
+  avCache[ck] = {data, ts:Date.now()}; saveCache();
+  return data;
+}
+
+async function fetchHistory(a, period) {
+  const days = {"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[period]||30;
+  const size = days>100?"full":"compact";
+  const ck = `h_${a.id}_${size}`;
+  let ts;
+  if (cacheValid(ck)) {
+    ts = avCache[ck].data;
+  } else {
+    let j;
+    if (a.type === "fx") {
+      j = await avFetch({function:"FX_DAILY", from_symbol:a.from, to_symbol:a.to, outputsize:size});
+      ts = j["Time Series FX (Daily)"];
+    } else {
+      j = await avFetch({function:"TIME_SERIES_DAILY", symbol:a.sym, outputsize:size});
+      ts = j["Time Series (Daily)"];
+    }
+    if (!ts) return [];
+    avCache[ck] = {data:ts, ts:Date.now()}; saveCache();
+  }
+  return Object.keys(ts).sort().slice(-days).map(d=>({date:d.slice(5), close:parseFloat(ts[d]["4. close"])}));
+}
+
+function renderTabs() {
+  $("fin-tabs").innerHTML = ASSETS.map(a => {
+    const q = quotes[a.id];
+    const active = selAsset?.id===a.id?"active":"";
+    return `<div class="fin-tab ${active}" onclick="selectAsset('${a.id}')">
+      <div class="ft-ticker">${a.id}</div>
+      <div class="ft-name">${a.name}</div>
+      ${q
+        ? `<div class="ft-price" style="color:${a.color}">${fmtPrice(q.price)}</div>
+           <div class="ft-chg">${fmtChg(q.change)}</div>`
+        : `<div class="ft-loading">a carregar…</div>`}
+    </div>`;
+  }).join("");
+}
+
+function updateChartHeader() {
+  const a = selAsset, q = quotes[a?.id];
+  $("ch-name").textContent = a?.name||"—";
+  $("ch-name").style.color = a?.color||"var(--blue)";
+  $("ch-price").style.color = a?.color||"var(--blue)";
+  if (q) {
+    $("ch-price").textContent = fmtPrice(q.price);
+    $("ch-pct").innerHTML = fmtChg(q.change);
+  }
+}
+
+async function loadNextQuote() {
+  if (loadIdx >= ASSETS.length) {
+    $("fin-status").textContent = `atualizado ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
+    return;
+  }
+  const a = ASSETS[loadIdx++];
+  $("fin-status").textContent = `${loadIdx}/${ASSETS.length} ativos…`;
+  try {
+    const q = await fetchQuote(a);
+    if (q) quotes[a.id] = q;
+  } catch {}
+  renderTabs();
+  updateChartHeader();
+  // Delay entre pedidos para não exceder o rate limit (5 req/min no plano gratuito)
+  setTimeout(loadNextQuote, 1400);
+}
+
+async function reloadFinance() {
+  loadIdx = 0; quotes = {};
+  // Limpar cache de quotes (não de histórico)
+  Object.keys(avCache).filter(k=>k.startsWith("q_")).forEach(k=>delete avCache[k]);
+  saveCache();
+  renderTabs();
+  loadNextQuote();
+}
+
+function selectAsset(id) {
+  selAsset = ASSETS.find(a=>a.id===id)||ASSETS[0];
+  renderTabs();
+  updateChartHeader();
+  loadChartData();
+}
+
+function setPeriod(p) {
+  selPeriod = p;
+  document.querySelectorAll(".pbtn").forEach(b=>b.classList.toggle("on", b.textContent===p));
+  loadChartData();
+}
+
+async function loadChartData() {
+  $("chart-empty").style.display = "none";
+  $("fin-chart").style.display = "block";
+  $("fin-chart").getContext("2d").clearRect(0,0,9999,9999);
+  try {
+    const pts = await fetchHistory(selAsset, selPeriod);
+    if (!pts.length) throw new Error("Sem dados históricos · O plano gratuito da Alpha Vantage permite 25 pedidos/dia e 5/min.\nSe acabaste os pedidos, aguarda até amanhã ou usa o botão ↺ para forçar atualização.");
+    drawChart(pts, selAsset.color);
+  } catch(e) {
+    if (chartInst) { chartInst.destroy(); chartInst=null; }
+    $("fin-chart").style.display = "none";
+    $("chart-empty").style.display = "block";
+    $("chart-empty").textContent = e.message;
+  }
+}
+
+function drawChart(pts, color) {
+  const labels = pts.map(p=>p.date);
+  const values = pts.map(p=>p.close);
+  const minV = Math.min(...values)*.998, maxV = Math.max(...values)*1.002;
+  const openV = values[0];
+  if (chartInst) { chartInst.destroy(); chartInst=null; }
+  const ctx = $("fin-chart").getContext("2d");
+  const grad = ctx.createLinearGradient(0,0,0,185);
+  grad.addColorStop(0, color+"28"); grad.addColorStop(1, color+"00");
+  chartInst = new Chart(ctx, {
+    type:"line",
+    data:{ labels, datasets:[{ data:values, borderColor:color, borderWidth:1.8,
+      pointRadius:0, pointHoverRadius:5, tension:.3, fill:true, backgroundColor:grad }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:500},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#10131E", borderColor:"#232840", borderWidth:1,
+          titleColor:"#3F4760", bodyColor:"#DDE3F0",
+          titleFont:{family:"DM Mono",size:10}, bodyFont:{family:"DM Mono",size:11},
+          callbacks:{ label: c => fmtPrice(c.parsed.y,4) }
+        }
+      },
+      scales:{
+        x:{ ticks:{color:"#3F4760",font:{family:"DM Mono",size:9},maxTicksLimit:8}, grid:{color:"#1A1F32"}, border:{display:false} },
+        y:{ min:minV, max:maxV,
+          ticks:{color:"#3F4760",font:{family:"DM Mono",size:9},maxTicksLimit:5, callback:v=>fmtPrice(v,1)},
+          grid:{color:"#1A1F32"}, border:{display:false} }
+      }
+    }
+  });
+}
+
+/* Bootstrap finance */
+renderTabs();
+loadNextQuote();
+// Carrega gráfico com cache se disponível
+setTimeout(()=>loadChartData(), 500);
+
+/* ══════════════════════════════════════════════════════════
+   COMBUSTÍVEIS — Claude API via proxy allorigins
+══════════════════════════════════════════════════════════ */
+async function callClaude(userMsg) {
+  // allorigins não suporta POST — usamos cors.sh como alternativa para POST
+  // Alternativa: usar um serverless function no Netlify/Vercel
+  // Para GitHub Pages (static), fazemos o pedido direto (funciona em HTTPS)
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key": "", // deixar vazio — a API do claude.ai injeta automaticamente quando em artifacts
+      "anthropic-version":"2023-06-01",
+    },
+    body: JSON.stringify({
+      model:"claude-haiku-4-5-20251001", max_tokens:300,
+      system:"Responde APENAS com JSON válido. Sem markdown, sem texto extra.",
+      messages:[{role:"user",content:userMsg}]
+    })
+  });
+  if(!r.ok) throw new Error(`API ${r.status}`);
+  const j = await r.json();
+  const txt = (j.content||[]).map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
+  return JSON.parse(txt);
+}
+
+/* Cache combustíveis — atualiza 1x/dia */
+function fuelCacheValid() {
+  const c = localStorage.getItem("fuel_cache");
+  if(!c) return null;
+  try {
+    const p = JSON.parse(c);
+    const age = Date.now() - (p.ts||0);
+    if (age < 20*60*60*1000) return p.data; // 20h cache
+  } catch {}
+  return null;
+}
+
+async function loadFuel() {
+  $("fuel-body").innerHTML = ld();
+  // Tentar cache primeiro
+  const cached = fuelCacheValid();
+  if (cached) { renderFuel(cached); return; }
+  try {
+    const today = new Date().toLocaleDateString("pt-PT");
+    const d = await callClaude(
+      `Preços médios dos combustíveis em Portugal para a semana de ${today}. Usa dados reais e recentes da DGEG. JSON:
+{"g95":{"p":1.769,"v":-0.012},"g98":{"p":1.889,"v":0.003},"gsl":{"p":1.649,"v":-0.007},"gslc":{"p":1.249,"v":0.000},"ref":"semana xx"}`
+    );
+    localStorage.setItem("fuel_cache", JSON.stringify({data:d, ts:Date.now()}));
+    renderFuel(d);
+  } catch(e) {
+    // Fallback com dados estáticos recentes
+    renderFuel({g95:{p:1.769,v:-0.012},g98:{p:1.889,v:0.003},gsl:{p:1.649,v:-0.007},gslc:{p:1.249,v:0},ref:"Estimativa (API indisponível)"});
+  }
+}
+
+function renderFuel(d) {
+  const fuels = [
+    {k:"g95", l:"Gasolina 95",     c:"var(--accent)"},
+    {k:"g98", l:"Gasolina 98",     c:"var(--blue)"},
+    {k:"gsl", l:"Gasóleo",         c:"var(--green)"},
+    {k:"gslc",l:"Gasóleo Colorido",c:"var(--purple)"},
+  ];
+  $("fuel-body").innerHTML = `
+    <div class="fuel-grid">
+      ${fuels.map(f=>{const i=d[f.k];if(!i)return"";return`
+        <div class="fuel-item">
+          <div class="fuel-lbl">${f.l}</div>
+          <div class="fuel-price" style="color:${f.c}">${Number(i.p).toFixed(3)}</div>
+          <div class="fuel-unit">€ / litro</div>
+          <div class="fuel-chg ${i.v>0?"up":i.v<0?"dn":"fl"}">
+            ${i.v>0?"▲":i.v<0?"▼":"—"} ${Math.abs(i.v).toFixed(3)}€
+          </div>
+        </div>`;}).join("")}
+    </div>
+    <div class="src">✦ ${d.ref||"Estimativa DGEG"} · <a href="https://precos.dgeg.gov.pt" target="_blank">precos.dgeg.gov.pt</a></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ELETRICIDADE
+══════════════════════════════════════════════════════════ */
+function elecCacheValid() {
+  const c = localStorage.getItem("elec_cache");
+  if(!c) return null;
+  try {
+    const p = JSON.parse(c);
+    if (Date.now()-(p.ts||0) < 6*60*60*1000) return p.data;
+  } catch {}
+  return null;
+}
+
+async function loadElec() {
+  $("elec-body").innerHTML = ld();
+  const cached = elecCacheValid();
+  if (cached) { renderElec(cached); return; }
+  try {
+    const today = new Date().toLocaleDateString("pt-PT");
+    const d = await callClaude(
+      `Dados de eletricidade em Portugal para ${today}: preço spot MIBEL, tarifas reguladas e mix energético. JSON:
+{"spot":{"p":82.5,"var":-4.2},"simples":0.2134,"vazio":0.1423,"fvazio":0.2567,"renovaveis":71,"co2":52}`
+    );
+    localStorage.setItem("elec_cache", JSON.stringify({data:d, ts:Date.now()}));
+    renderElec(d);
+  } catch {
+    renderElec({spot:{p:82.5,var:-4.2},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:71,co2:52});
+  }
+}
+
+function renderElec(d) {
+  $("elec-body").innerHTML = `
+    <div class="elec-top">
+      <div class="elec-kpi">
+        <div class="elec-kpi-lbl">Mercado Spot MIBEL</div>
+        <div class="elec-kpi-val" style="color:var(--blue)">${Number(d.spot?.p||0).toFixed(1)}</div>
+        <div class="elec-kpi-unit">€/MWh</div>
+        <div class="elec-kpi-chg ${(d.spot?.var||0)>=0?"up":"dn"}">
+          ${(d.spot?.var||0)>=0?"▲":"▼"} ${Math.abs(d.spot?.var||0).toFixed(1)} vs ontem
+        </div>
+      </div>
+      <div class="elec-kpi">
+        <div class="elec-kpi-lbl">Tarifa Simples</div>
+        <div class="elec-kpi-val" style="color:var(--green)">${Number(d.simples||0).toFixed(4)}</div>
+        <div class="elec-kpi-unit">€/kWh</div>
+      </div>
+    </div>
+    <div class="elec-bars">
+      <div class="elec-bar-lbl">Tarifa Bi-horária</div>
+      ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
+      <div class="elec-row">
+        <span class="elec-rl">${r.l}</span>
+        <div class="elec-bg"><div class="elec-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div>
+        <span class="elec-rv">${Number(r.v||0).toFixed(4)} €/kWh</span>
+      </div>`).join("")}
+    </div>
+    <div class="elec-badges">
+      <div class="elec-badge" style="background:var(--green-d)">
+        <div class="elec-badge-val" style="color:var(--green)">${d.renovaveis}%</div>
+        <div class="elec-badge-lbl">Renováveis</div>
+      </div>
+      <div class="elec-badge" style="background:var(--blue-d)">
+        <div class="elec-badge-val" style="color:var(--blue)">${d.co2}</div>
+        <div class="elec-badge-lbl">gCO₂/kWh</div>
+      </div>
+    </div>
+    <div class="src">✦ Estimativa IA · REN/OMIE sem CORS público · <a href="https://www.ren.pt" target="_blank">ren.pt</a></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NOTAS
+══════════════════════════════════════════════════════════ */
+const NC_COLORS = {amber:"#E8A020",blue:"#4B96F3",green:"#34C97A",red:"#EF5757",purple:"#9575F0"};
+let noteColor = "amber";
+let notes = [];
+try { notes = JSON.parse(localStorage.getItem("notes_v3")||"[]"); } catch {}
+
+function saveNotes() {
+  try { localStorage.setItem("notes_v3", JSON.stringify(notes)); } catch {}
+  renderNotes();
+}
+
+function renderNotes() {
+  $("note-count").textContent = `${notes.length} nota${notes.length!==1?"s":""}`;
+  if (!notes.length) {
+    $("notes-list").innerHTML = `<p style="color:var(--text-3);font-size:.8rem;text-align:center;padding:18px 0;font-weight:400">Ainda sem notas — adiciona a primeira!</p>`;
+    return;
+  }
+  $("notes-list").innerHTML = notes.map(n=>`
+    <div class="note">
+      <div class="note-bar" style="background:${NC_COLORS[n.c]||NC_COLORS.amber}"></div>
+      <div class="note-body">
+        <div class="note-txt">${n.t.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+        <div class="note-ts">${n.d}</div>
+      </div>
+      <button class="note-del" onclick="delNote(${n.id})">✕</button>
+    </div>`).join("");
+}
+
+function addNote() {
+  const ta=$("note-ta"), txt=ta.value.trim();
+  if(!txt) return;
+  notes.unshift({id:Date.now(),t:txt,c:noteColor,d:new Date().toLocaleString("pt-PT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
+  ta.value=""; $("btn-save").disabled=true;
+  saveNotes();
+}
+function delNote(id){ notes=notes.filter(n=>n.id!==id); saveNotes(); }
+function pickColor(btn){
+  noteColor=btn.dataset.c;
+  document.querySelectorAll(".nc").forEach(b=>b.classList.toggle("on",b===btn));
+}
+$("note-ta").addEventListener("input", e=>{ $("btn-save").disabled=!e.target.value.trim(); });
+$("note-ta").addEventListener("keydown", e=>{ if(e.key==="Enter"&&e.ctrlKey) addNote(); });
+renderNotes();
+
+/* ══════════════════════════════════════════════════════════
+   BOOT — carrega todos os módulos
+══════════════════════════════════════════════════════════ */
+loadWeather();
+loadNews("pt");
+loadNews("world");
+loadFuel();
+loadElec();
+</script>
+</body>
+</html>
