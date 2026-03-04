@@ -136,7 +136,7 @@ button{font-family:var(--font);cursor:pointer}
 .ft-chg{font-family:var(--mono);font-size:.6rem;margin-top:3px}
 .ft-spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--b2);border-top-color:var(--t3);border-radius:50%;animation:spin .7s linear infinite;margin-top:6px}
 
-.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px}
+.chart-box{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;height:280px;overflow:hidden}
 .chart-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 .ch-name{font-size:.88rem;font-weight:600}
 .ch-price{font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin-top:2px}
@@ -340,7 +340,7 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
       <div class="chart-msg" id="chart-msg"></div>
-      <canvas id="fin-chart" height="185"></canvas>
+      <canvas id="fin-chart" height="185" style="max-height:185px"></canvas>
     </div>
     <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
   </div>
@@ -578,11 +578,11 @@ const ASSETS = [
   {id:"SPX",   name:"S&P 500",      sym:"SPY",       color:"#4B96F3"},
   {id:"NDX",   name:"Nasdaq 100",   sym:"QQQ",       color:"#9575F0"},
   {id:"DJI",   name:"Dow Jones",    sym:"DIA",       color:"#34C97A"},
-  {id:"PSI20", name:"PSI-20",       sym:"EDP.LS",    color:"#E9A520"},
+  {id:"PSI20", name:"PSI-20",       sym:"PSI20",     color:"#E9A520"},
   {id:"XAU",   name:"Ouro",         sym:"GLD",       color:"#E9A520"},
   {id:"OIL",   name:"Petróleo WTI", sym:"USO",       color:"#EF5757"},
   {id:"EUR",   name:"EUR/USD",      sym:"EUR/USD",   color:"#34C97A"},
-  {id:"GBP",   name:"EUR/GBP",      sym:"EUR/GBP",   color:"#9575F0"},
+  {id:"GBP",   name:"GBP/USD",      sym:"GBP/USD",   color:"#9575F0"},
 ];
 
 let quotes={}, selA=ASSETS[0], selP="1M", chartInst=null, loadI=0;
@@ -749,15 +749,20 @@ async function loadMarketStats(){
 const FUEL = {
   g95:{p:1.769,v:-0.012}, g98:{p:1.889,v:0.003},
   gsl:{p:1.649,v:-0.007}, gslc:{p:1.249,v:0.000},
+  gpl:{p:0.989,v:0.005}, adblue:{p:1.429,v:-0.008},
+  gslaq:{p:1.199,v:0.002},
   ref:"DGEG · semana 09/2026"
 };
 
 function renderFuel(){
   const fuels=[
-    {k:"g95", l:"Gasolina 95",      c:"var(--accent)"},
-    {k:"g98", l:"Gasolina 98",      c:"var(--blue)"},
-    {k:"gsl", l:"Gasóleo",          c:"var(--green)"},
-    {k:"gslc",l:"Gasóleo Colorido", c:"var(--purple)"},
+    {k:"g95",   l:"Gasolina 95",       c:"var(--accent)"},
+    {k:"g98",   l:"Gasolina 98",       c:"var(--blue)"},
+    {k:"gsl",   l:"Gasóleo Estrada",   c:"var(--green)"},
+    {k:"gslc",  l:"Gasóleo Colorido",  c:"var(--purple)"},
+    {k:"gpl",   l:"GPL Auto",          c:"var(--cyan)"},
+    {k:"adblue",l:"AdBlue",            c:"var(--t2)"},
+    {k:"gslaq", l:"Gasóleo Aquecimento",c:"var(--orange)"},
   ];
   $("fuel-body").innerHTML=`
     <div class="fuel-grid">
