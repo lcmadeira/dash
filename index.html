@@ -341,7 +341,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
       <div class="chart-msg" id="chart-msg"></div>
       <div id="chart-wrap" style="position:relative;width:100%;height:185px;overflow:hidden">
-        <canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:100%!important"></canvas>
+        <canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:185px!important"></canvas>
       </div>
     </div>
     <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
@@ -645,8 +645,7 @@ async function loadChart(){
     const color=selA.color||"#4B96F3";
     const minV=Math.min(...values)*.998, maxV=Math.max(...values)*1.002;
     if(chartInst){ chartInst.destroy(); chartInst=null; }
-    // Força dimensões fixas no canvas antes de criar o chart
-    cv.width  = wrap.offsetWidth  || 800;
+    cv.width = wrap.offsetWidth || 800;
     cv.height = 185;
     const ctx=cv.getContext("2d");
     const grad=ctx.createLinearGradient(0,0,0,185);
@@ -655,7 +654,7 @@ async function loadChart(){
       type:"line",
       data:{labels,datasets:[{data:values,borderColor:color,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true,backgroundColor:grad}]},
       options:{
-        responsive:false,   // ← CRÍTICO: evita o loop de ResizeObserver
+        responsive:false,
         maintainAspectRatio:false,
         animation:{duration:450},
         plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
@@ -688,24 +687,23 @@ const CRYPTOS=[
 async function loadCrypto(){
   $("crypto-body").innerHTML=ld();
   try {
-    // Pedidos sequenciais com delay para não esgotar os 8 créditos/minuto
-    const results=[];
-    for(const c of CRYPTOS){
-      try{
-        const j=await tdGet("/quote",{symbol:c.sym});
-        results.push({...c, price:parseFloat(j.close||j.price||0), pc:parseFloat(j.percent_change||0)});
-      }catch{ results.push({...c, price:0, pc:0}); }
-      await new Promise(r=>setTimeout(r,500));
-    }
-    $("crypto-body").innerHTML=`<div class="crypto-list">${results.map(c=>`
-      <div class="ci">
+    // Twelve Data suporta batch: símbolos separados por vírgula
+    const syms=CRYPTOS.map(c=>c.sym).join(",");
+    const j=await tdGet("/quote",{symbol:syms});
+    // Resposta pode ser objecto único ou objecto com chaves por símbolo
+    $("crypto-body").innerHTML=`<div class="crypto-list">${CRYPTOS.map(c=>{
+      const q=j[c.sym]||j; // se single, j é direto
+      const price=parseFloat(q.close||q.price||0);
+      const pc=parseFloat(q.percent_change||0);
+      return `<div class="ci">
         <span class="ci-sym">${c.sym.split("/")[0]}</span>
         <span class="ci-name">${c.name}</span>
         <div>
-          <div class="ci-price" style="color:${c.color}">${c.price>0?fmtP(c.price,2):"—"}</div>
-          <div class="ci-chg">${c.price>0?chg(c.pc):""}</div>
+          <div class="ci-price" style="color:${c.color}">${price>0?fmtP(price,2):"—"}</div>
+          <div class="ci-chg">${price>0?chg(pc):""}</div>
         </div>
-      </div>`).join("")}</div>`;
+      </div>`;
+    }).join("")}</div>`;
   } catch(e){ $("crypto-body").innerHTML=er(e.message); }
 }
 
@@ -714,10 +712,12 @@ async function loadCrypto(){
    VIX (volatilidade), Ouro spot, Petróleo WTI, USD Index
 ════════════════════════════════════════════════════ */
 const MSTATS=[
-  {id:"VIX",  sym:"VIX",     label:"VIX",          sub:"Volatilidade S&P",  color:"var(--red)"},
-  {id:"GOLD", sym:"XAU/USD", label:"Ouro",          sub:"USD / oz",          color:"var(--accent)"},
-  {id:"WTI",  sym:"WTI/USD", label:"Petróleo WTI",  sub:"USD / barril",      color:"var(--orange)"},
-  {id:"DXY",  sym:"DX-Y.NYB",label:"USD Index",     sub:"Índice do dólar",   color:"var(--blue)"},
+  // GLD (ETF ouro), USO (ETF petróleo), UUP (ETF USD Index) — todos suportados no plano free
+  // VIX não está disponível no plano gratuito da TD → substituído por VIXY (ETF VIX)
+  {id:"VIX",  sym:"VIXY",  label:"VIX",          sub:"Volatilidade S&P (VIXY ETF)", color:"var(--red)"},
+  {id:"GOLD", sym:"GLD",   label:"Ouro",          sub:"USD / oz (GLD ETF)",          color:"var(--accent)"},
+  {id:"WTI",  sym:"USO",   label:"Petróleo WTI",  sub:"USD / barril (USO ETF)",      color:"var(--orange)"},
+  {id:"DXY",  sym:"UUP",   label:"USD Index",     sub:"Índice do dólar (UUP ETF)",   color:"var(--blue)"},
 ];
 
 async function loadMarketStats(){
@@ -896,10 +896,12 @@ loadNews("world");
 renderFuel();
 renderElec();
 renderCalendar();
-// Escalonado para não esgotar os 8 créditos/minuto da Twelve Data
-// Finanças arranca imediatamente, crypto e market stats com delay
-setTimeout(()=>loadCrypto(),       10000);  // após 10s
-setTimeout(()=>loadMarketStats(),  22000);  // após 22s
+// Escalonado para não esgotar os 8 créditos/minuto da Twelve Data:
+// Finanças arranca imediatamente (8 ativos × 800ms = ~6.5s)
+// Crypto arranca aos 12s (quando finanças terminaram)
+// Market Stats arranca aos 25s (5 ativos × 500ms = ~2.5s após crypto)
+setTimeout(()=>loadCrypto(),      12000);
+setTimeout(()=>loadMarketStats(), 25000);
 </script>
 </body>
 </html>
