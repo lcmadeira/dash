@@ -145,7 +145,6 @@ button{font-family:var(--font);cursor:pointer}
 .pbtn{background:none;border:1px solid var(--b);border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.6rem;color:var(--t3);transition:all .15s}
 .pbtn:hover,.pbtn.on{color:var(--text);border-color:var(--t2);background:var(--b)}
 .chart-msg{text-align:center;padding:28px 16px;font-family:var(--mono);font-size:.7rem;color:var(--t3);line-height:1.8;display:none}
-.chart-canvas-wrap{position:relative;width:100%;height:185px}
 
 /* ── Market Stats (novos cards) ── */
 .mstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -341,8 +340,8 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
       <div class="chart-msg" id="chart-msg"></div>
-      <div class="chart-canvas-wrap">
-        <canvas id="fin-chart"></canvas>
+      <div id="chart-wrap" style="position:relative;width:100%;height:185px;overflow:hidden">
+        <canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:100%!important"></canvas>
       </div>
     </div>
     <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
@@ -634,7 +633,7 @@ function setPeriod(p){
 }
 
 async function loadChart(){
-  const msg=$("chart-msg"), cv=$("fin-chart"), wrap=cv.parentElement;
+  const msg=$("chart-msg"), cv=$("fin-chart"), wrap=$("chart-wrap");
   msg.style.display="none"; wrap.style.display="block";
   try {
     const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
@@ -646,6 +645,9 @@ async function loadChart(){
     const color=selA.color||"#4B96F3";
     const minV=Math.min(...values)*.998, maxV=Math.max(...values)*1.002;
     if(chartInst){ chartInst.destroy(); chartInst=null; }
+    // Força dimensões fixas no canvas antes de criar o chart
+    cv.width  = wrap.offsetWidth  || 800;
+    cv.height = 185;
     const ctx=cv.getContext("2d");
     const grad=ctx.createLinearGradient(0,0,0,185);
     grad.addColorStop(0,color+"26"); grad.addColorStop(1,color+"00");
@@ -653,7 +655,9 @@ async function loadChart(){
       type:"line",
       data:{labels,datasets:[{data:values,borderColor:color,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true,backgroundColor:grad}]},
       options:{
-        responsive:true,maintainAspectRatio:false,animation:{duration:450},
+        responsive:false,   // ← CRÍTICO: evita o loop de ResizeObserver
+        maintainAspectRatio:false,
+        animation:{duration:450},
         plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
         scales:{
           x:{ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:8},grid:{color:"#181D30"},border:{display:false}},
@@ -684,23 +688,24 @@ const CRYPTOS=[
 async function loadCrypto(){
   $("crypto-body").innerHTML=ld();
   try {
-    // Twelve Data suporta batch: símbolos separados por vírgula
-    const syms=CRYPTOS.map(c=>c.sym).join(",");
-    const j=await tdGet("/quote",{symbol:syms});
-    // Resposta pode ser objecto único ou objecto com chaves por símbolo
-    $("crypto-body").innerHTML=`<div class="crypto-list">${CRYPTOS.map(c=>{
-      const q=j[c.sym]||j; // se single, j é direto
-      const price=parseFloat(q.close||q.price||0);
-      const pc=parseFloat(q.percent_change||0);
-      return `<div class="ci">
+    // Pedidos sequenciais com delay para não esgotar os 8 créditos/minuto
+    const results=[];
+    for(const c of CRYPTOS){
+      try{
+        const j=await tdGet("/quote",{symbol:c.sym});
+        results.push({...c, price:parseFloat(j.close||j.price||0), pc:parseFloat(j.percent_change||0)});
+      }catch{ results.push({...c, price:0, pc:0}); }
+      await new Promise(r=>setTimeout(r,500));
+    }
+    $("crypto-body").innerHTML=`<div class="crypto-list">${results.map(c=>`
+      <div class="ci">
         <span class="ci-sym">${c.sym.split("/")[0]}</span>
         <span class="ci-name">${c.name}</span>
         <div>
-          <div class="ci-price" style="color:${c.color}">${price>0?fmtP(price,2):"—"}</div>
-          <div class="ci-chg">${price>0?chg(pc):""}</div>
+          <div class="ci-price" style="color:${c.color}">${c.price>0?fmtP(c.price,2):"—"}</div>
+          <div class="ci-chg">${c.price>0?chg(c.pc):""}</div>
         </div>
-      </div>`;
-    }).join("")}</div>`;
+      </div>`).join("")}</div>`;
   } catch(e){ $("crypto-body").innerHTML=er(e.message); }
 }
 
@@ -891,8 +896,10 @@ loadNews("world");
 renderFuel();
 renderElec();
 renderCalendar();
-loadCrypto();
-loadMarketStats();
+// Escalonado para não esgotar os 8 créditos/minuto da Twelve Data
+// Finanças arranca imediatamente, crypto e market stats com delay
+setTimeout(()=>loadCrypto(),       10000);  // após 10s
+setTimeout(()=>loadMarketStats(),  22000);  // após 22s
 </script>
 </body>
 </html>
