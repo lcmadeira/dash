@@ -65,9 +65,9 @@ button{font-family:var(--font);cursor:pointer}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* Grid */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+.grid{display:grid;grid-template-columns:280px 1fr 1fr;gap:12px;align-items:start}
 .s2{grid-column:span 2}
-.s3{grid-column:span 3}.s4{grid-column:span 4}
+.s3{grid-column:span 3}
 .r2{grid-row:span 2}
 
 /* Card */
@@ -166,12 +166,17 @@ button{font-family:var(--font);cursor:pointer}
 
 /* ── Fuel ── */
 .fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.fi{background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);padding:12px 14px;transition:border-color .15s}
+.fi{background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);padding:11px 13px;transition:border-color .15s}
 .fi:hover{border-color:var(--b2)}
-.fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
+.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
 .fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
+.fi-range{margin-top:7px}
+.fi-range-bar{position:relative;height:4px;background:var(--b);border-radius:2px;margin:4px 0 3px}
+.fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
+.fi-range-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--text);border:2px solid var(--card);top:-2px;transform:translateX(-50%)}
+.fi-range-mm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--t3)}
 
 /* ── Electricity ── */
 .elec-top{display:flex;gap:8px;margin-bottom:12px}
@@ -226,25 +231,13 @@ textarea.nta::placeholder{color:var(--t3)}
 .bsave:hover{opacity:.85}
 .bsave:disabled{opacity:.3;cursor:not-allowed}
 
-
-/* ── Air Quality ── */
-.aqi-hero{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:12px 14px;border-radius:var(--rs);border:1px solid var(--b)}
-.aqi-num{font-size:2.8rem;font-weight:700;line-height:1;letter-spacing:-1px}
-.aqi-right{}
-.aqi-label{font-size:.95rem;font-weight:600;margin-bottom:2px}
-.aqi-desc{font-size:.72rem;color:var(--t2)}
-.aqi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.aqi-s{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;text-align:center}
-.aqi-sl{font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.aqi-sv{font-size:.82rem;font-weight:600}
-
 /* colour helpers */
 .up{color:var(--green)}
 .dn{color:var(--red)}
 .fl{color:var(--t3)}
 
 /* Responsive */
-@media(max-width:1200px){.grid{grid-template-columns:repeat(2,1fr)}.s3,.s4{grid-column:span 2}.r2{grid-row:auto}}
+@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.s3{grid-column:span 2}.r2{grid-row:auto}}
 @media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
 </style>
 </head>
@@ -267,8 +260,8 @@ textarea.nta::placeholder{color:var(--t3)}
 <!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
-  <!-- ROW 1: Meteo (span2 r2) | Notícias PT | Notícias Mundo -->
-  <div class="card s2 r2">
+  <!-- WEATHER (col 1, 2 rows) -->
+  <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
@@ -278,6 +271,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
+  <!-- NEWS PT -->
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -289,6 +283,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
   </div>
 
+  <!-- NEWS WORLD -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
@@ -300,7 +295,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ GNews API · Tempo real · Clica para ler</div>
   </div>
 
-  <!-- ROW 2 col 3+4: Combustíveis | Eletricidade -->
+  <!-- FUEL -->
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch">
@@ -311,6 +306,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="fuel-body"></div>
   </div>
 
+  <!-- ELECTRICITY -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
@@ -321,8 +317,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="elec-body"></div>
   </div>
 
-  <!-- ROW 3: Finanças full width -->
-  <div class="card s4">
+  <!-- FINANCE — full width -->
+  <div class="card s3">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">📈</div>
@@ -349,12 +345,12 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
       <div class="chart-msg" id="chart-msg"></div>
-      <div id="chart-wrap" style="position:relative;width:100%;height:185px;overflow:hidden"><canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:185px!important"></canvas></div>
+      <canvas id="fin-chart" height="185"></canvas>
     </div>
     <div class="src">✦ Twelve Data API · End-of-day · Plano gratuito: 800 créditos/dia · CORS nativo, sem proxy</div>
   </div>
 
-  <!-- ROW 4: Crypto | Indicadores | Qualidade Ar | Calendário -->
+  <!-- CRYPTO -->
   <div class="card">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch">
@@ -366,6 +362,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data API · Tempo real</div>
   </div>
 
+  <!-- MARKET STATS -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch">
@@ -377,18 +374,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data API · VIX, Ouro, Petróleo, USD Index</div>
   </div>
 
-  <!-- NOVO: Qualidade do Ar -->
-  <div class="card">
-    <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">🌬️</div>
-      <span class="ch-lbl">Qualidade do Ar · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadAir()">↺</button></div>
-    </div>
-    <div id="air-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ OpenWeatherMap Air Pollution API · Tempo real</div>
-  </div>
-
+  <!-- ECONOMIC CALENDAR -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
@@ -400,8 +386,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Dados estáticos · Eventos macroeconómicos relevantes</div>
   </div>
 
-  <!-- ROW 5: Notas full width -->
-  <div class="card s4">
+  <!-- NOTES -->
+  <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">📝</div>
@@ -423,7 +409,6 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 </div><!-- /grid -->
-
 </div><!-- /wrap -->
 
 <script>
@@ -651,8 +636,8 @@ function setPeriod(p){
 }
 
 async function loadChart(){
-  const msg=$("chart-msg"), cv=$("fin-chart"), wrap=$("chart-wrap");
-  msg.style.display="none"; wrap.style.display="block"; cv.width=wrap.offsetWidth||800; cv.height=185;
+  const msg=$("chart-msg"), cv=$("fin-chart");
+  msg.style.display="none"; cv.style.display="block";
   try {
     const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
     const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out});
@@ -670,7 +655,7 @@ async function loadChart(){
       type:"line",
       data:{labels,datasets:[{data:values,borderColor:color,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true,backgroundColor:grad}]},
       options:{
-        responsive:false,maintainAspectRatio:false,animation:{duration:450},
+        responsive:true,maintainAspectRatio:false,animation:{duration:450},
         plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
         scales:{
           x:{ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:8},grid:{color:"#181D30"},border:{display:false}},
@@ -680,7 +665,7 @@ async function loadChart(){
     });
   } catch(e){
     if(chartInst){chartInst.destroy();chartInst=null;}
-    wrap.style.display="none"; msg.style.display="block"; msg.textContent=e.message;
+    cv.style.display="none"; msg.style.display="block"; msg.textContent=e.message;
   }
 }
 
@@ -726,10 +711,10 @@ async function loadCrypto(){
    VIX (volatilidade), Ouro spot, Petróleo WTI, USD Index
 ════════════════════════════════════════════════════ */
 const MSTATS=[
-  {id:"VIX",  sym:"VIXY",  label:"VIX",          sub:"Volatilidade S&P (VIXY ETF)", color:"var(--red)"},
-  {id:"GOLD", sym:"GLD",   label:"Ouro",          sub:"USD / oz (GLD ETF)",          color:"var(--accent)"},
-  {id:"WTI",  sym:"USO",   label:"Petróleo WTI",  sub:"USD / barril (USO ETF)",      color:"var(--orange)"},
-  {id:"DXY",  sym:"UUP",   label:"USD Index",     sub:"Índice do dólar (UUP ETF)",   color:"var(--blue)"},
+  {id:"VIX",  sym:"VIX",     label:"VIX",          sub:"Volatilidade S&P",  color:"var(--red)"},
+  {id:"GOLD", sym:"XAU/USD", label:"Ouro",          sub:"USD / oz",          color:"var(--accent)"},
+  {id:"WTI",  sym:"WTI/USD", label:"Petróleo WTI",  sub:"USD / barril",      color:"var(--orange)"},
+  {id:"DXY",  sym:"DX-Y.NYB",label:"USD Index",     sub:"Índice do dólar",   color:"var(--blue)"},
 ];
 
 async function loadMarketStats(){
@@ -756,35 +741,60 @@ async function loadMarketStats(){
 }
 
 /* ════════════════════════════════════════════════════
-   COMBUSTÍVEIS — Dados estáticos (DGEG sem CORS)
-   ▶ Atualiza semanalmente em precos.dgeg.gov.pt
+   COMBUSTÍVEIS — API Aberta PT (tempo real, CORS nativo)
+   api.apiaberta.pt/v1/fuel/prices
 ════════════════════════════════════════════════════ */
-const FUEL = {
-  g95:{p:1.769,v:-0.012}, g98:{p:1.889,v:0.003},
-  gsl:{p:1.649,v:-0.007}, gslc:{p:1.249,v:0.000},
-  ref:"DGEG · semana 09/2026"
-};
+const FUEL_SLUGS = [
+  {slug:"gasoline_95",    label:"Gasolina 95",      color:"var(--accent)"},
+  {slug:"gasoline_98",    label:"Gasolina 98",       color:"var(--blue)"},
+  {slug:"diesel",         label:"Gasóleo Simples",   color:"var(--green)"},
+  {slug:"diesel_colored", label:"Gasóleo Colorido",  color:"var(--purple)"},
+  {slug:"gpl_auto",       label:"GPL Auto",          color:"var(--cyan)"},
+  {slug:"diesel_plus",    label:"Gasóleo Especial",  color:"var(--orange)"},
+];
 
-function renderFuel(){
-  const fuels=[
-    {k:"g95", l:"Gasolina 95",      c:"var(--accent)"},
-    {k:"g98", l:"Gasolina 98",      c:"var(--blue)"},
-    {k:"gsl", l:"Gasóleo",          c:"var(--green)"},
-    {k:"gslc",l:"Gasóleo Colorido", c:"var(--purple)"},
-  ];
-  $("fuel-body").innerHTML=`
-    <div class="fuel-grid">
-      ${fuels.map(f=>{const i=FUEL[f.k];if(!i)return"";return`
-        <div class="fi">
-          <div class="fi-lbl">${f.l}</div>
-          <div class="fi-price" style="color:${f.c}">${Number(i.p).toFixed(3)}</div>
-          <div class="fi-unit">€ / litro</div>
-          <div class="fi-chg ${i.v>0?"up":i.v<0?"dn":"fl"}">
-            ${i.v>0?"▲":i.v<0?"▼":"—"} ${Math.abs(i.v).toFixed(3)}€
-          </div>
-        </div>`;}).join("")}
-    </div>
-    <div class="src">✦ ${FUEL.ref} · <a href="https://precos.dgeg.gov.pt" target="_blank">precos.dgeg.gov.pt</a><br>▶ Para atualizar: edita a constante FUEL no ficheiro HTML</div>`;
+async function renderFuel(){
+  $("fuel-body").innerHTML=ld();
+  try {
+    const r = await fetch("https://api.apiaberta.pt/v1/fuel/prices");
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    const bySlug = {};
+    (j.data||j).forEach(f => bySlug[f.fuel_slug] = f);
+
+    const items = FUEL_SLUGS.map(s => ({...s, d: bySlug[s.slug]})).filter(s => s.d);
+    const date = items[0]?.d?.date || "";
+    const upd  = items[0]?.d?.updated_at ? new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}) : "";
+
+    $("fuel-body").innerHTML=`
+      <div class="fuel-grid">
+        ${items.map(f => {
+          const d = f.d;
+          const avg = d.avg_price_eur, mn = d.min_price_eur, mx = d.max_price_eur;
+          // position of avg in min-max range (0-100%)
+          const range = mx - mn;
+          const pct = range > 0 ? Math.round(((avg - mn) / range) * 100) : 50;
+          return `<div class="fi">
+            <div class="fi-lbl">${f.label}</div>
+            <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
+            <div class="fi-unit">€/litro · média de ${d.station_count} postos</div>
+            <div class="fi-range">
+              <div class="fi-range-bar">
+                <div class="fi-range-fill" style="left:0;width:100%"></div>
+                <div class="fi-range-dot" style="left:${pct}%"></div>
+              </div>
+              <div class="fi-range-mm">
+                <span>mín ${mn.toFixed(3)}</span>
+                <span>máx ${mx.toFixed(3)}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="src">✦ API Aberta PT · Dados de ${date} · Atualizado às ${upd} · <a href="https://api.apiaberta.pt" target="_blank">api.apiaberta.pt</a></div>`;
+  } catch(e) {
+    $("fuel-body").innerHTML = er(e.message);
+  }
 }
 
 /* ════════════════════════════════════════════════════
@@ -899,55 +909,6 @@ $("nta").addEventListener("input",e=>{ $("bsave").disabled=!e.target.value.trim(
 $("nta").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.ctrlKey) addNote(); });
 renderNotes();
 
-
-/* ════════════════════════════════════════════════════
-   QUALIDADE DO AR — OpenWeatherMap Air Pollution API
-════════════════════════════════════════════════════ */
-const AQI_LABELS = ["","Boa","Razoável","Moderada","Má","Muito Má"];
-const AQI_COLORS = ["","#34C97A","#B8CC3E","#E9A520","#EF5757","#9575F0"];
-const AQI_BG     = ["","#34C97A18","#B8CC3E18","#E9A52018","#EF575718","#9575F018"];
-const AQI_DESC   = ["","Ar limpo — excelente para actividades ao ar livre","Qualidade aceitável — grupos sensíveis devem ter cuidado","Grupos sensíveis podem sentir efeitos","Toda a população pode sentir efeitos negativos","Alerta de saúde — toda a gente pode ser afectada"];
-
-async function loadAir() {
-  $("air-body").innerHTML = ld();
-  try {
-    // Primeiro obtemos coordenadas da cidade via geocoding
-    const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(CFG.CITY)},PT&limit=1&appid=${CFG.OWM_KEY}`;
-    const geo = await fetchP(geoUrl);
-    if (!geo?.length) throw new Error("Cidade não encontrada");
-    const {lat, lon} = geo[0];
-    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${CFG.OWM_KEY}`;
-    const j = await fetchP(url);
-    const aqi = j.list[0].main.aqi;
-    const c = j.list[0].components;
-    const col = AQI_COLORS[aqi] || "#8892A8";
-    const bg  = AQI_BG[aqi]     || "#8892A818";
-    $("air-body").innerHTML = `
-      <div class="aqi-hero" style="background:${bg};border-color:${col}33">
-        <div class="aqi-num" style="color:${col}">${aqi}</div>
-        <div class="aqi-right">
-          <div class="aqi-label" style="color:${col}">${AQI_LABELS[aqi]}</div>
-          <div class="aqi-desc">${AQI_DESC[aqi]}</div>
-        </div>
-      </div>
-      <div class="aqi-grid">
-        ${[
-          ["PM2.5", c.pm2_5?.toFixed(1), "μg/m³"],
-          ["PM10",  c.pm10?.toFixed(1),  "μg/m³"],
-          ["NO₂",   c.no2?.toFixed(1),   "μg/m³"],
-          ["O₃",    c.o3?.toFixed(1),    "μg/m³"],
-          ["SO₂",   c.so2?.toFixed(1),   "μg/m³"],
-          ["CO",    c.co?.toFixed(0),    "μg/m³"],
-        ].map(([l,v,u]) => `
-          <div class="aqi-s">
-            <div class="aqi-sl">${l}</div>
-            <div class="aqi-sv" style="color:${col}">${v ?? "—"}</div>
-            <div style="font-size:.55rem;color:var(--t3);font-family:var(--mono)">${u}</div>
-          </div>`).join("")}
-      </div>`;
-  } catch(e) { $("air-body").innerHTML = er(e.message); }
-}
-
 /* ════════════════════════════════════════════════════
    BOOT
 ════════════════════════════════════════════════════ */
@@ -957,10 +918,8 @@ loadNews("world");
 renderFuel();
 renderElec();
 renderCalendar();
-loadAir();
-// Escalonado para não esgotar os 8 créditos/minuto da Twelve Data:
-setTimeout(()=>loadCrypto(),      12000);   // após 12s (finanças terminam ~10s)
-setTimeout(()=>loadMarketStats(), 25000);   // após 25s
+loadCrypto();
+loadMarketStats();
 </script>
 </body>
 </html>
