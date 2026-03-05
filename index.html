@@ -239,15 +239,24 @@ textarea.nta::placeholder{color:var(--t3)}
 .tv-tape-wrap{margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
 .tv-tape-wrap .tradingview-widget-copyright{display:none!important}
 
-/* ── TradingView Advanced Chart ── */
+/* ── TradingView Advanced Chart card ── */
 .tv-chart-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;animation:fadeUp .35s ease both}
 .tv-chart-card:hover{border-color:var(--b2)}
 .tv-chart-card .stripe{position:absolute;top:0;left:0;right:0;height:2px}
 .tv-chart-card .ch{padding:14px 18px 0;display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .tv-chart-inner{height:520px;width:100%;position:relative}
-.tv-chart-inner .tradingview-widget-container,.tv-chart-inner .tradingview-widget-container__widget{height:100%!important;width:100%!important}
+.tv-chart-inner .tradingview-widget-container,
+.tv-chart-inner .tradingview-widget-container__widget{height:100%!important;width:100%!important}
 .tv-chart-inner .tradingview-widget-copyright{display:none!important}
-.tv-src{padding:6px 18px 12px;font-family:var(--mono);font-size:.58rem;color:var(--t3);border-top:1px solid var(--b);margin-top:4px}
+.tv-src{padding:6px 18px 10px;font-family:var(--mono);font-size:.58rem;color:var(--t3);border-top:1px solid var(--b);margin-top:4px}
+
+/* ── Petróleo Symbol Overview tabs ── */
+.oil-tabs{display:flex;gap:6px;margin-bottom:10px}
+.oil-tab{font-family:var(--mono);font-size:.6rem;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .15s}
+.oil-tab.on{background:var(--orange);border-color:var(--orange);color:#0a0d1c;font-weight:700}
+.oil-widget-wrap{border-radius:var(--rs);overflow:hidden;background:transparent}
+.oil-widget-wrap .tradingview-widget-copyright{display:none!important}
+.oil-widget-wrap .tradingview-widget-container__widget{border-radius:var(--rs)!important}
 
 /* ── Fuel range ── */
 .fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
@@ -305,33 +314,27 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {
-      "symbols": [
-        {"description":"EUR/USD",  "proName":"FX_IDC:EURUSD"},
-        {"description":"EUR/GBP",  "proName":"FX_IDC:EURGBP"},
-        {"description":"EUR/JPY",  "proName":"FX_IDC:EURJPY"},
-        {"description":"EUR/CHF",  "proName":"FX_IDC:EURCHF"},
-        {"description":"GBP/USD",  "proName":"FX_IDC:GBPUSD"},
-        {"description":"USD/JPY",  "proName":"FX_IDC:USDJPY"},
-        {"description":"S&P 500",  "proName":"FOREXCOM:SPXUSD"},
-        {"description":"Nasdaq",   "proName":"FOREXCOM:NSXUSD"},
-        {"description":"DAX",      "proName":"XETR:DAX"},
-        {"description":"PSI-20",   "proName":"EURONEXT:PSI20"},
-        {"description":"FTSE 100", "proName":"FOREXCOM:UKXGBP"},
-        {"description":"Ouro",     "proName":"FOREXCOM:XAUUSD"},
-        {"description":"Petróleo", "proName":"NYMEX:CL1!"},
-        {"description":"Gás Nat.", "proName":"NYMEX:NG1!"},
-        {"description":"BTC/USD",  "proName":"BITSTAMP:BTCUSD"},
-        {"description":"ETH/USD",  "proName":"BITSTAMP:ETHUSD"},
-        {"description":"PT 10Y",   "proName":"TVC:PT10Y"},
-        {"description":"DE 10Y",   "proName":"TVC:DE10Y"}
-      ],
-      "showSymbolLogo": true,
-      "isTransparent": true,
-      "displayMode": "adaptive",
-      "colorTheme": "dark",
-      "locale": "pt"
-    }
+    {"symbols":[
+      {"description":"EUR/USD","proName":"FX_IDC:EURUSD"},
+      {"description":"EUR/GBP","proName":"FX_IDC:EURGBP"},
+      {"description":"EUR/JPY","proName":"FX_IDC:EURJPY"},
+      {"description":"EUR/CHF","proName":"FX_IDC:EURCHF"},
+      {"description":"GBP/USD","proName":"FX_IDC:GBPUSD"},
+      {"description":"USD/JPY","proName":"FX_IDC:USDJPY"},
+      {"description":"S&P 500","proName":"FOREXCOM:SPXUSD"},
+      {"description":"Nasdaq","proName":"FOREXCOM:NSXUSD"},
+      {"description":"DAX","proName":"XETR:DAX"},
+      {"description":"PSI-20","proName":"EURONEXT:PSI20"},
+      {"description":"FTSE 100","proName":"FOREXCOM:UKXGBP"},
+      {"description":"Ouro","proName":"FOREXCOM:XAUUSD"},
+      {"description":"Brent","proName":"OANDA:BCOUSD"},
+      {"description":"WTI","proName":"NYMEX:CL1!"},
+      {"description":"Gás Nat.","proName":"NYMEX:NG1!"},
+      {"description":"BTC/USD","proName":"BITSTAMP:BTCUSD"},
+      {"description":"ETH/USD","proName":"BITSTAMP:ETHUSD"},
+      {"description":"PT 10Y","proName":"TVC:PT10Y"},
+      {"description":"DE 10Y","proName":"TVC:DE10Y"}
+    ],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"pt"}
     </script>
   </div>
 </div>
@@ -346,6 +349,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
   </div>
 
+  <!-- Meteorologia r2 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
@@ -354,6 +358,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
+  <!-- Notícias PT r2 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
@@ -363,6 +368,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ GNews · Tempo real · Clica para ler</div>
   </div>
 
+  <!-- Combustíveis col 3 linha 1 -->
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
@@ -371,6 +377,38 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="fuel-body"></div>
   </div>
 
+  <!-- Petróleo col 4 linha 1 — par natural com Combustíveis -->
+  <div class="card">
+    <div class="stripe" style="background:var(--orange)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--od)">🛢️</div>
+      <span class="ch-lbl">Petróleo · Brent &amp; WTI</span>
+      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
+    </div>
+    <div class="oil-tabs">
+      <button class="oil-tab on" onclick="switchOil('brent',this)">Brent</button>
+      <button class="oil-tab"    onclick="switchOil('wti',this)">WTI</button>
+    </div>
+    <div id="oil-brent" class="oil-widget-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {"symbols":[["Brent Crude Oil","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":230,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"showMA":false,"hideDateRanges":false,"hideMarketStatus":false,"hideSymbolLogo":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","noTimeScale":false,"valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"lineType":0,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.18)","bottomColor":"rgba(245,158,11,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        </script>
+      </div>
+    </div>
+    <div id="oil-wti" class="oil-widget-wrap" style="display:none">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {"symbols":[["WTI Crude Oil","NYMEX:CL1!|3M"]],"chartOnly":false,"width":"100%","height":230,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"showMA":false,"hideDateRanges":false,"hideMarketStatus":false,"hideSymbolLogo":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","noTimeScale":false,"valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"lineType":0,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.18)","bottomColor":"rgba(239,87,87,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        </script>
+      </div>
+    </div>
+    <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
+  </div>
+
+  <!-- Eletricidade col 3 linha 2 -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
@@ -379,7 +417,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="elec-body"></div>
   </div>
 
-  <div class="card s2">
+  <!-- Feriados col 4 linha 2 -->
+  <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🗓️</div>
       <span class="ch-lbl">Feriados &amp; Dias Úteis · PT</span>
@@ -395,56 +434,19 @@ textarea.nta::placeholder{color:var(--t3)}
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites de API</span>
   </div>
 
-  <!-- TradingView Advanced Chart — span 4, 520px de altura -->
+  <!-- TradingView Advanced Chart span 4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">📈</div>
       <span class="ch-lbl">Mercados Financeiros</span>
-      <div class="ch-r">
-        <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
-      </div>
+      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
     </div>
     <div class="tv-chart-inner">
       <div class="tradingview-widget-container" style="height:100%;width:100%">
         <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-        {
-          "autosize": true,
-          "symbol": "EURONEXT:PSI20",
-          "interval": "D",
-          "timezone": "Europe/Lisbon",
-          "theme": "dark",
-          "style": "1",
-          "locale": "pt",
-          "backgroundColor": "rgba(10,13,28,0.0)",
-          "gridColor": "rgba(24,29,48,1)",
-          "withdateranges": true,
-          "hide_side_toolbar": false,
-          "allow_symbol_change": true,
-          "save_image": false,
-          "watchlist": [
-            "EURONEXT:PSI20",
-            "TVC:PT10Y",
-            "FOREXCOM:SPXUSD",
-            "FOREXCOM:NSXUSD",
-            "FOREXCOM:DJI",
-            "XETR:DAX",
-            "FOREXCOM:UKXGBP",
-            "FX_IDC:EURUSD",
-            "FX_IDC:EURGBP",
-            "FX_IDC:EURJPY",
-            "FOREXCOM:XAUUSD",
-            "NYMEX:CL1!",
-            "NYMEX:NG1!",
-            "BITSTAMP:BTCUSD",
-            "BITSTAMP:ETHUSD"
-          ],
-          "details": true,
-          "hotlist": true,
-          "calendar": false,
-          "support_host": "https://www.tradingview.com"
-        }
+        {"autosize":true,"symbol":"EURONEXT:PSI20","interval":"D","timezone":"Europe/Lisbon","theme":"dark","style":"1","locale":"pt","backgroundColor":"rgba(10,13,28,0.0)","gridColor":"rgba(24,29,48,1)","withdateranges":true,"hide_side_toolbar":false,"allow_symbol_change":true,"save_image":false,"watchlist":["EURONEXT:PSI20","TVC:PT10Y","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FOREXCOM:DJI","XETR:DAX","FOREXCOM:UKXGBP","FX_IDC:EURUSD","FX_IDC:EURGBP","FX_IDC:EURJPY","FOREXCOM:XAUUSD","OANDA:BCOUSD","NYMEX:CL1!","NYMEX:NG1!","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"],"details":true,"hotlist":true,"calendar":false,"support_host":"https://www.tradingview.com"}
         </script>
       </div>
     </div>
@@ -505,17 +507,13 @@ textarea.nta::placeholder{color:var(--t3)}
    CONFIG
 ══════════════════════════════════════════════════════ */
 const CFG = {
-  OWM_KEY:      "629e7f02ba9f3025f188390200242378",
   TD_KEY:       "ac8049c9d6c34e40bf50b758be66c056",
   GNEWS_KEY:    "37ba83efc653917c93a2669c49019c6f",
   IPMA_CITY_ID: 1060300,
 };
 
 /* ── Pills ── */
-const APIS=[
-  {n:"IPMA",k:"ok"},{n:"TradingView",k:"ok"},
-  {n:"CoinGecko",k:"ok"},{n:"GNews",k:CFG.GNEWS_KEY}
-];
+const APIS=[{n:"IPMA",k:"ok"},{n:"TradingView",k:"ok"},{n:"CoinGecko",k:"ok"},{n:"GNews",k:CFG.GNEWS_KEY}];
 document.getElementById("pills").innerHTML=APIS.map(a=>{
   const ok=["IPMA","TradingView","CoinGecko"].includes(a.n)?true:!a.k.startsWith("A_TUA");
   return`<span class="pill ${ok?"ok":"err"}"><span class="dot"></span>${a.n}</span>`;
@@ -551,10 +549,20 @@ async function fetchP(url){let last;for(const p of PROXIES){try{return await p(u
 /* ════════════════════════════════════════════════════
    CACHE localStorage — TTL 15 min
 ════════════════════════════════════════════════════ */
-const CACHE_TTL=15*60*1000, PFX="dash_v6_";
+const CACHE_TTL=15*60*1000, PFX="dash_v7_";
 function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 function lsDel(p){try{Object.keys(localStorage).filter(k=>k.startsWith(PFX+(p||""))).forEach(k=>localStorage.removeItem(k));}catch{}}
+
+/* ════════════════════════════════════════════════════
+   PETRÓLEO — tabs Brent / WTI
+════════════════════════════════════════════════════ */
+function switchOil(type, btn){
+  document.querySelectorAll(".oil-tab").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  $("oil-brent").style.display = type==="brent"?"block":"none";
+  $("oil-wti").style.display   = type==="wti"  ?"block":"none";
+}
 
 /* ════════════════════════════════════════════════════
    METEOROLOGIA — IPMA (CORS nativo, sem chave)
@@ -673,12 +681,11 @@ async function tdGet(ep,params,force=false){
   if(j.status==="error")throw new Error(j.message||"TD error");
   lsSet(ck,j);return j;
 }
-
 const MSTATS=[
-  {id:"VIX", sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",  color:"var(--red)"},
-  {id:"GOLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",    color:"var(--accent)"},
-  {id:"WTI", sym:"USO", label:"Petróleo WTI",sub:"USD / barril",      color:"var(--orange)"},
-  {id:"DXY", sym:"UUP", label:"USD Index",   sub:"Índice do dólar",   color:"var(--blue)"},
+  {id:"VIX", sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",color:"var(--red)"},
+  {id:"GOLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",  color:"var(--accent)"},
+  {id:"WTI", sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
+  {id:"DXY", sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
 ];
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
@@ -831,8 +838,7 @@ setTimeout(()=>loadMarketStats(),1200);
 
 setInterval(()=>{
   loadWeather();loadNews("pt");loadNews("world");
-  renderFuel();loadHolidays();
-  loadCrypto();
+  renderFuel();loadHolidays();loadCrypto();
   setTimeout(()=>loadMarketStats(),1200);
 },CACHE_TTL);
 </script>
