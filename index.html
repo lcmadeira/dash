@@ -168,10 +168,10 @@ button{font-family:var(--font);cursor:pointer}
 .fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .fi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;transition:border-color .15s}
 .fi:hover{border-color:var(--b2)}
-.fi-lbl{font-family:var(--mono);font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+
 .fi-price{font-size:1.45rem;font-weight:700;letter-spacing:-.5px;line-height:1}
-.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:2px}
-.fi-chg{font-family:var(--mono);font-size:.6rem;margin-top:5px;display:flex;align-items:center;gap:2px}
+
+
 
 /* ── Electricity ── */
 .elec-top{display:flex;gap:8px;margin-bottom:12px}
@@ -238,21 +238,22 @@ textarea.nta::placeholder{color:var(--t3)}
 /* Ticker Tape */
 .tv-tape-wrap{margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
 .tv-tape-wrap .tradingview-widget-copyright{display:none!important}
-/* TV Advanced Chart */
+/* TV cards genéricos */
 .tv-chart-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;animation:fadeUp .35s ease both}
 .tv-chart-card:hover{border-color:var(--b2)}
 .tv-chart-card .stripe{position:absolute;top:0;left:0;right:0;height:2px}
 .tv-chart-card .ch{padding:14px 18px 0;display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .tv-chart-inner{height:520px;width:100%}
 .tv-chart-inner .tradingview-widget-container,.tv-chart-inner .tradingview-widget-container__widget{height:100%!important;width:100%!important}
-.tv-chart-inner .tradingview-widget-copyright{display:none!important}
+.tv-chart-inner .tradingview-widget-copyright,.tv-widget-wrap .tradingview-widget-copyright{display:none!important}
 .tv-src{padding:6px 18px 10px;font-family:var(--mono);font-size:.58rem;color:var(--t3);border-top:1px solid var(--b)}
 /* Oil tabs */
 .oil-tabs{display:flex;gap:6px;margin-bottom:10px}
 .oil-tab{font-family:var(--mono);font-size:.6rem;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .15s}
 .oil-tab.on{background:var(--orange);border-color:var(--orange);color:#0a0d1c;font-weight:700}
-.oil-widget-wrap .tradingview-widget-copyright{display:none!important}
-/* Fuel range bars */
+/* Fuel range */
+.fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
 .fi-range{margin-top:7px}
 .fi-range-bar{position:relative;height:4px;background:var(--b);border-radius:2px;margin:4px 0 3px}
 .fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
@@ -265,7 +266,7 @@ textarea.nta::placeholder{color:var(--t3)}
 .hol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:9px}
 .hol-stat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 8px;text-align:center}
 .hol-stat-val{font-size:1.1rem;font-weight:700}.hol-stat-lbl{font-size:.54rem;color:var(--t2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
-.hol-list{display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto;padding-right:2px}
+.hol-list{display:flex;flex-direction:column;gap:4px;max-height:165px;overflow-y:auto;padding-right:2px}
 .hol-item{display:flex;align-items:center;gap:9px;padding:5px 9px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
 .hol-item.past{opacity:.38}.hol-item.today{border-color:var(--accent);background:var(--ad)}.hol-item.next{border-color:var(--blue);background:var(--bd)}
 .hol-date{font-family:var(--mono);font-size:.57rem;color:var(--t2);min-width:40px}
@@ -280,6 +281,40 @@ textarea.nta::placeholder{color:var(--t3)}
 .ci2-chg{font-family:var(--mono);font-size:.62rem}
 .ci2-name{font-size:.7rem;color:var(--t2);margin-bottom:4px}
 .ci2-price{font-family:var(--mono);font-size:.97rem;font-weight:600}
+/* Euribor card */
+.euri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.euri-item{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px;text-align:center}
+.euri-term{font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.euri-val{font-size:1.3rem;font-weight:700;letter-spacing:-0.5px;line-height:1}
+.euri-chg{font-family:var(--mono);font-size:.6rem;margin-top:4px}
+.euri-chart{border-radius:var(--rs);overflow:hidden}
+.euri-chart .tradingview-widget-copyright{display:none!important}
+/* Câmbio card */
+.fx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fx-item{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px;display:flex;align-items:center;gap:10px}
+.fx-flag{font-size:1.2rem;line-height:1}
+.fx-info{flex:1;min-width:0}
+.fx-pair{font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.fx-rate{font-family:var(--mono);font-size:.95rem;font-weight:600;white-space:nowrap}
+.fx-chg{font-family:var(--mono);font-size:.6rem}
+/* Inflação card */
+.inf-hero{display:flex;align-items:flex-end;gap:18px;margin-bottom:12px;padding:12px 14px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
+.inf-block{flex:1;text-align:center}
+.inf-flag{font-size:1rem;margin-bottom:3px}
+.inf-val{font-size:1.6rem;font-weight:700;line-height:1;letter-spacing:-1px}
+.inf-lbl{font-size:.57rem;color:var(--t2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.inf-sep{width:1px;height:50px;background:var(--b);flex-shrink:0}
+.inf-hist{display:flex;flex-direction:column;gap:4px}
+.inf-row{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
+.inf-row-lbl{font-size:.68rem;font-weight:500;flex:1}
+.inf-row-pt{font-family:var(--mono);font-size:.72rem;font-weight:600;min-width:42px;text-align:right}
+.inf-row-eu{font-family:var(--mono);font-size:.72rem;color:var(--t2);min-width:42px;text-align:right}
+.inf-bar-wrap{flex:1;height:4px;background:var(--b);border-radius:2px;position:relative;min-width:60px}
+.inf-bar-pt{position:absolute;left:0;top:0;height:100%;border-radius:2px}
+.inf-bar-eu{position:absolute;left:0;top:0;height:100%;border-radius:2px;opacity:.45}
+/* PSI widget */
+.psi-widget-wrap{border-radius:var(--rs);overflow:hidden}
+.psi-widget-wrap .tradingview-widget-copyright{display:none!important}
 
 </style>
 </head>
@@ -304,7 +339,7 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"description":"EUR/USD","proName":"FX_IDC:EURUSD"},{"description":"EUR/GBP","proName":"FX_IDC:EURGBP"},{"description":"EUR/JPY","proName":"FX_IDC:EURJPY"},{"description":"EUR/CHF","proName":"FX_IDC:EURCHF"},{"description":"GBP/USD","proName":"FX_IDC:GBPUSD"},{"description":"S&P 500","proName":"FOREXCOM:SPXUSD"},{"description":"Nasdaq","proName":"FOREXCOM:NSXUSD"},{"description":"DAX","proName":"XETR:DAX"},{"description":"PSI-20","proName":"EURONEXT:PSI20"},{"description":"FTSE 100","proName":"FOREXCOM:UKXGBP"},{"description":"Ouro","proName":"FOREXCOM:XAUUSD"},{"description":"Brent","proName":"OANDA:BCOUSD"},{"description":"WTI","proName":"NYMEX:CL1!"},{"description":"BTC/USD","proName":"BITSTAMP:BTCUSD"},{"description":"ETH/USD","proName":"BITSTAMP:ETHUSD"},{"description":"PT 10Y","proName":"TVC:PT10Y"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"pt"}
+    {"symbols":[{"description":"EUR/USD","proName":"FX_IDC:EURUSD"},{"description":"EUR/GBP","proName":"FX_IDC:EURGBP"},{"description":"EUR/JPY","proName":"FX_IDC:EURJPY"},{"description":"EUR/CHF","proName":"FX_IDC:EURCHF"},{"description":"EUR/BRL","proName":"FX_IDC:EURBRL"},{"description":"EUR/CNY","proName":"FX_IDC:EURCNY"},{"description":"S&P 500","proName":"FOREXCOM:SPXUSD"},{"description":"Nasdaq","proName":"FOREXCOM:NSXUSD"},{"description":"DAX","proName":"XETR:DAX"},{"description":"PSI-20","proName":"EURONEXT:PSI20"},{"description":"Ouro","proName":"FOREXCOM:XAUUSD"},{"description":"Brent","proName":"OANDA:BCOUSD"},{"description":"WTI","proName":"NYMEX:CL1!"},{"description":"BTC/USD","proName":"BITSTAMP:BTCUSD"},{"description":"ETH/USD","proName":"BITSTAMP:ETHUSD"},{"description":"PT 10Y","proName":"TVC:PT10Y"},{"description":"Euribor 3M","proName":"EURONEXT:FEI1!"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"pt"}
     </script>
   </div>
 </div>
@@ -315,7 +350,8 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- ══ PORTUGAL ══ -->
   <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div>
     <span style="color:var(--accent)">Portugal</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span></div>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
+  </div>
 
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
@@ -351,16 +387,16 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="oil-tab on" onclick="switchOil('brent',this)">Brent</button>
       <button class="oil-tab"   onclick="switchOil('wti',this)">WTI</button>
     </div>
-    <div id="oil-brent" class="oil-widget-wrap">
+    <div id="oil-brent" class="tv-widget-wrap">
       <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
       <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-      {"symbols":[["Brent Crude Oil","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":230,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"hideMarketStatus":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.18)","bottomColor":"rgba(245,158,11,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+      {"symbols":[["Brent Crude Oil","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":220,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.18)","bottomColor":"rgba(245,158,11,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
       </script></div>
     </div>
-    <div id="oil-wti" class="oil-widget-wrap" style="display:none">
+    <div id="oil-wti" class="tv-widget-wrap" style="display:none">
       <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
       <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-      {"symbols":[["WTI Crude Oil","NYMEX:CL1!|3M"]],"chartOnly":false,"width":"100%","height":230,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"hideMarketStatus":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.18)","bottomColor":"rgba(239,87,87,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+      {"symbols":[["WTI Crude Oil","NYMEX:CL1!|3M"]],"chartOnly":false,"width":"100%","height":220,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.18)","bottomColor":"rgba(239,87,87,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
       </script></div>
     </div>
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
@@ -383,11 +419,13 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ date.nager.at · Feriados nacionais PT</div>
   </div>
 
-  <!-- ══ MERCADOS ══ -->
+  <!-- ══ MERCADOS FINANCEIROS ══ -->
   <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div>
     <span style="color:var(--blue)">Mercados Financeiros</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites</span></div>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites de API</span>
+  </div>
 
+  <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">📈</div>
@@ -397,13 +435,72 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="tradingview-widget-container" style="height:100%;width:100%">
         <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-        {"autosize":true,"symbol":"EURONEXT:PSI20","interval":"D","timezone":"Europe/Lisbon","theme":"dark","style":"1","locale":"pt","backgroundColor":"rgba(10,13,28,0.0)","gridColor":"rgba(24,29,48,1)","withdateranges":true,"hide_side_toolbar":false,"allow_symbol_change":true,"save_image":false,"watchlist":["EURONEXT:PSI20","TVC:PT10Y","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FOREXCOM:DJI","XETR:DAX","FOREXCOM:UKXGBP","FX_IDC:EURUSD","FX_IDC:EURGBP","FX_IDC:EURJPY","FOREXCOM:XAUUSD","OANDA:BCOUSD","NYMEX:CL1!","NYMEX:NG1!","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD"],"details":true,"hotlist":true,"calendar":false,"support_host":"https://www.tradingview.com"}
+        {"autosize":true,"symbol":"EURONEXT:PSI20","interval":"D","timezone":"Europe/Lisbon","theme":"dark","style":"1","locale":"pt","backgroundColor":"rgba(10,13,28,0)","gridColor":"rgba(24,29,48,1)","withdateranges":true,"hide_side_toolbar":false,"allow_symbol_change":true,"save_image":false,"watchlist":["EURONEXT:PSI20","TVC:PT10Y","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","FOREXCOM:DJI","XETR:DAX","FOREXCOM:UKXGBP","FX_IDC:EURUSD","FX_IDC:EURGBP","FX_IDC:EURJPY","FOREXCOM:XAUUSD","OANDA:BCOUSD","NYMEX:CL1!","BITSTAMP:BTCUSD","BITSTAMP:ETHUSD","EURONEXT:FEI1!"],"details":true,"hotlist":true,"calendar":false,"support_host":"https://www.tradingview.com"}
         </script>
       </div>
     </div>
     <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
   </div>
 
+  <!-- Bolsa Lisboa (PSI) — TradingView Symbol Overview s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:#E9A520"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🏛️</div>
+      <span class="ch-lbl">Bolsa de Lisboa · PSI</span>
+      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
+    <div class="psi-widget-wrap">
+      <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+      {"symbols":[["PSI-20","EURONEXT:PSI20|1D"],["EDP","EURONEXT:EDP|1D"],["Galp","EURONEXT:GALP|1D"],["BCP","EURONEXT:BCP|1D"],["Jerónimo Martins","EURONEXT:JMT|1D"],["NOS","EURONEXT:NOS|1D"],["Sonae","EURONEXT:SON|1D"],["REN","EURONEXT:RENE|1D"]],"chartOnly":false,"width":"100%","height":340,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","1m|1D","12m|1W","60m|1M"],"lineColor":"#E9A520","topColor":"rgba(233,165,32,0.18)","bottomColor":"rgba(233,165,32,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+      </script></div>
+    </div>
+    <div class="src">✦ TradingView · PSI-20 + principais cotações · Euronext Lisboa · Tempo real</div>
+  </div>
+
+  <!-- Euribor — TradingView Symbol Overview s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--cyan)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--cd)">📐</div>
+      <span class="ch-lbl">Euribor · Taxas Interbancárias</span>
+      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
+    <div class="tv-widget-wrap">
+      <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+      {"symbols":[["Euribor 3M","EURONEXT:FEI1!|1D"],["Euribor 6M","EURONEXT:FES1!|1D"],["Euribor 12M","EURONEXT:FEB1!|1D"]],"chartOnly":false,"width":"100%","height":340,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1m|1D","6m|1W","12m|1W","60m|1M"],"lineColor":"#22D3EE","topColor":"rgba(34,211,238,0.18)","bottomColor":"rgba(34,211,238,0.0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+      </script></div>
+    </div>
+    <div class="src">✦ TradingView · Euribor Futures · Euronext · Referência crédito habitação</div>
+  </div>
+
+  <!-- Câmbio EUR → moedas s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--green)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--gd)">💱</div>
+      <span class="ch-lbl">Câmbio · EUR</span>
+      <div class="ch-r">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:var(--mono);font-size:.6rem;color:var(--t2)">1 EUR =</span>
+          <input id="fx-amount" type="number" value="1" min="0.01" step="0.01"
+            onchange="renderFX()" oninput="renderFX()"
+            style="width:64px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.7rem;padding:3px 7px;outline:none;text-align:right">
+        </div>
+        <button class="rbtn" onclick="loadFX(true)">↺</button>
+      </div></div>
+    <div id="fx-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ Frankfurter API · ECB · Sem chave · CORS nativo</div>
+  </div>
+
+  <!-- Inflação PT vs Zona Euro s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--red)"></div>
+    <div class="ch"><div class="ch-ico" style="background:#EF575722">📊</div>
+      <span class="ch-lbl">Inflação · PT vs Zona Euro</span>
+      <div class="ch-r"><button class="rbtn" onclick="renderInflation()">↺</button></div></div>
+    <div id="inf-body"></div>
+    <div class="src">✦ Dados INE / Eurostat · Referência mensal</div>
+  </div>
+
+  <!-- Crypto s2 -->
   <div class="card s2">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
@@ -413,6 +510,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
 
+  <!-- Indicadores de Mercado -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
@@ -422,6 +520,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
+  <!-- Calendário Económico -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
@@ -434,7 +533,8 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- ══ MUNDO ══ -->
   <div class="sec"><div class="sec-bar" style="background:var(--cyan)"></div>
     <span style="color:var(--cyan)">Mundo</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span></div>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span>
+  </div>
 
   <div class="card s4">
     <div class="stripe" style="background:var(--blue)"></div>
@@ -450,14 +550,11 @@ textarea.nta::placeholder{color:var(--t3)}
 
 <script>
 /* CONFIG */
-const CFG = {
-  TD_KEY:       "ac8049c9d6c34e40bf50b758be66c056",
-  IPMA_CITY_ID: 1060300,
-};
+const CFG={TD_KEY:"ac8049c9d6c34e40bf50b758be66c056",IPMA_CITY_ID:1060300};
 
 /* Pills */
-document.getElementById("pills").innerHTML =
-  ["IPMA","TradingView","CoinGecko","Google News"].map(n=>
+document.getElementById("pills").innerHTML=
+  ["IPMA","TradingView","CoinGecko","Google News","ECB/Frankfurter"].map(n=>
     `<span class="pill ok"><span class="dot"></span>${n}</span>`).join("");
 
 /* Clock */
@@ -478,12 +575,12 @@ const DAY_NAMES=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
-/* Cache localStorage 15min */
-const CACHE_TTL=15*60*1000,PFX="dash_v9_";
+/* Cache 15min */
+const CACHE_TTL=15*60*1000,PFX="dash_v10_";
 function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 
-/* ─── Oil tabs ─────────────────────────────────── */
+/* Oil tabs */
 function switchOil(type,btn){
   document.querySelectorAll(".oil-tab").forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
@@ -491,12 +588,11 @@ function switchOil(type,btn){
   $("oil-wti").style.display=type==="wti"?"block":"none";
 }
 
-/* ─── IPMA Meteorologia ─────────────────────────── */
+/* ── IPMA Meteorologia ─────────────────────────── */
 const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
 const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],26:["🌬️","Neblina"],28:["☁️","Céu encoberto"]};
 const IPMA_WIND=["","Fraco","Fraco a mod.","Moderado","Forte","Muito forte"];
 const wxIPMA=id=>IPMA_WX[id]||["🌤️","—"];
-
 async function loadWeather(force=false){
   $("wx-body").innerHTML=ld();
   try{
@@ -511,70 +607,47 @@ async function loadWeather(force=false){
     const upd=data.dataUpdate?new Date(data.dataUpdate).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"—";
     const opts=Object.entries(IPMA_CITIES).sort((a,b)=>a[1].localeCompare(b[1])).map(([cid,n])=>`<option value="${cid}"${Number(cid)===id?" selected":""}>${n}</option>`).join("");
     $("wx-body").innerHTML=`
-      <div style="margin-bottom:10px">
-        <select onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true)"
-          style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.65rem;padding:4px 8px;width:100%;cursor:pointer;outline:none">${opts}</select>
-      </div>
+      <div style="margin-bottom:10px"><select onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true)"
+        style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.65rem;padding:4px 8px;width:100%;cursor:pointer;outline:none">${opts}</select></div>
       <div class="wx-top"><span class="wx-ico">${ico}</span><div>
         <div class="wx-temp">${tMax}<span class="wx-unit">°C</span></div>
-        <div class="wx-desc">${desc}</div><div class="wx-loc">${city} · Portugal</div>
-      </div></div>
-      <div class="wx-grid">
-        ${[["Mínima",`${tMin}°C`],["Máxima",`${tMax}°C`],["Chuva",`${rain}%`],["Vento",wind],["Direção",dir],["Atualizado",upd]]
-          .map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}
-      </div>
-      <div class="fc-strip">
-        ${days.slice(0,5).map(e=>{
-          const dn=DAY_NAMES[new Date(e.forecastDate).getDay()],[fi]=wxIPMA(e.idWeatherType);
-          return`<div class="fc-item"><div class="fc-day">${dn}</div><div class="fc-ico">${fi}</div>
-            <div class="fc-t">${Math.round(parseFloat(e.tMax))}°</div>
-            <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
-            <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
-          </div>`;}).join("")}
-      </div>
+        <div class="wx-desc">${desc}</div><div class="wx-loc">${city} · Portugal</div></div></div>
+      <div class="wx-grid">${[["Mínima",`${tMin}°C`],["Máxima",`${tMax}°C`],["Chuva",`${rain}%`],["Vento",wind],["Direção",dir],["Atualizado",upd]]
+        .map(([l,v])=>`<div class="wx-s"><div class="wx-sl">${l}</div><div class="wx-sv">${v}</div></div>`).join("")}</div>
+      <div class="fc-strip">${days.slice(0,5).map(e=>{
+        const dn=DAY_NAMES[new Date(e.forecastDate).getDay()],[fi]=wxIPMA(e.idWeatherType);
+        return`<div class="fc-item"><div class="fc-day">${dn}</div><div class="fc-ico">${fi}</div>
+          <div class="fc-t">${Math.round(parseFloat(e.tMax))}°</div>
+          <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
+          <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
+        </div>`;}).join("")}</div>
       <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API</div>`;
   }catch(e){$("wx-body").innerHTML=er(e.message);}
 }
 
-/* ─── Google News RSS ───────────────────────────── */
+/* ── Google News RSS ───────────────────────────── */
 async function fetchRSS(url){
-  // Tentar allorigins (devolve JSON com .contents)
   try{
     const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    if(!r.ok)throw 0;
-    const j=await r.json();
-    if(!j.contents)throw 0;
-    return parseRSSXML(j.contents);
+    if(!r.ok)throw 0;const j=await r.json();if(!j.contents)throw 0;return parseRSS(j.contents);
   }catch{}
-  // Fallback: corsproxy (devolve XML directamente)
   const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-  if(!r.ok)throw new Error(`HTTP ${r.status}`);
-  return parseRSSXML(await r.text());
+  if(!r.ok)throw new Error(`HTTP ${r.status}`);return parseRSS(await r.text());
 }
-function parseRSSXML(xmlStr){
-  const doc=new DOMParser().parseFromString(xmlStr,"text/xml");
+function parseRSS(xml){
+  const doc=new DOMParser().parseFromString(xml,"text/xml");
   const items=[...doc.querySelectorAll("item")];
   if(!items.length)throw new Error("RSS vazio");
   return items.map(el=>({
-    title: el.querySelector("title")?.textContent?.trim()||"—",
-    link:  el.querySelector("link")?.textContent?.trim()||
-           el.getElementsByTagName("link")[0]?.nextSibling?.nodeValue?.trim()||"#",
+    title:el.querySelector("title")?.textContent?.trim()||"—",
+    link:el.querySelector("link")?.textContent?.trim()||el.getElementsByTagName("link")[0]?.nextSibling?.nodeValue?.trim()||"#",
     source:el.querySelector("source")?.textContent?.trim()||"—",
     pubDate:el.querySelector("pubDate")?.textContent?.trim()||"",
   }));
 }
-function agoRSS(s){
-  if(!s)return"";
-  try{
-    const m=Math.floor((Date.now()-new Date(s))/60000);
-    if(m<1)return"agora";if(m<60)return`há ${m}m`;
-    const h=Math.floor(m/60);return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;
-  }catch{return"";}
-}
-
+function agoRSS(s){if(!s)return"";try{const m=Math.floor((Date.now()-new Date(s))/60000);if(m<1)return"agora";if(m<60)return`há ${m}m`;const h=Math.floor(m/60);return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;}catch{return"";}}
 async function loadNews(scope,force=false){
-  const isPT=scope==="pt";
-  const el=$(isPT?"news-pt":"news-world");
+  const isPT=scope==="pt",el=$(isPT?"news-pt":"news-world");
   el.innerHTML=ld();
   const cKey=`rss_${scope}`;
   try{
@@ -588,7 +661,7 @@ async function loadNews(scope,force=false){
     }
     if(!arts.length)throw new Error("Sem artigos");
     el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
-      <div class="ni" onclick="window.open('${a.link.replace(/'/g,"\'")}','_blank')">
+      <div class="ni" onclick="window.open('${a.link.replace(/'/g,"\\'")}','_blank')">
         <div class="ni-meta"><span class="ni-src">${(a.source||"—").slice(0,24)}</span>
           <span class="ni-tag ${isPT?"tpt":"twld"}">${isPT?"PT":"WORLD"}</span>
           <span class="ni-time">${agoRSS(a.pubDate)}</span></div>
@@ -598,7 +671,7 @@ async function loadNews(scope,force=false){
   }catch(e){el.innerHTML=er(e.message);}
 }
 
-/* ─── Combustíveis — API Aberta PT ──────────────── */
+/* ── Combustíveis — API Aberta PT ──────────────── */
 const FUEL_SLUGS=[
   {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--accent)"},
   {slug:"gasoline_98",   label:"Gasolina 98",     color:"var(--blue)"},
@@ -611,18 +684,12 @@ async function renderFuel(force=false){
   $("fuel-body").innerHTML=ld();
   try{
     let data=force?null:lsGet("fuel");
-    if(!data){
-      const r=await fetch("https://api.apiaberta.pt/v1/fuel/prices");
-      if(!r.ok)throw new Error(`HTTP ${r.status}`);
-      const j=await r.json();data=j.data||j;lsSet("fuel",data);
-    }
+    if(!data){const r=await fetch("https://api.apiaberta.pt/v1/fuel/prices");if(!r.ok)throw new Error(`HTTP ${r.status}`);const j=await r.json();data=j.data||j;lsSet("fuel",data);}
     const by={};data.forEach(f=>by[f.fuel_slug]=f);
     const items=FUEL_SLUGS.map(s=>({...s,d:by[s.slug]})).filter(s=>s.d);
-    const date=items[0]?.d?.date||"";
-    const upd=items[0]?.d?.updated_at?new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
+    const date=items[0]?.d?.date||"",upd=items[0]?.d?.updated_at?new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
     $("fuel-body").innerHTML=`<div class="fuel-grid">${items.map(f=>{
-      const d=f.d,avg=d.avg_price_eur,mn=d.min_price_eur,mx=d.max_price_eur;
-      const pct=mx>mn?Math.round(((avg-mn)/(mx-mn))*100):50;
+      const d=f.d,avg=d.avg_price_eur,mn=d.min_price_eur,mx=d.max_price_eur,pct=mx>mn?Math.round(((avg-mn)/(mx-mn))*100):50;
       return`<div class="fi"><div class="fi-lbl">${f.label}</div>
         <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
         <div class="fi-unit">€/litro · ${d.station_count} postos</div>
@@ -630,13 +697,12 @@ async function renderFuel(force=false){
           <div class="fi-range-fill" style="left:0;width:100%"></div>
           <div class="fi-range-dot" style="left:${pct}%"></div>
         </div><div class="fi-range-mm"><span>mín ${mn.toFixed(3)}</span><span>máx ${mx.toFixed(3)}</span></div></div>
-      </div>`;
-    }).join("")}</div>
+      </div>`;}).join("")}</div>
     <div class="src">✦ API Aberta PT · ${date} · às ${upd}</div>`;
   }catch(e){$("fuel-body").innerHTML=er(e.message);}
 }
 
-/* ─── Eletricidade ──────────────────────────────── */
+/* ── Eletricidade ──────────────────────────────── */
 const ELEC={spot:{p:74.3,var:-6.1},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:74,co2:48};
 function renderElec(){
   const d=ELEC;
@@ -658,7 +724,7 @@ function renderElec(){
     <div class="src">✦ Referência março 2026 · ren.pt · omie.es</div>`;
 }
 
-/* ─── Feriados — date.nager.at ──────────────────── */
+/* ── Feriados ──────────────────────────────────── */
 async function loadHolidays(force=false){
   $("hol-body").innerHTML=ld();
   try{
@@ -673,11 +739,9 @@ async function loadHolidays(force=false){
     const rem=hols.filter(h=>h.date>=todayStr),next=rem[0];
     const nDate=next?new Date(next.date):null,dNext=next?Math.round((new Date(next.date)-today)/86400000):null;
     $("hol-body").innerHTML=`
-      ${next?`<div class="hol-hero">
-        <div class="hol-hero-num">${dNext===0?"🎉":dNext}</div>
+      ${next?`<div class="hol-hero"><div class="hol-hero-num">${dNext===0?"🎉":dNext}</div>
         <div><div class="hol-hero-lbl">${dNext===0?"Hoje é feriado!":dNext===1?"Amanhã é feriado":"dias para o próximo feriado"}</div>
-          <div class="hol-hero-sub">${next.localName} · ${nDate.toLocaleDateString("pt-PT",{day:"numeric",month:"long"})}</div>
-        </div></div>`:""}
+          <div class="hol-hero-sub">${next.localName} · ${nDate.toLocaleDateString("pt-PT",{day:"numeric",month:"long"})}</div></div></div>`:""}
       <div class="hol-grid">
         <div class="hol-stat"><div class="hol-stat-val" style="color:var(--green)">${wdM}</div><div class="hol-stat-lbl">Dias úteis este mês</div></div>
         <div class="hol-stat"><div class="hol-stat-val" style="color:var(--blue)">${wdY}</div><div class="hol-stat-lbl">Dias úteis este ano</div></div>
@@ -695,7 +759,109 @@ async function loadHolidays(force=false){
   }catch(e){$("hol-body").innerHTML=er(e.message);}
 }
 
-/* ─── CoinGecko Crypto ──────────────────────────── */
+/* ── Câmbio EUR — Frankfurter API (ECB, CORS nativo) ── */
+const FX_PAIRS=[
+  {code:"USD",name:"Dólar EUA",      flag:"🇺🇸",color:"var(--blue)"},
+  {code:"GBP",name:"Libra Esterlina",flag:"🇬🇧",color:"var(--purple)"},
+  {code:"CHF",name:"Franco Suíço",   flag:"🇨🇭",color:"var(--red)"},
+  {code:"JPY",name:"Iene Japonês",   flag:"🇯🇵",color:"var(--accent)"},
+  {code:"BRL",name:"Real Brasileiro",flag:"🇧🇷",color:"var(--green)"},
+  {code:"CNY",name:"Yuan Chinês",    flag:"🇨🇳",color:"var(--red)"},
+  {code:"AED",name:"Dirham EAU",     flag:"🇦🇪",color:"var(--orange)"},
+  {code:"GBP",name:"Libra Brit.",    flag:"🇬🇧",color:"var(--purple)"},
+];
+const FX_UNIQUE=[...new Map(FX_PAIRS.map(p=>[p.code,p])).values()];
+let fxRates={};
+async function loadFX(force=false){
+  $("fx-body").innerHTML=ld();
+  try{
+    let data=force?null:lsGet("fx");
+    if(!data){
+      const symbols=FX_UNIQUE.map(p=>p.code).join(",");
+      const r=await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${symbols}`);
+      if(!r.ok)throw new Error(`Frankfurter ${r.status}`);
+      data=await r.json();lsSet("fx",data);
+    }
+    fxRates=data.rates||{};
+    renderFX();
+  }catch(e){$("fx-body").innerHTML=er(e.message);}
+}
+function renderFX(){
+  const amt=parseFloat($("fx-amount")?.value||1)||1;
+  if(!Object.keys(fxRates).length)return;
+  const date=lsGet("fx")?.date||"";
+  $("fx-body").innerHTML=`<div class="fx-grid">${FX_UNIQUE.map(p=>{
+    const rate=fxRates[p.code];if(!rate)return"";
+    const converted=(rate*amt).toFixed(p.code==="JPY"?0:4);
+    return`<div class="fx-item">
+      <div class="fx-flag">${p.flag}</div>
+      <div class="fx-info">
+        <div class="fx-pair">EUR → ${p.code}</div>
+        <div class="fx-rate" style="color:${p.color}">${converted} <span style="font-size:.65rem;color:var(--t2)">${p.code}</span></div>
+        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3)">1 EUR = ${rate.toFixed(p.code==="JPY"?2:4)} ${p.code}</div>
+      </div>
+    </div>`;
+  }).join("")}</div>
+  <div class="src" style="margin-top:8px">✦ Banco Central Europeu · ${date} · Frankfurter API · CORS nativo</div>`;
+}
+
+/* ── Inflação PT vs Zona Euro (dados INE/Eurostat) ── */
+const INFLATION_DATA=[
+  {month:"Fev 2026",pt:2.4,eu:2.3},
+  {month:"Jan 2026",pt:2.6,eu:2.5},
+  {month:"Dez 2025",pt:2.2,eu:2.4},
+  {month:"Nov 2025",pt:1.9,eu:2.3},
+  {month:"Out 2025",pt:1.8,eu:2.3},
+  {month:"Set 2025",pt:1.2,eu:1.7},
+  {month:"Ago 2025",pt:1.9,eu:2.2},
+  {month:"Jul 2025",pt:2.6,eu:2.6},
+];
+function renderInflation(){
+  const latest=INFLATION_DATA[0],maxVal=Math.max(...INFLATION_DATA.map(d=>Math.max(d.pt,d.eu)))*1.1;
+  const ptColor="var(--accent)",euColor="var(--blue)";
+  $("inf-body").innerHTML=`
+    <div class="inf-hero">
+      <div class="inf-block">
+        <div class="inf-flag">🇵🇹</div>
+        <div class="inf-val" style="color:${ptColor}">${latest.pt.toFixed(1)}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl">Portugal · IPC</div>
+        <div class="inf-lbl" style="margin-top:2px">${latest.month}</div>
+      </div>
+      <div class="inf-sep"></div>
+      <div class="inf-block">
+        <div class="inf-flag">🇪🇺</div>
+        <div class="inf-val" style="color:${euColor}">${latest.eu.toFixed(1)}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl">Zona Euro · IHPC</div>
+        <div class="inf-lbl" style="margin-top:2px">${latest.month}</div>
+      </div>
+      <div class="inf-sep"></div>
+      <div class="inf-block">
+        <div class="inf-flag" style="font-size:.9rem;margin-bottom:3px">Meta BCE</div>
+        <div class="inf-val" style="color:var(--green);font-size:1.3rem">2.0<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl">Objetivo estabilidade</div>
+        <div class="inf-lbl inf-lbl" style="margin-top:2px;color:${latest.eu<=2.2?"var(--green)":"var(--red)"}">
+          ${latest.eu<=2.2?"✓ próximo":"▲ acima"} da meta</div>
+      </div>
+    </div>
+    <div class="inf-hist">${INFLATION_DATA.slice(0,6).map(d=>{
+      const barPt=Math.round((d.pt/maxVal)*100),barEu=Math.round((d.eu/maxVal)*100);
+      return`<div class="inf-row">
+        <div class="inf-row-lbl">${d.month}</div>
+        <div class="inf-bar-wrap">
+          <div class="inf-bar-pt" style="width:${barPt}%;background:${ptColor}"></div>
+          <div class="inf-bar-eu" style="width:${barEu}%;background:${euColor}"></div>
+        </div>
+        <div class="inf-row-pt" style="color:${ptColor}">${d.pt.toFixed(1)}%</div>
+        <div class="inf-row-eu" style="color:${euColor}">${d.eu.toFixed(1)}%</div>
+      </div>`;}).join("")}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px;padding:0 2px">
+      <span style="font-family:var(--mono);font-size:.56rem;color:${ptColor}">▬ Portugal (IPC)</span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${euColor}">▬ Zona Euro (IHPC)</span>
+    </div>`;
+}
+
+/* ── CoinGecko Crypto ──────────────────────────── */
 const CRYPTO_IDS=[
   {id:"bitcoin",    name:"Bitcoin",  sym:"BTC",color:"#E9A520"},
   {id:"ethereum",   name:"Ethereum", sym:"ETH",color:"#9575F0"},
@@ -724,7 +890,7 @@ async function loadCrypto(force=false){
   }catch(e){$("crypto-body").innerHTML=er(e.message);}
 }
 
-/* ─── Twelve Data — Indicadores de Mercado ──────── */
+/* ── Twelve Data — Indicadores de Mercado ──────── */
 const TD_BASE="https://api.twelvedata.com";
 async function tdGet(ep,params,force=false){
   const ck=ep+"?"+new URLSearchParams(params);
@@ -757,7 +923,7 @@ async function loadMarketStats(force=false){
   }catch(e){$("mstats-body").innerHTML=er(e.message);}
 }
 
-/* ─── Calendário Económico ──────────────────────── */
+/* ── Calendário Económico ──────────────────────── */
 const EVENTS=[
   {title:"Decisão BCE sobre taxas de juro",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
   {title:"NFP — Emprego não agrícola EUA", date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
@@ -776,25 +942,25 @@ function renderCalendar(){
         </div></div></div>`).join("")}</div>`;
 }
 
-/* ─── Boot ──────────────────────────────────────── */
+/* ── Boot ──────────────────────────────────────── */
 loadWeather();
-loadNews("pt",  true);
+loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
 renderElec();
 renderCalendar();
 loadHolidays();
-setTimeout(()=>loadCrypto(),     500);
+renderInflation();
+setTimeout(()=>loadFX(),         300);
+setTimeout(()=>loadCrypto(),     600);
 setTimeout(()=>loadMarketStats(),1200);
 
 setInterval(()=>{
   loadWeather();
-  loadNews("pt",  true);
-  loadNews("world",true);
-  renderFuel();
-  loadHolidays();
-  loadCrypto();
-  setTimeout(()=>loadMarketStats(),1200);
+  loadNews("pt",true);loadNews("world",true);
+  renderFuel();loadHolidays();
+  loadFX(true);loadCrypto(true);
+  setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
 </body>
