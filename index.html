@@ -67,8 +67,8 @@ button{font-family:var(--font);cursor:pointer}
 /* Grid */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
 .s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.r2{grid-row:span 2}
-.sec{grid-column:span 4;font-family:var(--mono);font-size:.57rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:10px 0 4px;border-bottom:1px solid var(--b);margin-bottom:-4px;display:flex;align-items:center;gap:8px}
-.sec-bar{width:3px;height:14px;border-radius:2px;flex-shrink:0}
+.sec{grid-column:span 4;font-family:var(--mono);font-size:.56rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:10px 0 5px;border-bottom:1px solid var(--b);margin-bottom:-4px;display:flex;align-items:center;gap:8px}
+.sec-bar{width:3px;height:13px;border-radius:2px;flex-shrink:0}
 
 /* Card */
 .card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
@@ -235,7 +235,6 @@ textarea.nta::placeholder{color:var(--t3)}
 @media(max-width:1280px){.grid{grid-template-columns:repeat(2,1fr)}.s3,.s4,.sec{grid-column:span 2}.r2{grid-row:auto}}
 @media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3,.s4,.sec{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
 
-/* ── Fuel range bar ── */
 .fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
 .fi-range{margin-top:7px}
@@ -243,7 +242,6 @@ textarea.nta::placeholder{color:var(--t3)}
 .fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
 .fi-range-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--text);border:2px solid var(--card);top:-2px;transform:translateX(-50%)}
 .fi-range-mm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--t3)}
-/* ── Holidays ── */
 .hol-hero{display:flex;gap:14px;align-items:center;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:9px;background:var(--surface)}
 .hol-hero-num{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--accent);min-width:34px;text-align:center}
 .hol-hero-lbl{font-size:.72rem;font-weight:600}.hol-hero-sub{font-size:.61rem;color:var(--t2);margin-top:2px}
@@ -257,23 +255,6 @@ textarea.nta::placeholder{color:var(--t3)}
 .hol-name{font-size:.71rem;font-weight:500;flex:1}
 .hol-tag{font-family:var(--mono);font-size:.54rem;padding:2px 6px;border-radius:4px;background:var(--b);color:var(--t3);white-space:nowrap}
 .hol-item.next .hol-tag{background:var(--bd);color:var(--blue)}.hol-item.today .hol-tag{background:var(--ad);color:var(--accent)}
-/* ── AQI ── */
-.aqi-hero{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:9px}
-.aqi-num{font-size:2.5rem;font-weight:700;line-height:1;letter-spacing:-1px}
-.aqi-label{font-size:.85rem;font-weight:600}.aqi-desc{font-size:.65rem;color:var(--t2);margin-top:3px;line-height:1.4}
-.aqi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.aqi-s{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 8px;text-align:center}
-.aqi-s-val{font-size:.88rem;font-weight:600}.aqi-s-lbl{font-family:var(--mono);font-size:.53rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
-/* ── SNS ── */
-.sns-hero{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:9px;background:var(--surface)}
-.sns-num{font-size:1.9rem;font-weight:700;line-height:1;letter-spacing:-1px}
-.sns-lbl{font-size:.76rem;font-weight:600}.sns-sub{font-size:.6rem;color:var(--t2);margin-top:2px}
-.sns-kpis{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
-.sns-kpi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 9px}
-.sns-kpi-lbl{font-family:var(--mono);font-size:.53rem;color:var(--t3);text-transform:uppercase;letter-spacing:.3px}
-.sns-kpi-val{font-size:.95rem;font-weight:700;margin-top:3px}
-.sns-note{font-family:var(--mono);font-size:.57rem;color:var(--t3);margin-top:8px;line-height:1.5;padding:7px 9px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
-/* ── Crypto 2×3 grid ── */
 .crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .ci2{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px}
 .ci2-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
@@ -303,14 +284,14 @@ textarea.nta::placeholder{color:var(--t3)}
 <!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
-  <!-- ══════ ZONA 1: PORTUGAL ══════ -->
+  <!-- ══ ZONA 1: PORTUGAL ══ -->
   <div class="sec">
     <div class="sec-bar" style="background:var(--accent)"></div>
     <span style="color:var(--accent)">Portugal</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Contexto Local</span>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
   </div>
 
-  <!-- METEOROLOGIA (r2 = ocupa 2 linhas) -->
+  <!-- Meteorologia r2 col 1 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -321,7 +302,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-  <!-- NOTÍCIAS PT (r2) -->
+  <!-- Notícias PT r2 col 2 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -333,7 +314,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ GNews · Tempo real · Clica para ler</div>
   </div>
 
-  <!-- col 3 linha 1: Combustíveis -->
+  <!-- Combustíveis col 3 linha 1 -->
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch">
@@ -344,7 +325,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="fuel-body"></div>
   </div>
 
-  <!-- col 4 linha 1: Eletricidade -->
+  <!-- Eletricidade col 4 linha 1 -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
@@ -355,38 +336,26 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="elec-body"></div>
   </div>
 
-  <!-- col 3 linha 2: Feriados -->
-  <div class="card">
+  <!-- Feriados s2 cols 3-4 linha 2 -->
+  <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">🗓️</div>
-      <span class="ch-lbl">Feriados &amp; Dias Úteis</span>
+      <span class="ch-lbl">Feriados &amp; Dias Úteis · PT</span>
       <div class="ch-r"><button class="rbtn" onclick="loadHolidays(true)">↺</button></div>
     </div>
     <div id="hol-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ date.nager.at · Feriados nacionais PT</div>
+    <div class="src">✦ date.nager.at · Feriados nacionais PT · CORS nativo</div>
   </div>
 
-  <!-- col 4 linha 2: SNS -->
-  <div class="card">
-    <div class="stripe" style="background:var(--red)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--rd)">🏥</div>
-      <span class="ch-lbl">SNS · Urgências PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadSNS(true)">↺</button></div>
-    </div>
-    <div id="sns-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ SNS Transparência · Monitorização nacional</div>
-  </div>
-
-  <!-- ══════ ZONA 2: MERCADOS ══════ -->
+  <!-- ══ ZONA 2: MERCADOS ══ -->
   <div class="sec">
     <div class="sec-bar" style="background:var(--blue)"></div>
     <span style="color:var(--blue)">Mercados Financeiros</span>
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Índices · Obrigações · Divisas · Crypto</span>
   </div>
 
-  <!-- FINANÇAS span 4 -->
+  <!-- Finanças s4 -->
   <div class="card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
@@ -418,10 +387,10 @@ textarea.nta::placeholder{color:var(--t3)}
         <canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:185px!important"></canvas>
       </div>
     </div>
-    <div class="src">✦ Twelve Data · Cache 15min · 800 créditos/dia · PSI-20 real · Obrigações PT 10A</div>
+    <div class="src">✦ Twelve Data · Cache 15min · PSI-20 real · Obrigações PT 10A</div>
   </div>
 
-  <!-- CRYPTO span 2 -->
+  <!-- Crypto s2 -->
   <div class="card s2">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch">
@@ -433,7 +402,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
 
-  <!-- INDICADORES -->
+  <!-- Indicadores -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch">
@@ -445,7 +414,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
-  <!-- CALENDÁRIO -->
+  <!-- Calendário -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
@@ -457,15 +426,15 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
 
-  <!-- ══════ ZONA 3: MUNDO & AMBIENTE ══════ -->
+  <!-- ══ ZONA 3: MUNDO ══ -->
   <div class="sec">
     <div class="sec-bar" style="background:var(--cyan)"></div>
-    <span style="color:var(--cyan)">Mundo &amp; Ambiente</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais · Qualidade do Ar</span>
+    <span style="color:var(--cyan)">Mundo</span>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span>
   </div>
 
-  <!-- NOTÍCIAS MUNDO span 2 -->
-  <div class="card s2">
+  <!-- Notícias Mundo s4 -->
+  <div class="card s4">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--bd)">🌍</div>
@@ -474,18 +443,6 @@ textarea.nta::placeholder{color:var(--t3)}
     </div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ GNews · Breaking news · Clica para ler</div>
-  </div>
-
-  <!-- QUALIDADE DO AR -->
-  <div class="card">
-    <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">🌬️</div>
-      <span class="ch-lbl">Qualidade do Ar · Évora</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadAir(true)">↺</button></div>
-    </div>
-    <div id="air-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ OpenWeatherMap Air Pollution API</div>
   </div>
 
 </div><!-- /grid -->
@@ -500,7 +457,6 @@ const CFG = {
   TD_KEY:       "ac8049c9d6c34e40bf50b758be66c056",
   GNEWS_KEY:    "37ba83efc653917c93a2669c49019c6f",
   IPMA_CITY_ID: 1060300,
-  LAT: 38.5667, LON: -7.9000,
 };
 
 const APIS=[{n:"IPMA",k:"ok"},{n:"TD",k:CFG.TD_KEY},{n:"GNews",k:CFG.GNEWS_KEY},{n:"CoinGecko",k:"ok"}];
@@ -534,16 +490,16 @@ const PROXIES=[
 async function fetchP(url){let last;for(const p of PROXIES){try{return await p(url);}catch(e){last=e;}}throw last||new Error("Proxies falharam");}
 
 /* ════════════════════════════════════════════════════
-   CACHE localStorage 15 min
+   CACHE localStorage — TTL 15 minutos
 ════════════════════════════════════════════════════ */
-const CACHE_TTL=15*60*1000, CACHE_PFX="dash_v4_";
+const CACHE_TTL=15*60*1000, CACHE_PFX="dash_v5_";
 function lsGet(k){try{const r=localStorage.getItem(CACHE_PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(CACHE_PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 function lsDel(p){try{Object.keys(localStorage).filter(k=>k.startsWith(CACHE_PFX+(p||""))).forEach(k=>localStorage.removeItem(k));}catch{}}
 function lsAge(k){try{const r=localStorage.getItem(CACHE_PFX+k);if(!r)return null;const a=Math.floor((Date.now()-JSON.parse(r).ts)/60000);return a<15?a:null;}catch{return null;}}
 
 /* ════════════════════════════════════════════════════
-   IPMA — METEOROLOGIA
+   METEOROLOGIA — IPMA
 ════════════════════════════════════════════════════ */
 const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
 const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],26:["🌬️","Neblina"],28:["☁️","Céu encoberto"]};
@@ -556,7 +512,7 @@ async function loadWeather(force=false){
     const id=CFG.IPMA_CITY_ID,key=`ipma_${id}`;
     let data=force?null:lsGet(key);
     if(!data){const r=await fetch(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`);if(!r.ok)throw new Error(`IPMA ${r.status}`);data=await r.json();lsSet(key,data);}
-    const city=IPMA_CITIES[id]||`#${id}`, days=data.data||[];
+    const city=IPMA_CITIES[id]||`#${id}`,days=data.data||[];
     if(!days.length)throw new Error("Sem dados");
     const t=days[0],[ico,desc]=wxIPMA(t.idWeatherType);
     const tMin=Math.round(parseFloat(t.tMin)),tMax=Math.round(parseFloat(t.tMax));
@@ -589,7 +545,7 @@ async function loadWeather(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   NOTÍCIAS — GNews (via proxy)
+   NOTÍCIAS — GNews
 ════════════════════════════════════════════════════ */
 async function loadNews(scope){
   const el=$(scope==="pt"?"news-pt":"news-world");
@@ -694,20 +650,20 @@ async function loadChart(force=false){
 renderTabs();loadNextQ();setTimeout(()=>loadChart(),1000);
 
 /* ════════════════════════════════════════════════════
-   CRIPTOMOEDAS — CoinGecko (sem chave, CORS nativo)
+   CRIPTOMOEDAS — CoinGecko (CORS nativo, sem chave)
 ════════════════════════════════════════════════════ */
 const CRYPTO_IDS=[
-  {id:"bitcoin",   name:"Bitcoin",  sym:"BTC",color:"#E9A520"},
-  {id:"ethereum",  name:"Ethereum", sym:"ETH",color:"#9575F0"},
-  {id:"solana",    name:"Solana",   sym:"SOL",color:"#34C97A"},
-  {id:"cardano",   name:"Cardano",  sym:"ADA",color:"#4B96F3"},
-  {id:"ripple",    name:"XRP",      sym:"XRP",color:"#22D3EE"},
-  {id:"binancecoin",name:"BNB",     sym:"BNB",color:"#F59E0B"},
+  {id:"bitcoin",    name:"Bitcoin",  sym:"BTC",color:"#E9A520"},
+  {id:"ethereum",   name:"Ethereum", sym:"ETH",color:"#9575F0"},
+  {id:"solana",     name:"Solana",   sym:"SOL",color:"#34C97A"},
+  {id:"cardano",    name:"Cardano",  sym:"ADA",color:"#4B96F3"},
+  {id:"ripple",     name:"XRP",      sym:"XRP",color:"#22D3EE"},
+  {id:"binancecoin",name:"BNB",      sym:"BNB",color:"#F59E0B"},
 ];
 async function loadCrypto(force=false){
   $("crypto-body").innerHTML=ld();
   try{
-    const ck="cg_prices";
+    const ck="cg_v2";
     let data=force?null:lsGet(ck);
     if(!data){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
@@ -753,7 +709,7 @@ async function loadMarketStats(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   COMBUSTÍVEIS — API Aberta PT + cache 15min
+   COMBUSTÍVEIS — API Aberta PT
 ════════════════════════════════════════════════════ */
 const FUEL_SLUGS=[
   {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--accent)"},
@@ -772,8 +728,7 @@ async function renderFuel(force=false){
     const items=FUEL_SLUGS.map(s=>({...s,d:by[s.slug]})).filter(s=>s.d);
     const date=items[0]?.d?.date||"",upd=items[0]?.d?.updated_at?new Date(items[0].d.updated_at).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
     $("fuel-body").innerHTML=`<div class="fuel-grid">${items.map(f=>{
-      const d=f.d,avg=d.avg_price_eur,mn=d.min_price_eur,mx=d.max_price_eur;
-      const pct=mx>mn?Math.round(((avg-mn)/(mx-mn))*100):50;
+      const d=f.d,avg=d.avg_price_eur,mn=d.min_price_eur,mx=d.max_price_eur,pct=mx>mn?Math.round(((avg-mn)/(mx-mn))*100):50;
       return`<div class="fi"><div class="fi-lbl">${f.label}</div>
         <div class="fi-price" style="color:${f.color}">${avg.toFixed(3)}</div>
         <div class="fi-unit">€/litro · ${d.station_count} postos</div>
@@ -806,7 +761,7 @@ function renderElec(){
       <div class="ebadge" style="background:var(--gd)"><div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div><div class="ebadge-lbl">Renováveis</div></div>
       <div class="ebadge" style="background:var(--bd)"><div class="ebadge-val" style="color:var(--blue)">${d.co2}</div><div class="ebadge-lbl">gCO₂/kWh</div></div>
     </div>
-    <div class="src">✦ Dados referência março 2026 · ren.pt · omie.es</div>`;
+    <div class="src">✦ Referência março 2026 · ren.pt · omie.es</div>`;
 }
 
 /* ════════════════════════════════════════════════════
@@ -869,116 +824,6 @@ async function loadHolidays(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   QUALIDADE DO AR — OpenWeatherMap Air Pollution
-════════════════════════════════════════════════════ */
-const AQI_LABEL=["","Boa","Razoável","Moderada","Má","Muito Má"];
-const AQI_COLOR=["","#34C97A","#B8CC3E","#E9A520","#EF5757","#9575F0"];
-const AQI_BG=["","#34C97A14","#B8CC3E14","#E9A52014","#EF575714","#9575F014"];
-const AQI_DESC=["","Ar limpo · excelente para actividades ao ar livre","Qualidade aceitável · grupos sensíveis devem ter atenção","Grupos sensíveis podem sentir efeitos","Toda a gente pode sentir efeitos · limite actividades","Alerta de saúde · evite actividades ao ar livre"];
-async function loadAir(force=false){
-  $("air-body").innerHTML=ld();
-  try{
-    const ck=`air_${CFG.LAT}_${CFG.LON}`;
-    let data=force?null:lsGet(ck);
-    if(!data){
-      const r=await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${CFG.LAT}&lon=${CFG.LON}&appid=${CFG.OWM_KEY}`);
-      if(!r.ok)throw new Error(`OWM ${r.status}`);data=await r.json();lsSet(ck,data);
-    }
-    const aqi=data.list[0].main.aqi,c=data.list[0].components;
-    const col=AQI_COLOR[aqi],bg=AQI_BG[aqi];
-    $("air-body").innerHTML=`
-      <div class="aqi-hero" style="background:${bg};border-color:${col}55">
-        <div class="aqi-num" style="color:${col}">${aqi}</div>
-        <div><div class="aqi-label" style="color:${col}">${AQI_LABEL[aqi]}</div><div class="aqi-desc">${AQI_DESC[aqi]}</div></div>
-      </div>
-      <div class="aqi-grid">
-        ${[["PM2.5",c.pm2_5,"μg/m³"],["PM10",c.pm10,"μg/m³"],["NO₂",c.no2,"μg/m³"],["O₃",c.o3,"μg/m³"],["SO₂",c.so2,"μg/m³"],["CO",(c.co/1000).toFixed(2),"mg/m³"]]
-          .map(([l,v,u])=>`<div class="aqi-s"><div class="aqi-s-val">${Number(v).toFixed(1)}</div><div class="aqi-s-lbl">${l}<br><span style="color:var(--t3);font-size:.5rem">${u}</span></div></div>`).join("")}
-      </div>`;
-  }catch(e){$("air-body").innerHTML=er(e.message);}
-}
-
-/* ════════════════════════════════════════════════════
-   SNS — Monitorização Sazonal CSH
-   Dataset: monitorizacao-sazonal-csh
-   Indicadores nacionais (dados agregados SNS):
-     531 — Episódios de urgência estimados
-     405 — Tempo médio espera triagem → 1ª observação (min)
-     528 — Taxa atendimentos com internamento (%)
-     515 — Taxa prioridade verde/azul (%)
-   Nota: os dados NÃO são por hospital individual —
-   o SNS não disponibiliza desagregação por hospital
-   neste endpoint público. São dados nacionais.
-════════════════════════════════════════════════════ */
-async function loadSNS(force=false){
-  $("sns-body").innerHTML=ld();
-  try{
-    const ck="sns_v2";
-    let recs=force?null:lsGet(ck);
-    if(!recs){
-      // Query simples sem filtros complexos — apenas os 4 indicadores, dados mais recentes
-      const url="https://transparencia.sns.gov.pt/api/explore/v2.1/catalog/datasets/monitorizacao-sazonal-csh/records"
-        +"?limit=20"
-        +"&order_by=periodo%20desc"
-        +"&where=indicador_id%20in%20(531%2C405%2C528%2C515)";
-      const r=await fetch(url);
-      if(!r.ok)throw new Error(`SNS HTTP ${r.status} — tente mais tarde`);
-      const j=await r.json();
-      recs=j.results||[];
-      if(recs.length)lsSet(ck,recs);
-    }
-    if(!recs.length)throw new Error("Sem dados disponíveis de momento");
-
-    // Pega o valor mais recente de cada indicador
-    const byId={};
-    recs.forEach(r=>{
-      const id=r.indicador_id, p=r.periodo||"";
-      if(!byId[id]||p>byId[id].periodo) byId[id]={...r};
-    });
-
-    const ep  = byId[531]; // episódios
-    const esp = byId[405]; // tempo espera (min)
-    const int = byId[528]; // taxa internamento %
-    const vaz = byId[515]; // taxa verde/azul %
-
-    const periodo = ep?.periodo || esp?.periodo || "—";
-    const epVal   = ep  ? Math.round(parseFloat(ep.valor||0)).toLocaleString("pt-PT")  : "—";
-    const espVal  = esp ? Math.round(parseFloat(esp.valor||0))+"m" : "—";
-    const intVal  = int ? parseFloat(int.valor||0).toFixed(1)+"%" : "—";
-    const vazVal  = vaz ? parseFloat(vaz.valor||0).toFixed(1)+"%" : "—";
-
-    $("sns-body").innerHTML=`
-      <div class="sns-hero">
-        <div><div class="sns-num" style="color:var(--red)">${espVal}</div></div>
-        <div>
-          <div class="sns-lbl">Tempo médio de espera</div>
-          <div class="sns-sub">Triagem → 1ª observação médica</div>
-          <div class="sns-sub" style="margin-top:4px;color:var(--t3)">Período: ${periodo}</div>
-        </div>
-      </div>
-      <div class="sns-kpis">
-        <div class="sns-kpi">
-          <div class="sns-kpi-lbl">Episódios urgência</div>
-          <div class="sns-kpi-val" style="color:var(--blue)">${epVal}</div>
-        </div>
-        <div class="sns-kpi">
-          <div class="sns-kpi-lbl">Taxa internamento</div>
-          <div class="sns-kpi-val" style="color:var(--orange)">${intVal}</div>
-        </div>
-        <div class="sns-kpi">
-          <div class="sns-kpi-lbl">Prioridade verde/azul</div>
-          <div class="sns-kpi-val" style="color:var(--green)">${vazVal}</div>
-        </div>
-        <div class="sns-kpi">
-          <div class="sns-kpi-lbl">Fonte</div>
-          <div class="sns-kpi-val" style="font-size:.7rem;color:var(--t2)">SNS Nacional</div>
-        </div>
-      </div>
-      <div class="sns-note">ℹ️ Dados agregados nacionais SNS · O portal de transparência não disponibiliza desagregação por hospital neste endpoint público</div>`;
-  }catch(e){$("sns-body").innerHTML=er(e.message);}
-}
-
-/* ════════════════════════════════════════════════════
    BOOT — cache-first + auto-refresh 15min
 ════════════════════════════════════════════════════ */
 loadWeather();
@@ -988,17 +833,15 @@ renderFuel();
 renderElec();
 renderCalendar();
 loadHolidays();
-loadAir();
-setTimeout(()=>loadSNS(),         300);
-setTimeout(()=>loadCrypto(),      600);
-setTimeout(()=>loadMarketStats(),1800);
+setTimeout(()=>loadCrypto(),     500);
+setTimeout(()=>loadMarketStats(),1500);
 
 setInterval(()=>{
   loadWeather();loadNews("pt");loadNews("world");
-  renderFuel();loadHolidays();loadAir();loadSNS();
+  renderFuel();loadHolidays();
   loadI=0;loadNextQ();
-  setTimeout(()=>loadCrypto(),      600);
-  setTimeout(()=>loadMarketStats(),1800);
+  setTimeout(()=>loadCrypto(),     500);
+  setTimeout(()=>loadMarketStats(),1500);
 },CACHE_TTL);
 </script>
 </body>
