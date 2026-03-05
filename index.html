@@ -235,6 +235,21 @@ textarea.nta::placeholder{color:var(--t3)}
 @media(max-width:1280px){.grid{grid-template-columns:repeat(2,1fr)}.s3,.s4,.sec{grid-column:span 2}.r2{grid-row:auto}}
 @media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3,.s4,.sec{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
 
+/* ── Ticker Tape ── */
+.tv-tape-wrap{margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
+.tv-tape-wrap .tradingview-widget-copyright{display:none!important}
+
+/* ── TradingView Advanced Chart ── */
+.tv-chart-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;animation:fadeUp .35s ease both}
+.tv-chart-card:hover{border-color:var(--b2)}
+.tv-chart-card .stripe{position:absolute;top:0;left:0;right:0;height:2px}
+.tv-chart-card .ch{padding:14px 18px 0;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tv-chart-inner{height:520px;width:100%;position:relative}
+.tv-chart-inner .tradingview-widget-container,.tv-chart-inner .tradingview-widget-container__widget{height:100%!important;width:100%!important}
+.tv-chart-inner .tradingview-widget-copyright{display:none!important}
+.tv-src{padding:6px 18px 12px;font-family:var(--mono);font-size:.58rem;color:var(--t3);border-top:1px solid var(--b);margin-top:4px}
+
+/* ── Fuel range ── */
 .fi-lbl{font-family:var(--mono);font-size:.6rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-unit{font-family:var(--mono);font-size:.57rem;color:var(--t2);margin-top:2px}
 .fi-range{margin-top:7px}
@@ -242,6 +257,8 @@ textarea.nta::placeholder{color:var(--t3)}
 .fi-range-fill{position:absolute;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--accent))}
 .fi-range-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--text);border:2px solid var(--card);top:-2px;transform:translateX(-50%)}
 .fi-range-mm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--t3)}
+
+/* ── Holidays ── */
 .hol-hero{display:flex;gap:14px;align-items:center;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:9px;background:var(--surface)}
 .hol-hero-num{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--accent);min-width:34px;text-align:center}
 .hol-hero-lbl{font-size:.72rem;font-weight:600}.hol-hero-sub{font-size:.61rem;color:var(--t2);margin-top:2px}
@@ -255,6 +272,8 @@ textarea.nta::placeholder{color:var(--t3)}
 .hol-name{font-size:.71rem;font-weight:500;flex:1}
 .hol-tag{font-family:var(--mono);font-size:.54rem;padding:2px 6px;border-radius:4px;background:var(--b);color:var(--t3);white-space:nowrap}
 .hol-item.next .hol-tag{background:var(--bd);color:var(--blue)}.hol-item.today .hol-tag{background:var(--ad);color:var(--accent)}
+
+/* ── Crypto 2-col ── */
 .crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .ci2{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px}
 .ci2-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
@@ -281,6 +300,42 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="pills" id="pills"></div>
 </header>
 
+<!-- ── TradingView Ticker Tape ── -->
+<div class="tv-tape-wrap">
+  <div class="tradingview-widget-container">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    {
+      "symbols": [
+        {"description":"EUR/USD",  "proName":"FX_IDC:EURUSD"},
+        {"description":"EUR/GBP",  "proName":"FX_IDC:EURGBP"},
+        {"description":"EUR/JPY",  "proName":"FX_IDC:EURJPY"},
+        {"description":"EUR/CHF",  "proName":"FX_IDC:EURCHF"},
+        {"description":"GBP/USD",  "proName":"FX_IDC:GBPUSD"},
+        {"description":"USD/JPY",  "proName":"FX_IDC:USDJPY"},
+        {"description":"S&P 500",  "proName":"FOREXCOM:SPXUSD"},
+        {"description":"Nasdaq",   "proName":"FOREXCOM:NSXUSD"},
+        {"description":"DAX",      "proName":"XETR:DAX"},
+        {"description":"PSI-20",   "proName":"EURONEXT:PSI20"},
+        {"description":"FTSE 100", "proName":"FOREXCOM:UKXGBP"},
+        {"description":"Ouro",     "proName":"FOREXCOM:XAUUSD"},
+        {"description":"Petróleo", "proName":"NYMEX:CL1!"},
+        {"description":"Gás Nat.", "proName":"NYMEX:NG1!"},
+        {"description":"BTC/USD",  "proName":"BITSTAMP:BTCUSD"},
+        {"description":"ETH/USD",  "proName":"BITSTAMP:ETHUSD"},
+        {"description":"PT 10Y",   "proName":"TVC:PT10Y"},
+        {"description":"DE 10Y",   "proName":"TVC:DE10Y"}
+      ],
+      "showSymbolLogo": true,
+      "isTransparent": true,
+      "displayMode": "adaptive",
+      "colorTheme": "dark",
+      "locale": "pt"
+    }
+    </script>
+  </div>
+</div>
+
 <!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
@@ -291,137 +346,137 @@ textarea.nta::placeholder{color:var(--t3)}
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
   </div>
 
-  <!-- Meteorologia r2 col 1 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🌡️</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadWeather(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadWeather(true)">↺</button></div></div>
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-  <!-- Notícias PT r2 col 2 -->
   <div class="card r2">
     <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
       <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt')">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt')">↺</button></div></div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ GNews · Tempo real · Clica para ler</div>
   </div>
 
-  <!-- Combustíveis col 3 linha 1 -->
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--gd)">⛽</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div></div>
     <div id="fuel-body"></div>
   </div>
 
-  <!-- Eletricidade col 4 linha 1 -->
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--bd)">⚡</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderElec()">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="renderElec()">↺</button></div></div>
     <div id="elec-body"></div>
   </div>
 
-  <!-- Feriados s2 cols 3-4 linha 2 -->
   <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🗓️</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🗓️</div>
       <span class="ch-lbl">Feriados &amp; Dias Úteis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadHolidays(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadHolidays(true)">↺</button></div></div>
     <div id="hol-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ date.nager.at · Feriados nacionais PT · CORS nativo</div>
+    <div class="src">✦ date.nager.at · Feriados nacionais PT</div>
   </div>
 
-  <!-- ══ ZONA 2: MERCADOS ══ -->
+  <!-- ══ ZONA 2: MERCADOS FINANCEIROS ══ -->
   <div class="sec">
     <div class="sec-bar" style="background:var(--blue)"></div>
     <span style="color:var(--blue)">Mercados Financeiros</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Índices · Obrigações · Divisas · Crypto</span>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites de API</span>
   </div>
 
-  <!-- Finanças s4 -->
-  <div class="card s4">
+  <!-- TradingView Advanced Chart — span 4, 520px de altura -->
+  <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">📈</div>
       <span class="ch-lbl">Mercados Financeiros</span>
       <div class="ch-r">
-        <span class="badge" id="fin-st">a carregar…</span>
-        <button class="rbtn" onclick="reloadFin()">↺</button>
+        <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
       </div>
     </div>
-    <div class="fin-tabs" id="fin-tabs"></div>
-    <div class="chart-box">
-      <div class="chart-top">
-        <div>
-          <div class="ch-name" id="ch-name">—</div>
-          <div class="ch-price" id="ch-price">—</div>
-          <div class="ch-pct" id="ch-pct"></div>
-        </div>
-        <div class="periods">
-          <button class="pbtn" onclick="setPeriod('5D')">5D</button>
-          <button class="pbtn on" onclick="setPeriod('1M')">1M</button>
-          <button class="pbtn" onclick="setPeriod('3M')">3M</button>
-          <button class="pbtn" onclick="setPeriod('6M')">6M</button>
-          <button class="pbtn" onclick="setPeriod('1A')">1A</button>
-        </div>
-      </div>
-      <div class="chart-msg" id="chart-msg"></div>
-      <div id="chart-wrap" style="position:relative;width:100%;height:185px;overflow:hidden">
-        <canvas id="fin-chart" style="position:absolute;top:0;left:0;width:100%!important;height:185px!important"></canvas>
+    <div class="tv-chart-inner">
+      <div class="tradingview-widget-container" style="height:100%;width:100%">
+        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+        {
+          "autosize": true,
+          "symbol": "EURONEXT:PSI20",
+          "interval": "D",
+          "timezone": "Europe/Lisbon",
+          "theme": "dark",
+          "style": "1",
+          "locale": "pt",
+          "backgroundColor": "rgba(10,13,28,0.0)",
+          "gridColor": "rgba(24,29,48,1)",
+          "withdateranges": true,
+          "hide_side_toolbar": false,
+          "allow_symbol_change": true,
+          "save_image": false,
+          "watchlist": [
+            "EURONEXT:PSI20",
+            "TVC:PT10Y",
+            "FOREXCOM:SPXUSD",
+            "FOREXCOM:NSXUSD",
+            "FOREXCOM:DJI",
+            "XETR:DAX",
+            "FOREXCOM:UKXGBP",
+            "FX_IDC:EURUSD",
+            "FX_IDC:EURGBP",
+            "FX_IDC:EURJPY",
+            "FOREXCOM:XAUUSD",
+            "NYMEX:CL1!",
+            "NYMEX:NG1!",
+            "BITSTAMP:BTCUSD",
+            "BITSTAMP:ETHUSD"
+          ],
+          "details": true,
+          "hotlist": true,
+          "calendar": false,
+          "support_host": "https://www.tradingview.com"
+        }
+        </script>
       </div>
     </div>
-    <div class="src">✦ Twelve Data · Cache 15min · PSI-20 real · Obrigações PT 10A</div>
+    <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Gráfico interactivo completo · Pesquisa livre de qualquer símbolo</div>
   </div>
 
-  <!-- Crypto s2 -->
+  <!-- Crypto span 2 -->
   <div class="card s2">
     <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--od)">₿</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
 
-  <!-- Indicadores -->
+  <!-- Indicadores de Mercado -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--pd)">🔭</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
-  <!-- Calendário -->
+  <!-- Calendário Económico -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">📅</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
-      <div class="ch-r"><span class="badge">Esta semana</span></div>
-    </div>
+      <div class="ch-r"><span class="badge">Esta semana</span></div></div>
     <div id="cal-body"></div>
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
@@ -433,14 +488,11 @@ textarea.nta::placeholder{color:var(--t3)}
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span>
   </div>
 
-  <!-- Notícias Mundo s4 -->
   <div class="card s4">
     <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--bd)">🌍</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('world')">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadNews('world')">↺</button></div></div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ GNews · Breaking news · Clica para ler</div>
   </div>
@@ -459,12 +511,17 @@ const CFG = {
   IPMA_CITY_ID: 1060300,
 };
 
-const APIS=[{n:"IPMA",k:"ok"},{n:"TD",k:CFG.TD_KEY},{n:"GNews",k:CFG.GNEWS_KEY},{n:"CoinGecko",k:"ok"}];
+/* ── Pills ── */
+const APIS=[
+  {n:"IPMA",k:"ok"},{n:"TradingView",k:"ok"},
+  {n:"CoinGecko",k:"ok"},{n:"GNews",k:CFG.GNEWS_KEY}
+];
 document.getElementById("pills").innerHTML=APIS.map(a=>{
-  const ok=["IPMA","CoinGecko"].includes(a.n)?true:!a.k.startsWith("A_TUA");
+  const ok=["IPMA","TradingView","CoinGecko"].includes(a.n)?true:!a.k.startsWith("A_TUA");
   return`<span class="pill ${ok?"ok":"err"}"><span class="dot"></span>${a.n}</span>`;
 }).join("");
 
+/* ── Clock ── */
 function tick(){
   const n=new Date();
   document.getElementById("clk").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
@@ -472,6 +529,7 @@ function tick(){
 }
 tick();setInterval(tick,1000);
 
+/* ── Helpers ── */
 const $=id=>document.getElementById(id);
 const ld=()=>`<div class="ld"><div class="spin"></div></div>`;
 const er=m=>`<p class="err">⚠ ${m}</p>`;
@@ -482,6 +540,7 @@ const DAY_NAMES=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
+/* ── Proxy chain (GNews) ── */
 const PROXIES=[
   async u=>{const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(u)}`);if(!r.ok)throw 0;return r.json();},
   async u=>{const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`);if(!r.ok)throw 0;const j=await r.json();if(!j.contents)throw 0;return JSON.parse(j.contents);},
@@ -490,16 +549,15 @@ const PROXIES=[
 async function fetchP(url){let last;for(const p of PROXIES){try{return await p(url);}catch(e){last=e;}}throw last||new Error("Proxies falharam");}
 
 /* ════════════════════════════════════════════════════
-   CACHE localStorage — TTL 15 minutos
+   CACHE localStorage — TTL 15 min
 ════════════════════════════════════════════════════ */
-const CACHE_TTL=15*60*1000, CACHE_PFX="dash_v5_";
-function lsGet(k){try{const r=localStorage.getItem(CACHE_PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
-function lsSet(k,d){try{localStorage.setItem(CACHE_PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
-function lsDel(p){try{Object.keys(localStorage).filter(k=>k.startsWith(CACHE_PFX+(p||""))).forEach(k=>localStorage.removeItem(k));}catch{}}
-function lsAge(k){try{const r=localStorage.getItem(CACHE_PFX+k);if(!r)return null;const a=Math.floor((Date.now()-JSON.parse(r).ts)/60000);return a<15?a:null;}catch{return null;}}
+const CACHE_TTL=15*60*1000, PFX="dash_v6_";
+function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
+function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
+function lsDel(p){try{Object.keys(localStorage).filter(k=>k.startsWith(PFX+(p||""))).forEach(k=>localStorage.removeItem(k));}catch{}}
 
 /* ════════════════════════════════════════════════════
-   METEOROLOGIA — IPMA
+   METEOROLOGIA — IPMA (CORS nativo, sem chave)
 ════════════════════════════════════════════════════ */
 const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
 const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],26:["🌬️","Neblina"],28:["☁️","Céu encoberto"]};
@@ -545,7 +603,7 @@ async function loadWeather(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   NOTÍCIAS — GNews
+   NOTÍCIAS — GNews (via proxy)
 ════════════════════════════════════════════════════ */
 async function loadNews(scope){
   const el=$(scope==="pt"?"news-pt":"news-world");
@@ -570,86 +628,6 @@ async function loadNews(scope){
 }
 
 /* ════════════════════════════════════════════════════
-   TWELVE DATA — cache 15min
-════════════════════════════════════════════════════ */
-const TD_BASE="https://api.twelvedata.com";
-async function tdGet(ep,params,force=false){
-  const ck=ep+"?"+new URLSearchParams(params);
-  if(!force){const h=lsGet(ck);if(h)return h;}
-  const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
-  if(!r.ok)throw new Error(`TD ${r.status}`);
-  const j=await r.json();
-  if(j.status==="error")throw new Error(j.message||"TD error");
-  lsSet(ck,j);return j;
-}
-
-/* ════════════════════════════════════════════════════
-   FINANÇAS
-════════════════════════════════════════════════════ */
-const ASSETS=[
-  {id:"SPX",  name:"S&P 500",      sym:"SPY",    type:"stock",color:"#4B96F3"},
-  {id:"NDX",  name:"Nasdaq 100",   sym:"QQQ",    type:"stock",color:"#9575F0"},
-  {id:"DJI",  name:"Dow Jones",    sym:"DIA",    type:"stock",color:"#34C97A"},
-  {id:"PSI20",name:"PSI-20",       sym:"PSI20",  type:"index",color:"#E9A520"},
-  {id:"PT10Y",name:"Obrig. PT 10A",sym:"PT10Y",  type:"bond", color:"#EF5757"},
-  {id:"XAU",  name:"Ouro",         sym:"GLD",    type:"stock",color:"#F59E0B"},
-  {id:"OIL",  name:"Petróleo WTI", sym:"USO",    type:"stock",color:"#EF5757"},
-  {id:"EUR",  name:"EUR/USD",      sym:"EUR/USD",type:"forex",color:"#34C97A"},
-  {id:"GBP",  name:"EUR/GBP",      sym:"EUR/GBP",type:"forex",color:"#9575F0"},
-];
-let quotes={},selA=ASSETS[0],selP="1M",chartInst=null,loadI=0,finForce=false;
-
-function renderTabs(){
-  const age=lsAge("/quote?"+new URLSearchParams({symbol:ASSETS[0].sym}));
-  if(loadI>=ASSETS.length||age!==null)
-    $("fin-st").textContent=age!==null?`✓ cache há ${age===0?"<1":age}m`:`✓ ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;
-  $("fin-tabs").innerHTML=ASSETS.map(a=>{
-    const q=quotes[a.id],on=selA?.id===a.id?"on":"";
-    return`<div class="ftab ${on}" onclick="selAsset('${a.id}')">
-      <div class="ft-ticker">${a.id}</div><div class="ft-name">${a.name}</div>
-      ${q?`<div class="ft-price" style="color:${a.color}">${a.type==="bond"?fmtP(q.price,3)+"%":fmtP(q.price)}</div><div class="ft-chg">${chg(q.change)}</div>`:`<div class="ft-spin"></div>`}
-    </div>`;
-  }).join("");
-}
-function updChartHdr(){
-  const a=selA,q=quotes[a?.id];
-  $("ch-name").textContent=a?.name||"—";$("ch-name").style.color=a?.color||"var(--blue)";$("ch-price").style.color=a?.color||"var(--blue)";
-  if(q){$("ch-price").textContent=a?.type==="bond"?fmtP(q.price,3)+"%":fmtP(q.price);$("ch-pct").innerHTML=chg(q.change);}
-}
-async function loadNextQ(){
-  if(loadI>=ASSETS.length){finForce=false;$("fin-st").textContent=`✓ ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})}`;return;}
-  const a=ASSETS[loadI++];$("fin-st").textContent=`${loadI}/${ASSETS.length}…`;
-  try{const j=await tdGet("/quote",{symbol:a.sym},finForce);quotes[a.id]={price:parseFloat(j.close||j.price||0),change:parseFloat((j.percent_change||"0").toString().replace("%",""))};}
-  catch(e){console.warn(a.sym,e.message);}
-  renderTabs();updChartHdr();setTimeout(loadNextQ,600);
-}
-async function reloadFin(){loadI=0;quotes={};finForce=true;lsDel("/quote");lsDel("/time_series");renderTabs();loadNextQ();}
-function selAsset(id){selA=ASSETS.find(a=>a.id===id)||ASSETS[0];renderTabs();updChartHdr();loadChart();}
-function setPeriod(p){selP=p;document.querySelectorAll(".pbtn").forEach(b=>b.classList.toggle("on",b.textContent===p));loadChart();}
-async function loadChart(force=false){
-  const msg=$("chart-msg"),cv=$("fin-chart"),wrap=$("chart-wrap");
-  msg.style.display="none";wrap.style.display="block";
-  try{
-    const out={"5D":5,"1M":30,"3M":90,"6M":180,"1A":365}[selP]||30;
-    const j=await tdGet("/time_series",{symbol:selA.sym,interval:"1day",outputsize:out},force);
-    if(!j.values?.length)throw new Error("Sem dados históricos");
-    const pts=[...j.values].reverse(),labels=pts.map(p=>p.datetime.slice(5)),values=pts.map(p=>parseFloat(p.close));
-    const color=selA.color||"#4B96F3",minV=Math.min(...values)*.998,maxV=Math.max(...values)*1.002;
-    if(chartInst){chartInst.destroy();chartInst=null;}
-    cv.width=wrap.offsetWidth||800;cv.height=185;
-    const ctx=cv.getContext("2d"),grad=ctx.createLinearGradient(0,0,0,185);
-    grad.addColorStop(0,color+"26");grad.addColorStop(1,color+"00");
-    chartInst=new Chart(ctx,{type:"line",
-      data:{labels,datasets:[{data:values,borderColor:color,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true,backgroundColor:grad}]},
-      options:{responsive:false,maintainAspectRatio:false,animation:{duration:450},
-        plugins:{legend:{display:false},tooltip:{backgroundColor:"#0F1220",borderColor:"#202540",borderWidth:1,titleColor:"#3D4560",bodyColor:"#DDE3F0",titleFont:{family:"DM Mono",size:10},bodyFont:{family:"DM Mono",size:11},callbacks:{label:c=>fmtP(c.parsed.y,4)}}},
-        scales:{x:{ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:8},grid:{color:"#181D30"},border:{display:false}},
-          y:{min:minV,max:maxV,ticks:{color:"#3D4560",font:{family:"DM Mono",size:9},maxTicksLimit:5,callback:v=>fmtP(v,selA.type==="bond"?3:1)},grid:{color:"#181D30"},border:{display:false}}}}});
-  }catch(e){if(chartInst){chartInst.destroy();chartInst=null;}wrap.style.display="none";msg.style.display="block";msg.textContent=e.message;}
-}
-renderTabs();loadNextQ();setTimeout(()=>loadChart(),1000);
-
-/* ════════════════════════════════════════════════════
    CRIPTOMOEDAS — CoinGecko (CORS nativo, sem chave)
 ════════════════════════════════════════════════════ */
 const CRYPTO_IDS=[
@@ -663,7 +641,7 @@ const CRYPTO_IDS=[
 async function loadCrypto(force=false){
   $("crypto-body").innerHTML=ld();
   try{
-    const ck="cg_v2";
+    const ck="cg_v3";
     let data=force?null:lsGet(ck);
     if(!data){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
@@ -683,11 +661,22 @@ async function loadCrypto(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   INDICADORES DE MERCADO — Twelve Data
+   INDICADORES DE MERCADO — Twelve Data (cache 15min)
 ════════════════════════════════════════════════════ */
+const TD_BASE="https://api.twelvedata.com";
+async function tdGet(ep,params,force=false){
+  const ck=ep+"?"+new URLSearchParams(params);
+  if(!force){const h=lsGet(ck);if(h)return h;}
+  const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
+  if(!r.ok)throw new Error(`TD ${r.status}`);
+  const j=await r.json();
+  if(j.status==="error")throw new Error(j.message||"TD error");
+  lsSet(ck,j);return j;
+}
+
 const MSTATS=[
   {id:"VIX", sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",  color:"var(--red)"},
-  {id:"GOLD",sym:"GLD", label:"Ouro",        sub:"USD / oz",          color:"var(--accent)"},
+  {id:"GOLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",    color:"var(--accent)"},
   {id:"WTI", sym:"USO", label:"Petróleo WTI",sub:"USD / barril",      color:"var(--orange)"},
   {id:"DXY", sym:"UUP", label:"USD Index",   sub:"Índice do dólar",   color:"var(--blue)"},
 ];
@@ -709,7 +698,7 @@ async function loadMarketStats(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   COMBUSTÍVEIS — API Aberta PT
+   COMBUSTÍVEIS — API Aberta PT + cache 15min
 ════════════════════════════════════════════════════ */
 const FUEL_SLUGS=[
   {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--accent)"},
@@ -743,16 +732,18 @@ async function renderFuel(force=false){
 }
 
 /* ════════════════════════════════════════════════════
-   ELETRICIDADE
+   ELETRICIDADE — dados de referência
 ════════════════════════════════════════════════════ */
 const ELEC={spot:{p:74.3,var:-6.1},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:74,co2:48};
 function renderElec(){
   const d=ELEC;
   $("elec-body").innerHTML=`
     <div class="elec-top">
-      <div class="ekpi"><div class="ekpi-lbl">Mercado Spot MIBEL</div><div class="ekpi-val" style="color:var(--blue)">${d.spot.p.toFixed(1)}</div><div class="ekpi-unit">€/MWh</div>
+      <div class="ekpi"><div class="ekpi-lbl">Mercado Spot MIBEL</div>
+        <div class="ekpi-val" style="color:var(--blue)">${d.spot.p.toFixed(1)}</div><div class="ekpi-unit">€/MWh</div>
         <div class="ekpi-chg ${d.spot.var>=0?"up":"dn"}">${d.spot.var>=0?"▲":"▼"} ${Math.abs(d.spot.var).toFixed(1)} vs ontem</div></div>
-      <div class="ekpi"><div class="ekpi-lbl">Tarifa Simples</div><div class="ekpi-val" style="color:var(--green)">${d.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div>
+      <div class="ekpi"><div class="ekpi-lbl">Tarifa Simples</div>
+        <div class="ekpi-val" style="color:var(--green)">${d.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div>
     </div>
     <div class="bar-lbl">Tarifa Bi-horária</div>
     ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
@@ -780,12 +771,13 @@ function renderCalendar(){
   $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
     <div class="ev"><div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
       <div class="ev-body"><div class="ev-title">${e.country} ${e.title}</div>
-        <div class="ev-meta"><span>${e.date} · ${e.time} Lisboa</span><span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span></div>
-      </div></div>`).join("")}</div>`;
+        <div class="ev-meta"><span>${e.date} · ${e.time} Lisboa</span>
+          <span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>
+        </div></div></div>`).join("")}</div>`;
 }
 
 /* ════════════════════════════════════════════════════
-   FERIADOS PT — date.nager.at
+   FERIADOS PT — date.nager.at (CORS nativo, sem chave)
 ════════════════════════════════════════════════════ */
 async function loadHolidays(force=false){
   $("hol-body").innerHTML=ld();
@@ -816,7 +808,8 @@ async function loadHolidays(force=false){
         const hd=new Date(h.date),diff=Math.round((hd-today)/86400000);
         return`<div class="hol-item ${past?"past":isToday?"today":isNext?"next":""}">
           <div class="hol-date">${hd.getDate()} ${MONTH_NAMES[hd.getMonth()]}</div>
-          <div><div class="hol-name">${h.localName}</div><div style="font-family:var(--mono);font-size:.56rem;color:var(--t3)">${DAY_NAMES_LONG[hd.getDay()]}</div></div>
+          <div><div class="hol-name">${h.localName}</div>
+            <div style="font-family:var(--mono);font-size:.56rem;color:var(--t3)">${DAY_NAMES_LONG[hd.getDay()]}</div></div>
           ${!past?`<div class="hol-tag">${isToday?"hoje":diff===1?"amanhã":"+"+diff+"d"}</div>`:""}
         </div>`;
       }).join("")}</div>`;
@@ -834,14 +827,13 @@ renderElec();
 renderCalendar();
 loadHolidays();
 setTimeout(()=>loadCrypto(),     500);
-setTimeout(()=>loadMarketStats(),1500);
+setTimeout(()=>loadMarketStats(),1200);
 
 setInterval(()=>{
   loadWeather();loadNews("pt");loadNews("world");
   renderFuel();loadHolidays();
-  loadI=0;loadNextQ();
-  setTimeout(()=>loadCrypto(),     500);
-  setTimeout(()=>loadMarketStats(),1500);
+  loadCrypto();
+  setTimeout(()=>loadMarketStats(),1200);
 },CACHE_TTL);
 </script>
 </body>
