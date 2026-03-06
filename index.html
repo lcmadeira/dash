@@ -354,13 +354,8 @@ textarea.nta::placeholder{color:var(--t3)}
 <!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
-  <!-- ══ PORTUGAL ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div>
-    <span style="color:var(--accent)">Portugal</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
-  </div>
-
-  <div class="card r2">
+  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
+  <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia</span>
@@ -368,14 +363,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-  <div class="card r2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
-      <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt',true)">↺</button></div></div>
-    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
-  </div>
 
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
@@ -384,6 +371,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div></div>
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
+
 
   <div class="card">
     <div class="stripe" style="background:var(--orange)"></div>
@@ -409,14 +397,15 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
   </div>
 
+
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
       <div class="ch-r"><button class="rbtn" onclick="loadElec(true)">↺</button></div></div>
     <div id="elec-body"></div>
-    <div class="src">✦ Red Eléctrica · apidatos.ree.es · Spot MIBEL · CORS nativo · Sem chave</div>
   </div>
+
 
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
@@ -427,12 +416,20 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ date.nager.at · Feriados nacionais PT</div>
   </div>
 
-  <!-- ══ MERCADOS ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div>
-    <span style="color:var(--blue)">Mercados Financeiros</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites</span>
+
+  <!-- Euribor estático EMMI -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--cyan)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--cd)">📐</div>
+      <span class="ch-lbl">Euribor · Taxas de Referência</span>
+      <div class="ch-r"><span class="badge">Mar 2026</span></div>
+    </div>
+    <div id="euri-body"></div>
+    <div class="src">&#10004; EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
   </div>
 
+  <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
@@ -450,7 +447,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
   </div>
 
-  <!-- Mapa de Calor — S&P 500 / Crypto / ETFs -->
+
+  <!-- Mapa de Calor S&P 500 -->
   <div class="card s2">
     <div class="stripe" style="background:linear-gradient(90deg,var(--green),var(--red))"></div>
     <div class="ch">
@@ -459,8 +457,8 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r" style="display:flex;align-items:center;gap:6px">
         <div id="hmap-tabs">
           <button class="psi-tab on" onclick="switchHmap('sp500',this)">S&amp;P 500</button>
-          <button class="psi-tab"   onclick="switchHmap('crypto',this)">Crypto</button>
-          <button class="psi-tab"   onclick="switchHmap('etf',this)">ETFs</button>
+          <button class="psi-tab" onclick="switchHmap('crypto',this)">Crypto</button>
+          <button class="psi-tab" onclick="switchHmap('etf',this)">ETFs</button>
         </div>
         <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
       </div>
@@ -473,19 +471,7 @@ textarea.nta::placeholder{color:var(--t3)}
         </script>
       </div>
     </div>
-    <div class="src">✦ TradingView · S&amp;P 500 · Sector · Market cap · Cor = variação dia</div>
-  </div>
-
-  <!-- Euribor — estático (EMMI) -->
-  <div class="card s2">
-    <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">📐</div>
-      <span class="ch-lbl">Euribor · Taxas de Referência</span>
-      <div class="ch-r"><span class="badge">Mar 2026</span></div>
-    </div>
-    <div id="euri-body"></div>
-    <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
+    <div class="src">&#10004; TradingView · S&amp;P 500 · Por sector · Cor = variação dia</div>
   </div>
 
   <!-- Câmbio s2 -->
@@ -509,6 +495,18 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Banco Central Europeu · Frankfurter API · CORS nativo · Sem chave</div>
   </div>
 
+
+  <!-- Crypto s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--orange)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
+      <span class="ch-lbl">Criptomoedas</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
+    <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
+  </div>
+
+
   <!-- Inflação s2 -->
   <!-- INFLAÇÃO PT vs Zona Euro -->
   <div class="card s2">
@@ -522,15 +520,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ INE Portugal · Eurostat · Referência mensal</div>
   </div>
 
-  <!-- Crypto s2 -->
-  <div class="card s2">
-    <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
-      <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
-    <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
-  </div>
 
   <!-- Indicadores Mercado -->
   <div class="card">
@@ -542,6 +531,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
+
   <!-- Calendário Económico -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
@@ -552,13 +542,19 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
 
-  <!-- ══ MUNDO ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--cyan)"></div>
-    <span style="color:var(--cyan)">Mundo</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span>
+
+  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Portugal · Mundo</span></div>
+  <div class="card s2">
+    <div class="stripe" style="background:var(--accent)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
+      <span class="ch-lbl">Notícias · Portugal</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt',true)">↺</button></div></div>
+    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
 
-  <div class="card s4">
+
+  <div class="card s2">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
@@ -567,9 +563,9 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
 
+
 </div><!-- /grid -->
 </div><!-- /wrap -->
-
 <script>
 /* CONFIG */
 const CFG={TD_KEY:"ac8049c9d6c34e40bf50b758be66c056",IPMA_CITY_ID:1060300};
@@ -611,7 +607,7 @@ function switchOil(type,btn){
 }
 
 /* ── Bolsa Lisboa — TV widget dinâmico por acção ── */
-/* ── Mapa de Calor — switchHmap (createContextualFragment) ── */
+/* ── Mapa de Calor ── */
 const HMAP_CONFIGS={
   sp500:{dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic"},
   crypto:{dataSource:"Crypto",grouping:"no_group",blockSize:"market_cap_basic"},
@@ -619,13 +615,13 @@ const HMAP_CONFIGS={
 };
 function switchHmap(key,btn){
   document.querySelectorAll("#hmap-tabs .psi-tab").forEach(b=>b.classList.remove("on"));
-  if(btn) btn.classList.add("on");
+  if(btn)btn.classList.add("on");
   const c=HMAP_CONFIGS[key];if(!c)return;
   const cfg=JSON.stringify({exchanges:[],dataSource:c.dataSource,grouping:c.grouping,
     blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,
     isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460});
-  const wrap=document.getElementById("hmap-widget");wrap.innerHTML="";
-  wrap.appendChild(document.createRange().createContextualFragment(
+  const w=document.getElementById("hmap-widget");w.innerHTML="";
+  w.appendChild(document.createRange().createContextualFragment(
     `<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>`+
     `<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>${cfg}<\/script></div>`));
 }
@@ -739,99 +735,39 @@ async function renderFuel(force=false){
 }
 
 /* ── Eletricidade ── */
-/* ── Eletricidade — API REE/REData (apidatos.ree.es)
-   CORS nativo · Sem chave · Preços SPOT MIBEL horários
-   Mercado ibérico: PT e ES partilham o mesmo preço na maioria das horas
-   Formato: data.included[0].attributes.values[h].value (€/MWh)
-   Publicados ~14h do dia anterior para o dia seguinte
-───────────────────────────────────────────────────── */
-const ELEC_TARIFAS={simples:0.2134,vazio:0.1423,fvazio:0.2567}; // ERSE 2026
+/* ── Eletricidade — API REE (apidatos.ree.es) CORS nativo ── */
+const ELEC_TARIFAS={simples:0.2134,vazio:0.1423,fvazio:0.2567};
 async function loadElec(force=false){
   $("elec-body").innerHTML=ld();
   try{
-    const ck="elec_ree";
-    let cached=force?null:lsGet(ck);
+    const ck="elec_ree";let cached=force?null:lsGet(ck);
     if(!cached){
-      // Tentar hoje; se sem dados (publicados às ~14h) usar ontem
-      const tryDates=[0,1].map(d=>{
-        const dt=new Date();dt.setDate(dt.getDate()-d);
-        return dt.toISOString().slice(0,10);
-      });
+      const dates=[0,1].map(d=>{const dt=new Date();dt.setDate(dt.getDate()-d);return dt.toISOString().slice(0,10);});
       let vals=null,usedDate=null;
-      for(const date of tryDates){
-        const url=`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real`+
-          `?start_date=${date}T00:00&end_date=${date}T23:59&time_trunc=hour`;
-        const r=await fetch(url,{headers:{"Accept":"application/json"}});
-        if(!r.ok) continue;
+      for(const date of dates){
+        const r=await fetch(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?start_date=${date}T00:00&end_date=${date}T23:59&time_trunc=hour`,{headers:{"Accept":"application/json"}});
+        if(!r.ok)continue;
         const j=await r.json();
-        // Procurar o indicador "Precio mercado spot" ou o primeiro disponível
-        const included=j.included||[];
-        const spotSeries=included.find(s=>
-          (s.attributes?.title||"").toLowerCase().includes("spot")||
-          (s.attributes?.title||"").toLowerCase().includes("precio")||
-          included.indexOf(s)===0
-        );
-        const v=spotSeries?.attributes?.values||[];
+        const inc=j.included||[];
+        const spot=inc.find(s=>(s.attributes?.title||"").toLowerCase().includes("spot"))||inc[0];
+        const v=spot?.attributes?.values||[];
         if(v.length>=20){vals=v;usedDate=date;break;}
       }
-      if(!vals) throw new Error("Sem dados REE");
-      cached={vals,date:usedDate};
-      lsSet(ck,cached);
+      if(!vals)throw new Error("Sem dados REE");
+      cached={vals,date:usedDate};lsSet(ck,cached);
     }
-
-    const vals=cached.vals; // [{value: €/MWh, datetime: "..."}]
-    const prices=vals.map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
-    const avg=prices.reduce((a,b)=>a+b,0)/prices.length;
-    const min=Math.min(...prices);
-    const max=Math.max(...prices);
-
-    // Hora actual (CET = Portugal + 1h no verão, +0 no inverno — usar índice directo)
-    const hourNow=new Date().getHours();
-    const priceNow=prices[Math.min(hourNow,prices.length-1)]??avg;
-    const priceCol=priceNow>avg*1.25?"var(--red)":priceNow<avg*0.75?"var(--green)":"var(--blue)";
-
-    // Gráfico de barras 24h
-    const maxBar=max*1.05;
-    const bars=prices.map((v,i)=>{
-      const pct=Math.round((v/maxBar)*100);
-      const isNow=i===hourNow;
-      const col=v>avg*1.25?"var(--red)":v<avg*0.75?"var(--green)":"var(--blue)";
-      return`<div title="${i}h: ${v.toFixed(1)}€/MWh"
-        style="flex:1;height:${pct}%;background:${isNow?"var(--accent)":col};border-radius:1px 1px 0 0;opacity:${isNow?1:.7};cursor:default"></div>`;
-    }).join("");
-
-    const dateLabel=new Date(cached.date+"T12:00:00").toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
-    $("elec-body").innerHTML=`
-      <div class="elec-top">
-        <div class="ekpi">
-          <div class="ekpi-lbl">Spot MIBEL · ${dateLabel} · hora actual</div>
-          <div class="ekpi-val" style="color:${priceCol}">${priceNow.toFixed(1)}</div>
-          <div class="ekpi-unit">€/MWh</div>
-          <div class="ekpi-chg" style="color:var(--t2)">méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}</div>
-        </div>
-        <div class="ekpi">
-          <div class="ekpi-lbl">Tarifa Simples · ERSE 2026</div>
-          <div class="ekpi-val" style="color:var(--green)">${ELEC_TARIFAS.simples.toFixed(4)}</div>
-          <div class="ekpi-unit">€/kWh</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:1.5px;height:44px;margin:10px 0 3px 0">
-        ${bars}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:10px">
-        <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
-      </div>
-      <div class="bar-lbl">Tarifa Bi-horária · ERSE 2026</div>
-      ${[{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--blue)"}].map(r=>`
-      <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}`;
-  }catch(e){
-    $("elec-body").innerHTML=`${er(e.message)}
-      <div style="margin-top:10px">
-        <div class="bar-lbl">Tarifas reguladas · ERSE 2026</div>
-        ${[{l:"Simples",v:ELEC_TARIFAS.simples,c:"var(--blue)"},{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--orange)"}].map(r=>`
-        <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
-      </div>`;
-  }
+    const prices=cached.vals.map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+    const avg=prices.reduce((a,b)=>a+b)/prices.length,min=Math.min(...prices),max=Math.max(...prices);
+    const h=new Date().getHours(),now=prices[Math.min(h,prices.length-1)]??avg;
+    const col=now>avg*1.25?"var(--red)":now<avg*0.75?"var(--green)":"var(--blue)";
+    const bars=prices.map((v,i)=>`<div title="${i}h: ${v.toFixed(1)}€" style="flex:1;height:${Math.round((v/max)*95)}%;background:${i===h?"var(--accent)":v>avg*1.25?"var(--red)":v<avg*0.75?"var(--green)":"var(--blue)"};border-radius:1px 1px 0 0;opacity:${i===h?1:.7}"></div>`).join("");
+    const dl=new Date(cached.date+"T12:00:00").toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
+    $("elec-body").innerHTML=`<div class="elec-top"><div class="ekpi"><div class="ekpi-lbl">Spot MIBEL · ${dl}</div><div class="ekpi-val" style="color:${col}">${now.toFixed(1)}</div><div class="ekpi-unit">€/MWh · hora ${h}h</div><div class="ekpi-chg" style="color:var(--t2)">méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}</div></div><div class="ekpi"><div class="ekpi-lbl">Tarifa Simples ERSE 2026</div><div class="ekpi-val" style="color:var(--green)">${ELEC_TARIFAS.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div></div>
+      <div style="display:flex;align-items:flex-end;gap:1.5px;height:44px;margin:10px 0 3px">${bars}</div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:9px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
+      <div class="bar-lbl">Bi-horária · ERSE 2026</div>
+      ${[{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--blue)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}`;
+  }catch(e){$("elec-body").innerHTML=`${er(e.message)}<div style="margin-top:8px"><div class="bar-lbl">Tarifas ERSE 2026</div>${[{l:"Simples",v:ELEC_TARIFAS.simples,c:"var(--blue)"},{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--orange)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}</div>`;}
 }
 
 /* ── Feriados ── */
@@ -876,51 +812,16 @@ async function loadHolidays(force=false){
    Endpoint: /service/data/{flow}/{key}?format=jsondata&lastNObservations=6
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
-/* ── EURIBOR — estático · Actualizar em emmi-benchmarks.eu ── */
-const EURIBOR_DATA={
-  updated:"06 Mar 2026",
-  rates:[
-    {term:"3M",  val:2.503,prev:2.548,color:"var(--cyan)"},
-    {term:"6M",  val:2.415,prev:2.463,color:"var(--blue)"},
-    {term:"12M", val:2.350,prev:2.402,color:"var(--accent)"},
-  ],
-  hist:[["Mar 2026",2.503,2.415,2.350],["Fev 2026",2.548,2.463,2.402],
-        ["Jan 2026",2.612,2.534,2.478],["Dez 2025",2.721,2.648,2.589],
-        ["Nov 2025",2.869,2.784,2.718],["Out 2025",3.054,2.954,2.871]],
-  bce:2.40,peak:{val:4.160,date:"Out 2023"},
-};
+/* ── EURIBOR estático ── */
+const EURIBOR_DATA={updated:"06 Mar 2026",
+  rates:[{term:"3M",val:2.503,prev:2.548,color:"var(--cyan)"},{term:"6M",val:2.415,prev:2.463,color:"var(--blue)"},{term:"12M",val:2.350,prev:2.402,color:"var(--accent)"}],
+  hist:[["Mar 2026",2.503,2.415,2.350],["Fev 2026",2.548,2.463,2.402],["Jan 2026",2.612,2.534,2.478],["Dez 2025",2.721,2.648,2.589],["Nov 2025",2.869,2.784,2.718],["Out 2025",3.054,2.954,2.871]],
+  bce:2.40,peak:{val:4.160,date:"Out 2023"}};
 function renderEuribor(){
   const d=EURIBOR_DATA,maxV=Math.max(...d.hist.flatMap(r=>r.slice(1)))*1.05;
-  $("euri-body").innerHTML=`
-    <div class="euri-grid">${d.rates.map(r=>{const diff=r.val-r.prev;return`
-      <div class="euri-item" style="border-top:2px solid ${r.color}">
-        <div class="euri-term">Euribor ${r.term}</div>
-        <div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div>
-        <div class="euri-sub">${d.updated}</div>
-        <div class="euri-chg">${diff<0?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`:`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div>
-      </div>`;}).join("")}</div>
-    <div class="euri-hist">${d.hist.map(([mes,...vals])=>`
-      <div class="euri-hist-row"><div class="euri-hist-date">${mes}</div>
-        ${vals.map((v,i)=>`
-          <div class="euri-hist-bar-wrap"><div class="euri-hist-bar" style="width:${Math.round((v/maxV)*100)}%;background:${d.rates[i].color}"></div></div>
-          <div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>`).join("")}
-      </div>`).join("")}</div>
-    <div style="display:flex;gap:0;margin-top:10px;border-radius:var(--rs);border:1px solid var(--b);overflow:hidden">
-      <div style="flex:1;text-align:center;padding:8px 6px;background:var(--surface)">
-        <div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Taxa BCE</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue);margin-top:2px">${d.bce.toFixed(2)}%</div>
-      </div>
-      <div style="width:1px;background:var(--b)"></div>
-      <div style="flex:1;text-align:center;padding:8px 6px;background:var(--surface)">
-        <div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Pico ${d.peak.date}</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red);margin-top:2px">${d.peak.val.toFixed(3)}%</div>
-      </div>
-      <div style="width:1px;background:var(--b)"></div>
-      <div style="flex:1;text-align:center;padding:8px 6px;background:var(--surface)">
-        <div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Tendência</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--green);margin-top:2px">▼ Descida</div>
-      </div>
-    </div>`;
+  $("euri-body").innerHTML=`<div class="euri-grid">${d.rates.map(r=>{const diff=r.val-r.prev;return`<div class="euri-item" style="border-top:2px solid ${r.color}"><div class="euri-term">Euribor ${r.term}</div><div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div><div class="euri-sub">${d.updated}</div><div class="euri-chg">${diff<0?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`:`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div></div>`;}).join("")}</div>
+    <div class="euri-hist">${d.hist.map(([mes,...vals])=>`<div class="euri-hist-row"><div class="euri-hist-date">${mes}</div>${vals.map((v,i)=>`<div class="euri-hist-bar-wrap"><div class="euri-hist-bar" style="width:${Math.round((v/maxV)*100)}%;background:${d.rates[i].color}"></div></div><div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>`).join("")}</div>`).join("")}</div>
+    <div style="display:flex;gap:0;margin-top:10px;border-radius:var(--rs);border:1px solid var(--b);overflow:hidden"><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Taxa BCE</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue);margin-top:2px">${d.bce.toFixed(2)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Pico ${d.peak.date}</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red);margin-top:2px">${d.peak.val.toFixed(3)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Tendência</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--green);margin-top:2px">▼ Descida</div></div></div>`;
 }
 
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
@@ -1107,13 +1008,14 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-loadElec();
+
 renderCalendar();
 loadHolidays();
 renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
-setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),150);
 renderEuribor();
+loadElec();
+setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
 setTimeout(()=>loadMarketStats(),1200);
@@ -1122,7 +1024,7 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadFX(true);loadCrypto(true);
+  loadElec();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
