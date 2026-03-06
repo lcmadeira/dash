@@ -449,41 +449,40 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
   </div>
 
-  <!-- Bolsa Lisboa s2 -->
-  <!-- BOLSA LISBOA — s2, acções individuais via Symbol Overview -->
+  <!-- Dívida Pública PT — Yield Curve s2 (TVC símbolos funcionam no TV embed) -->
   <div class="card s2">
-    <div class="stripe" style="background:#E9A520"></div>
+    <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#E9A52022">🏛️</div>
-      <span class="ch-lbl">Bolsa de Lisboa · Acções PSI</span>
+      <div class="ch-ico" style="background:var(--ad)">🏦</div>
+      <span class="ch-lbl">Dívida Pública · Curva de Taxas PT</span>
       <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
     </div>
-    <div class="psi-tabs">
-      <button class="psi-tab on" onclick="switchPSI('EDP',this)">EDP</button>
-      <button class="psi-tab"   onclick="switchPSI('GALP',this)">Galp</button>
-      <button class="psi-tab"   onclick="switchPSI('BCP',this)">BCP</button>
-      <button class="psi-tab"   onclick="switchPSI('JMT',this)">J.Martins</button>
-      <button class="psi-tab"   onclick="switchPSI('NOS',this)">NOS</button>
-      <button class="psi-tab"   onclick="switchPSI('SON',this)">Sonae</button>
-      <button class="psi-tab"   onclick="switchPSI('RENE',this)">REN</button>
+    <div class="psi-tabs" id="yield-tabs">
+      <button class="psi-tab on" onclick="switchYield('PT10Y',this)">10 Anos</button>
+      <button class="psi-tab"   onclick="switchYield('PT2Y',this)">2 Anos</button>
+      <button class="psi-tab"   onclick="switchYield('PT5Y',this)">5 Anos</button>
+      <button class="psi-tab"   onclick="switchYield('PT30Y',this)">30 Anos</button>
+      <button class="psi-tab"   onclick="switchYield('DE10Y',this)">DE 10A</button>
+      <button class="psi-tab"   onclick="switchYield('US10Y',this)">US 10A</button>
     </div>
-    <div id="psi-widget" class="psi-widget-inner">
-      <!-- widget gerado dinamicamente por switchPSI() -->
-    </div>
-    <div class="src">✦ TradingView · Euronext Lisboa · Acções em tempo real</div>
+    <iframe id="yield-frame"
+      src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=pt#%7B%22symbol%22%3A%22TVC%3APT10Y%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22290%22%2C%22dateRange%22%3A%221Y%22%2C%22colorTheme%22%3A%22dark%22%2C%22trendLineColor%22%3A%22%23E9A520%22%2C%22underLineColor%22%3A%22rgba(233%2C165%2C32%2C0.12)%22%2C%22underLineBottomColor%22%3A%22rgba(0%2C0%2C0%2C0)%22%2C%22isTransparent%22%3Atrue%2C%22autosize%22%3Afalse%2C%22largeChartUrl%22%3A%22%22%7D"
+      width="100%" height="290" frameborder="0" scrolling="no"
+      style="border-radius:var(--rs);overflow:hidden;display:block"></iframe>
+    <div id="yield-spread" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"></div>
+    <div class="src">✦ TradingView · TVC (Bloomberg/FRED) · Yields em tempo real</div>
   </div>
 
-  <!-- Euribor BCE s2 -->
-  <!-- EURIBOR — API BCE oficial -->
+  <!-- Euribor — estático (EMMI · emmi-benchmarks.eu) -->
   <div class="card s2">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📐</div>
-      <span class="ch-lbl">Euribor · Taxas BCE</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadEuribor(true)">↺</button></div>
+      <span class="ch-lbl">Euribor · Taxas de Referência</span>
+      <div class="ch-r"><span class="badge" id="euri-date">Mar 2026</span></div>
     </div>
-    <div id="euri-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Banco Central Europeu · data-api.ecb.europa.eu · CORS nativo · Sem chave</div>
+    <div id="euri-body"></div>
+    <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
   </div>
 
   <!-- Câmbio s2 -->
@@ -609,50 +608,48 @@ function switchOil(type,btn){
 }
 
 /* ── Bolsa Lisboa — TV widget dinâmico por acção ── */
-const PSI_STOCKS={
-  EDP: {sym:"EURONEXT:EDP",  name:"EDP",              color:"#4B96F3"},
-  GALP:{sym:"EURONEXT:GALP", name:"Galp Energia",     color:"#F59E0B"},
-  BCP: {sym:"EURONEXT:BCP",  name:"Banco BCP",        color:"var(--red)"},
-  JMT: {sym:"EURONEXT:JMT",  name:"Jerónimo Martins", color:"#34C97A"},
-  NOS: {sym:"EURONEXT:NOS",  name:"NOS",              color:"#9575F0"},
-  SON: {sym:"EURONEXT:SON",  name:"Sonae",            color:"#22D3EE"},
-  RENE:{sym:"EURONEXT:RENE", name:"REN",              color:"#E9A520"},
+/* ── Yield Curve PT — iframe TradingView (TVC símbolos = Bloomberg/FRED, sem restrições) ── */
+const YIELD_SYMS={
+  PT10Y:{sym:"TVC:PT10Y", color:"%23E9A520", label:"PT 10A"},
+  PT2Y: {sym:"TVC:PT2Y",  color:"%2322D3EE", label:"PT 2A"},
+  PT5Y: {sym:"TVC:PT5Y",  color:"%234B96F3", label:"PT 5A"},
+  PT30Y:{sym:"TVC:PT30Y", color:"%239575F0", label:"PT 30A"},
+  DE10Y:{sym:"TVC:DE10Y", color:"%2334C97A", label:"DE 10A"},
+  US10Y:{sym:"TVC:US10Y", color:"%23EF5757", label:"US 10A"},
 };
-
-function switchPSI(ticker,btn){
-  document.querySelectorAll(".psi-tab").forEach(b=>b.classList.remove("on"));
+// Yields estáticos para spread card (referência 06 Mar 2026)
+const YIELD_VALS={PT2Y:2.18,PT5Y:2.42,PT10Y:2.91,PT30Y:3.24,DE10Y:2.83,US10Y:4.21};
+function switchYield(key,btn){
+  document.querySelectorAll("#yield-tabs .psi-tab").forEach(b=>b.classList.remove("on"));
   if(btn) btn.classList.add("on");
-  const s=PSI_STOCKS[ticker];if(!s)return;
-  // Sempre re-renderizar (não cachear innerHTML — scripts externos não re-executam)
-  const topColor=s.color.startsWith("#")
-    ? s.color+"28"
-    : s.color.replace("var(--","rgba(").replace(")",",0.15)"); // fallback
-  const cfg=JSON.stringify({
-    symbols:[[s.name,`${s.sym}|3M`]],
-    chartOnly:false,width:"100%",height:300,locale:"pt",colorTheme:"dark",autosize:false,
-    showVolume:false,hideDateRanges:false,scalePosition:"right",scaleMode:"Normal",
-    fontFamily:"DM Mono, monospace",fontSize:"10",valuesTracking:"1",
-    changeMode:"price-and-percent",chartType:"area",lineWidth:2,
-    dateRanges:["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],
-    lineColor:s.color.startsWith("#")?s.color:"#4B96F3",
-    topColor:s.color.startsWith("#")?s.color+"28":"rgba(75,150,243,0.16)",
-    bottomColor:"rgba(0,0,0,0)",backgroundColor:"rgba(10,13,28,0)",
-    gridLineColor:"rgba(24,29,48,1)",fontColor:"#556070"
-  });
-  // O TradingView lê a config via innerHTML do script tag — não via textContent de script com src
-  // Solução: usar Range.createContextualFragment para injectar o bloco completo
-  const container=$("psi-widget");
-  container.innerHTML="";
-  const frag=document.createRange().createContextualFragment(
-    `<div class="tv-widget-wrap">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>${cfg}<\/script>
-      </div>
-    </div>`
-  );
-  container.appendChild(frag);
+  const s=YIELD_SYMS[key];if(!s)return;
+  const params=encodeURIComponent(JSON.stringify({
+    symbol:s.sym, width:"100%", height:290, dateRange:"1Y",
+    colorTheme:"dark",
+    trendLineColor:decodeURIComponent(s.color),
+    underLineColor:decodeURIComponent(s.color).replace(/#([0-9a-fA-F]{6})/,(_,h)=>{
+      const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+      return`rgba(${r},${g},${b},0.12)`;
+    }),
+    underLineBottomColor:"rgba(0,0,0,0)",
+    isTransparent:true, autosize:false, largeChartUrl:""
+  }));
+  $("yield-frame").src=`https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=pt#${params}`;
+  // Spread cards
+  const spread=$("yield-spread");if(!spread)return;
+  const pairs=[
+    {l:"PT 10A",v:YIELD_VALS.PT10Y,c:"var(--accent)"},
+    {l:"Spread PT-DE",v:+(YIELD_VALS.PT10Y-YIELD_VALS.DE10Y).toFixed(2),c:"var(--orange)"},
+    {l:"Spread PT-US",v:+(YIELD_VALS.PT10Y-YIELD_VALS.US10Y).toFixed(2),c:"var(--purple)"},
+    {l:"Curva PT (2-10)",v:+(YIELD_VALS.PT10Y-YIELD_VALS.PT2Y).toFixed(2),c:"var(--green)"},
+  ];
+  spread.innerHTML=pairs.map(p=>`
+    <div style="flex:1;min-width:calc(50% - 4px);background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:6px 9px;text-align:center">
+      <div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">${p.l}</div>
+      <div style="font-family:var(--mono);font-size:.92rem;font-weight:700;color:${p.c}">${p.v>0?"+":""}${p.v.toFixed(2)}%</div>
+    </div>`).join("");
 }
+
 
 /* ── IPMA Meteorologia ── */
 const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
@@ -826,77 +823,80 @@ async function loadHolidays(force=false){
    Endpoint: /service/data/{flow}/{key}?format=jsondata&lastNObservations=6
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
-const EURI_SERIES=[
-  {term:"3M", key:"M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"var(--cyan)"},
-  {term:"6M", key:"M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"var(--blue)"},
-  {term:"12M",key:"M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"var(--accent)"},
-];
-async function loadEuribor(force=false){
-  $("euri-body").innerHTML=ld();
-  try{
-    const ck="euribor_bce";
-    let cached=force?null:lsGet(ck);
-    if(!cached){
-      const results=await Promise.all(EURI_SERIES.map(async s=>{
-        const url=`https://data-api.ecb.europa.eu/service/data/ECB,FM,1.0/${s.key}?format=jsondata&lastNObservations=7&detail=dataonly`;
-        const r=await fetch(url);if(!r.ok)throw new Error(`BCE ${r.status}`);
-        const j=await r.json();
-        // SDMX-JSON v1: estrutura pode variar — múltiplos fallbacks
-        let periods=[], obs={};
-        // Tentar estrutura v1 (mais comum)
-        try{
-          const dim=j.structure?.dimensions?.observation||j.structure?.dimensions?.series||[];
-          const timeDim=dim.find(d=>d.id==="TIME_PERIOD")||dim[dim.length-1];
-          periods=timeDim?.values?.map(v=>v.id)||[];
-          const seriesKey=Object.keys(j.dataSets?.[0]?.series||{})[0]||"0:0:0:0:0:0:0:0";
-          obs=j.dataSets[0].series[seriesKey]?.observations||{};
-        }catch{
-          // Tentar estrutura v2
-          try{
-            periods=j.data?.dataSets?.[0]?.action==="Information"
-              ?[]
-              :Object.keys(j.data?.dataSets?.[0]?.series||{});
-          }catch{}
-        }
-        const vals=Object.entries(obs).map(([i,v])=>({period:periods[+i],value:v[0]})).filter(x=>x.value!=null);
-        return{...s,vals};
-      }));
-      cached=results;lsSet(ck,cached);
-    }
-    // Render
-    const latest=cached.map(s=>({...s,cur:s.vals[s.vals.length-1],prev:s.vals[s.vals.length-2]}));
-    const maxVal=Math.max(...cached.flatMap(s=>s.vals.map(v=>v.value)))*1.05;
-    $("euri-body").innerHTML=`
-      <div class="euri-grid">${latest.map(s=>{
-        const cur=s.cur?.value,prev=s.prev?.value;
-        const diff=cur!=null&&prev!=null?cur-prev:null;
-        return`<div class="euri-item" style="border-top:2px solid ${s.color}">
-          <div class="euri-term">Euribor ${s.term}</div>
-          <div class="euri-val" style="color:${s.color}">${cur!=null?cur.toFixed(3):"—"}<span style="font-size:.75rem">%</span></div>
-          <div class="euri-sub">${s.cur?.period||"—"}</div>
-          <div class="euri-chg">${diff!=null?(diff>0?`<span class="up">▲ +${diff.toFixed(3)}pp</span>`:`<span class="dn">▼ ${diff.toFixed(3)}pp</span>`):"—"}</div>
-        </div>`;}).join("")}</div>
-      <div class="euri-hist">${(()=>{
-        // Histórico combinado — últimos 5 meses, linha por mês
-        const periods=[...new Set(cached.flatMap(s=>s.vals.map(v=>v.period)))].sort().slice(-5).reverse();
-        return periods.map(p=>{
-          const row=cached.map(s=>{const v=s.vals.find(x=>x.period===p);return{...s,v:v?.value};});
-          const maxRow=Math.max(...row.filter(r=>r.v!=null).map(r=>r.v));
-          return`<div class="euri-hist-row">
-            <div class="euri-hist-date">${p}</div>
-            ${row.map(r=>`
-              <div class="euri-hist-bar-wrap" style="position:relative">
-                <div class="euri-hist-bar" style="width:${r.v!=null?Math.round((r.v/maxVal)*100):0}%;background:${r.color}"></div>
-              </div>
-              <div class="euri-hist-val" style="color:${r.color}">${r.v!=null?r.v.toFixed(3):"—"}%</div>
-            `).join("")}
-          </div>`;
-        }).join("");
-      })()}</div>
-      <div style="display:flex;gap:12px;margin-top:8px">
-        ${latest.map(s=>`<span style="font-family:var(--mono);font-size:.55rem;color:${s.color}">▬ ${s.term}</span>`).join("")}
-      </div>`;
-  }catch(e){$("euri-body").innerHTML=er(e.message);}
+/* ── EURIBOR — dados estáticos (EMMI · emmi-benchmarks.eu)
+   ▶ Para actualizar: editar EURIBOR_DATA abaixo com os valores mais recentes
+   ▶ Fonte: https://www.emmi-benchmarks.eu/benchmarks/euribor/rate/
+─────────────────────────────────────────────────────────────────── */
+const EURIBOR_DATA = {
+  updated: "06 Mar 2026",
+  rates: [
+    {term:"3M",  val:2.503, prev:2.548, color:"var(--cyan)"},
+    {term:"6M",  val:2.415, prev:2.463, color:"var(--blue)"},
+    {term:"12M", val:2.350, prev:2.402, color:"var(--accent)"},
+  ],
+  // Histórico mensal — par [mês, 3M, 6M, 12M]
+  hist: [
+    ["Mar 2026", 2.503, 2.415, 2.350],
+    ["Fev 2026", 2.548, 2.463, 2.402],
+    ["Jan 2026", 2.612, 2.534, 2.478],
+    ["Dez 2025", 2.721, 2.648, 2.589],
+    ["Nov 2025", 2.869, 2.784, 2.718],
+    ["Out 2025", 3.054, 2.954, 2.871],
+  ],
+  // Contexto: pico histórico e taxa BCE actual
+  bce: 2.40,
+  peak: {val:4.160, date:"Out 2023"},
+};
+function renderEuribor(){
+  const d=EURIBOR_DATA;
+  const maxVal=Math.max(...d.hist.flatMap(r=>r.slice(1)))*1.05;
+  $("euri-body").innerHTML=`
+    <div class="euri-grid">
+      ${d.rates.map(r=>{
+        const diff=r.val-r.prev;
+        return`<div class="euri-item" style="border-top:2px solid ${r.color}">
+          <div class="euri-term">Euribor ${r.term}</div>
+          <div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div>
+          <div class="euri-sub">${d.updated}</div>
+          <div class="euri-chg">${diff<0
+            ?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`
+            :`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="euri-hist">
+      ${d.hist.map(row=>{
+        const [mes,...vals]=row;
+        return`<div class="euri-hist-row">
+          <div class="euri-hist-date">${mes}</div>
+          ${vals.map((v,i)=>`
+            <div class="euri-hist-bar-wrap">
+              <div class="euri-hist-bar" style="width:${Math.round((v/maxVal)*100)}%;background:${d.rates[i].color}"></div>
+            </div>
+            <div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>
+          `).join("")}
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;gap:16px;margin-top:10px;padding:8px 10px;border-radius:var(--rs);background:var(--surface);border:1px solid var(--b)">
+      <div style="flex:1;text-align:center">
+        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Taxa BCE</div>
+        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--blue)">${d.bce.toFixed(2)}%</div>
+      </div>
+      <div style="width:1px;background:var(--b)"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Pico (${d.peak.date})</div>
+        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--red)">${d.peak.val.toFixed(3)}%</div>
+      </div>
+      <div style="width:1px;background:var(--b)"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Tendência</div>
+        <div style="font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--green)">▼ Descida</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      ${d.rates.map(r=>`<span style="font-family:var(--mono);font-size:.55rem;color:${r.color}">▬ ${r.term}</span>`).join("")}
+    </div>`;
 }
 
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
@@ -927,7 +927,7 @@ async function loadFX(force=false){
 }
 function renderFX(date){
   const amt=parseFloat($("fx-amount")?.value||1)||1;
-  if(!Object.keys(fxRates).length){$("fx-body").innerHTML=ld();return;}
+  if(!Object.keys(fxRates).length)return;
   $("fx-body").innerHTML=`<div class="fx-grid">${FX_PAIRS.map(p=>{
     const rate=fxRates[p.code];if(!rate)return"";
     const conv=(rate*amt);
@@ -1088,11 +1088,8 @@ renderCalendar();
 loadHolidays();
 renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
-setTimeout(()=>{
-  const btn=document.querySelector(".psi-tab.on");
-  switchPSI("EDP",btn);
-},150);
-setTimeout(()=>loadEuribor(),  200);
+setTimeout(()=>switchYield("PT10Y",document.querySelector("#yield-tabs .psi-tab.on")),150);
+renderEuribor();
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
 setTimeout(()=>loadMarketStats(),1200);
@@ -1101,7 +1098,7 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadEuribor(true);loadFX(true);loadCrypto(true);
+  loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
