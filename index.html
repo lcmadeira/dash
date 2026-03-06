@@ -236,27 +236,8 @@ textarea.nta::placeholder{color:var(--t3)}
 @media(max-width:660px){.grid{grid-template-columns:1fr}.s2,.s3,.s4,.sec{grid-column:span 1}.hdr{grid-template-columns:1fr;gap:8px}.pills{justify-content:flex-start}}
 
 /* Ticker Tape */
-.tv-tape-wrap{margin-bottom:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
+.tv-tape-wrap{margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
 .tv-tape-wrap .tradingview-widget-copyright{display:none!important}
-
-/* Barra de Relógios das Praças Financeiras */
-.mkt-bar{display:flex;align-items:stretch;gap:0;margin:8px 0 20px;border-radius:var(--r);border:1px solid var(--b);background:var(--card);overflow:hidden;min-height:52px}
-.mkt-city{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 14px;flex:1;border-right:1px solid var(--b);position:relative;transition:background .2s;cursor:default;min-width:0}
-.mkt-city:last-child{border-right:none}
-.mkt-city.open{background:rgba(52,201,122,.06)}
-.mkt-city.pre,.mkt-city.post{background:rgba(233,165,32,.05)}
-.mkt-city-flag{font-size:.85rem;line-height:1;margin-bottom:1px}
-.mkt-city-name{font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.mkt-city-time{font-family:var(--mono);font-size:1rem;font-weight:700;letter-spacing:-.5px;line-height:1.1;color:var(--text)}
-.mkt-city-exch{font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-top:1px;white-space:nowrap}
-.mkt-city-status{position:absolute;top:7px;right:8px;font-size:.45rem;font-family:var(--mono);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
-.mkt-city.open   .mkt-city-status{color:#34C97A}
-.mkt-city.pre    .mkt-city-status{color:#E9A520}
-.mkt-city.post   .mkt-city-status{color:#E9A520}
-.mkt-city.closed .mkt-city-status{color:var(--t3)}
-.mkt-city.open   .mkt-city-time{color:var(--text)}
-.mkt-city.closed .mkt-city-time{color:var(--t3)}
-.mkt-sep{width:1px;background:var(--b);flex-shrink:0}
 /* TV Cards */
 .tv-chart-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;animation:fadeUp .35s ease both}
 .tv-chart-card:hover{border-color:var(--b2)}
@@ -342,6 +323,26 @@ textarea.nta::placeholder{color:var(--t3)}
 .inf-bar-pt{position:absolute;left:0;top:0;height:100%;border-radius:2px}
 .inf-bar-eu{position:absolute;left:0;top:0;height:100%;border-radius:2px;opacity:.5}
 
+
+/* Barra Relógios Praças Financeiras */
+.mkt-bar{display:flex;align-items:stretch;margin:8px 0 20px;border-radius:var(--r);border:1px solid var(--b);background:var(--card);overflow:hidden;min-height:54px}
+.mkt-city{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 10px;flex:1;border-right:1px solid var(--b);position:relative;min-width:0;cursor:default}
+.mkt-city:last-child{border-right:none}
+.mkt-city.open{background:rgba(52,201,122,.07)}
+.mkt-city.pre,.mkt-city.post{background:rgba(233,165,32,.06)}
+.mkt-city-flag{font-size:.8rem;line-height:1;margin-bottom:1px}
+.mkt-city-time{font-family:var(--mono);font-size:.95rem;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+.mkt-city.open   .mkt-city-time{color:var(--text)}
+.mkt-city.closed .mkt-city-time{color:var(--t3)}
+.mkt-city.pre    .mkt-city-time,.mkt-city.post .mkt-city-time{color:#E9A520}
+.mkt-city-name{font-family:var(--mono);font-size:.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-top:1px}
+.mkt-city-exch{font-family:var(--mono);font-size:.44rem;color:var(--t3);opacity:.6}
+.mkt-city-dot{position:absolute;top:6px;right:7px;width:5px;height:5px;border-radius:50%}
+.mkt-city.open   .mkt-city-dot{background:#34C97A;box-shadow:0 0 5px #34C97A88}
+.mkt-city.pre    .mkt-city-dot,.mkt-city.post .mkt-city-dot{background:#E9A520}
+.mkt-city.closed .mkt-city-dot{background:var(--b2)}
+/* Ticker tape sem margem inferior (a mkt-bar faz o espaçamento) */
+.tv-tape-wrap{margin-bottom:0!important}
 </style>
 </head>
 <body>
@@ -370,19 +371,14 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 </div>
 
+<!-- ═══════════════════ GRID ═══════════════════ -->
 <!-- Barra de Relógios — Praças Financeiras -->
 <div class="mkt-bar" id="mkt-bar"></div>
 
-<!-- ═══════════════════ GRID ═══════════════════ -->
 <div class="grid">
 
-  <!-- ══ PORTUGAL ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div>
-    <span style="color:var(--accent)">Portugal</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Tempo · Notícias · Energia · Feriados</span>
-  </div>
-
-  <div class="card r2">
+  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
+  <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia</span>
@@ -390,14 +386,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-  <div class="card r2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
-      <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt',true)">↺</button></div></div>
-    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
-  </div>
 
   <div class="card">
     <div class="stripe" style="background:var(--green)"></div>
@@ -406,6 +394,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div></div>
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
+
 
   <div class="card">
     <div class="stripe" style="background:var(--orange)"></div>
@@ -431,13 +420,15 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
   </div>
 
+
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderElec()">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadElec(true)">↺</button></div></div>
     <div id="elec-body"></div>
   </div>
+
 
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
@@ -448,12 +439,20 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ date.nager.at · Feriados nacionais PT</div>
   </div>
 
-  <!-- ══ MERCADOS ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div>
-    <span style="color:var(--blue)">Mercados Financeiros</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real · Sem limites</span>
+
+  <!-- Euribor estático EMMI -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--cyan)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--cd)">📐</div>
+      <span class="ch-lbl">Euribor · Taxas de Referência</span>
+      <div class="ch-r"><span class="badge">Mar 2026</span></div>
+    </div>
+    <div id="euri-body"></div>
+    <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
   </div>
 
+  <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
@@ -471,41 +470,31 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
   </div>
 
-  <!-- Bolsa Lisboa s2 -->
-  <!-- BOLSA LISBOA — s2, acções individuais via Symbol Overview -->
-  <div class="card s2">
-    <div class="stripe" style="background:#E9A520"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:#E9A52022">🏛️</div>
-      <span class="ch-lbl">Bolsa de Lisboa · Acções PSI</span>
-      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
-    </div>
-    <div class="psi-tabs">
-      <button class="psi-tab on" onclick="switchPSI('EDP',this)">EDP</button>
-      <button class="psi-tab"   onclick="switchPSI('GALP',this)">Galp</button>
-      <button class="psi-tab"   onclick="switchPSI('BCP',this)">BCP</button>
-      <button class="psi-tab"   onclick="switchPSI('JMT',this)">J.Martins</button>
-      <button class="psi-tab"   onclick="switchPSI('NOS',this)">NOS</button>
-      <button class="psi-tab"   onclick="switchPSI('SON',this)">Sonae</button>
-      <button class="psi-tab"   onclick="switchPSI('RENE',this)">REN</button>
-    </div>
-    <div id="psi-widget" class="psi-widget-inner">
-      <!-- widget gerado dinamicamente por switchPSI() -->
-    </div>
-    <div class="src">✦ TradingView · Euronext Lisboa · Acções em tempo real</div>
-  </div>
 
-  <!-- Euribor BCE s2 -->
-  <!-- EURIBOR — API BCE oficial -->
+  <!-- Mapa de Calor S&P 500 / Crypto / ETFs -->
   <div class="card s2">
-    <div class="stripe" style="background:var(--cyan)"></div>
+    <div class="stripe" style="background:linear-gradient(90deg,var(--green),var(--red))"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">📐</div>
-      <span class="ch-lbl">Euribor · Taxas BCE</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadEuribor(true)">↺</button></div>
+      <div class="ch-ico" style="background:#34C97A22">🌡️</div>
+      <span class="ch-lbl">Mapa de Calor · Mercados</span>
+      <div class="ch-r" style="display:flex;align-items:center;gap:6px">
+        <div id="hmap-tabs">
+          <button class="psi-tab on" onclick="switchHmap('sp500',this)">S&amp;P 500</button>
+          <button class="psi-tab" onclick="switchHmap('crypto',this)">Crypto</button>
+          <button class="psi-tab" onclick="switchHmap('etf',this)">ETFs</button>
+        </div>
+        <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
+      </div>
     </div>
-    <div id="euri-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Banco Central Europeu · data-api.ecb.europa.eu · CORS nativo · Sem chave</div>
+    <div id="hmap-widget">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
+        {"exchanges":[],"dataSource":"SPX500","grouping":"sector","blockSize":"market_cap_basic","blockColor":"change","locale":"pt","colorTheme":"dark","hasTopBar":true,"isDataSetEnabled":false,"isZoomEnabled":true,"hasSymbolTooltip":true,"isMonoSize":false,"width":"100%","height":460}
+        </script>
+      </div>
+    </div>
+    <div class="src">✦ TradingView · S&amp;P 500 · Por sector · Cor = variação dia</div>
   </div>
 
   <!-- Câmbio s2 -->
@@ -529,6 +518,18 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Banco Central Europeu · Frankfurter API · CORS nativo · Sem chave</div>
   </div>
 
+
+  <!-- Crypto s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:var(--orange)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
+      <span class="ch-lbl">Criptomoedas</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
+    <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
+  </div>
+
+
   <!-- Inflação s2 -->
   <!-- INFLAÇÃO PT vs Zona Euro -->
   <div class="card s2">
@@ -542,15 +543,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ INE Portugal · Eurostat · Referência mensal</div>
   </div>
 
-  <!-- Crypto s2 -->
-  <div class="card s2">
-    <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
-      <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
-    <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
-  </div>
 
   <!-- Indicadores Mercado -->
   <div class="card">
@@ -562,6 +554,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
+
   <!-- Calendário Económico -->
   <div class="card">
     <div class="stripe" style="background:var(--cyan)"></div>
@@ -572,13 +565,19 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
 
-  <!-- ══ MUNDO ══ -->
-  <div class="sec"><div class="sec-bar" style="background:var(--cyan)"></div>
-    <span style="color:var(--cyan)">Mundo</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Notícias Internacionais</span>
+
+  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Portugal · Mundo</span></div>
+  <div class="card s2">
+    <div class="stripe" style="background:var(--accent)"></div>
+    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
+      <span class="ch-lbl">Notícias · Portugal</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt',true)">↺</button></div></div>
+    <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
 
-  <div class="card s4">
+
+  <div class="card s2">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
@@ -587,10 +586,42 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
 
+
 </div><!-- /grid -->
 </div><!-- /wrap -->
-
 <script>
+/* ── Relógios das Praças Financeiras ── */
+const MARKETS=[
+  {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
+  {city:"Londres",   flag:"🇬🇧",tz:"Europe/London",   exch:"LSE",     oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
+  {city:"Frankfurt", flag:"🇩🇪",tz:"Europe/Berlin",   exch:"XETRA",   oH:9, oM:0, cH:17,cM:30,days:[1,2,3,4,5]},
+  {city:"Nova Iorque",flag:"🇺🇸",tz:"America/New_York",exch:"NYSE",   oH:9, oM:30,cH:16,cM:0, days:[1,2,3,4,5]},
+  {city:"Chicago",   flag:"🇺🇸",tz:"America/Chicago", exch:"CME",     oH:8, oM:30,cH:15,cM:0, days:[1,2,3,4,5]},
+  {city:"São Paulo", flag:"🇧🇷",tz:"America/Sao_Paulo",exch:"B3",     oH:10,oM:0, cH:17,cM:0, days:[1,2,3,4,5]},
+  {city:"Dubai",     flag:"🇦🇪",tz:"Asia/Dubai",      exch:"DFM",     oH:10,oM:0, cH:14,cM:0, days:[0,1,2,3,4]},
+  {city:"Mumbai",    flag:"🇮🇳",tz:"Asia/Kolkata",    exch:"BSE",     oH:9, oM:15,cH:15,cM:30,days:[1,2,3,4,5]},
+  {city:"Xangai",    flag:"🇨🇳",tz:"Asia/Shanghai",   exch:"SSE",     oH:9, oM:30,cH:15,cM:0, days:[1,2,3,4,5]},
+  {city:"Hong Kong", flag:"🇭🇰",tz:"Asia/Hong_Kong",  exch:"HKEX",    oH:9, oM:30,cH:16,cM:0, days:[1,2,3,4,5]},
+  {city:"Tóquio",    flag:"🇯🇵",tz:"Asia/Tokyo",      exch:"TSE",     oH:9, oM:0, cH:15,cM:30,days:[1,2,3,4,5]},
+  {city:"Sidney",    flag:"🇦🇺",tz:"Australia/Sydney", exch:"ASX",    oH:10,oM:0, cH:16,cM:0, days:[1,2,3,4,5]},
+];
+function mktLocal(tz){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"2-digit",minute:"2-digit",weekday:"short",hour12:false}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return{h:parseInt(p.hour)%24,m:parseInt(p.minute),dow:{Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[p.weekday]??0,str:p.hour+":"+p.minute};
+}
+function mktStatus(mkt,l){
+  if(!mkt.days.includes(l.dow))return"closed";
+  const n=l.h*60+l.m,o=mkt.oH*60+mkt.oM,c=mkt.cH*60+mkt.cM;
+  if(n>=o&&n<c)return"open";if(n>=o-30&&n<o)return"pre";if(n>=c&&n<c+30)return"post";return"closed";
+}
+function tickMarkets(){
+  const bar=document.getElementById("mkt-bar");if(!bar)return;
+  bar.innerHTML=MARKETS.map(m=>{
+    const l=mktLocal(m.tz),st=mktStatus(m,l);
+    return`<div class="mkt-city ${st}" title="${m.exch} · ${m.city}"><div class="mkt-city-dot"></div><div class="mkt-city-flag">${m.flag}</div><div class="mkt-city-time">${l.str}</div><div class="mkt-city-name">${m.city}</div><div class="mkt-city-exch">${m.exch}</div></div>`;
+  }).join("");
+}
+
 /* CONFIG */
 const CFG={TD_KEY:"ac8049c9d6c34e40bf50b758be66c056",IPMA_CITY_ID:1060300};
 
@@ -599,69 +630,7 @@ document.getElementById("pills").innerHTML=
   ["IPMA","TradingView","CoinGecko","Google News","BCE/ECB"].map(n=>
     `<span class="pill ok"><span class="dot"></span>${n}</span>`).join("");
 
-/* Clock + Market Clocks */
-const MARKETS=[
-  // {cidade, país, flag, tz IANA, bolsa, open HH:MM, close HH:MM, dias semana abertura (0=dom)}
-  // Horários em hora local de cada praça (sem DST adjustments — usamos Intl.DateTimeFormat)
-  {city:"Lisboa",    flag:"🇵🇹", tz:"Europe/Lisbon",  exch:"Euronext", oH:8,oM:0,  cH:16,cM:30, days:[1,2,3,4,5]},
-  {city:"Londres",   flag:"🇬🇧", tz:"Europe/London",  exch:"LSE",      oH:8,oM:0,  cH:16,cM:30, days:[1,2,3,4,5]},
-  {city:"Frankfurt", flag:"🇩🇪", tz:"Europe/Berlin",  exch:"XETRA",    oH:9,oM:0,  cH:17,cM:30, days:[1,2,3,4,5]},
-  {city:"Nova Iorque",flag:"🇺🇸",tz:"America/New_York",exch:"NYSE",    oH:9,oM:30, cH:16,cM:0,  days:[1,2,3,4,5]},
-  {city:"Chicago",   flag:"🇺🇸", tz:"America/Chicago",exch:"CME",      oH:8,oM:30, cH:15,cM:0,  days:[1,2,3,4,5]},
-  {city:"São Paulo", flag:"🇧🇷", tz:"America/Sao_Paulo",exch:"B3",     oH:10,oM:0, cH:17,cM:0,  days:[1,2,3,4,5]},
-  {city:"Dubai",     flag:"🇦🇪", tz:"Asia/Dubai",     exch:"DFM",      oH:10,oM:0, cH:14,cM:0,  days:[0,1,2,3,4]},
-  {city:"Mumbai",    flag:"🇮🇳", tz:"Asia/Kolkata",   exch:"BSE",      oH:9,oM:15, cH:15,cM:30, days:[1,2,3,4,5]},
-  {city:"Xangai",    flag:"🇨🇳", tz:"Asia/Shanghai",  exch:"SSE",      oH:9,oM:30, cH:15,cM:0,  days:[1,2,3,4,5]},
-  {city:"Hong Kong", flag:"🇭🇰", tz:"Asia/Hong_Kong", exch:"HKEX",     oH:9,oM:30, cH:16,cM:0,  days:[1,2,3,4,5]},
-  {city:"Tóquio",    flag:"🇯🇵", tz:"Asia/Tokyo",     exch:"TSE",      oH:9,oM:0,  cH:15,cM:30, days:[1,2,3,4,5]},
-  {city:"Sidney",    flag:"🇦🇺", tz:"Australia/Sydney",exch:"ASX",     oH:10,oM:0, cH:16,cM:0,  days:[1,2,3,4,5]},
-];
-
-function getMktLocalTime(tz){
-  // Devolver {h, m, s, dayOfWeek} no fuso horário dado
-  const fmt=new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",weekday:"short",hour12:false});
-  const parts=Object.fromEntries(fmt.formatToParts(new Date()).map(p=>[p.type,p.value]));
-  const h=parseInt(parts.hour)%24; // "24" → 0 em alguns browsers
-  const m=parseInt(parts.minute);
-  const s=parseInt(parts.second);
-  const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
-  const dow=dayMap[parts.weekday]??0;
-  return{h,m,s,dow};
-}
-
-function getMktStatus(mkt,local){
-  const{h,m,dow}=local;
-  if(!mkt.days.includes(dow)) return"closed";
-  const minNow=h*60+m;
-  const minO=mkt.oH*60+mkt.oM;
-  const minC=mkt.cH*60+mkt.cM;
-  const PRE=30; // minutos antes da abertura = pré-mercado
-  const POST=30; // minutos após fecho = pós-mercado
-  if(minNow>=minO && minNow<minC)  return"open";
-  if(minNow>=minO-PRE && minNow<minO) return"pre";
-  if(minNow>=minC && minNow<minC+POST) return"post";
-  return"closed";
-}
-
-function tickMarkets(){
-  const bar=document.getElementById("mkt-bar");
-  if(!bar) return;
-  const html=MARKETS.map(mkt=>{
-    const local=getMktLocalTime(mkt.tz);
-    const status=getMktStatus(mkt,local);
-    const timeStr=String(local.h).padStart(2,"0")+":"+String(local.m).padStart(2,"0");
-    const statusLabel=status==="open"?"● Aberto":status==="pre"?"◐ Pré":status==="post"?"◑ Pós":"○ Fechado";
-    return`<div class="mkt-city ${status}" title="${mkt.exch} · ${status==="open"?"Mercado aberto":status==="pre"?"Pré-mercado":status==="post"?"Pós-mercado":"Mercado fechado"}">
-      <div class="mkt-city-status">${statusLabel}</div>
-      <div class="mkt-city-flag">${mkt.flag}</div>
-      <div class="mkt-city-time">${timeStr}</div>
-      <div class="mkt-city-name">${mkt.city}</div>
-      <div class="mkt-city-exch">${mkt.exch}</div>
-    </div>`;
-  }).join("");
-  bar.innerHTML=html;
-}
-
+/* Clock */
 function tick(){
   const n=new Date();
   document.getElementById("clk").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
@@ -694,45 +663,19 @@ function switchOil(type,btn){
 }
 
 /* ── Bolsa Lisboa — TV widget dinâmico por acção ── */
-const PSI_STOCKS={
-  EDP: {sym:"EURONEXT:EDP",  name:"EDP",              color:"#4B96F3"},
-  GALP:{sym:"EURONEXT:GALP", name:"Galp Energia",     color:"#F59E0B"},
-  BCP: {sym:"EURONEXT:BCP",  name:"Banco BCP",        color:"var(--red)"},
-  JMT: {sym:"EURONEXT:JMT",  name:"Jerónimo Martins", color:"#34C97A"},
-  NOS: {sym:"EURONEXT:NOS",  name:"NOS",              color:"#9575F0"},
-  SON: {sym:"EURONEXT:SON",  name:"Sonae",            color:"#22D3EE"},
-  RENE:{sym:"EURONEXT:RENE", name:"REN",              color:"#E9A520"},
+/* ── Mapa de Calor ── */
+const HMAP_CONFIGS={
+  sp500:{dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic"},
+  crypto:{dataSource:"Crypto",grouping:"no_group",blockSize:"market_cap_basic"},
+  etf:{dataSource:"ETF",grouping:"asset_class",blockSize:"assets_under_management"},
 };
-let _psiLoaded={};
-function switchPSI(ticker,btn){
-  document.querySelectorAll(".psi-tab").forEach(b=>b.classList.remove("on"));
-  btn.classList.add("on");
-  const s=PSI_STOCKS[ticker];if(!s)return;
-  if(_psiLoaded[ticker]){$("psi-widget").innerHTML=_psiLoaded[ticker];return;}
-  const cfg=JSON.stringify({
-    symbols:[[s.name,`${s.sym}|3M`]],
-    chartOnly:false,width:"100%",height:300,locale:"pt",colorTheme:"dark",autosize:false,
-    showVolume:false,hideDateRanges:false,scalePosition:"right",scaleMode:"Normal",
-    fontFamily:"DM Mono, monospace",fontSize:"10",valuesTracking:"1",
-    changeMode:"price-and-percent",chartType:"area",lineWidth:2,
-    dateRanges:["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],
-    lineColor:s.color,topColor:s.color.startsWith("#")?s.color+"25":"rgba(75,150,243,0.15)",
-    bottomColor:"rgba(0,0,0,0)",backgroundColor:"rgba(10,13,28,0)",
-    gridLineColor:"rgba(24,29,48,1)",fontColor:"#556070"
-  });
-  const wrap=document.createElement("div");
-  wrap.className="tv-widget-wrap";
-  wrap.innerHTML=`<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>`;
-  $("psi-widget").innerHTML="";
-  $("psi-widget").appendChild(wrap);
-  // Injectar script
-  const sc=document.createElement("script");
-  sc.type="text/javascript";
-  sc.src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
-  sc.async=true;
-  sc.textContent=cfg;
-  wrap.querySelector(".tradingview-widget-container").appendChild(sc);
-  _psiLoaded[ticker]=wrap.outerHTML;
+function switchHmap(key,btn){
+  document.querySelectorAll("#hmap-tabs .psi-tab").forEach(b=>b.classList.remove("on"));
+  if(btn)btn.classList.add("on");
+  const c=HMAP_CONFIGS[key];if(!c)return;
+  const cfg=JSON.stringify({exchanges:[],dataSource:c.dataSource,grouping:c.grouping,blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460});
+  const w=document.getElementById("hmap-widget");w.innerHTML="";
+  w.appendChild(document.createRange().createContextualFragment(`<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>${cfg}<\/script></div>`));
 }
 
 /* ── IPMA Meteorologia ── */
@@ -844,25 +787,35 @@ async function renderFuel(force=false){
 }
 
 /* ── Eletricidade ── */
-const ELEC={spot:{p:74.3,var:-6.1},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:74,co2:48};
-function renderElec(){
-  const d=ELEC;
-  $("elec-body").innerHTML=`
-    <div class="elec-top">
-      <div class="ekpi"><div class="ekpi-lbl">Mercado Spot MIBEL</div>
-        <div class="ekpi-val" style="color:var(--blue)">${d.spot.p.toFixed(1)}</div><div class="ekpi-unit">€/MWh</div>
-        <div class="ekpi-chg ${d.spot.var>=0?"up":"dn"}">${d.spot.var>=0?"▲":"▼"} ${Math.abs(d.spot.var).toFixed(1)} vs ontem</div></div>
-      <div class="ekpi"><div class="ekpi-lbl">Tarifa Simples</div>
-        <div class="ekpi-val" style="color:var(--green)">${d.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div>
-    </div>
-    <div class="bar-lbl">Tarifa Bi-horária</div>
-    ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
-    <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
-    <div class="ebadges">
-      <div class="ebadge" style="background:var(--gd)"><div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div><div class="ebadge-lbl">Renováveis</div></div>
-      <div class="ebadge" style="background:var(--bd)"><div class="ebadge-val" style="color:var(--blue)">${d.co2}</div><div class="ebadge-lbl">gCO₂/kWh</div></div>
-    </div>
-    <div class="src">✦ Referência março 2026 · ren.pt · omie.es</div>`;
+/* ── Eletricidade — API REE/REData (apidatos.ree.es) CORS nativo ── */
+const ELEC_TARIFAS={simples:0.2134,vazio:0.1423,fvazio:0.2567};
+async function loadElec(force=false){
+  $("elec-body").innerHTML=ld();
+  try{
+    const ck="elec_ree";let cached=force?null:lsGet(ck);
+    if(!cached){
+      const dates=[0,1].map(d=>{const dt=new Date();dt.setDate(dt.getDate()-d);return dt.toISOString().slice(0,10);});
+      let vals=null,usedDate=null;
+      for(const date of dates){
+        const r=await fetch(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?start_date=${date}T00:00&end_date=${date}T23:59&time_trunc=hour`,{headers:{"Accept":"application/json"}});
+        if(!r.ok)continue;
+        const j=await r.json();
+        const inc=j.included||[];
+        const spot=inc.find(s=>(s.attributes?.title||"").toLowerCase().includes("spot"))||inc[0];
+        const v=spot?.attributes?.values||[];
+        if(v.length>=20){vals=v;usedDate=date;break;}
+      }
+      if(!vals)throw new Error("Sem dados REE");
+      cached={vals,date:usedDate};lsSet(ck,cached);
+    }
+    const prices=cached.vals.map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+    const avg=prices.reduce((a,b)=>a+b)/prices.length,min=Math.min(...prices),max=Math.max(...prices);
+    const hh=new Date().getHours(),now=prices[Math.min(hh,prices.length-1)]??avg;
+    const col=now>avg*1.25?"var(--red)":now<avg*0.75?"var(--green)":"var(--blue)";
+    const bars=prices.map((v,i)=>`<div title="${i}h: ${v.toFixed(1)}€/MWh" style="flex:1;height:${Math.round((v/max)*95)}%;background:${i===hh?"var(--accent)":v>avg*1.25?"var(--red)":v<avg*0.75?"var(--green)":"var(--blue)"};border-radius:1px 1px 0 0;opacity:${i===hh?1:.7}"></div>`).join("");
+    const dl=new Date(cached.date+"T12:00:00").toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
+    $("elec-body").innerHTML=`<div class="elec-top"><div class="ekpi"><div class="ekpi-lbl">Spot MIBEL · ${dl}</div><div class="ekpi-val" style="color:${col}">${now.toFixed(1)}</div><div class="ekpi-unit">€/MWh · hora ${hh}h</div><div class="ekpi-chg" style="color:var(--t2)">méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}</div></div><div class="ekpi"><div class="ekpi-lbl">Tarifa Simples ERSE 2026</div><div class="ekpi-val" style="color:var(--green)">${ELEC_TARIFAS.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div></div><div style="display:flex;align-items:flex-end;gap:1.5px;height:44px;margin:10px 0 3px">${bars}</div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:9px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div><div class="bar-lbl">Bi-horária · ERSE 2026</div>${[{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--blue)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}`;
+  }catch(e){$("elec-body").innerHTML=`${er(e.message)}<div style="margin-top:8px"><div class="bar-lbl">Tarifas ERSE 2026</div>${[{l:"Simples",v:ELEC_TARIFAS.simples,c:"var(--blue)"},{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--orange)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}</div>`;}
 }
 
 /* ── Feriados ── */
@@ -907,66 +860,14 @@ async function loadHolidays(force=false){
    Endpoint: /service/data/{flow}/{key}?format=jsondata&lastNObservations=6
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
-const EURI_SERIES=[
-  {term:"3M", key:"FM.M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"var(--cyan)"},
-  {term:"6M", key:"FM.M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"var(--blue)"},
-  {term:"12M",key:"FM.M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"var(--accent)"},
-];
-async function loadEuribor(force=false){
-  $("euri-body").innerHTML=ld();
-  try{
-    const ck="euribor_bce";
-    let cached=force?null:lsGet(ck);
-    if(!cached){
-      const results=await Promise.all(EURI_SERIES.map(async s=>{
-        const url=`https://data-api.ecb.europa.eu/service/data/ECB,${s.key}/M?format=jsondata&lastNObservations=7&detail=dataonly`;
-        const r=await fetch(url);if(!r.ok)throw new Error(`BCE ${r.status}`);
-        const j=await r.json();
-        // Extrair observações: {dateSeries, valueSeries}
-        const dims=j.structure?.dimensions?.observation||[];
-        const timeDim=dims.find(d=>d.id==="TIME_PERIOD");
-        const periods=timeDim?.values?.map(v=>v.id)||[];
-        const obs=j.dataSets?.[0]?.series?.["0:0:0:0:0:0:0:0"]?.observations||
-                  j.dataSets?.[0]?.series?.[Object.keys(j.dataSets[0].series)[0]]?.observations||{};
-        const vals=Object.entries(obs).map(([i,v])=>({period:periods[+i],value:v[0]})).filter(x=>x.value!=null);
-        return{...s,vals};
-      }));
-      cached=results;lsSet(ck,cached);
-    }
-    // Render
-    const latest=cached.map(s=>({...s,cur:s.vals[s.vals.length-1],prev:s.vals[s.vals.length-2]}));
-    const maxVal=Math.max(...cached.flatMap(s=>s.vals.map(v=>v.value)))*1.05;
-    $("euri-body").innerHTML=`
-      <div class="euri-grid">${latest.map(s=>{
-        const cur=s.cur?.value,prev=s.prev?.value;
-        const diff=cur!=null&&prev!=null?cur-prev:null;
-        return`<div class="euri-item" style="border-top:2px solid ${s.color}">
-          <div class="euri-term">Euribor ${s.term}</div>
-          <div class="euri-val" style="color:${s.color}">${cur!=null?cur.toFixed(3):"—"}<span style="font-size:.75rem">%</span></div>
-          <div class="euri-sub">${s.cur?.period||"—"}</div>
-          <div class="euri-chg">${diff!=null?(diff>0?`<span class="up">▲ +${diff.toFixed(3)}pp</span>`:`<span class="dn">▼ ${diff.toFixed(3)}pp</span>`):"—"}</div>
-        </div>`;}).join("")}</div>
-      <div class="euri-hist">${(()=>{
-        // Histórico combinado — últimos 5 meses, linha por mês
-        const periods=[...new Set(cached.flatMap(s=>s.vals.map(v=>v.period)))].sort().slice(-5).reverse();
-        return periods.map(p=>{
-          const row=cached.map(s=>{const v=s.vals.find(x=>x.period===p);return{...s,v:v?.value};});
-          const maxRow=Math.max(...row.filter(r=>r.v!=null).map(r=>r.v));
-          return`<div class="euri-hist-row">
-            <div class="euri-hist-date">${p}</div>
-            ${row.map(r=>`
-              <div class="euri-hist-bar-wrap" style="position:relative">
-                <div class="euri-hist-bar" style="width:${r.v!=null?Math.round((r.v/maxVal)*100):0}%;background:${r.color}"></div>
-              </div>
-              <div class="euri-hist-val" style="color:${r.color}">${r.v!=null?r.v.toFixed(3):"—"}%</div>
-            `).join("")}
-          </div>`;
-        }).join("");
-      })()}</div>
-      <div style="display:flex;gap:12px;margin-top:8px">
-        ${latest.map(s=>`<span style="font-family:var(--mono);font-size:.55rem;color:${s.color}">▬ ${s.term}</span>`).join("")}
-      </div>`;
-  }catch(e){$("euri-body").innerHTML=er(e.message);}
+/* ── EURIBOR estático (EMMI · emmi-benchmarks.eu) ── */
+const EURIBOR_DATA={updated:"06 Mar 2026",
+  rates:[{term:"3M",val:2.503,prev:2.548,color:"var(--cyan)"},{term:"6M",val:2.415,prev:2.463,color:"var(--blue)"},{term:"12M",val:2.350,prev:2.402,color:"var(--accent)"}],
+  hist:[["Mar 2026",2.503,2.415,2.350],["Fev 2026",2.548,2.463,2.402],["Jan 2026",2.612,2.534,2.478],["Dez 2025",2.721,2.648,2.589],["Nov 2025",2.869,2.784,2.718],["Out 2025",3.054,2.954,2.871]],
+  bce:2.40,peak:{val:4.160,date:"Out 2023"}};
+function renderEuribor(){
+  const d=EURIBOR_DATA,maxV=Math.max(...d.hist.flatMap(r=>r.slice(1)))*1.05;
+  $("euri-body").innerHTML=`<div class="euri-grid">${d.rates.map(r=>{const diff=r.val-r.prev;return`<div class="euri-item" style="border-top:2px solid ${r.color}"><div class="euri-term">Euribor ${r.term}</div><div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div><div class="euri-sub">${d.updated}</div><div class="euri-chg">${diff<0?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`:`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div></div>`;}).join("")}</div><div class="euri-hist">${d.hist.map(([mes,...vals])=>`<div class="euri-hist-row"><div class="euri-hist-date">${mes}</div>${vals.map((v,i)=>`<div class="euri-hist-bar-wrap"><div class="euri-hist-bar" style="width:${Math.round((v/maxV)*100)}%;background:${d.rates[i].color}"></div></div><div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>`).join("")}</div>`).join("")}</div><div style="display:flex;gap:0;margin-top:10px;border-radius:var(--rs);border:1px solid var(--b);overflow:hidden"><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Taxa BCE</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue);margin-top:2px">${d.bce.toFixed(2)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Pico ${d.peak.date}</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red);margin-top:2px">${d.peak.val.toFixed(3)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Tendência</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--green);margin-top:2px">▼ Descida</div></div></div>`;
 }
 
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
@@ -1153,13 +1054,14 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-renderElec();
+
 renderCalendar();
 loadHolidays();
 renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
-setTimeout(()=>switchPSI("EDP",document.querySelector(".psi-tab.on")),100);
-setTimeout(()=>loadEuribor(),  200);
+renderEuribor();
+loadElec();
+setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
 setTimeout(()=>loadMarketStats(),1200);
@@ -1168,7 +1070,7 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadEuribor(true);loadFX(true);loadCrypto(true);
+  loadElec();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
