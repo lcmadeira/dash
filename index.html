@@ -413,8 +413,9 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderElec()">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadElec(true)">↺</button></div></div>
     <div id="elec-body"></div>
+    <div class="src">✦ REN DataHub · servicebus.ren.pt · Preços MIBEL/OMIE · Sem chave</div>
   </div>
 
   <div class="card">
@@ -454,8 +455,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:linear-gradient(90deg,var(--green),var(--red))"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#34C97A22">🌡️</div>
-      <span class="ch-lbl">Mapa de Calor · S&amp;P 500</span>
-      <div class="ch-r">
+      <span class="ch-lbl">Mapa de Calor · Mercados</span>
+      <div class="ch-r" style="display:flex;align-items:center;gap:6px">
         <div class="hmap-tabs" id="hmap-tabs">
           <button class="psi-tab on" onclick="switchHmap('sp500',this)">S&amp;P 500</button>
           <button class="psi-tab"   onclick="switchHmap('crypto',this)">Crypto</button>
@@ -610,20 +611,11 @@ function switchOil(type,btn){
 }
 
 /* ── Bolsa Lisboa — TV widget dinâmico por acção ── */
-/* ── Mapa de Calor — switchHmap com createContextualFragment ── */
+/* ── Mapa de Calor — switchHmap ── */
 const HMAP_CONFIGS={
-  sp500:{
-    dataSource:"SPX500",grouping:"sector",blockColor:"change",
-    blockSize:"market_cap_basic",hasTopBar:true,label:"S&P 500"
-  },
-  crypto:{
-    dataSource:"Crypto",grouping:"no_group",blockColor:"change",
-    blockSize:"market_cap_basic",hasTopBar:true,label:"Crypto"
-  },
-  etf:{
-    dataSource:"ETF",grouping:"asset_class",blockColor:"change",
-    blockSize:"assets_under_management",hasTopBar:true,label:"ETFs"
-  },
+  sp500:{dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic"},
+  crypto:{dataSource:"Crypto",grouping:"no_group",blockSize:"market_cap_basic"},
+  etf:{dataSource:"ETF",grouping:"asset_class",blockSize:"assets_under_management"},
 };
 function switchHmap(key,btn){
   document.querySelectorAll("#hmap-tabs .psi-tab").forEach(b=>b.classList.remove("on"));
@@ -631,23 +623,20 @@ function switchHmap(key,btn){
   const c=HMAP_CONFIGS[key];if(!c)return;
   const cfg=JSON.stringify({
     exchanges:[],dataSource:c.dataSource,grouping:c.grouping,
-    blockSize:c.blockSize,blockColor:c.blockColor,
-    locale:"pt",colorTheme:"dark",hasTopBar:c.hasTopBar,
+    blockSize:c.blockSize,blockColor:"change",
+    locale:"pt",colorTheme:"dark",hasTopBar:true,
     isDataSetEnabled:false,isZoomEnabled:true,
     hasSymbolTooltip:true,isMonoSize:false,
     width:"100%",height:460
   });
-  const wrap=$("hmap-widget");
+  const wrap=document.getElementById("hmap-widget");
   wrap.innerHTML="";
   const frag=document.createRange().createContextualFragment(
-    `<div class="tradingview-widget-container">
-       <div class="tradingview-widget-container__widget"></div>
-       <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>${cfg}<\/script>
-     </div>`
+    `<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>`+
+    `<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>${cfg}<\/script></div>`
   );
   wrap.appendChild(frag);
 }
-
 /* ── IPMA Meteorologia ── */
 const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
 const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],26:["🌬️","Neblina"],28:["☁️","Céu encoberto"]};
@@ -756,26 +745,132 @@ async function renderFuel(force=false){
   }catch(e){$("fuel-body").innerHTML=er(e.message);}
 }
 
-/* ── Eletricidade ── */
-const ELEC={spot:{p:74.3,var:-6.1},simples:0.2134,vazio:0.1423,fvazio:0.2567,renovaveis:74,co2:48};
-function renderElec(){
-  const d=ELEC;
-  $("elec-body").innerHTML=`
-    <div class="elec-top">
-      <div class="ekpi"><div class="ekpi-lbl">Mercado Spot MIBEL</div>
-        <div class="ekpi-val" style="color:var(--blue)">${d.spot.p.toFixed(1)}</div><div class="ekpi-unit">€/MWh</div>
-        <div class="ekpi-chg ${d.spot.var>=0?"up":"dn"}">${d.spot.var>=0?"▲":"▼"} ${Math.abs(d.spot.var).toFixed(1)} vs ontem</div></div>
-      <div class="ekpi"><div class="ekpi-lbl">Tarifa Simples</div>
-        <div class="ekpi-val" style="color:var(--green)">${d.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div>
-    </div>
-    <div class="bar-lbl">Tarifa Bi-horária</div>
-    ${[{l:"Vazio",v:d.vazio,c:"var(--green)"},{l:"Fora Vazio",v:d.fvazio,c:"var(--blue)"}].map(r=>`
-    <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
-    <div class="ebadges">
-      <div class="ebadge" style="background:var(--gd)"><div class="ebadge-val" style="color:var(--green)">${d.renovaveis}%</div><div class="ebadge-lbl">Renováveis</div></div>
-      <div class="ebadge" style="background:var(--bd)"><div class="ebadge-val" style="color:var(--blue)">${d.co2}</div><div class="ebadge-lbl">gCO₂/kWh</div></div>
-    </div>
-    <div class="src">✦ Referência março 2026 · ren.pt · omie.es</div>`;
+/* ── Eletricidade — API REN DataHub (servicebus.ren.pt) ──
+   ElectricityMarketPricesDaily → preço médio/máx/mín horário do mercado SPOT (fonte: OMIE)
+   ElectricityProductionBreakdownDaily → mix renovável do dia
+   CORS nativo · Sem chave · Actualizado diariamente
+────────────────────────────────────────────────────────── */
+// Tarifas reguladas 2026 (ERSE) — estáticas, mudam 1x/ano em Jan
+const ELEC_TARIFAS={simples:0.2134,vazio:0.1423,fvazio:0.2567};
+
+async function loadElec(force=false){
+  $("elec-body").innerHTML=ld();
+  try{
+    const today=new Date();
+    const todayStr=today.toISOString().slice(0,10);
+    const yestStr=new Date(today-864e5).toISOString().slice(0,10);
+    const ck=`elec_${todayStr}`;
+    let data=force?null:lsGet(ck);
+    if(!data){
+      // Fetch preços mercado spot + mix produção em paralelo
+      const [rPrices,rMix]=await Promise.all([
+        fetch(`https://servicebus.ren.pt/datahubapi/electricity/ElectricityMarketPricesDaily?culture=pt-PT&date=${todayStr}`),
+        fetch(`https://servicebus.ren.pt/datahubapi/electricity/ElectricityProductionBreakdownDaily?culture=pt-PT&date=${todayStr}`),
+      ]);
+      // Se hoje ainda não há dados (publicados às ~13h do dia anterior), tentar ontem
+      const jPrices=await rPrices.json();
+      const jMix=rMix.ok?await rMix.json():null;
+      // A resposta é um array de objectos horários {hour, price, ...} ou wrapper
+      const pricesArr=Array.isArray(jPrices)?jPrices:(jPrices?.data||jPrices?.result||[]);
+      // Fallback: tentar data de ontem se hoje sem dados
+      let finalPrices=pricesArr,finalDate=todayStr;
+      if(!finalPrices.length){
+        const rY=await fetch(`https://servicebus.ren.pt/datahubapi/electricity/ElectricityMarketPricesDaily?culture=pt-PT&date=${yestStr}`);
+        const jY=await rY.json();
+        finalPrices=Array.isArray(jY)?jY:(jY?.data||jY?.result||[]);
+        finalDate=yestStr;
+      }
+      data={prices:finalPrices,mix:jMix,date:finalDate};
+      if(finalPrices.length) lsSet(ck,data);
+    }
+
+    const prices=data.prices||[];
+    if(!prices.length) throw new Error("Sem dados de preços");
+
+    // Extrair valores — a API REN devolve campos em PT: precoPortugal, precoEspanha, hora
+    const vals=prices.map(h=>{
+      // Tentar vários nomes de campo possíveis
+      return parseFloat(
+        h.precoPortugal??h.price_pt??h.pricePT??h.price??h.valor??0
+      );
+    }).filter(v=>!isNaN(v)&&v>=0);
+
+    if(!vals.length) throw new Error("Formato inesperado");
+
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const min=Math.min(...vals);
+    const max=Math.max(...vals);
+
+    // Hora actual e preço correspondente
+    const hourNow=new Date().getHours();
+    const currentPrice=prices.find(h=>{
+      const hora=parseInt(h.hora??h.hour??h.periodo??0);
+      return hora===hourNow||hora===(hourNow+1);
+    });
+    const priceNow=currentPrice
+      ? parseFloat(currentPrice.precoPortugal??currentPrice.price_pt??currentPrice.price??avg)
+      : avg;
+
+    // Mix renovável (se disponível)
+    const mixArr=data.mix?(Array.isArray(data.mix)?data.mix:(data.mix?.data||[])):[];
+    let renPct=null,co2=null;
+    if(mixArr.length){
+      const last=mixArr[mixArr.length-1];
+      // Tentar campos típicos da API REN
+      const total=parseFloat(last.total??last.consumo??0);
+      const ren=parseFloat(last.renovavel??last.renewable??last.totalRenovavel??0);
+      if(total>0&&ren>=0) renPct=Math.round((ren/total)*100);
+      co2=parseFloat(last.co2??last.emissoes??last.carbonIntensity??null);
+    }
+
+    // Mini gráfico de barras das 24h
+    const maxBar=Math.max(...vals)*1.05;
+    const barHtml=`
+      <div style="display:flex;align-items:flex-end;gap:1.5px;height:42px;margin:10px 0 4px">
+        ${vals.map((v,i)=>{
+          const pct=Math.round((v/maxBar)*100);
+          const isNow=i===hourNow||i===(hourNow-1);
+          const col=v>avg*1.3?"var(--red)":v<avg*0.7?"var(--green)":"var(--blue)";
+          return`<div title="${i}h: ${v.toFixed(1)}€/MWh" style="flex:1;height:${pct}%;background:${isNow?"var(--accent)":col};border-radius:1px 1px 0 0;opacity:${isNow?1:.75};transition:height .4s"></div>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:8px">
+        <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
+      </div>`;
+
+    const d=data.date,dateLabel=new Date(d+"T12:00:00").toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
+    $("elec-body").innerHTML=`
+      <div class="elec-top">
+        <div class="ekpi">
+          <div class="ekpi-lbl">Spot MIBEL · ${dateLabel}</div>
+          <div class="ekpi-val" style="color:${priceNow>avg*1.15?"var(--red)":priceNow<avg*0.85?"var(--green)":"var(--blue)"}">${priceNow.toFixed(1)}</div>
+          <div class="ekpi-unit">€/MWh · hora actual</div>
+          <div class="ekpi-chg" style="color:var(--t2)">méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}</div>
+        </div>
+        <div class="ekpi">
+          <div class="ekpi-lbl">Tarifa Simples</div>
+          <div class="ekpi-val" style="color:var(--green)">${ELEC_TARIFAS.simples.toFixed(4)}</div>
+          <div class="ekpi-unit">€/kWh · ERSE 2026</div>
+        </div>
+      </div>
+      ${barHtml}
+      <div class="bar-lbl">Tarifa Bi-horária · ERSE 2026</div>
+      ${[{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--blue)"}].map(r=>`
+      <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
+      <div class="ebadges">
+        ${renPct!=null?`<div class="ebadge" style="background:var(--gd)"><div class="ebadge-val" style="color:var(--green)">${renPct}%</div><div class="ebadge-lbl">Renováveis</div></div>`:""}
+        ${co2!=null?`<div class="ebadge" style="background:var(--bd)"><div class="ebadge-val" style="color:var(--blue)">${co2}</div><div class="ebadge-lbl">gCO₂/kWh</div></div>`:""}
+        <div class="ebadge" style="background:var(--surface);border:1px solid var(--b)"><div class="ekpi-lbl" style="font-size:.55rem">Fonte</div><div style="font-family:var(--mono);font-size:.62rem;font-weight:600;color:var(--t2);margin-top:2px">OMIE/REN</div></div>
+      </div>`;
+  }catch(e){
+    // Fallback gracioso com último valor conhecido
+    $("elec-body").innerHTML=`${er("REN DataHub: "+e.message)}
+      <div style="margin-top:10px">
+        <div class="bar-lbl">Tarifas reguladas · ERSE 2026</div>
+        ${[{l:"Simples",v:ELEC_TARIFAS.simples,c:"var(--blue)"},{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--orange)"}].map(r=>`
+        <div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
+      </div>`;
+  }
 }
 
 /* ── Feriados ── */
@@ -821,14 +916,14 @@ async function loadHolidays(force=false){
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
 /* ── EURIBOR — estático (EMMI · emmi-benchmarks.eu)
-   ▶ Actualizar: editar EURIBOR_DATA com valores de https://www.emmi-benchmarks.eu
-──────────────────────────────────────────────────────────────────── */
+   ▶ Actualizar: editar EURIBOR_DATA · https://www.emmi-benchmarks.eu
+──────────────────────────────────────────────────────────── */
 const EURIBOR_DATA={
   updated:"06 Mar 2026",
   rates:[
-    {term:"3M",  val:2.503, prev:2.548, color:"var(--cyan)"},
-    {term:"6M",  val:2.415, prev:2.463, color:"var(--blue)"},
-    {term:"12M", val:2.350, prev:2.402, color:"var(--accent)"},
+    {term:"3M",  val:2.503,prev:2.548,color:"var(--cyan)"},
+    {term:"6M",  val:2.415,prev:2.463,color:"var(--blue)"},
+    {term:"12M", val:2.350,prev:2.402,color:"var(--accent)"},
   ],
   hist:[
     ["Mar 2026",2.503,2.415,2.350],
@@ -838,39 +933,30 @@ const EURIBOR_DATA={
     ["Nov 2025",2.869,2.784,2.718],
     ["Out 2025",3.054,2.954,2.871],
   ],
-  bce:2.40,
-  peak:{val:4.160,date:"Out 2023"},
+  bce:2.40,peak:{val:4.160,date:"Out 2023"},
 };
 function renderEuribor(){
   const d=EURIBOR_DATA;
   const maxVal=Math.max(...d.hist.flatMap(r=>r.slice(1)))*1.05;
   $("euri-body").innerHTML=`
     <div class="euri-grid">
-      ${d.rates.map(r=>{
-        const diff=r.val-r.prev;
-        return`<div class="euri-item" style="border-top:2px solid ${r.color}">
+      ${d.rates.map(r=>{const diff=r.val-r.prev;return`
+        <div class="euri-item" style="border-top:2px solid ${r.color}">
           <div class="euri-term">Euribor ${r.term}</div>
           <div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div>
           <div class="euri-sub">${d.updated}</div>
-          <div class="euri-chg">${diff<0
-            ?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`
-            :`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div>
-        </div>`;
-      }).join("")}
+          <div class="euri-chg">${diff<0?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`:`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div>
+        </div>`;}).join("")}
     </div>
     <div class="euri-hist">
-      ${d.hist.map(row=>{
-        const[mes,...vals]=row;
-        return`<div class="euri-hist-row">
+      ${d.hist.map(row=>{const[mes,...vals]=row;return`
+        <div class="euri-hist-row">
           <div class="euri-hist-date">${mes}</div>
           ${vals.map((v,i)=>`
-            <div class="euri-hist-bar-wrap">
-              <div class="euri-hist-bar" style="width:${Math.round((v/maxVal)*100)}%;background:${d.rates[i].color}"></div>
-            </div>
+            <div class="euri-hist-bar-wrap"><div class="euri-hist-bar" style="width:${Math.round((v/maxVal)*100)}%;background:${d.rates[i].color}"></div></div>
             <div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>
           `).join("")}
-        </div>`;
-      }).join("")}
+        </div>`;}).join("")}
     </div>
     <div style="display:flex;gap:0;margin-top:10px;border-radius:var(--rs);border:1px solid var(--b);overflow:hidden">
       <div style="flex:1;text-align:center;padding:8px 6px;background:var(--surface)">
@@ -892,7 +978,6 @@ function renderEuribor(){
       ${d.rates.map(r=>`<span style="font-family:var(--mono);font-size:.55rem;color:${r.color}">▬ ${r.term}</span>`).join("")}
     </div>`;
 }
-
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
 const FX_PAIRS=[
   {code:"USD",name:"Dólar EUA",       flag:"🇺🇸",color:"var(--blue)"},
@@ -1077,13 +1162,13 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-renderElec();
+loadElec();
 renderCalendar();
 loadHolidays();
 renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
-renderEuribor();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),150);
+renderEuribor();
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
 setTimeout(()=>loadMarketStats(),1200);
@@ -1092,7 +1177,7 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadFX(true);loadCrypto(true);
+  loadElec();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
