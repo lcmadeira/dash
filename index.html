@@ -618,12 +618,15 @@ const PSI_STOCKS={
   SON: {sym:"EURONEXT:SON",  name:"Sonae",            color:"#22D3EE"},
   RENE:{sym:"EURONEXT:RENE", name:"REN",              color:"#E9A520"},
 };
-let _psiLoaded={};
+
 function switchPSI(ticker,btn){
   document.querySelectorAll(".psi-tab").forEach(b=>b.classList.remove("on"));
-  btn.classList.add("on");
+  if(btn) btn.classList.add("on");
   const s=PSI_STOCKS[ticker];if(!s)return;
-  if(_psiLoaded[ticker]){$("psi-widget").innerHTML=_psiLoaded[ticker];return;}
+  // Sempre re-renderizar (não cachear innerHTML — scripts externos não re-executam)
+  const topColor=s.color.startsWith("#")
+    ? s.color+"28"
+    : s.color.replace("var(--","rgba(").replace(")",",0.15)"); // fallback
   const cfg=JSON.stringify({
     symbols:[[s.name,`${s.sym}|3M`]],
     chartOnly:false,width:"100%",height:300,locale:"pt",colorTheme:"dark",autosize:false,
@@ -631,23 +634,24 @@ function switchPSI(ticker,btn){
     fontFamily:"DM Mono, monospace",fontSize:"10",valuesTracking:"1",
     changeMode:"price-and-percent",chartType:"area",lineWidth:2,
     dateRanges:["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],
-    lineColor:s.color,topColor:s.color.startsWith("#")?s.color+"25":"rgba(75,150,243,0.15)",
+    lineColor:s.color.startsWith("#")?s.color:"#4B96F3",
+    topColor:s.color.startsWith("#")?s.color+"28":"rgba(75,150,243,0.16)",
     bottomColor:"rgba(0,0,0,0)",backgroundColor:"rgba(10,13,28,0)",
     gridLineColor:"rgba(24,29,48,1)",fontColor:"#556070"
   });
-  const wrap=document.createElement("div");
-  wrap.className="tv-widget-wrap";
-  wrap.innerHTML=`<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div></div>`;
-  $("psi-widget").innerHTML="";
-  $("psi-widget").appendChild(wrap);
-  // Injectar script
-  const sc=document.createElement("script");
-  sc.type="text/javascript";
-  sc.src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
-  sc.async=true;
-  sc.textContent=cfg;
-  wrap.querySelector(".tradingview-widget-container").appendChild(sc);
-  _psiLoaded[ticker]=wrap.outerHTML;
+  // O TradingView lê a config via innerHTML do script tag — não via textContent de script com src
+  // Solução: usar Range.createContextualFragment para injectar o bloco completo
+  const container=$("psi-widget");
+  container.innerHTML="";
+  const frag=document.createRange().createContextualFragment(
+    `<div class="tv-widget-wrap">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>${cfg}<\/script>
+      </div>
+    </div>`
+  );
+  container.appendChild(frag);
 }
 
 /* ── IPMA Meteorologia ── */
@@ -823,9 +827,9 @@ async function loadHolidays(force=false){
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
 const EURI_SERIES=[
-  {term:"3M", key:"FM.M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"var(--cyan)"},
-  {term:"6M", key:"FM.M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"var(--blue)"},
-  {term:"12M",key:"FM.M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"var(--accent)"},
+  {term:"3M", key:"M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"var(--cyan)"},
+  {term:"6M", key:"M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"var(--blue)"},
+  {term:"12M",key:"M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"var(--accent)"},
 ];
 async function loadEuribor(force=false){
   $("euri-body").innerHTML=ld();
@@ -834,15 +838,26 @@ async function loadEuribor(force=false){
     let cached=force?null:lsGet(ck);
     if(!cached){
       const results=await Promise.all(EURI_SERIES.map(async s=>{
-        const url=`https://data-api.ecb.europa.eu/service/data/ECB,${s.key}/M?format=jsondata&lastNObservations=7&detail=dataonly`;
+        const url=`https://data-api.ecb.europa.eu/service/data/ECB,FM,1.0/${s.key}?format=jsondata&lastNObservations=7&detail=dataonly`;
         const r=await fetch(url);if(!r.ok)throw new Error(`BCE ${r.status}`);
         const j=await r.json();
-        // Extrair observações: {dateSeries, valueSeries}
-        const dims=j.structure?.dimensions?.observation||[];
-        const timeDim=dims.find(d=>d.id==="TIME_PERIOD");
-        const periods=timeDim?.values?.map(v=>v.id)||[];
-        const obs=j.dataSets?.[0]?.series?.["0:0:0:0:0:0:0:0"]?.observations||
-                  j.dataSets?.[0]?.series?.[Object.keys(j.dataSets[0].series)[0]]?.observations||{};
+        // SDMX-JSON v1: estrutura pode variar — múltiplos fallbacks
+        let periods=[], obs={};
+        // Tentar estrutura v1 (mais comum)
+        try{
+          const dim=j.structure?.dimensions?.observation||j.structure?.dimensions?.series||[];
+          const timeDim=dim.find(d=>d.id==="TIME_PERIOD")||dim[dim.length-1];
+          periods=timeDim?.values?.map(v=>v.id)||[];
+          const seriesKey=Object.keys(j.dataSets?.[0]?.series||{})[0]||"0:0:0:0:0:0:0:0";
+          obs=j.dataSets[0].series[seriesKey]?.observations||{};
+        }catch{
+          // Tentar estrutura v2
+          try{
+            periods=j.data?.dataSets?.[0]?.action==="Information"
+              ?[]
+              :Object.keys(j.data?.dataSets?.[0]?.series||{});
+          }catch{}
+        }
         const vals=Object.entries(obs).map(([i,v])=>({period:periods[+i],value:v[0]})).filter(x=>x.value!=null);
         return{...s,vals};
       }));
@@ -912,7 +927,7 @@ async function loadFX(force=false){
 }
 function renderFX(date){
   const amt=parseFloat($("fx-amount")?.value||1)||1;
-  if(!Object.keys(fxRates).length)return;
+  if(!Object.keys(fxRates).length){$("fx-body").innerHTML=ld();return;}
   $("fx-body").innerHTML=`<div class="fx-grid">${FX_PAIRS.map(p=>{
     const rate=fxRates[p.code];if(!rate)return"";
     const conv=(rate*amt);
@@ -1073,7 +1088,10 @@ renderCalendar();
 loadHolidays();
 renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
-setTimeout(()=>switchPSI("EDP",document.querySelector(".psi-tab.on")),100);
+setTimeout(()=>{
+  const btn=document.querySelector(".psi-tab.on");
+  switchPSI("EDP",btn);
+},150);
 setTimeout(()=>loadEuribor(),  200);
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
