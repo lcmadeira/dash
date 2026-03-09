@@ -570,9 +570,14 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
-    <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Yahoo Finance · VIX · Ouro · Petróleo · USD Index</div>
+    </div>
+    <div id="mstats-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0">
+      <div id="ms-vix"></div>
+      <div id="ms-gold"></div>
+      <div id="ms-oil"></div>
+      <div id="ms-dxy"></div>
+    </div>
+    <div class="src">✦ TradingView · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
 
@@ -1085,40 +1090,39 @@ const MSTATS=[
   {id:"WTI",sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
   {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
 ];
-async function loadMarketStats(force=false){
-  $("mstats-body").innerHTML=ld();
-  try{
-    const ck="msv3",cached=force?null:lsGet(ck);
-    if(cached){renderMStats(cached);return;}
-    const res={};
-    await Promise.all(MSTATS.map(async m=>{
-      try{
-        const url=`https://query1.finance.yahoo.com/v8/finance/chart/${m.sym}?interval=1d&range=5d`;
-        const r=await fetch("https://corsproxy.io/?"+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});
-        if(!r.ok)return;
-        const j=await r.json();
-        const meta=j?.chart?.result?.[0]?.meta;
-        if(meta){
-          const price=meta.regularMarketPrice||0;
-          const prev=meta.chartPreviousClose||price;
-          res[m.id]={price,change:prev?((price-prev)/prev*100):0};
-        }
-      }catch(ex){console.warn("mstats",m.sym,ex);}
-    }));
-    lsSet(ck,res);
-    renderMStats(res);
-  }catch(e){$("mstats-body").innerHTML=er(e.message);}
-}
-function renderMStats(res){
-  $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-    const q=res[m.id];
-    return`<div class="mstat">
-      <div class="mstat-lbl">${m.label}</div>
-      <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-      <div class="mstat-sub">${m.sub}</div>
-      <div class="mstat-chg">${q?chg(q.change):""}</div>
-    </div>`;
-  }).join("")}</div>`;
+function loadMarketStats(){
+  var items=[
+    {id:"ms-vix", sym:"CBOE:VIX",   label:"VIX"},
+    {id:"ms-gold",sym:"TVC:GOLD",   label:"Ouro"},
+    {id:"ms-oil", sym:"TVC:USOIL",  label:"Petróleo WTI"},
+    {id:"ms-dxy", sym:"TVC:DXY",    label:"USD Index"},
+  ];
+  items.forEach(function(item){
+    var el=document.getElementById(item.id);
+    if(!el||el.dataset.loaded)return;
+    el.dataset.loaded="1";
+    var cfg=JSON.stringify({
+      symbol:item.sym,
+      width:"100%",
+      locale:"en",
+      dateRange:"1D",
+      colorTheme:"dark",
+      isTransparent:true,
+      autosize:true,
+      largeChartUrl:""
+    });
+    var div=document.createElement("div");
+    div.className="tradingview-widget-container";
+    div.style.cssText="width:100%;min-height:80px";
+    div.innerHTML='<div class="tradingview-widget-container__widget"></div>';
+    var sc=document.createElement("script");
+    sc.type="text/javascript";
+    sc.src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js";
+    sc.async=true;
+    sc.textContent=cfg;
+    div.appendChild(sc);
+    el.appendChild(div);
+  });
 }
 
 /* ── Calendário Económico ── */
@@ -1162,7 +1166,6 @@ setInterval(()=>{
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
-  setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS ═══ */
@@ -1215,26 +1218,9 @@ window.buildConflictMap=function(){
   do2+='<circle class="cdot" cx="'+v[0]+'" cy="'+v[1]+'" r="'+r+'" fill="'+col+'" stroke="#06080f" stroke-width="1" opacity=".9" data-i="'+i+'" style="cursor:pointer"/>';
  });
  defs+="</defs>";
- var land='<g fill="#14213d" stroke="#1e3260" stroke-width=".3" opacity=".85">'
-  +'<polygon points="480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110"/>'
-  +'<polygon points="500,62 513,56 524,60 527,73 516,81 504,79 499,72"/>'
-  +'<polygon points="530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87"/>'
-  +'<polygon points="562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117"/>'
-  +'<polygon points="702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117"/>'
-  +'<polygon points="542,132 582,127 612,132 622,147 602,157 572,154 547,147"/>'
-  +'<polygon points="481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152"/>'
-  +'<polygon points="102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97"/>'
-  +'<polygon points="202,142 232,137 247,147 242,162 222,164 202,157"/>'
-  +'<polygon points="202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187"/>'
-  +'<polygon points="752,282 812,272 842,287 837,317 802,327 762,317 747,302"/>'
-  +'<polygon points="787,102 798,97 806,102 802,114 790,110"/>'
-  +'<polygon points="770,107 780,102 784,112 777,117 770,114"/>'
-  +'</g>';
- var svgStr='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:400px">'
-  +'<rect width="1000" height="500" fill="url(#ogx)"/>'
-  +land+defs+pu+do2
-  +'<text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3550">ACLED - Crisis Group - CFR - Mar 2026</text>'
-  +'</svg><div class="cmap-tip" id="cmap-tip"></div>';
+ var land='<g id="land" fill="#1a2744" stroke="#243060" stroke-width="0.4" stroke-linejoin="round"> <!-- América do Norte --> <path d="M164,62 L172,58 L182,54 L194,52 L204,54 L214,52 L222,48 L232,46 L240,48 L248,52 L252,58 L256,62 L262,68 L268,72 L272,78 L274,84 L270,90 L264,94 L258,98 L252,102 L248,108 L244,114 L238,118 L232,122 L226,126 L220,128 L214,130 L208,132 L202,134 L196,134 L190,132 L184,128 L178,124 L174,118 L170,112 L166,106 L162,100 L160,94 L160,88 L162,82 L164,76 Z"/> <!-- Gronelândia --> <path d="M320,28 L334,24 L348,22 L360,24 L370,28 L378,34 L382,40 L380,46 L374,50 L366,54 L356,56 L346,54 L336,50 L328,44 L322,38 Z"/> <!-- América Central --> <path d="M196,130 L204,128 L212,130 L218,134 L222,140 L220,146 L216,150 L210,152 L204,150 L198,146 L194,140 L194,134 Z"/> <!-- Caraíbas (Cuba) --> <path d="M208,140 L218,138 L224,140 L222,144 L214,146 L208,144 Z"/> <!-- América do Sul --> <path d="M204,158 L216,154 L228,152 L240,154 L250,158 L258,164 L264,172 L268,180 L270,190 L270,200 L268,210 L264,220 L258,230 L252,240 L246,250 L240,258 L234,264 L228,268 L222,270 L216,268 L210,264 L204,258 L198,250 L194,242 L190,232 L188,222 L188,212 L190,202 L192,192 L194,182 L196,172 L198,164 Z"/> <!-- Europa Ocidental --> <path d="M458,82 L466,78 L474,76 L480,78 L484,82 L486,88 L484,94 L480,98 L474,100 L468,98 L462,94 L458,88 Z"/> <!-- Península Ibérica --> <path d="M448,98 L458,94 L466,96 L470,102 L468,108 L462,112 L454,112 L448,108 L446,102 Z"/> <!-- França/Alemanha --> <path d="M464,82 L476,78 L488,76 L498,78 L506,82 L510,88 L508,94 L502,98 L494,100 L486,100 L478,98 L470,94 L466,88 Z"/> <!-- Escandinávia --> <path d="M484,54 L494,48 L504,44 L514,44 L522,48 L526,56 L524,64 L518,70 L510,74 L502,74 L494,70 L488,64 L484,58 Z"/> <!-- Península Itálica --> <path d="M488,96 L496,92 L502,96 L504,104 L502,112 L496,118 L490,116 L486,110 L486,102 Z"/> <!-- Balcãs/Grécia --> <path d="M508,96 L518,92 L526,94 L530,100 L528,108 L522,112 L514,112 L508,108 L506,102 Z"/> <!-- Europa de Leste/Ucrânia --> <path d="M506,72 L522,66 L538,62 L554,62 L566,66 L572,72 L570,80 L562,86 L550,90 L536,92 L522,90 L510,86 L504,80 Z"/> <!-- Rússia (Europa) --> <path d="M524,52 L546,44 L570,40 L594,40 L614,44 L628,50 L634,58 L630,66 L618,72 L602,76 L584,78 L566,76 L550,72 L536,66 L526,60 Z"/> <!-- Rússia (Ásia/Sibéria) --> <path d="M600,38 L650,32 L700,30 L750,32 L800,36 L840,42 L860,50 L850,60 L830,68 L800,74 L760,78 L720,80 L680,78 L640,74 L604,68 L590,60 L594,50 Z"/> <!-- Cazaquistão/Ásia Central --> <path d="M576,78 L610,72 L644,70 L672,72 L694,78 L706,86 L700,94 L684,100 L660,104 L634,104 L610,100 L588,94 L576,86 Z"/> <!-- Turquia/Anatólia --> <path d="M528,104 L548,98 L568,96 L584,98 L594,104 L596,112 L588,118 L570,122 L550,122 L532,118 L524,112 Z"/> <!-- Médio Oriente --> <path d="M554,114 L574,110 L592,112 L606,118 L612,126 L608,134 L596,140 L578,142 L562,140 L550,132 L548,122 Z"/> <!-- Arábia Saudita/Iémen --> <path d="M560,130 L584,126 L608,128 L624,134 L628,144 L620,154 L602,160 L580,160 L562,154 L552,144 L552,134 Z"/> <!-- Irão/Afeganistão --> <path d="M596,104 L624,98 L652,96 L674,100 L686,108 L684,118 L670,126 L648,130 L624,130 L602,124 L590,116 Z"/> <!-- Paquistão/Índia --> <path d="M648,108 L674,102 L700,100 L722,104 L736,114 L734,126 L720,136 L698,142 L672,144 L648,140 L630,130 L628,118 Z"/> <!-- Índia (sul) --> <path d="M672,140 L694,138 L710,144 L714,156 L706,168 L692,174 L678,170 L668,160 L666,148 Z"/> <!-- Sri Lanka --> <path d="M700,168 L706,166 L708,172 L704,176 L698,174 Z"/> <!-- China --> <path d="M688,78 L724,70 L762,66 L794,68 L814,76 L820,86 L814,96 L796,104 L772,110 L746,112 L720,110 L698,104 L682,96 L680,86 Z"/> <!-- Sudeste Asiático (Indochina) --> <path d="M726,110 L748,106 L766,108 L778,116 L778,126 L768,134 L750,138 L734,136 L722,128 L720,118 Z"/> <!-- Coreia --> <path d="M776,84 L786,80 L794,82 L796,90 L790,96 L782,96 L776,90 Z"/> <!-- Japão --> <path d="M796,82 L808,78 L816,82 L814,90 L806,94 L798,92 Z"/> <!-- Indonésia (Sumatra/Java) --> <path d="M730,152 L752,148 L772,148 L784,154 L782,162 L766,166 L748,164 L732,158 Z"/> <!-- Filipinas --> <path d="M778,120 L788,116 L796,120 L796,130 L788,134 L780,130 Z"/> <!-- África do Norte --> <path d="M454,116 L490,110 L530,108 L566,110 L590,116 L598,126 L594,136 L578,144 L552,148 L520,150 L488,148 L460,144 L440,136 L436,126 Z"/> <!-- África Ocidental --> <path d="M440,136 L464,132 L488,136 L500,146 L504,158 L498,170 L486,178 L468,180 L450,176 L436,166 L430,154 L432,144 Z"/> <!-- África Central/Congo --> <path d="M482,152 L514,148 L546,150 L566,158 L572,170 L566,182 L550,190 L528,194 L506,192 L486,184 L474,172 L474,160 Z"/> <!-- Chifre de África/Etiópia --> <path d="M564,144 L590,138 L612,138 L628,144 L630,156 L622,166 L606,172 L586,172 L568,164 L558,154 Z"/> <!-- África Oriental --> <path d="M566,162 L592,158 L612,162 L624,172 L622,186 L610,198 L592,204 L572,202 L556,192 L550,178 L552,166 Z"/> <!-- África do Sul --> <path d="M498,192 L528,188 L558,188 L576,196 L578,210 L570,224 L552,234 L530,238 L508,234 L492,224 L486,210 L488,198 Z"/> <!-- Madagáscar --> <path d="M584,192 L594,188 L602,192 L602,204 L594,212 L584,210 L580,200 Z"/> <!-- Austrália --> <path d="M734,238 L772,228 L812,226 L844,232 L860,244 L858,260 L842,272 L818,280 L790,282 L762,278 L738,268 L722,254 L722,242 Z"/> <!-- Nova Zelândia --> <path d="M862,278 L872,272 L878,278 L874,286 L866,288 Z"/> <!-- Alasca --> <path d="M90,52 L106,46 L122,46 L134,52 L136,62 L126,70 L110,72 L96,68 L88,60 Z"/> <!-- Canadá --> <path d="M130,52 L170,44 L210,40 L246,42 L270,50 L274,62 L260,72 L236,78 L208,80 L180,78 L156,72 L136,64 Z"/> </g>';
+ var grid='<g stroke="#162040" stroke-width="0.4" opacity="0.7">'+'<line x1="0" y1="125" x2="1000" y2="125"/>'+'<line x1="0" y1="208" x2="1000" y2="208"/>'+'<line x1="0" y1="292" x2="1000" y2="292"/>'+'<line x1="250" y1="0" x2="250" y2="500"/>'+'<line x1="500" y1="0" x2="500" y2="500"/>'+'<line x1="750" y1="0" x2="750" y2="500"/>'+'</g>';
+var svgStr='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:420px">'+'<defs><radialGradient id="bggrad" cx="40%" cy="45%" r="75%"><stop offset="0%" stop-color="#0e1f4a"/><stop offset="100%" stop-color="#040b1a"/></radialGradient></defs>'+'<rect width="1000" height="500" fill="url(#bggrad)"/>'+grid+land+defs+pu+do2+'<text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3a5a">ACLED · Crisis Group · CFR · UCDP · Mar 2026</text>'+'</svg><div class="cmap-tip" id="cmap-tip"></div>';
  w.innerHTML=svgStr;
  var tip=document.getElementById("cmap-tip");
  w.querySelectorAll(".cdot").forEach(function(dot){
