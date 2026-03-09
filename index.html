@@ -628,13 +628,11 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- Indicadores Mercado -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:var(--pd)">🔭</div>
+    <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
-    </div>
+      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ gold-api.com · EIA · Frankfurter BCE</div>
+    <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
   <!-- Calendário Económico -->
@@ -1188,6 +1186,7 @@ setInterval(()=>{
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),800);
+  setTimeout(()=>loadMarketStats(true),800);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS ═══ */
@@ -1342,72 +1341,37 @@ buildConflictMap();
 loadGeo();
 
 /* ── Indicadores de Mercado ── */
+/* ── Twelve Data — Indicadores ── */
+const TD_BASE="https://api.twelvedata.com";
+async function tdGet(ep,params,force=false){
+  const ck=ep+"?"+new URLSearchParams(params);
+  if(!force){const h=lsGet(ck);if(h)return h;}
+  const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
+  if(!r.ok)throw new Error(`TD ${r.status}`);
+  const j=await r.json();if(j.status==="error")throw new Error(j.message||"TD error");
+  lsSet(ck,j);return j;
+}
+const MSTATS=[
+  {id:"VIX",sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",color:"var(--red)"},
+  {id:"GLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",  color:"var(--accent)"},
+  {id:"WTI",sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
+  {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
+];
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
   try{
-    const ck="mktv8",cached=force?null:lsGet(ck);
-    if(cached){renderMStats(cached);return;}
-
-    // gold-api.com — CORS nativo, sem chave, sem rate limit
-    const [rAU,rAG]=await Promise.all([
-      fetch("https://api.gold-api.com/price/XAU").then(r=>r.json()),
-      fetch("https://api.gold-api.com/price/XAG").then(r=>r.json()),
-    ]);
-
-    // EUR/USD via frankfurter (já usado no dashboard)
-    let eurUsd=1.08;
-    try{
-      const rFX=await fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR");
-      if(rFX.ok){const j=await rFX.json();eurUsd=j.rates?.EUR||eurUsd;}
-    }catch{}
-
-    // Petróleo WTI via EIA (governo EUA — CORS nativo, sem chave)
-    let oilUsd=0;
-    try{
-      const eia="https://api.eia.gov/v2/petroleum/pri/spt/data/?frequency=daily&data[0]=value&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=1&api_key=DEMO_KEY";
-      const rO=await fetch(eia);
-      if(rO.ok){const j=await rO.json();oilUsd=parseFloat(j?.response?.data?.[0]?.value||0);}
-    }catch{}
-
-    const goldUsd  = rAU?.price||0;
-    const silverUsd= rAG?.price||0;
-    const goldEur  = goldUsd*eurUsd;
-    const silverEur= silverUsd*eurUsd;
-    const goldChg  = rAU?.ch||0;
-    const silverChg= rAG?.ch||0;
-
-    const res={goldUsd,goldEur,goldChg,silverUsd,silverEur,silverChg,oilUsd,eurUsd};
-    lsSet(ck,res);
-    renderMStats(res);
+    const res={};
+    for(const m of MSTATS){
+      try{const j=await tdGet("/quote",{symbol:m.sym},force);res[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};}catch{}
+      if(force)await new Promise(r=>setTimeout(r,500));
+    }
+    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
+      const q=res[m.id];
+      return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
+        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
+        <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
+    }).join("")}</div>`;
   }catch(e){$("mstats-body").innerHTML=er(e.message);}
-}
-
-function renderMStats(d){
-  const eu=(v,dec=0)=>v>0?"€"+fmtP(v,dec):"—";
-  const us=(v,dec=0)=>v>0?"$"+fmtP(v,dec):"—";
-  $("mstats-body").innerHTML=`
-  <div class="mstat-grid">
-    <div class="mstat">
-      <div class="mstat-lbl">🥇 Ouro</div>
-      <div class="mstat-val" style="color:#F59E0B">${eu(d.goldEur,0)}</div>
-      <div class="mstat-sub">${us(d.goldUsd,0)} / onça · ${d.goldChg?chg(d.goldChg/d.goldUsd*100):""}</div>
-    </div>
-    <div class="mstat">
-      <div class="mstat-lbl">🥈 Prata</div>
-      <div class="mstat-val" style="color:#94a3b8">${eu(d.silverEur,2)}</div>
-      <div class="mstat-sub">${us(d.silverUsd,2)} / onça · ${d.silverChg?chg(d.silverChg/d.silverUsd*100):""}</div>
-    </div>
-    <div class="mstat">
-      <div class="mstat-lbl">🛢️ Petróleo WTI</div>
-      <div class="mstat-val" style="color:#fb923c">${d.oilUsd>0?"$"+fmtP(d.oilUsd,2):"—"}</div>
-      <div class="mstat-sub">USD / barril · EIA</div>
-    </div>
-    <div class="mstat">
-      <div class="mstat-lbl">💵 EUR/USD</div>
-      <div class="mstat-val" style="color:#60a5fa">${d.eurUsd>0?fmtP(1/d.eurUsd,4):"—"}</div>
-      <div class="mstat-sub">Câmbio · Frankfurter BCE</div>
-    </div>
-  </div>`;
 }
 
 
