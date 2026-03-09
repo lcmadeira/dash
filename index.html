@@ -364,6 +364,25 @@ textarea.nta::placeholder{color:var(--t3)}
 .cmap-tip-name{font-weight:700;font-size:.62rem;margin-bottom:2px}
 .cmap-tip-type{font-size:.5rem;margin-bottom:3px}
 .cmap-tip-desc{color:var(--t2);font-size:.52rem}
+
+/* ── Imobiliário ── */
+.imob-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.imob-kpi{background:var(--c2);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px}
+.imob-kpi-lbl{font-family:var(--mono);font-size:.5rem;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:4px}
+.imob-kpi-val{font-size:1.15rem;font-weight:700;color:var(--text);line-height:1}
+.imob-kpi-sub{font-family:var(--mono);font-size:.52rem;color:var(--t2);margin-top:3px}
+.imob-kpi-chg{font-family:var(--mono);font-size:.58rem;font-weight:700;margin-top:2px}
+.imob-bar-wrap{margin-bottom:10px}
+.imob-bar-title{font-family:var(--mono);font-size:.52rem;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.imob-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.imob-bar-lbl{font-family:var(--mono);font-size:.52rem;color:var(--t2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imob-bar-track{flex:1;height:6px;background:var(--b2);border-radius:3px;overflow:hidden}
+.imob-bar-fill{height:100%;border-radius:3px}
+.imob-bar-num{font-family:var(--mono);font-size:.52rem;color:var(--text);width:65px;text-align:right;flex-shrink:0}
+.imob-tabs{display:flex;gap:5px;margin-bottom:8px}
+.imob-tab{font-family:var(--mono);font-size:.52rem;padding:3px 8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
+.imob-tab.on{background:#10b981;border-color:#10b981;color:#fff;font-weight:700}
+.imob-svg-wrap{width:100%;overflow:hidden}
 </style>
 </head>
 <body>
@@ -473,7 +492,48 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
   </div>
 
-  <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real</span></div>
+    <!-- Imobiliário PT -->
+  <div class="card s2" id="imob-card">
+    <div class="stripe" style="background:linear-gradient(90deg,#10b981,#0ea5e9)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#10b98120">🏠</div>
+      <span class="ch-lbl">Mercado Imobiliário · Portugal</span>
+      <div class="ch-r"><span style="font-family:var(--mono);font-size:.48rem;color:var(--t3)">INE · Q3 2025</span></div>
+    </div>
+    <div class="imob-grid">
+      <div class="imob-kpi">
+        <div class="imob-kpi-lbl">Preço mediano nacional</div>
+        <div class="imob-kpi-val">2 111 <span style="font-size:.6rem;font-weight:400;color:var(--t2)">€/m²</span></div>
+        <div class="imob-kpi-chg" style="color:#10b981">▲ +17,7% homólogo</div>
+        <div class="imob-kpi-sub">Q3 2025 · famílias</div>
+      </div>
+      <div class="imob-kpi">
+        <div class="imob-kpi-lbl">Transações no trimestre</div>
+        <div class="imob-kpi-val">42 481</div>
+        <div class="imob-kpi-chg" style="color:#10b981">▲ +3,8% homólogo</div>
+        <div class="imob-kpi-sub">€ 10,5 mil M vendas</div>
+      </div>
+      <div class="imob-kpi">
+        <div class="imob-kpi-lbl">Habitações novas</div>
+        <div class="imob-kpi-val" style="color:#0ea5e9">+14,1%</div>
+        <div class="imob-kpi-sub">variação homóloga Q3 2025</div>
+      </div>
+      <div class="imob-kpi">
+        <div class="imob-kpi-lbl">Habitações existentes</div>
+        <div class="imob-kpi-val" style="color:#f59e0b">+19,1%</div>
+        <div class="imob-kpi-sub">variação homóloga Q3 2025</div>
+      </div>
+    </div>
+    <div class="imob-tabs">
+      <button class="imob-tab on" onclick="switchImob('regioes',this)">Regiões</button>
+      <button class="imob-tab"    onclick="switchImob('tendencia',this)">Tendência IPHab</button>
+      <button class="imob-tab"    onclick="switchImob('municipios',this)">Municípios</button>
+    </div>
+    <div id="imob-body"></div>
+    <div class="src">✦ INE · Estatísticas Preços Habitação · Q3 2025 · actualizar: Mai 2026</div>
+  </div>
+
+<div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
@@ -1349,6 +1409,136 @@ function renderMStats(d){
     </div>
   </div>`;
 }
+
+
+/* ═══ IMOBILIÁRIO PT ═══ */
+(function(){
+
+/* Dados INE — actualizar trimestralmente
+   Fonte: https://www.ine.pt → Estatísticas Preços da Habitação ao nível local */
+
+var IMOB_REGIOES=[
+  {r:"Grande Lisboa",       v:4792, chg:18.2, col:"#f59e0b"},
+  {r:"Algarve",             v:3556, chg:15.4, col:"#10b981"},
+  {r:"R.A. Madeira",        v:3193, chg:14.8, col:"#0ea5e9"},
+  {r:"Área Metro. Porto",   v:2740, chg:21.3, col:"#8b5cf6"},
+  {r:"Península de Setúbal",v:2371, chg:19.6, col:"#3b82f6"},
+  {r:"R.A. Açores",         v:1650, chg:11.2, col:"#06b6d4"},
+  {r:"Alentejo Litoral",    v:1944, chg:13.8, col:"#84cc16"},
+  {r:"Centro",              v:1320, chg: 9.1, col:"#a78bfa"},
+  {r:"Norte (exc. Porto)",  v:1280, chg: 8.7, col:"#fb923c"},
+];
+
+/* Série histórica IPHab — Base 2015=100, variação homóloga % */
+var IMOB_TREND=[
+  {q:"Q1 23",v: 7.6},{q:"Q2 23",v: 9.0},{q:"Q3 23",v: 7.8},{q:"Q4 23",v: 5.2},
+  {q:"Q1 24",v: 5.0},{q:"Q2 24",v: 6.6},{q:"Q3 24",v:10.8},{q:"Q4 24",v:13.4},
+  {q:"Q1 25",v:18.7},{q:"Q2 25",v:17.2},{q:"Q3 25",v:17.7},
+];
+
+/* Preço mediano €/m² nos 10 maiores municípios — últimos 12m até Q3 2025 */
+var IMOB_MUNIC=[
+  {m:"Lisboa",        v:4321, chg:16.1},
+  {m:"Cascais",       v:3980, chg:18.4},
+  {m:"Oeiras",        v:3640, chg:17.9},
+  {m:"Porto",         v:3120, chg:22.1},
+  {m:"Almada",        v:2540, chg:20.3},
+  {m:"Braga",         v:2010, chg:19.8},
+  {m:"Coimbra",       v:1870, chg:15.2},
+  {m:"Setúbal",       v:1750, chg:18.7},
+  {m:"Funchal",       v:2490, chg:13.5},
+  {m:"Évora",         v:1480, chg:12.8},
+];
+
+var IMOB_FILTER="regioes";
+
+window.switchImob=function(f,btn){
+  document.querySelectorAll(".imob-tab").forEach(function(b){b.classList.remove("on");});
+  if(btn)btn.classList.add("on");
+  IMOB_FILTER=f;renderImob();
+};
+
+function renderImob(){
+  var el=document.getElementById("imob-body");
+  if(!el)return;
+  if(IMOB_FILTER==="regioes") renderRegioes(el);
+  else if(IMOB_FILTER==="tendencia") renderTrend(el);
+  else renderMunic(el);
+}
+
+function barColor(chg){
+  if(chg>=18)return"#ef4444";
+  if(chg>=15)return"#f59e0b";
+  if(chg>=10)return"#10b981";
+  return"#0ea5e9";
+}
+
+function renderRegioes(el){
+  var max=IMOB_REGIOES[0].v;
+  el.innerHTML='<div class="imob-bar-wrap">'
+    +'<div class="imob-bar-title">Preço mediano €/m² por NUTS III — compradores estrangeiros (Q3 2025)</div>'
+    +IMOB_REGIOES.map(function(r){
+      var w=Math.round(r.v/max*100);
+      return'<div class="imob-bar-row">'
+        +'<div class="imob-bar-lbl">'+r.r+'</div>'
+        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+w+'%;background:'+r.col+'"></div></div>'
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ '
+        +'<span style="color:'+barColor(r.chg)+'">+'+r.chg+'%</span></div>'
+        +'</div>';
+    }).join("")
+    +'</div>';
+}
+
+function renderTrend(el){
+  var W=el.offsetWidth||360,H=90,pad=30,bw=Math.max(2,Math.floor((W-pad*2)/IMOB_TREND.length)-3);
+  var vals=IMOB_TREND.map(function(t){return t.v;});
+  var minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals);
+  var yScale=function(v){return H-10-Math.round((v-minV)/(maxV-minV)*(H-20));};
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="imob-chart">';
+  // grid
+  [5,10,15,20].forEach(function(g){
+    var y=yScale(g);if(y<0||y>H)return;
+    svg+='<line x1="'+pad+'" y1="'+y+'" x2="'+(W-10)+'" y2="'+y+'" stroke="#1e3260" stroke-width="0.5"/>';
+    svg+='<text x="'+(pad-3)+'" y="'+(y+3)+'" font-size="6" fill="#4a5568" text-anchor="end">'+g+'%</text>';
+  });
+  // bars
+  IMOB_TREND.forEach(function(t,i){
+    var x=pad+i*(bw+3);
+    var y=yScale(t.v),barH=H-10-y;
+    var col=barColor(t.v);
+    svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" opacity=".85" rx="1"/>';
+    svg+='<text x="'+(x+bw/2)+'" y="'+(H-2)+'" font-size="5.5" fill="#6b7280" text-anchor="middle">'+t.q+'</text>';
+    if(i===IMOB_TREND.length-1){
+      svg+='<text x="'+(x+bw/2)+'" y="'+(y-3)+'" font-size="6.5" fill="'+col+'" text-anchor="middle" font-weight="bold">'+t.v+'%</text>';
+    }
+  });
+  svg+='</svg>';
+  el.innerHTML='<div class="imob-svg-wrap">'+svg+'</div>'
+    +'<div style="font-family:var(--mono);font-size:.49rem;color:var(--t3);margin-top:4px">IPHab — Variação homóloga trimestral (%) · Base 2015=100 · Fonte: INE</div>';
+}
+
+function renderMunic(el){
+  var max=IMOB_MUNIC[0].v;
+  el.innerHTML='<div class="imob-bar-wrap">'
+    +'<div class="imob-bar-title">Preço mediano €/m² — compradores nacionais · 12m até Q3 2025</div>'
+    +IMOB_MUNIC.map(function(r){
+      var w=Math.round(r.v/max*100);
+      var col=barColor(r.chg);
+      return'<div class="imob-bar-row">'
+        +'<div class="imob-bar-lbl">'+r.m+'</div>'
+        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+w+'%;background:'+col+'"></div></div>'
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ '
+        +'<span style="color:'+col+'">+'+r.chg+'%</span></div>'
+        +'</div>';
+    }).join("")
+    +'</div>';
+}
+
+/* Boot */
+document.addEventListener("DOMContentLoaded",renderImob);
+setTimeout(renderImob,300);
+
+})();
 
 </script>
 </body>
