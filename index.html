@@ -571,13 +571,29 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
     </div>
-    <div id="mstats-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0">
-      <div id="ms-vix"></div>
-      <div id="ms-gold"></div>
-      <div id="ms-oil"></div>
-      <div id="ms-dxy"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+      <div class="tradingview-widget-container" style="height:140px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"CBOE:VIX","width":"100%","height":140,"locale":"en","dateRange":"1M","colorTheme":"dark","isTransparent":true,"autosize":false,"largeChartUrl":""}</script>
+      </div>
+      <div class="tradingview-widget-container" style="height:140px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"TVC:GOLD","width":"100%","height":140,"locale":"en","dateRange":"1M","colorTheme":"dark","isTransparent":true,"autosize":false,"largeChartUrl":""}</script>
+      </div>
+      <div class="tradingview-widget-container" style="height:140px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"TVC:USOIL","width":"100%","height":140,"locale":"en","dateRange":"1M","colorTheme":"dark","isTransparent":true,"autosize":false,"largeChartUrl":""}</script>
+      </div>
+      <div class="tradingview-widget-container" style="height:140px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        {"symbol":"TVC:DXY","width":"100%","height":140,"locale":"en","dateRange":"1M","colorTheme":"dark","isTransparent":true,"autosize":false,"largeChartUrl":""}</script>
+      </div>
     </div>
-    <div class="src">✦ TradingView · VIX · Ouro · Petróleo · USD Index</div>
+    <div class="src">✦ TradingView · VIX · Ouro · Petróleo WTI · USD Index</div>
   </div>
 
 
@@ -1090,41 +1106,6 @@ const MSTATS=[
   {id:"WTI",sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
   {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
 ];
-function loadMarketStats(){
-  var items=[
-    {id:"ms-vix", sym:"CBOE:VIX",   label:"VIX"},
-    {id:"ms-gold",sym:"TVC:GOLD",   label:"Ouro"},
-    {id:"ms-oil", sym:"TVC:USOIL",  label:"Petróleo WTI"},
-    {id:"ms-dxy", sym:"TVC:DXY",    label:"USD Index"},
-  ];
-  items.forEach(function(item){
-    var el=document.getElementById(item.id);
-    if(!el||el.dataset.loaded)return;
-    el.dataset.loaded="1";
-    var cfg=JSON.stringify({
-      symbol:item.sym,
-      width:"100%",
-      locale:"en",
-      dateRange:"1D",
-      colorTheme:"dark",
-      isTransparent:true,
-      autosize:true,
-      largeChartUrl:""
-    });
-    var div=document.createElement("div");
-    div.className="tradingview-widget-container";
-    div.style.cssText="width:100%;min-height:80px";
-    div.innerHTML='<div class="tradingview-widget-container__widget"></div>';
-    var sc=document.createElement("script");
-    sc.type="text/javascript";
-    sc.src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js";
-    sc.async=true;
-    sc.textContent=cfg;
-    div.appendChild(sc);
-    el.appendChild(div);
-  });
-}
-
 /* ── Calendário Económico ── */
 const EVENTS=[
   {title:"Decisão BCE sobre taxas de juro",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
@@ -1159,7 +1140,6 @@ loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
-setTimeout(()=>loadMarketStats(),1200);
 
 setInterval(()=>{
   loadWeather();
