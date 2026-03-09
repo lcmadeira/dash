@@ -572,7 +572,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Indicadores de Mercado</span>
       <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
+    <div class="src">✦ Yahoo Finance · VIX · Ouro · Petróleo · USD Index · via corsproxy.io</div>
   </div>
 
 
@@ -588,7 +588,7 @@ textarea.nta::placeholder{color:var(--t3)}
 
 
 
-  <!-- ══ GEOPOLÍTICA ══ -->
+  <!-- GEOPOLÍTICA -->
   <div class="sec"><div class="sec-bar" style="background:#8B5CF6"></div>
     <span style="color:#8B5CF6">Geopolítica</span>
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Conflitos · Análise · Intelligence</span>
@@ -710,7 +710,7 @@ const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","S�
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
 /* Cache 15min */
-const CACHE_TTL=15*60*1000,PFX="dash_v11_";
+const CACHE_TTL=15*60*1000,PFX="dash_v12_";
 function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 
@@ -948,7 +948,7 @@ async function loadFX(force=false){
     let data=force?null:lsGet("fx");
     if(!data){
       const syms=FX_PAIRS.map(p=>p.code).join(",");
-      const r=await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${syms}`);
+      const r=await fetch(`https://api.frankfurter.dev/latest?from=EUR&to=${syms}`);
       if(!r.ok)throw new Error(`Frankfurter ${r.status}`);
       data=await r.json();lsSet("fx",data);
     }
@@ -1043,7 +1043,7 @@ async function loadCrypto(force=false){
     let data=force?null:lsGet("cg");
     if(!data){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
-      const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`);
+      const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`,{headers:{Accept:'application/json'}});
       if(!r.ok)throw new Error(`CoinGecko ${r.status}`);
       data=await r.json();lsSet("cg",data);
     }
@@ -1076,18 +1076,36 @@ const MSTATS=[
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
   try{
+    const ck="mstats2",cached=force?null:lsGet(ck);
+    if(cached){renderMStats(cached);return;}
     const res={};
-    for(const m of MSTATS){
-      try{const j=await tdGet("/quote",{symbol:m.sym},force);res[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};}catch{}
-      if(force)await new Promise(r=>setTimeout(r,500));
-    }
-    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-      const q=res[m.id];
-      return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
-        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-        <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
-    }).join("")}</div>`;
+    await Promise.all(MSTATS.map(async m=>{
+      try{
+        const url=`https://query1.finance.yahoo.com/v8/finance/chart/${m.sym}?interval=1d&range=5d`;
+        const proxy=`https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
+        if(!r.ok)return;
+        const j=await r.json();
+        const meta=j?.chart?.result?.[0]?.meta;
+        if(meta){
+          const price=meta.regularMarketPrice||0;
+          const prev=meta.chartPreviousClose||meta.previousClose||price;
+          const change=prev?((price-prev)/prev*100):0;
+          res[m.id]={price,change};
+        }
+      }catch(e){console.warn(m.id,e);}
+    }));
+    lsSet(ck,res);
+    renderMStats(res);
   }catch(e){$("mstats-body").innerHTML=er(e.message);}
+}
+function renderMStats(res){
+  $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
+    const q=res[m.id];
+    return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
+      <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
+      <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
+  }).join("")}</div>`;
 }
 
 /* ── Calendário Económico ── */
@@ -1136,173 +1154,180 @@ setInterval(()=>{
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 
-/* ═══════════ MAPA DE CONFLITOS ═══════════ */
-const CFLCTS=[
-  {n:"Ucr\u00e2nia",t:"war",lat:49.0,lon:32.0,d:"Invas\u00e3o russa \u00b7 Frente leste"},
-  {n:"Gaza",t:"war",lat:31.4,lon:34.4,d:"Israel\u2013Hamas"},
-  {n:"Sud\u00e3o",t:"war",lat:15.5,lon:32.5,d:"SAF vs RSF \u00b7 Crise humanit\u00e1ria"},
-  {n:"Myanmar",t:"war",lat:19.7,lon:96.1,d:"Junta vs resist\u00eancia"},
-  {n:"Eti\u00f3pia",t:"war",lat:9.1,lon:40.5,d:"Amhara \u00b7 Oromia \u00b7 Tigray"},
-  {n:"RD Congo",t:"war",lat:-4.0,lon:21.8,d:"M23 \u00b7 Kivu"},
-  {n:"Sahel",t:"war",lat:12.0,lon:-2.0,d:"Jihadistas \u00b7 AES \u00b7 Wagner"},
-  {n:"Som\u00e1lia",t:"war",lat:5.1,lon:46.2,d:"Al-Shabaab"},
-  {n:"I\u00e9men",t:"war",lat:15.5,lon:48.5,d:"Houthis \u00b7 P\u00f3s-cessar-fogo"},
-  {n:"S\u00edria",t:"war",lat:35.0,lon:38.3,d:"P\u00f3s-Assad \u00b7 Fragmenta\u00e7\u00e3o"},
-  {n:"Afeganist\u00e3o",t:"war",lat:33.9,lon:67.7,d:"Talib\u00e3 \u00b7 IS-K"},
-  {n:"L\u00edbano",t:"high",lat:33.9,lon:35.5,d:"P\u00f3s-conflito \u00b7 Hezbollah"},
-  {n:"Iraque",t:"high",lat:33.2,lon:43.7,d:"Mil\u00edcias \u00b7 IS residual"},
-  {n:"Mo\u00e7ambique N.",t:"high",lat:-13.0,lon:39.0,d:"Insubg\u00eancia Cabo Delgado"},
-  {n:"Nig\u00e9ria N.",t:"high",lat:11.8,lon:13.2,d:"Boko Haram \u00b7 ISWAP"},
-  {n:"Haiti",t:"high",lat:18.9,lon:-72.3,d:"Gangues \u00b7 Crise Estado"},
-  {n:"Cisjord\u00e2nia",t:"high",lat:31.9,lon:35.2,d:"Colonatos \u00b7 Viol\u00eancia"},
-  {n:"Taiwan",t:"tension",lat:24.0,lon:121.0,d:"Tens\u00e3o EUA\u2013China"},
-  {n:"Coreia Norte",t:"tension",lat:40.0,lon:127.5,d:"Nuclear \u00b7 ICBM"},
-  {n:"Ir\u00e3o",t:"tension",lat:32.4,lon:53.7,d:"Nuclear \u00b7 Proxy regional"},
-  {n:"Kosovo",t:"tension",lat:42.6,lon:21.2,d:"Tens\u00e3o S\u00e9rvia \u00b7 NATO"},
-  {n:"Ge\u00f3rgia",t:"tension",lat:42.3,lon:43.4,d:"Influ\u00eancia russa"},
-  {n:"Mold\u00e1via",t:"tension",lat:47.4,lon:28.9,d:"Transnistria"},
-  {n:"Arm\u00e9nia-Azerb.",t:"tension",lat:40.1,lon:47.6,d:"P\u00f3s-Karabakh"},
-  {n:"Mar Sul China",t:"tension",lat:14.0,lon:114.0,d:"Filipinas \u00b7 China"},
-  {n:"Venezuela",t:"tension",lat:6.4,lon:-61.2,d:"Disputa Essequibo"},
-  {n:"Paquist\u00e3o-\u00cdndia",t:"nuclear",lat:30.0,lon:73.0,d:"Kashmir \u00b7 Ambos nucleares"},
-  {n:"R\u00fassia-OTAN",t:"nuclear",lat:55.0,lon:37.6,d:"Ret\u00f3rica nuclear"},
+/* ═══ MAPA CONFLITOS SVG ═══ */
+(function(){
+var C=[
+ {n:"Ucr\u00e2nia",t:"war",a:49.0,o:32.0,d:"Invas\u00e3o russa \u00b7 Frente leste"},
+ {n:"Gaza",t:"war",a:31.4,o:34.4,d:"Israel\u2013Hamas"},
+ {n:"Sud\u00e3o",t:"war",a:15.5,o:32.5,d:"SAF vs RSF \u00b7 Crise humanit\u00e1ria"},
+ {n:"Myanmar",t:"war",a:19.7,o:96.1,d:"Junta vs resist\u00eancia"},
+ {n:"Eti\u00f3pia",t:"war",a:9.1,o:40.5,d:"Amhara \u00b7 Oromia \u00b7 Tigray"},
+ {n:"RD Congo",t:"war",a:-4.0,o:21.8,d:"M23 \u00b7 Kivu Norte"},
+ {n:"Sahel",t:"war",a:12.0,o:-2.0,d:"Jihadistas \u00b7 AES \u00b7 Wagner"},
+ {n:"Som\u00e1lia",t:"war",a:5.1,o:46.2,d:"Al-Shabaab"},
+ {n:"I\u00e9men",t:"war",a:15.5,o:48.5,d:"Houthis \u00b7 Cessar-fogo fr\u00e1gil"},
+ {n:"S\u00edria",t:"war",a:35.0,o:38.3,d:"P\u00f3s-Assad \u00b7 Fragmenta\u00e7\u00e3o"},
+ {n:"Afeganist\u00e3o",t:"war",a:33.9,o:67.7,d:"Talib\u00e3 \u00b7 IS-K"},
+ {n:"L\u00edbano",t:"high",a:33.9,o:35.5,d:"P\u00f3s-conflito \u00b7 Hezbollah"},
+ {n:"Iraque",t:"high",a:33.2,o:43.7,d:"Mil\u00edcias \u00b7 IS residual"},
+ {n:"Mo\u00e7ambique N.",t:"high",a:-13.0,o:39.0,d:"Insurreição Cabo Delgado"},
+ {n:"Nig\u00e9ria N.",t:"high",a:11.8,o:13.2,d:"Boko Haram \u00b7 ISWAP"},
+ {n:"Haiti",t:"high",a:18.9,o:-72.3,d:"Gangues \u00b7 Crise Estado"},
+ {n:"Cisjord\u00e2nia",t:"high",a:31.9,o:35.2,d:"Colonatos \u00b7 Viol\u00eancia"},
+ {n:"Taiwan",t:"tension",a:24.0,o:121.0,d:"Tens\u00e3o EUA\u2013China"},
+ {n:"Coreia Norte",t:"tension",a:40.0,o:127.5,d:"Nuclear \u00b7 ICBM"},
+ {n:"Ir\u00e3o",t:"tension",a:32.4,o:53.7,d:"Nuclear \u00b7 Proxy regional"},
+ {n:"Kosovo",t:"tension",a:42.6,o:21.2,d:"Tens\u00e3o S\u00e9rvia \u00b7 NATO"},
+ {n:"Ge\u00f3rgia",t:"tension",a:42.3,o:43.4,d:"Influ\u00eancia russa"},
+ {n:"Mold\u00e1via",t:"tension",a:47.4,o:28.9,d:"Transnistria"},
+ {n:"Arm\u00e9nia-Azerb.",t:"tension",a:40.1,o:47.6,d:"P\u00f3s-Karabakh"},
+ {n:"Mar Sul China",t:"tension",a:14.0,o:114.0,d:"Filipinas \u00b7 China"},
+ {n:"Venezuela",t:"tension",a:6.4,o:-61.2,d:"Disputa Essequibo"},
+ {n:"Paquist\u00e3o-\u00cdndia",t:"nuclear",a:30.0,o:73.0,d:"Kashmir \u00b7 Ambos nucleares"},
+ {n:"R\u00fassia-OTAN",t:"nuclear",a:55.0,o:37.6,d:"Ret\u00f3rica nuclear \u00b7 Ucr\u00e2nia"},
 ];
-const CMAP_C={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-const CMAP_R={war:7,high:5.5,tension:4.5,nuclear:5.5};
-const CMAP_L={war:"Guerra Activa",high:"Alta Intensidade",tension:"Zona de Tens\u00e3o",nuclear:"Risco Nuclear"};
+var CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
+var CR={war:7,high:5.5,tension:4.5,nuclear:5.5};
+var CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Zona de Tens\u00e3o",nuclear:"Risco Nuclear"};
+function xy(a,o){return{x:(o+180)/360*960+20,y:(90-a)/180*480+10};}
 
-function ll2xy(lat,lon){return{x:(lon+180)/360*960+20,y:(90-lat)/180*480+10};}
-
-function buildConflictMap(){
-  var wrap=document.getElementById("cmap-wrap");
-  if(!wrap)return;
-  var defs="<defs><radialGradient id='og' cx='50%' cy='60%' r='80%'><stop offset='0%' stop-color='#0d1b3e'/><stop offset='100%' stop-color='#060a14'/></radialGradient>";
-  var pulses="",dots="";
-  CFLCTS.forEach(function(c,i){
-    var p=ll2xy(c.lat,c.lon),col=CMAP_C[c.t],r=CMAP_R[c.t];
-    if(c.t==="war"||c.t==="nuclear"){
-      defs+="<radialGradient id='rg"+i+"' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='"+col+"' stop-opacity='.8'/><stop offset='100%' stop-color='"+col+"' stop-opacity='0'/></radialGradient>";
-      pulses+="<circle cx='"+p.x+"' cy='"+p.y+"' r='"+(r*2)+"' fill='url(#rg"+i+")'><animate attributeName='r' values='"+(r*1.2)+";"+(r*3)+";"+(r*1.2)+"' dur='"+(1.4+i*0.06)+"s' repeatCount='indefinite'/><animate attributeName='opacity' values='.6;0;.6' dur='"+(1.4+i*0.06)+"s' repeatCount='indefinite'/></circle>";
-    }
-    dots+="<circle class='cdot' cx='"+p.x+"' cy='"+p.y+"' r='"+r+"' fill='"+col+"' stroke='#06080f' stroke-width='1' data-i='"+i+"' style='cursor:pointer'/>";
+window.buildConflictMap=function(){
+ var w=document.getElementById("cmap-wrap");
+ if(!w)return;
+ var defs='<defs><radialGradient id="og2" cx="50%" cy="60%" r="80%"><stop offset="0%" stop-color="#0d1b3e"/><stop offset="100%" stop-color="#060a14"/></radialGradient>';
+ var p="",d="";
+ C.forEach(function(c,i){
+  var v=xy(c.a,c.o),col=CC[c.t],r=CR[c.t];
+  if(c.t==="war"||c.t==="nuclear"){
+   defs+='<radialGradient id="rg'+i+'" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="'+col+'" stop-opacity=".8"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></radialGradient>';
+   p+='<circle cx="'+v.x+'" cy="'+v.y+'" r="'+(r*2)+'" fill="url(#rg'+i+')">'
+    +'<animate attributeName="r" values="'+(r*1.2)+';'+(r*3)+';'+(r*1.2)+'" dur="'+(1.4+i*0.06)+'s" repeatCount="indefinite"/>'
+    +'<animate attributeName="opacity" values=".6;0;.6" dur="'+(1.4+i*0.06)+'s" repeatCount="indefinite"/>'
+    +'</circle>';
+  }
+  d+='<circle class="cdot" cx="'+v.x+'" cy="'+v.y+'" r="'+r+'" fill="'+col+'" stroke="#06080f" stroke-width="1" data-i="'+i+'" style="cursor:pointer"/>';
+ });
+ defs+="</defs>";
+ var land='<g fill="#14213d" stroke="#1e3260" stroke-width=".3" opacity=".85">'
+  +'<polygon points="480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110"/>'
+  +'<polygon points="500,62 513,56 524,60 527,73 516,81 504,79 499,72"/>'
+  +'<polygon points="530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87"/>'
+  +'<polygon points="562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117"/>'
+  +'<polygon points="702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117"/>'
+  +'<polygon points="542,132 582,127 612,132 622,147 602,157 572,154 547,147"/>'
+  +'<polygon points="481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152"/>'
+  +'<polygon points="102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97"/>'
+  +'<polygon points="202,142 232,137 247,147 242,162 222,164 202,157"/>'
+  +'<polygon points="202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187"/>'
+  +'<polygon points="752,282 812,272 842,287 837,317 802,327 762,317 747,302"/>'
+  +'<polygon points="332,37 372,30 397,40 392,60 362,64 332,57"/>'
+  +'<polygon points="787,102 798,97 806,102 802,114 790,110"/>'
+  +'<polygon points="770,107 780,102 784,112 777,117 770,114"/>'
+  +'</g>';
+ w.innerHTML='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:400px">'
+  +'<rect width="1000" height="500" fill="url(#og2)"/>'
+  +land+defs+p+d
+  +'<text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3550">ACLED - Crisis Group - CFR - Mar 2026</text>'
+  +'</svg>'
+  +'<div class="cmap-tip" id="cmap-tip"></div>';
+ var tip=document.getElementById("cmap-tip");
+ w.querySelectorAll(".cdot").forEach(function(dot){
+  dot.addEventListener("mouseenter",function(){
+   var c=C[+dot.dataset.i];
+   tip.innerHTML='<div class="cmap-tip-name">'+c.n+'</div>'
+    +'<div class="cmap-tip-type" style="color:'+CC[c.t]+'">'+CL[c.t]+'</div>'
+    +'<div class="cmap-tip-desc">'+c.d+'</div>';
+   tip.classList.add("show");
   });
-  defs+="</defs>";
-  var land="<g fill='#14213d' stroke='#1e3260' stroke-width='.3' opacity='.85'>"
-    +"<polygon points='480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110'/>"
-    +"<polygon points='500,62 513,56 524,60 527,73 516,81 504,79 499,72'/>"
-    +"<polygon points='530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87'/>"
-    +"<polygon points='562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117'/>"
-    +"<polygon points='702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117'/>"
-    +"<polygon points='542,132 582,127 612,132 622,147 602,157 572,154 547,147'/>"
-    +"<polygon points='481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152'/>"
-    +"<polygon points='102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97'/>"
-    +"<polygon points='202,142 232,137 247,147 242,162 222,164 202,157'/>"
-    +"<polygon points='202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187'/>"
-    +"<polygon points='752,282 812,272 842,287 837,317 802,327 762,317 747,302'/>"
-    +"<polygon points='332,37 372,30 397,40 392,60 362,64 332,57'/>"
-    +"<polygon points='550,232 560,227 567,242 560,257 550,252'/>"
-    +"<polygon points='787,102 798,97 806,102 802,114 790,110'/>"
-    +"<polygon points='770,107 780,102 784,112 777,117 770,114'/>"
-    +"<polygon points='702,162 742,157 762,164 760,177 740,180 702,174'/>"
-    +"</g>";
-  var svg="<svg viewBox='0 0 1000 500' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:410px'>"
-    +"<rect width='1000' height='500' fill='url(#og)'/>"
-    +land+defs+pulses+dots
-    +"<text x='15' y='494' font-family='monospace' font-size='7' fill='#2a3550'>ACLED - Crisis Group - CFR - Mar 2026</text>"
-    +"</svg>"
-    +"<div class='cmap-tip' id='cmap-tip'></div>";
-  wrap.innerHTML=svg;
-  var tip=document.getElementById("cmap-tip");
-  wrap.querySelectorAll(".cdot").forEach(function(dot){
-    dot.addEventListener("mouseenter",function(){
-      var c=CFLCTS[+dot.dataset.i];
-      tip.innerHTML="<div class='cmap-tip-name'>"+c.n+"</div><div class='cmap-tip-type' style='color:"+CMAP_C[c.t]+"'>"+CMAP_L[c.t]+"</div><div class='cmap-tip-desc'>"+c.d+"</div>";
-      tip.classList.add("show");
-    });
-    dot.addEventListener("mousemove",function(e){
-      var rc=wrap.getBoundingClientRect(),tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
-      if(tx+215>rc.width)tx-=225;
-      tip.style.left=tx+"px";tip.style.top=ty+"px";
-    });
-    dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
+  dot.addEventListener("mousemove",function(e){
+   var rc=w.getBoundingClientRect(),tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
+   if(tx+215>rc.width)tx-=225;
+   tip.style.left=tx+"px";tip.style.top=ty+"px";
   });
-}
+  dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
+ });
+};
+})();
 
-/* ═══════════ RSS GEOPOLÍTICO ═══════════ */
+/* ═══ RSS GEOPOLÍTICO ═══ */
 var GEO_FEEDS=[
-  {id:"icg",label:"Crisis Group",  color:"#EF4444",url:"https://www.crisisgroup.org/rss/139"},
-  {id:"gpf",label:"Geop. Futures", color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/"},
-  {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",url:"https://news.google.com/rss/search?q=geopolitics+foreign+affairs&hl=en&gl=US&ceid=US:en"},
+ {id:"icg",label:"Crisis Group",  color:"#EF4444",url:"https://www.crisisgroup.org/rss/139"},
+ {id:"gpf",label:"Geop. Futures", color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/"},
+ {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",url:"https://news.google.com/rss/search?q=geopolitics+foreign+affairs&hl=en&gl=US&ceid=US:en"},
 ];
 var GEO_DATA=[],GEO_FILTER="all";
 
 async function loadGeo(force){
-  $("geo-body").innerHTML=ld();
-  try{
-    var ck="geo_v4",cached=force?null:lsGet(ck);
-    if(!cached){
-      var all=[];
-      for(var fi=0;fi<GEO_FEEDS.length;fi++){
-        var feed=GEO_FEEDS[fi];
-        try{
-          var raw=null,proxies=[
-            "https://corsproxy.io/?"+encodeURIComponent(feed.url),
-            "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)
-          ];
-          if(feed.url.indexOf("news.google.com")>=0){
-            var rg=await fetch(feed.url);
-            if(rg.ok)raw=await rg.text();
-          } else {
-            for(var pi=0;pi<proxies.length&&!raw;pi++){
-              try{var rp=await fetch(proxies[pi]);if(rp.ok){var t=await rp.text();if(t.length>200)raw=t;}}catch(pe){}
-            }
-          }
-          if(!raw)continue;
-          var xml=new DOMParser().parseFromString(raw,"text/xml");
-          var items=xml.querySelectorAll("item");
-          for(var ii=0;ii<Math.min(items.length,7);ii++){
-            var it=items[ii];
-            var title=(it.querySelector("title")||{textContent:""}).textContent.replace(/<!\[CDATA\[|\]\]>/g,"").trim();
-            var link=((it.querySelector("link")||{textContent:""}).textContent||"").trim();
-            var pub=(it.querySelector("pubDate")||{textContent:""}).textContent;
-            var dt=pub?new Date(pub).getTime():0;
-            if(title&&title.length>5)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
-          }
-        }catch(fe){console.warn("geo feed",feed.id,fe);}
+ $("geo-body").innerHTML=ld();
+ try{
+  var ck="geo_v5",cached=force?null:lsGet(ck);
+  if(!cached){
+   var all=[];
+   for(var fi=0;fi<GEO_FEEDS.length;fi++){
+    var feed=GEO_FEEDS[fi];
+    try{
+     var raw=null;
+     if(feed.url.indexOf("news.google")>=0){
+      var rg=await fetch(feed.url,{signal:AbortSignal.timeout(8000)});
+      if(rg.ok)raw=await rg.text();
+     } else {
+      var proxies=["https://corsproxy.io/?","https://api.allorigins.win/raw?url="];
+      for(var pi=0;pi<proxies.length&&!raw;pi++){
+       try{
+        var pu=proxies[pi]+(pi===0?encodeURIComponent(feed.url):encodeURIComponent(feed.url));
+        var rp=await fetch(pu,{signal:AbortSignal.timeout(8000)});
+        if(rp.ok){var t=await rp.text();if(t.length>200)raw=t;}
+       }catch(pe){}
       }
-      all.sort(function(a,b){return b.dt-a.dt;});
-      if(!all.length)throw new Error("Feeds indispon\u00edveis");
-      cached=all;lsSet(ck,cached);
-    }
-    GEO_DATA=cached;renderGeo();
-  }catch(e){
-    $("geo-body").innerHTML=er(e.message)+'<div style="margin-top:8px">'+GEO_FEEDS.map(function(f){return'<div style="margin:4px 0;font-size:.62rem">→ <a href="'+f.url+'" target="_blank" style="color:'+f.color+'">'+f.label+'</a></div>';}).join("")+"</div>";
+     }
+     if(!raw)continue;
+     var xml=new DOMParser().parseFromString(raw,"text/xml");
+     var items=xml.querySelectorAll("item");
+     for(var ii=0;ii<Math.min(items.length,7);ii++){
+      var it=items[ii];
+      var title=((it.querySelector("title")||{}).textContent||"").replace(/<!\[CDATA\[|\]\]>/g,"").trim();
+      var link=((it.querySelector("link")||{}).textContent||"").trim();
+      var pub=((it.querySelector("pubDate")||{}).textContent||"");
+      var dt=pub?new Date(pub).getTime():0;
+      if(title&&title.length>5)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
+     }
+    }catch(fe){console.warn("geo",feed.id,fe);}
+   }
+   all.sort(function(a,b){return b.dt-a.dt;});
+   if(!all.length)throw new Error("Feeds indispon\u00edveis");
+   cached=all;lsSet(ck,cached);
   }
+  GEO_DATA=cached;renderGeo();
+ }catch(e){
+  $("geo-body").innerHTML=er(e.message)+"<div style='margin-top:8px'>"+GEO_FEEDS.map(function(f){
+   return "<div style='margin:3px 0;font-size:.62rem'>\u2192 <a href='"+f.url+"' target='_blank' style='color:"+f.color+"'>"+f.label+"</a></div>";
+  }).join("")+"</div>";
+ }
 }
 
 function switchGeo(f,btn){
-  document.querySelectorAll(".geo-tab").forEach(function(b){b.classList.remove("on");});
-  if(btn)btn.classList.add("on");
-  GEO_FILTER=f;renderGeo();
+ document.querySelectorAll(".geo-tab").forEach(function(b){b.classList.remove("on");});
+ if(btn)btn.classList.add("on");
+ GEO_FILTER=f;renderGeo();
 }
 
 function renderGeo(){
-  var items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
-  if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
-  $("geo-body").innerHTML=items.slice(0,10).map(function(it){
-    var ago=fmtAgo(it.dt);
-    var lnk=(it.link||"").replace(/'/g,"\'");
-    return'<div class="geo-item" onclick="window.open(\'' +lnk+ '\')">'
-      +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
-      +'<div class="geo-title">'+it.title+'</div>'
-      +'<div class="geo-date">'+ago+'</div></div>';
-  }).join("");
+ var items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
+ if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
+ $("geo-body").innerHTML=items.slice(0,10).map(function(it){
+  var ago=fmtAgo(it.dt);
+  var lnk=(it.link||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+  return '<div class="geo-item" onclick="window.open(\''+lnk+'\')">'
+   +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
+   +'<div class="geo-title">'+it.title+'</div>'
+   +'<div class="geo-date">'+ago+'</div></div>';
+ }).join("");
 }
 
 function fmtAgo(ts){
-  var d=Math.floor((Date.now()-ts)/1000);
-  if(d<60)return"agora";if(d<3600)return Math.floor(d/60)+"min";
-  if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
+ var d=Math.floor((Date.now()-ts)/1000);
+ if(d<60)return"agora";if(d<3600)return Math.floor(d/60)+"min";
+ if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
 }
 
 </script>
