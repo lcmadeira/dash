@@ -383,6 +383,28 @@ textarea.nta::placeholder{color:var(--t3)}
 .imob-tab{font-family:var(--mono);font-size:.52rem;padding:3px 8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
 .imob-tab.on{background:#10b981;border-color:#10b981;color:#fff;font-weight:700}
 .imob-svg-wrap{width:100%;overflow:hidden}
+
+/* ── Mapa Conflitos v2 ── */
+.cmap-tabs{display:flex;gap:5px;margin-bottom:10px}
+.cmap-tab{font-family:var(--mono);font-size:.52rem;padding:3px 9px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
+.cmap-tab.on{background:#8B5CF6;border-color:#8B5CF6;color:#fff;font-weight:700}
+.cmap-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.cmap-stat{background:var(--c2);border:1px solid var(--b);border-radius:var(--rs);padding:9px 11px}
+.cmap-stat-lbl{font-family:var(--mono);font-size:.48rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:3px}
+.cmap-stat-val{font-size:1.1rem;font-weight:700;line-height:1}
+.cmap-stat-sub{font-family:var(--mono);font-size:.5rem;color:var(--t2);margin-top:2px}
+.cmap-region-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cmap-region-lbl{font-family:var(--mono);font-size:.52rem;color:var(--t2);width:130px;flex-shrink:0}
+.cmap-region-track{flex:1;height:5px;background:var(--b2);border-radius:3px;overflow:hidden}
+.cmap-region-fill{height:100%;border-radius:3px}
+.cmap-region-num{font-family:var(--mono);font-size:.52rem;color:var(--text);width:20px;text-align:right;flex-shrink:0}
+.cmap-conflict-list{max-height:280px;overflow-y:auto}
+.cmap-conflict-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--b)}
+.cmap-conflict-item:last-child{border-bottom:none}
+.cmap-conflict-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cmap-conflict-name{font-size:.65rem;font-weight:600;color:var(--text);flex:1}
+.cmap-conflict-type{font-family:var(--mono);font-size:.47rem;padding:1px 5px;border-radius:2px;border:1px solid;flex-shrink:0}
+.cmap-conflict-desc{font-family:var(--mono);font-size:.49rem;color:var(--t3);width:120px;flex-shrink:0;text-align:right}
 </style>
 </head>
 <body>
@@ -657,11 +679,16 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">🗺️</div>
-      <span class="ch-lbl">Mapa de Conflitos · Global 2026</span>
+      <span class="ch-lbl">Conflitos Globais · 2026</span>
       <div class="ch-r"><a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none">↗</a></div>
     </div>
-    <div class="cmap-wrap" id="cmap-wrap"></div>
-    <div class="cmap-legend">
+    <div class="cmap-tabs">
+      <button class="cmap-tab on" onclick="switchCmap('mapa',this)">Mapa</button>
+      <button class="cmap-tab"    onclick="switchCmap('stats',this)">Estatísticas</button>
+      <button class="cmap-tab"    onclick="switchCmap('lista',this)">Lista</button>
+    </div>
+    <div id="cmap-content"></div>
+    <div class="cmap-legend" id="cmap-legend">
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#EF4444"></div>Guerra activa</div>
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#F59E0B"></div>Alta intensidade</div>
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#8B5CF6"></div>Tensão</div>
@@ -1190,76 +1217,305 @@ setInterval(()=>{
   setTimeout(()=>loadMarketStats(true),800);
 },CACHE_TTL);
 
-/* ═══ MAPA CONFLITOS ═══ */
+/* ═══ MAPA CONFLITOS v2 ═══ */
 (function(){
+
 var C=[
- ["Ucr\u00e2nia","war",49.0,32.0,"Invas\u00e3o russa"],
- ["Gaza","war",31.4,34.4,"Israel\u2013Hamas"],
- ["Sud\u00e3o","war",15.5,32.5,"SAF vs RSF"],
- ["Myanmar","war",19.7,96.1,"Junta vs resist\u00eancia"],
- ["Eti\u00f3pia","war",9.1,40.5,"Amhara \u00b7 Oromia"],
- ["RD Congo","war",-4.0,21.8,"M23 \u00b7 Kivu"],
- ["Sahel","war",12.0,-2.0,"Jihadistas \u00b7 Wagner"],
- ["Som\u00e1lia","war",5.1,46.2,"Al-Shabaab"],
- ["I\u00e9men","war",15.5,48.5,"Houthis"],
- ["S\u00edria","war",35.0,38.3,"P\u00f3s-Assad"],
- ["Afeganist\u00e3o","war",33.9,67.7,"Talib\u00e3 \u00b7 IS-K"],
- ["L\u00edbano","high",33.9,35.5,"Hezbollah"],
- ["Iraque","high",33.2,43.7,"Mil\u00edcias"],
- ["Mo\u00e7ambique","high",-13.0,39.0,"Cabo Delgado"],
- ["Nig\u00e9ria N.","high",11.8,13.2,"Boko Haram"],
- ["Haiti","high",18.9,-72.3,"Gangues"],
- ["Cisjord\u00e2nia","high",31.9,35.2,"Colonatos"],
- ["Taiwan","tension",24.0,121.0,"EUA\u2013China"],
- ["Coreia Norte","tension",40.0,127.5,"Nuclear \u00b7 ICBM"],
- ["Ir\u00e3o","tension",32.4,53.7,"Proxy regional"],
- ["Kosovo","tension",42.6,21.2,"S\u00e9rvia \u00b7 NATO"],
- ["Ge\u00f3rgia","tension",42.3,43.4,"Influ\u00eancia russa"],
- ["Mold\u00e1via","tension",47.4,28.9,"Transnistria"],
- ["Arm\u00e9nia","tension",40.1,47.6,"P\u00f3s-Karabakh"],
- ["Mar Sul China","tension",14.0,114.0,"Filipinas \u00b7 China"],
- ["Venezuela","tension",6.4,-61.2,"Essequibo"],
- ["Paquist\u00e3o-\u00cdndia","nuclear",30.0,73.0,"Kashmir"],
- ["R\u00fassia-OTAN","nuclear",55.0,37.6,"Ret\u00f3rica nuclear"]
+  /* [nome, tipo, lat, lon, descrição, região] */
+  ["Ucrânia","war",49.0,32.0,"Invasão russa — 3.º ano","Europa"],
+  ["Gaza","war",31.4,34.4,"Israel–Hamas · ofensiva","Médio Oriente"],
+  ["Sudão","war",15.5,32.5,"SAF vs RSF — colapso estatal","África"],
+  ["Myanmar","war",19.7,96.1,"Junta vs resistência","Ásia"],
+  ["Etiópia","war",9.1,40.5,"Amhara · Oromia","África"],
+  ["RD Congo","war",-4.0,21.8,"M23 · Kivu Norte","África"],
+  ["Sahel","war",12.0,-2.0,"Jihadistas · Wagner","África"],
+  ["Somália","war",5.1,46.2,"Al-Shabaab","África"],
+  ["Iémen","war",15.5,48.5,"Houthis · coalizão","Médio Oriente"],
+  ["Síria","war",35.0,38.3,"Pós-Assad · fragmentação","Médio Oriente"],
+  ["Afeganistão","war",33.9,67.7,"Talibã · IS-K","Ásia"],
+  ["Líbano","high",33.9,35.5,"Reconstrução pós-guerra","Médio Oriente"],
+  ["Iraque","high",33.2,43.7,"Milícias pro-Irão","Médio Oriente"],
+  ["Moçambique","high",-13.0,39.0,"Cabo Delgado · ISCAP","África"],
+  ["Nigéria N.","high",11.8,13.2,"Boko Haram · ISWAP","África"],
+  ["Haiti","high",18.9,-72.3,"Gangues · colapso estado","Américas"],
+  ["Cisjordânia","high",31.9,35.2,"Colonatos · IDF","Médio Oriente"],
+  ["Burkina Faso","high",12.4,-1.5,"Junta · jihadistas","África"],
+  ["Taiwan","tension",24.0,121.0,"PRC vs EUA · estreito","Ásia"],
+  ["Coreia Norte","tension",40.0,127.5,"Nuclear · ICBM","Ásia"],
+  ["Irão","tension",32.4,53.7,"Proxy regional · nuclear","Médio Oriente"],
+  ["Kosovo","tension",42.6,21.2,"Sérvia · NATO","Europa"],
+  ["Geórgia","tension",42.3,43.4,"Influência russa","Europa"],
+  ["Moldávia","tension",47.4,28.9,"Transnistria","Europa"],
+  ["Arménia","tension",40.1,47.6,"Pós-Karabakh · Azerbaijão","Europa"],
+  ["Mar Sul China","tension",14.0,114.0,"Filipinas · China · EUA","Ásia"],
+  ["Venezuela","tension",6.4,-61.2,"Essequibo · Guiana","Américas"],
+  ["Paquistão–Índia","nuclear",30.0,73.0,"Kashmir · LOC","Ásia"],
+  ["Rússia–OTAN","nuclear",55.0,37.6,"Retórica nuclear","Europa"],
 ];
+
 var CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-var CR={war:7,high:5.5,tension:4.5,nuclear:5.5};
-var CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tens\u00e3o",nuclear:"Risco Nuclear"};
-function xy(a,o){return[(o+180)/360*960+20,(90-a)/180*480+10];}
+var CR={war:8,high:6,tension:5,nuclear:6};
+var CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
+
+/* Projecção de Mercator simples: lon→x, lat→y para viewBox 1000×500 */
+function proj(lat,lon){
+  var x=(lon+180)/360*1000;
+  var latr=lat*Math.PI/180;
+  var y=(1-(Math.log(Math.tan(Math.PI/4+latr/2))/Math.PI))/2*500;
+  return[Math.round(x),Math.round(Math.max(0,Math.min(500,y)))];
+}
+
+/* ── MAPA ── */
 window.buildConflictMap=function(){
- var w=document.getElementById("cmap-wrap");
- if(!w)return;
- var defs='<defs><radialGradient id="ogx" cx="50%" cy="60%" r="80%"><stop offset="0%" stop-color="#0d1b3e"/><stop offset="100%" stop-color="#060a14"/></radialGradient>';
- var pu="",do2="";
- C.forEach(function(c,i){
-  var v=xy(c[2],c[3]),col=CC[c[1]],r=CR[c[1]];
-  if(c[1]==="war"||c[1]==="nuclear"){
-   defs+='<radialGradient id="rg'+i+'" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="'+col+'" stop-opacity=".8"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></radialGradient>';
-   pu+='<circle cx="'+v[0]+'" cy="'+v[1]+'" r="'+( r*2)+'" fill="url(#rg'+i+')"><animate attributeName="r" values="'+( r*1.2)+';'+( r*3)+';'+( r*1.2)+'" dur="'+( 1.4+i*0.06)+'s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;0;.6" dur="'+( 1.4+i*0.06)+'s" repeatCount="indefinite"/></circle>';
-  }
-  do2+='<circle class="cdot" cx="'+v[0]+'" cy="'+v[1]+'" r="'+r+'" fill="'+col+'" stroke="#06080f" stroke-width="1" opacity=".9" data-i="'+i+'" style="cursor:pointer"/>';
- });
- defs+="</defs>";
- var land='<g id="land" fill="#1a2744" stroke="#243060" stroke-width="0.4" stroke-linejoin="round"> <!-- América do Norte --> <path d="M164,62 L172,58 L182,54 L194,52 L204,54 L214,52 L222,48 L232,46 L240,48 L248,52 L252,58 L256,62 L262,68 L268,72 L272,78 L274,84 L270,90 L264,94 L258,98 L252,102 L248,108 L244,114 L238,118 L232,122 L226,126 L220,128 L214,130 L208,132 L202,134 L196,134 L190,132 L184,128 L178,124 L174,118 L170,112 L166,106 L162,100 L160,94 L160,88 L162,82 L164,76 Z"/> <!-- Gronelândia --> <path d="M320,28 L334,24 L348,22 L360,24 L370,28 L378,34 L382,40 L380,46 L374,50 L366,54 L356,56 L346,54 L336,50 L328,44 L322,38 Z"/> <!-- América Central --> <path d="M196,130 L204,128 L212,130 L218,134 L222,140 L220,146 L216,150 L210,152 L204,150 L198,146 L194,140 L194,134 Z"/> <!-- Caraíbas (Cuba) --> <path d="M208,140 L218,138 L224,140 L222,144 L214,146 L208,144 Z"/> <!-- América do Sul --> <path d="M204,158 L216,154 L228,152 L240,154 L250,158 L258,164 L264,172 L268,180 L270,190 L270,200 L268,210 L264,220 L258,230 L252,240 L246,250 L240,258 L234,264 L228,268 L222,270 L216,268 L210,264 L204,258 L198,250 L194,242 L190,232 L188,222 L188,212 L190,202 L192,192 L194,182 L196,172 L198,164 Z"/> <!-- Europa Ocidental --> <path d="M458,82 L466,78 L474,76 L480,78 L484,82 L486,88 L484,94 L480,98 L474,100 L468,98 L462,94 L458,88 Z"/> <!-- Península Ibérica --> <path d="M448,98 L458,94 L466,96 L470,102 L468,108 L462,112 L454,112 L448,108 L446,102 Z"/> <!-- França/Alemanha --> <path d="M464,82 L476,78 L488,76 L498,78 L506,82 L510,88 L508,94 L502,98 L494,100 L486,100 L478,98 L470,94 L466,88 Z"/> <!-- Escandinávia --> <path d="M484,54 L494,48 L504,44 L514,44 L522,48 L526,56 L524,64 L518,70 L510,74 L502,74 L494,70 L488,64 L484,58 Z"/> <!-- Península Itálica --> <path d="M488,96 L496,92 L502,96 L504,104 L502,112 L496,118 L490,116 L486,110 L486,102 Z"/> <!-- Balcãs/Grécia --> <path d="M508,96 L518,92 L526,94 L530,100 L528,108 L522,112 L514,112 L508,108 L506,102 Z"/> <!-- Europa de Leste/Ucrânia --> <path d="M506,72 L522,66 L538,62 L554,62 L566,66 L572,72 L570,80 L562,86 L550,90 L536,92 L522,90 L510,86 L504,80 Z"/> <!-- Rússia (Europa) --> <path d="M524,52 L546,44 L570,40 L594,40 L614,44 L628,50 L634,58 L630,66 L618,72 L602,76 L584,78 L566,76 L550,72 L536,66 L526,60 Z"/> <!-- Rússia (Ásia/Sibéria) --> <path d="M600,38 L650,32 L700,30 L750,32 L800,36 L840,42 L860,50 L850,60 L830,68 L800,74 L760,78 L720,80 L680,78 L640,74 L604,68 L590,60 L594,50 Z"/> <!-- Cazaquistão/Ásia Central --> <path d="M576,78 L610,72 L644,70 L672,72 L694,78 L706,86 L700,94 L684,100 L660,104 L634,104 L610,100 L588,94 L576,86 Z"/> <!-- Turquia/Anatólia --> <path d="M528,104 L548,98 L568,96 L584,98 L594,104 L596,112 L588,118 L570,122 L550,122 L532,118 L524,112 Z"/> <!-- Médio Oriente --> <path d="M554,114 L574,110 L592,112 L606,118 L612,126 L608,134 L596,140 L578,142 L562,140 L550,132 L548,122 Z"/> <!-- Arábia Saudita/Iémen --> <path d="M560,130 L584,126 L608,128 L624,134 L628,144 L620,154 L602,160 L580,160 L562,154 L552,144 L552,134 Z"/> <!-- Irão/Afeganistão --> <path d="M596,104 L624,98 L652,96 L674,100 L686,108 L684,118 L670,126 L648,130 L624,130 L602,124 L590,116 Z"/> <!-- Paquistão/Índia --> <path d="M648,108 L674,102 L700,100 L722,104 L736,114 L734,126 L720,136 L698,142 L672,144 L648,140 L630,130 L628,118 Z"/> <!-- Índia (sul) --> <path d="M672,140 L694,138 L710,144 L714,156 L706,168 L692,174 L678,170 L668,160 L666,148 Z"/> <!-- Sri Lanka --> <path d="M700,168 L706,166 L708,172 L704,176 L698,174 Z"/> <!-- China --> <path d="M688,78 L724,70 L762,66 L794,68 L814,76 L820,86 L814,96 L796,104 L772,110 L746,112 L720,110 L698,104 L682,96 L680,86 Z"/> <!-- Sudeste Asiático (Indochina) --> <path d="M726,110 L748,106 L766,108 L778,116 L778,126 L768,134 L750,138 L734,136 L722,128 L720,118 Z"/> <!-- Coreia --> <path d="M776,84 L786,80 L794,82 L796,90 L790,96 L782,96 L776,90 Z"/> <!-- Japão --> <path d="M796,82 L808,78 L816,82 L814,90 L806,94 L798,92 Z"/> <!-- Indonésia (Sumatra/Java) --> <path d="M730,152 L752,148 L772,148 L784,154 L782,162 L766,166 L748,164 L732,158 Z"/> <!-- Filipinas --> <path d="M778,120 L788,116 L796,120 L796,130 L788,134 L780,130 Z"/> <!-- África do Norte --> <path d="M454,116 L490,110 L530,108 L566,110 L590,116 L598,126 L594,136 L578,144 L552,148 L520,150 L488,148 L460,144 L440,136 L436,126 Z"/> <!-- África Ocidental --> <path d="M440,136 L464,132 L488,136 L500,146 L504,158 L498,170 L486,178 L468,180 L450,176 L436,166 L430,154 L432,144 Z"/> <!-- África Central/Congo --> <path d="M482,152 L514,148 L546,150 L566,158 L572,170 L566,182 L550,190 L528,194 L506,192 L486,184 L474,172 L474,160 Z"/> <!-- Chifre de África/Etiópia --> <path d="M564,144 L590,138 L612,138 L628,144 L630,156 L622,166 L606,172 L586,172 L568,164 L558,154 Z"/> <!-- África Oriental --> <path d="M566,162 L592,158 L612,162 L624,172 L622,186 L610,198 L592,204 L572,202 L556,192 L550,178 L552,166 Z"/> <!-- África do Sul --> <path d="M498,192 L528,188 L558,188 L576,196 L578,210 L570,224 L552,234 L530,238 L508,234 L492,224 L486,210 L488,198 Z"/> <!-- Madagáscar --> <path d="M584,192 L594,188 L602,192 L602,204 L594,212 L584,210 L580,200 Z"/> <!-- Austrália --> <path d="M734,238 L772,228 L812,226 L844,232 L860,244 L858,260 L842,272 L818,280 L790,282 L762,278 L738,268 L722,254 L722,242 Z"/> <!-- Nova Zelândia --> <path d="M862,278 L872,272 L878,278 L874,286 L866,288 Z"/> <!-- Alasca --> <path d="M90,52 L106,46 L122,46 L134,52 L136,62 L126,70 L110,72 L96,68 L88,60 Z"/> <!-- Canadá --> <path d="M130,52 L170,44 L210,40 L246,42 L270,50 L274,62 L260,72 L236,78 L208,80 L180,78 L156,72 L136,64 Z"/> </g>';
- var grid='<g stroke="#162040" stroke-width="0.4" opacity="0.7">'+'<line x1="0" y1="125" x2="1000" y2="125"/>'+'<line x1="0" y1="208" x2="1000" y2="208"/>'+'<line x1="0" y1="292" x2="1000" y2="292"/>'+'<line x1="250" y1="0" x2="250" y2="500"/>'+'<line x1="500" y1="0" x2="500" y2="500"/>'+'<line x1="750" y1="0" x2="750" y2="500"/>'+'</g>';
-var svgStr='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:420px">'+'<defs><radialGradient id="bggrad" cx="40%" cy="45%" r="75%"><stop offset="0%" stop-color="#0e1f4a"/><stop offset="100%" stop-color="#040b1a"/></radialGradient></defs>'+'<rect width="1000" height="500" fill="url(#bggrad)"/>'+grid+land+defs+pu+do2+'<text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3a5a">ACLED · Crisis Group · CFR · UCDP · Mar 2026</text>'+'</svg><div class="cmap-tip" id="cmap-tip"></div>';
- w.innerHTML=svgStr;
- var tip=document.getElementById("cmap-tip");
- w.querySelectorAll(".cdot").forEach(function(dot){
-  dot.addEventListener("mouseenter",function(){
-   var c=C[+dot.dataset.i];
-   tip.innerHTML='<div class="cmap-tip-name">'+c[0]+'</div><div class="cmap-tip-type" style="color:'+CC[c[1]]+'">'+CL[c[1]]+'</div><div class="cmap-tip-desc">'+c[4]+'</div>';
-   tip.classList.add("show");
+  var wrap=document.getElementById("cmap-content");
+  if(!wrap)return;
+
+  /* Continentes — paths simplificados mas geograficamente correctos */
+  var PATHS=[
+    /* América do Norte */
+    "M167,55 L182,48 L200,43 L220,41 L238,44 L252,50 L260,58 L268,65 L274,74 L276,84 L272,94 L264,102 L254,108 L244,114 L232,120 L218,126 L206,130 L194,132 L182,130 L172,124 L164,116 L160,106 L158,96 L160,84 L162,72 Z",
+    /* Gronelândia */
+    "M310,22 L328,16 L348,14 L364,18 L374,26 L376,36 L370,44 L356,50 L338,52 L322,46 L312,36 Z",
+    /* Alasca */
+    "M88,48 L104,42 L118,44 L128,52 L124,62 L110,66 L96,62 Z",
+    /* Canadá norte */
+    "M128,38 L168,30 L210,28 L246,32 L270,42 L272,54 L252,60 L222,62 L190,60 L160,54 L134,46 Z",
+    /* América Central */
+    "M192,128 L206,124 L216,128 L222,136 L218,144 L210,148 L200,146 L192,138 Z",
+    /* Cuba */
+    "M204,136 L218,132 L226,136 L222,142 L210,144 Z",
+    /* América do Sul */
+    "M200,152 L218,146 L234,146 L250,150 L262,158 L270,168 L274,180 L274,196 L270,212 L262,228 L252,244 L240,258 L228,268 L216,272 L204,268 L192,258 L184,244 L180,228 L180,212 L182,196 L186,180 L190,166 L196,156 Z",
+    /* Europa Ocidental + Ibérica */
+    "M446,90 L458,84 L470,80 L484,78 L496,80 L506,86 L510,94 L508,102 L500,108 L488,112 L474,112 L462,108 L452,102 L446,96 Z",
+    /* Escandinávia */
+    "M478,46 L492,38 L506,36 L518,40 L524,50 L520,62 L510,70 L498,72 L486,68 L478,58 Z",
+    /* Ilhas Britânicas */
+    "M456,68 L466,64 L472,68 L470,76 L462,78 L456,74 Z",
+    /* Europa Central/Leste */
+    "M506,74 L526,66 L548,62 L568,64 L578,72 L574,82 L560,90 L540,94 L520,92 L508,84 Z",
+    /* Rússia Europa */
+    "M522,48 L550,40 L580,36 L610,36 L632,42 L638,52 L630,62 L610,70 L584,74 L558,72 L534,64 L524,54 Z",
+    /* Sibéria/Rússia Ásia */
+    "M596,28 L660,20 L730,18 L796,22 L840,30 L856,42 L848,56 L824,66 L786,72 L742,74 L696,70 L650,64 L610,58 L594,46 Z",
+    /* Cazaquistão/Ásia Central */
+    "M572,72 L612,66 L652,66 L684,70 L702,80 L696,92 L672,100 L640,104 L606,100 L578,90 Z",
+    /* Turquia */
+    "M524,100 L550,94 L576,92 L596,96 L604,106 L596,114 L572,118 L548,118 L528,112 Z",
+    /* Médio Oriente */
+    "M554,110 L578,104 L600,106 L614,116 L616,128 L606,138 L584,144 L560,142 L546,130 L546,118 Z",
+    /* Arábia/Iémen */
+    "M558,128 L588,122 L616,124 L632,134 L630,150 L616,160 L592,162 L566,156 L550,144 Z",
+    /* Irão/Afeganistão/Paquistão */
+    "M594,96 L634,90 L672,88 L700,94 L714,106 L706,120 L680,130 L648,132 L616,126 L598,114 Z",
+    /* Índia */
+    "M664,100 L696,94 L720,98 L736,112 L730,130 L714,144 L692,150 L670,148 L652,134 L650,116 Z",
+    /* Índia sul */
+    "M672,146 L696,144 L708,156 L704,172 L690,178 L676,172 L666,158 Z",
+    /* Sri Lanka */
+    "M698,170 L706,168 L708,176 L702,180 L696,176 Z",
+    /* China */
+    "M684,70 L730,62 L774,60 L808,66 L822,78 L816,92 L796,102 L764,108 L730,108 L698,100 L680,88 Z",
+    /* Coreia+Japão */
+    "M784,76 L798,72 L808,76 L806,86 L796,90 L784,86 Z",
+    /* Japão */
+    "M808,72 L820,68 L828,74 L824,84 L814,88 L808,82 Z",
+    /* Indochina/SEA */
+    "M724,104 L752,98 L772,102 L782,114 L778,128 L764,136 L744,138 L726,128 L720,114 Z",
+    /* Indonésia */
+    "M728,146 L758,140 L784,142 L794,150 L786,160 L760,162 L732,156 Z",
+    /* Filipinas */
+    "M778,112 L790,108 L798,114 L796,126 L786,130 L778,124 Z",
+    /* África do Norte */
+    "M452,110 L494,104 L538,102 L572,106 L594,114 L596,126 L582,138 L548,146 L510,148 L474,144 L448,134 L440,120 Z",
+    /* África Ocidental */
+    "M438,130 L468,124 L494,128 L506,140 L504,156 L492,168 L468,174 L446,168 L430,154 L430,138 Z",
+    /* África Central */
+    "M480,148 L520,142 L556,146 L574,158 L572,176 L554,188 L524,192 L494,188 L474,174 L472,158 Z",
+    /* Etiópia/Corno */
+    "M566,138 L598,132 L622,136 L630,150 L620,164 L598,170 L572,166 L556,152 Z",
+    /* África Oriental */
+    "M566,160 L598,156 L618,164 L622,182 L610,200 L588,208 L564,204 L548,188 L550,170 Z",
+    /* África do Sul */
+    "M494,186 L534,182 L568,184 L582,198 L578,218 L562,232 L536,238 L508,234 L490,218 L486,200 Z",
+    /* Madagáscar */
+    "M582,184 L594,180 L602,188 L600,204 L590,212 L580,206 L578,194 Z",
+    /* Austrália */
+    "M730,230 L778,220 L822,220 L852,230 L862,248 L854,268 L832,280 L800,286 L766,282 L736,268 L720,250 Z",
+    /* Nova Zelândia */
+    "M864,270 L874,264 L880,272 L874,282 L866,282 Z",
+  ];
+
+  var defs='<defs>';
+  defs+='<radialGradient id="bggrad2" cx="35%" cy="40%" r="75%">';
+  defs+='<stop offset="0%" stop-color="#0c1d4a"/>';
+  defs+='<stop offset="100%" stop-color="#030b1c"/>';
+  defs+='</radialGradient>';
+  C.forEach(function(c,i){
+    if(c[1]==="war"||c[1]==="nuclear"){
+      defs+='<radialGradient id="pg'+i+'" cx="50%" cy="50%" r="50%">';
+      defs+='<stop offset="0%" stop-color="'+CC[c[1]]+'" stop-opacity=".7"/>';
+      defs+='<stop offset="100%" stop-color="'+CC[c[1]]+'" stop-opacity="0"/>';
+      defs+='</radialGradient>';
+    }
   });
-  dot.addEventListener("mousemove",function(e){
-   var rc=w.getBoundingClientRect(),tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
-   if(tx+215>rc.width)tx-=225;
-   tip.style.left=tx+"px";tip.style.top=ty+"px";
+  defs+='</defs>';
+
+  /* Grid geográfico */
+  var grid='<g stroke="#192d5a" stroke-width="0.5" opacity="0.5">';
+  /* Meridianos: -180,-150,-120,-90,-60,-30,0,30,60,90,120,150 */
+  [-150,-120,-90,-60,-30,0,30,60,90,120,150].forEach(function(lon){
+    var x=Math.round((lon+180)/360*1000);
+    grid+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="500"/>';
+    if(lon!==0&&lon!==-150)
+      grid+='<text x="'+x+'" y="496" font-size="7" fill="#263c6a" text-anchor="middle">'+lon+'°</text>';
   });
-  dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
- });
+  /* Paralelos: 60N, 30N, Eq, 30S */
+  [{lat:60,label:"60°N"},{lat:30,label:"30°N"},{lat:0,label:"Eq"},{lat:-30,label:"30°S"}].forEach(function(p){
+    var latr=p.lat*Math.PI/180;
+    var y=Math.round((1-(Math.log(Math.tan(Math.PI/4+latr/2))/Math.PI))/2*500);
+    if(y<0||y>500)return;
+    grid+='<line x1="0" y1="'+y+'" x2="1000" y2="'+y+'"/>';
+    grid+='<text x="4" y="'+(y-2)+'" font-size="7" fill="#263c6a">'+p.label+'</text>';
+  });
+  grid+='</g>';
+
+  /* Continentes */
+  var land='<g fill="#1e3060" stroke="#2a4280" stroke-width="0.5" stroke-linejoin="round" opacity="0.9">';
+  PATHS.forEach(function(d){land+='<path d="'+d+'"/>';});
+  land+='</g>';
+
+  /* Pulsar + dots */
+  var pulsar='',dots='';
+  C.forEach(function(c,i){
+    var p=proj(c[2],c[3]),col=CC[c[1]],r=CR[c[1]];
+    if(c[1]==="war"||c[1]==="nuclear"){
+      var dur=(1.6+i*0.05).toFixed(2);
+      pulsar+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(r*2.2)+'" fill="url(#pg'+i+')">';
+      pulsar+='<animate attributeName="r" values="'+(r*1.5)+';'+(r*3.5)+';'+(r*1.5)+'" dur="'+dur+'s" repeatCount="indefinite"/>';
+      pulsar+='<animate attributeName="opacity" values=".7;0;.7" dur="'+dur+'s" repeatCount="indefinite"/>';
+      pulsar+='</circle>';
+    }
+    dots+='<circle class="cdot" cx="'+p[0]+'" cy="'+p[1]+'" r="'+r+'" fill="'+col+'" stroke="#050d20" stroke-width="1.2" opacity=".95" data-i="'+i+'" style="cursor:pointer"/>';
+  });
+
+  var svg='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:420px;display:block">';
+  svg+='<rect width="1000" height="500" fill="url(#bggrad2)"/>';
+  svg+=grid+defs+land+pulsar+dots;
+  svg+='<text x="8" y="494" font-family="monospace" font-size="6.5" fill="#1e3060">Projecção Mercator · ACLED · Crisis Group · CFR · UCDP · Mar 2026</text>';
+  svg+='</svg>';
+  svg+='<div class="cmap-tip" id="cmap-tip"></div>';
+
+  wrap.innerHTML=svg;
+
+  var tip=document.getElementById("cmap-tip");
+  wrap.querySelectorAll(".cdot").forEach(function(dot){
+    dot.addEventListener("mouseenter",function(){
+      var c=C[+dot.dataset.i];
+      tip.innerHTML='<div class="cmap-tip-name">'+c[0]+'</div>'
+        +'<div class="cmap-tip-type" style="color:'+CC[c[1]]+'">'+CL[c[1]]+'</div>'
+        +'<div class="cmap-tip-desc">'+c[4]+'</div>'
+        +'<div style="font-family:var(--mono);font-size:.45rem;color:var(--t3);margin-top:3px">'+c[5]+'</div>';
+      tip.classList.add("show");
+    });
+    dot.addEventListener("mousemove",function(e){
+      var rc=wrap.getBoundingClientRect(),tx=e.clientX-rc.left+14,ty=e.clientY-rc.top+14;
+      if(tx+220>rc.width)tx-=230;
+      if(ty+90>rc.height)ty-=95;
+      tip.style.left=tx+"px";tip.style.top=ty+"px";
+    });
+    dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
+  });
 };
+
+/* ── STATS ── */
+function buildStats(){
+  var wrap=document.getElementById("cmap-content");
+  if(!wrap)return;
+
+  var byType={war:0,high:0,tension:0,nuclear:0};
+  var byRegion={};
+  C.forEach(function(c){
+    byType[c[1]]++;
+    byRegion[c[5]]=(byRegion[c[5]]||0)+1;
+  });
+  var total=C.length;
+
+  var regions=Object.entries(byRegion).sort(function(a,b){return b[1]-a[1];});
+  var maxR=regions[0][1];
+
+  var regionColors={"Médio Oriente":"#ef4444","África":"#f59e0b","Ásia":"#8b5cf6","Europa":"#3b82f6","Américas":"#10b981"};
+
+  var html='<div class="cmap-stat-grid">';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:#ef4444">'+total+'</div><div class="cmap-stat-sub">activos · Mar 2026</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras activas</div><div class="cmap-stat-val" style="color:#ef4444">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Alta intensidade</div><div class="cmap-stat-val" style="color:#f59e0b">'+byType.high+'</div><div class="cmap-stat-sub">violência significativa</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Risco nuclear</div><div class="cmap-stat-val" style="color:#3b82f6">'+byType.nuclear+'</div><div class="cmap-stat-sub">cenários escalação</div></div>';
+  html+='</div>';
+
+  html+='<div style="font-family:var(--mono);font-size:.5rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Distribuição por região</div>';
+  regions.forEach(function(r){
+    var col=regionColors[r[0]]||"#6b7280";
+    html+='<div class="cmap-region-row">'
+      +'<div class="cmap-region-lbl">'+r[0]+'</div>'
+      +'<div class="cmap-region-track"><div class="cmap-region-fill" style="width:'+Math.round(r[1]/maxR*100)+'%;background:'+col+'"></div></div>'
+      +'<div class="cmap-region-num">'+r[1]+'</div>'
+      +'</div>';
+  });
+
+  /* Índice de intensidade global */
+  var intensity=Math.round((byType.war*4+byType.nuclear*3+byType.high*2+byType.tension)/total*25);
+  html+='<div style="margin-top:12px;padding:10px;background:var(--c2);border:1px solid var(--b);border-radius:var(--rs)">';
+  html+='<div style="font-family:var(--mono);font-size:.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Índice de tensão global</div>';
+  html+='<div style="display:flex;align-items:center;gap:10px">';
+  html+='<div style="font-size:1.6rem;font-weight:700;color:#ef4444">'+intensity+'</div>';
+  html+='<div>';
+  html+='<div style="width:160px;height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:3px">';
+  html+='<div style="width:'+intensity+'%;height:100%;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444);border-radius:4px"></div>';
+  html+='</div>';
+  html+='<div style="font-family:var(--mono);font-size:.48rem;color:var(--t3)">Elevado · tendência crescente desde 2022</div>';
+  html+='</div></div></div>';
+
+  wrap.innerHTML=html;
+}
+
+/* ── LISTA ── */
+function buildLista(){
+  var wrap=document.getElementById("cmap-content");
+  if(!wrap)return;
+  var sorted=C.slice().sort(function(a,b){
+    var order={war:0,nuclear:1,high:2,tension:3};
+    return order[a[1]]-order[b[1]];
+  });
+  var html='<div class="cmap-conflict-list">';
+  sorted.forEach(function(c){
+    var col=CC[c[1]];
+    html+='<div class="cmap-conflict-item">'
+      +'<div class="cmap-conflict-dot" style="background:'+col+'"></div>'
+      +'<div class="cmap-conflict-name">'+c[0]+'</div>'
+      +'<div class="cmap-conflict-type" style="color:'+col+';border-color:'+col+'44;background:'+col+'11">'+CL[c[1]]+'</div>'
+      +'<div class="cmap-conflict-desc">'+c[4]+'</div>'
+      +'</div>';
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
+/* ── TAB SWITCH ── */
+var CMAP_TAB="mapa";
+window.switchCmap=function(tab,btn){
+  document.querySelectorAll(".cmap-tab").forEach(function(b){b.classList.remove("on");});
+  if(btn)btn.classList.add("on");
+  CMAP_TAB=tab;
+  var legend=document.getElementById("cmap-legend");
+  if(legend)legend.style.display=tab==="mapa"?"flex":"none";
+  if(tab==="mapa")window.buildConflictMap();
+  else if(tab==="stats")buildStats();
+  else buildLista();
+};
+
 })();
+
 
 /* ═══ RSS GEOPOLÍTICO ═══ */
 var GEO_DATA=[],GEO_FILTER="all";
