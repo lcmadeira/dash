@@ -6,7 +6,78 @@
 <title>Painel Pessoal · Portugal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+/* ── Geopolítica — RSS feeds via Google RSS2JSON proxy ── */
+const GEO_FEEDS=[
+  {id:"icg", label:"Crisis Group",    color:"#EF4444", url:"https://www.crisisgroup.org/rss/139"},
+  {id:"gpf", label:"Geop. Futures",   color:"#F59E0B", url:"https://geopoliticalfutures.com/feed/"},
+  {id:"fa",  label:"Foreign Affairs", color:"#8B5CF6", url:"https://news.google.com/rss/search?q=geopolitics+site:foreignaffairs.com&hl=en&gl=US&ceid=US:en"},
+];
+let GEO_DATA=[];
+let GEO_FILTER="all";
+
+async function loadGeo(force=false){
+  $("geo-body").innerHTML=ld();
+  try{
+    const ck="geo_feeds";
+    let cached=force?null:lsGet(ck);
+    if(!cached){
+      const all=[];
+      for(const feed of GEO_FEEDS){
+        try{
+          // Usar allorigins como proxy CORS para RSS
+          const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`;
+          const r=await fetch(proxy);
+          const j=await r.json();
+          const xml=new DOMParser().parseFromString(j.contents,"text/xml");
+          const items=[...xml.querySelectorAll("item")].slice(0,6);
+          items.forEach(it=>{
+            const title=it.querySelector("title")?.textContent?.trim()||"";
+            const link=it.querySelector("link")?.textContent?.trim()||"";
+            const pubDate=it.querySelector("pubDate")?.textContent?.trim()||"";
+            const dt=pubDate?new Date(pubDate):new Date(0);
+            if(title) all.push({id:feed.id,label:feed.label,color:feed.color,title,link,dt:dt.getTime()});
+          });
+        }catch(fe){console.warn("Feed error",feed.id,fe);}
+      }
+      all.sort((a,b)=>b.dt-a.dt);
+      cached=all;
+      lsSet(ck,cached);
+    }
+    GEO_DATA=cached;
+    renderGeo();
+  }catch(e){$("geo-body").innerHTML=er(e.message);}
+}
+
+function switchGeo(filter,btn){
+  document.querySelectorAll(".geo-tab").forEach(b=>b.classList.remove("on"));
+  if(btn)btn.classList.add("on");
+  GEO_FILTER=filter;
+  renderGeo();
+}
+
+function renderGeo(){
+  const items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(x=>x.id===GEO_FILTER);
+  if(!items||!items.length){$("geo-body").innerHTML=`<p style="color:var(--t3);font-size:.7rem;padding:12px 0">Sem artigos disponíveis.</p>`;return;}
+  $("geo-body").innerHTML=items.slice(0,10).map(it=>{
+    const ago=it.dt?fmtAgo(it.dt):"";
+    return`<div class="geo-item" onclick="window.open('${it.link}','_blank')">
+      <div><span class="geo-src-tag" style="color:${it.color};border-color:${it.color}44;background:${it.color}11">${it.label}</span></div>
+      <div class="geo-title">${it.title}</div>
+      <div class="geo-date">${ago}</div>
+    </div>`;
+  }).join("");
+}
+
+function fmtAgo(ts){
+  const diff=Math.floor((Date.now()-ts)/1000);
+  if(diff<60)return"agora";
+  if(diff<3600)return`${Math.floor(diff/60)}min`;
+  if(diff<86400)return`${Math.floor(diff/3600)}h`;
+  return`${Math.floor(diff/86400)}d`;
+}
+
+</script>
 <style>
 :root {
   --bg:      #07090E;
@@ -343,6 +414,22 @@ textarea.nta::placeholder{color:var(--t3)}
 .mkt-city.closed .mkt-city-dot{background:var(--b2)}
 /* Ticker tape sem margem inferior (a mkt-bar faz o espaçamento) */
 .tv-tape-wrap{margin-bottom:0!important}
+
+/* Geopolítica */
+.geo-item{padding:9px 0;border-bottom:1px solid var(--b);cursor:pointer}
+.geo-item:last-child{border-bottom:none}
+.geo-item:hover .geo-title{color:var(--accent)}
+.geo-src-tag{display:inline-block;font-family:var(--mono);font-size:.45rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:1px 5px;border-radius:3px;margin-bottom:4px;border:1px solid}
+.geo-title{font-size:.72rem;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:3px}
+.geo-date{font-family:var(--mono);font-size:.5rem;color:var(--t3)}
+.geo-tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.geo-tab{font-family:var(--mono);font-size:.55rem;padding:3px 9px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
+.geo-tab.on{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+/* Mapa conflitos */
+.conflict-map-wrap{position:relative;width:100%;border-radius:var(--rs);overflow:hidden;background:#0a0d1c;border:1px solid var(--b)}
+.conflict-map-wrap iframe{width:100%;height:420px;border:none;display:block}
+.conflict-map-overlay{position:absolute;top:8px;right:8px;display:flex;gap:6px;flex-direction:column;align-items:flex-end}
+.conflict-badge{font-family:var(--mono);font-size:.5rem;font-weight:700;padding:3px 7px;border-radius:4px;border:1px solid}
 </style>
 </head>
 <body>
@@ -565,6 +652,55 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
 
+
+
+  <!-- ══ GEOPOLÍTICA ══ -->
+  <div class="sec"><div class="sec-bar" style="background:#8B5CF6"></div>
+    <span style="color:#8B5CF6">Geopolítica</span>
+    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Conflitos · Análise · Intelligence</span>
+  </div>
+
+  <!-- Mapa de Conflitos Globais s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#EF444422">🗺️</div>
+      <span class="ch-lbl">Mapa de Conflitos · Global</span>
+      <div class="ch-r" style="display:flex;align-items:center;gap:6px">
+        <span class="badge" style="color:#EF4444;border-color:#EF444444;background:#EF444411">● Live</span>
+        <a href="https://www.defconlevel.com/global-conflict-map" target="_blank" class="rbtn" style="text-decoration:none;font-size:.65rem">↗</a>
+      </div>
+    </div>
+    <div class="conflict-map-wrap">
+      <iframe src="https://www.defconlevel.com/global-conflict-map"
+        title="Global Conflict Map"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        loading="lazy"
+        referrerpolicy="no-referrer"></iframe>
+      <div class="conflict-map-overlay">
+        <div class="conflict-badge" style="color:#EF4444;border-color:#EF444444;background:#0a0d1ccc">🔴 DEFCON Live</div>
+      </div>
+    </div>
+    <div class="src">✦ defconlevel.com · ACLED · CFR · UCDP · Actualizado diariamente</div>
+  </div>
+
+  <!-- Feeds Geopolíticos s2 -->
+  <div class="card s2">
+    <div class="stripe" style="background:#8B5CF6"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
+      <span class="ch-lbl">Análise Geopolítica</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadGeo(true)">↺</button></div>
+    </div>
+    <div class="geo-tabs">
+      <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
+      <button class="geo-tab" onclick="switchGeo('icg',this)">Crisis Group</button>
+      <button class="geo-tab" onclick="switchGeo('gpf',this)">Geop. Futures</button>
+      <button class="geo-tab" onclick="switchGeo('fa',this)">Foreign Affairs</button>
+    </div>
+    <div id="geo-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ Crisis Group · Geopolitical Futures · Foreign Affairs · RSS</div>
+  </div>
 
   <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Portugal · Mundo</span></div>
   <div class="card s2">
@@ -1070,7 +1206,7 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadElec();loadFX(true);loadCrypto(true);
+  loadElec();loadGeo();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 </script>
