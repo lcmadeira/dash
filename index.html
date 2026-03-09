@@ -628,11 +628,13 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- Indicadores Mercado -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
+    </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
+    <div class="src">✦ gold-api.com · EIA · Frankfurter BCE</div>
   </div>
 
   <!-- Calendário Económico -->
@@ -1186,7 +1188,6 @@ setInterval(()=>{
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),800);
-  setTimeout(()=>loadMarketStats(true),800);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS ═══ */
@@ -1340,23 +1341,7 @@ function fmtAgo(ts){
 buildConflictMap();
 loadGeo();
 
-/* ── Indicadores de Mercado ── */
-/* ── Twelve Data — Indicadores ── */
-const TD_BASE="https://api.twelvedata.com";
-async function tdGet(ep,params,force=false){
-  const ck=ep+"?"+new URLSearchParams(params);
-  if(!force){const h=lsGet(ck);if(h)return h;}
-  const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
-  if(!r.ok)throw new Error(`TD ${r.status}`);
-  const j=await r.json();if(j.status==="error")throw new Error(j.message||"TD error");
-  lsSet(ck,j);return j;
-}
-const MSTATS=[
-  {id:"VIX",sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",color:"var(--red)"},
-  {id:"GLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",  color:"var(--accent)"},
-  {id:"WTI",sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
-  {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
-];
+/* ── Twelve Data — loadMarketStats ── */
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
   try{
@@ -1374,134 +1359,86 @@ async function loadMarketStats(force=false){
   }catch(e){$("mstats-body").innerHTML=er(e.message);}
 }
 
-
 /* ═══ IMOBILIÁRIO PT ═══ */
 (function(){
-
-/* Dados INE — actualizar trimestralmente
-   Fonte: https://www.ine.pt → Estatísticas Preços da Habitação ao nível local */
-
 var IMOB_REGIOES=[
-  {r:"Grande Lisboa",       v:4792, chg:18.2, col:"#f59e0b"},
-  {r:"Algarve",             v:3556, chg:15.4, col:"#10b981"},
-  {r:"R.A. Madeira",        v:3193, chg:14.8, col:"#0ea5e9"},
-  {r:"Área Metro. Porto",   v:2740, chg:21.3, col:"#8b5cf6"},
-  {r:"Península de Setúbal",v:2371, chg:19.6, col:"#3b82f6"},
-  {r:"R.A. Açores",         v:1650, chg:11.2, col:"#06b6d4"},
-  {r:"Alentejo Litoral",    v:1944, chg:13.8, col:"#84cc16"},
-  {r:"Centro",              v:1320, chg: 9.1, col:"#a78bfa"},
-  {r:"Norte (exc. Porto)",  v:1280, chg: 8.7, col:"#fb923c"},
+  {r:"Grande Lisboa",        v:4792,chg:18.2,col:"#f59e0b"},
+  {r:"Algarve",              v:3556,chg:15.4,col:"#10b981"},
+  {r:"R.A. Madeira",         v:3193,chg:14.8,col:"#0ea5e9"},
+  {r:"Área Metro. Porto",    v:2740,chg:21.3,col:"#8b5cf6"},
+  {r:"Península de Setúbal", v:2371,chg:19.6,col:"#3b82f6"},
+  {r:"R.A. Açores",          v:1650,chg:11.2,col:"#06b6d4"},
+  {r:"Alentejo Litoral",     v:1944,chg:13.8,col:"#84cc16"},
+  {r:"Centro",               v:1320,chg: 9.1,col:"#a78bfa"},
+  {r:"Norte (exc. Porto)",   v:1280,chg: 8.7,col:"#fb923c"},
 ];
-
-/* Série histórica IPHab — Base 2015=100, variação homóloga % */
 var IMOB_TREND=[
-  {q:"Q1 23",v: 7.6},{q:"Q2 23",v: 9.0},{q:"Q3 23",v: 7.8},{q:"Q4 23",v: 5.2},
-  {q:"Q1 24",v: 5.0},{q:"Q2 24",v: 6.6},{q:"Q3 24",v:10.8},{q:"Q4 24",v:13.4},
+  {q:"Q1 23",v:7.6},{q:"Q2 23",v:9.0},{q:"Q3 23",v:7.8},{q:"Q4 23",v:5.2},
+  {q:"Q1 24",v:5.0},{q:"Q2 24",v:6.6},{q:"Q3 24",v:10.8},{q:"Q4 24",v:13.4},
   {q:"Q1 25",v:18.7},{q:"Q2 25",v:17.2},{q:"Q3 25",v:17.7},
 ];
-
-/* Preço mediano €/m² nos 10 maiores municípios — últimos 12m até Q3 2025 */
 var IMOB_MUNIC=[
-  {m:"Lisboa",        v:4321, chg:16.1},
-  {m:"Cascais",       v:3980, chg:18.4},
-  {m:"Oeiras",        v:3640, chg:17.9},
-  {m:"Porto",         v:3120, chg:22.1},
-  {m:"Almada",        v:2540, chg:20.3},
-  {m:"Braga",         v:2010, chg:19.8},
-  {m:"Coimbra",       v:1870, chg:15.2},
-  {m:"Setúbal",       v:1750, chg:18.7},
-  {m:"Funchal",       v:2490, chg:13.5},
-  {m:"Évora",         v:1480, chg:12.8},
+  {m:"Lisboa",  v:4321,chg:16.1},{m:"Cascais",  v:3980,chg:18.4},
+  {m:"Oeiras",  v:3640,chg:17.9},{m:"Porto",    v:3120,chg:22.1},
+  {m:"Almada",  v:2540,chg:20.3},{m:"Braga",    v:2010,chg:19.8},
+  {m:"Coimbra", v:1870,chg:15.2},{m:"Setúbal",  v:1750,chg:18.7},
+  {m:"Funchal", v:2490,chg:13.5},{m:"Évora",    v:1480,chg:12.8},
 ];
-
 var IMOB_FILTER="regioes";
-
 window.switchImob=function(f,btn){
   document.querySelectorAll(".imob-tab").forEach(function(b){b.classList.remove("on");});
   if(btn)btn.classList.add("on");
   IMOB_FILTER=f;renderImob();
 };
-
+function barColor(chg){return chg>=18?"#ef4444":chg>=15?"#f59e0b":chg>=10?"#10b981":"#0ea5e9";}
 function renderImob(){
-  var el=document.getElementById("imob-body");
-  if(!el)return;
-  if(IMOB_FILTER==="regioes") renderRegioes(el);
-  else if(IMOB_FILTER==="tendencia") renderTrend(el);
+  var el=document.getElementById("imob-body");if(!el)return;
+  if(IMOB_FILTER==="regioes")renderRegioes(el);
+  else if(IMOB_FILTER==="tendencia")renderTrend(el);
   else renderMunic(el);
 }
-
-function barColor(chg){
-  if(chg>=18)return"#ef4444";
-  if(chg>=15)return"#f59e0b";
-  if(chg>=10)return"#10b981";
-  return"#0ea5e9";
-}
-
 function renderRegioes(el){
   var max=IMOB_REGIOES[0].v;
-  el.innerHTML='<div class="imob-bar-wrap">'
-    +'<div class="imob-bar-title">Preço mediano €/m² por NUTS III — compradores estrangeiros (Q3 2025)</div>'
+  el.innerHTML='<div class="imob-bar-wrap"><div class="imob-bar-title">Preço mediano €/m² por NUTS III (Q3 2025)</div>'
     +IMOB_REGIOES.map(function(r){
-      var w=Math.round(r.v/max*100);
-      return'<div class="imob-bar-row">'
-        +'<div class="imob-bar-lbl">'+r.r+'</div>'
-        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+w+'%;background:'+r.col+'"></div></div>'
-        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ '
-        +'<span style="color:'+barColor(r.chg)+'">+'+r.chg+'%</span></div>'
-        +'</div>';
-    }).join("")
-    +'</div>';
+      return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.r+'</div>'
+        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+Math.round(r.v/max*100)+'%;background:'+r.col+'"></div></div>'
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ <span style="color:'+barColor(r.chg)+'">+'+r.chg+'%</span></div></div>';
+    }).join("")+'</div>';
 }
-
 function renderTrend(el){
   var W=el.offsetWidth||360,H=90,pad=30,bw=Math.max(2,Math.floor((W-pad*2)/IMOB_TREND.length)-3);
   var vals=IMOB_TREND.map(function(t){return t.v;});
   var minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals);
   var yScale=function(v){return H-10-Math.round((v-minV)/(maxV-minV)*(H-20));};
   var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="imob-chart">';
-  // grid
   [5,10,15,20].forEach(function(g){
     var y=yScale(g);if(y<0||y>H)return;
     svg+='<line x1="'+pad+'" y1="'+y+'" x2="'+(W-10)+'" y2="'+y+'" stroke="#1e3260" stroke-width="0.5"/>';
     svg+='<text x="'+(pad-3)+'" y="'+(y+3)+'" font-size="6" fill="#4a5568" text-anchor="end">'+g+'%</text>';
   });
-  // bars
   IMOB_TREND.forEach(function(t,i){
-    var x=pad+i*(bw+3);
-    var y=yScale(t.v),barH=H-10-y;
-    var col=barColor(t.v);
+    var x=pad+i*(bw+3),y=yScale(t.v),barH=H-10-y,col=barColor(t.v);
     svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" opacity=".85" rx="1"/>';
     svg+='<text x="'+(x+bw/2)+'" y="'+(H-2)+'" font-size="5.5" fill="#6b7280" text-anchor="middle">'+t.q+'</text>';
-    if(i===IMOB_TREND.length-1){
+    if(i===IMOB_TREND.length-1)
       svg+='<text x="'+(x+bw/2)+'" y="'+(y-3)+'" font-size="6.5" fill="'+col+'" text-anchor="middle" font-weight="bold">'+t.v+'%</text>';
-    }
   });
-  svg+='</svg>';
-  el.innerHTML='<div class="imob-svg-wrap">'+svg+'</div>'
-    +'<div style="font-family:var(--mono);font-size:.49rem;color:var(--t3);margin-top:4px">IPHab — Variação homóloga trimestral (%) · Base 2015=100 · Fonte: INE</div>';
+  el.innerHTML='<div class="imob-svg-wrap">'+svg+'</svg></div>'
+    +'<div style="font-family:var(--mono);font-size:.49rem;color:var(--t3);margin-top:4px">IPHab · Variação homóloga trimestral (%) · Fonte: INE</div>';
 }
-
 function renderMunic(el){
   var max=IMOB_MUNIC[0].v;
-  el.innerHTML='<div class="imob-bar-wrap">'
-    +'<div class="imob-bar-title">Preço mediano €/m² — compradores nacionais · 12m até Q3 2025</div>'
+  el.innerHTML='<div class="imob-bar-wrap"><div class="imob-bar-title">Preço mediano €/m² — 12m até Q3 2025</div>'
     +IMOB_MUNIC.map(function(r){
-      var w=Math.round(r.v/max*100);
       var col=barColor(r.chg);
-      return'<div class="imob-bar-row">'
-        +'<div class="imob-bar-lbl">'+r.m+'</div>'
-        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+w+'%;background:'+col+'"></div></div>'
-        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ '
-        +'<span style="color:'+col+'">+'+r.chg+'%</span></div>'
-        +'</div>';
-    }).join("")
-    +'</div>';
+      return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.m+'</div>'
+        +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+Math.round(r.v/max*100)+'%;background:'+col+'"></div></div>'
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ <span style="color:'+col+'">+'+r.chg+'%</span></div></div>';
+    }).join("")+'</div>';
 }
-
-/* Boot */
 document.addEventListener("DOMContentLoaded",renderImob);
 setTimeout(renderImob,300);
-
 })();
 
 </script>
