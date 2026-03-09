@@ -354,17 +354,16 @@ textarea.nta::placeholder{color:var(--t3)}
 .geo-tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
 .geo-tab{font-family:var(--mono);font-size:.54rem;padding:3px 9px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
 .geo-tab.on{background:#8B5CF6;border-color:#8B5CF6;color:#fff;font-weight:700}
-.cmap-wrap{position:relative;width:100%;border-radius:var(--rs);overflow:hidden;background:#060a14;border:1px solid var(--b)}
+.cmap-wrap{position:relative;border-radius:var(--rs);overflow:hidden;background:#060a14;border:1px solid var(--b)}
 .cmap-wrap svg{display:block;width:100%}
 .cmap-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .cmap-leg-item{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.48rem;color:var(--t2)}
 .cmap-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.cmap-tooltip{position:absolute;background:#0f1629;border:1px solid var(--b2);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:.58rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.6)}
-.cmap-tooltip.show{opacity:1}
-.cmap-tt-name{font-weight:700;font-size:.62rem;margin-bottom:2px}
-.cmap-tt-type{font-size:.5rem;margin-bottom:3px}
-.cmap-tt-desc{color:var(--t2);font-size:.52rem}
-
+.cmap-tip{position:absolute;background:#0f1629;border:1px solid var(--b2);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:.58rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.4;box-shadow:0 4px 16px #0008}
+.cmap-tip.show{opacity:1}
+.cmap-tip-name{font-weight:700;font-size:.62rem;margin-bottom:2px}
+.cmap-tip-type{font-size:.5rem;margin-bottom:3px}
+.cmap-tip-desc{color:var(--t2);font-size:.52rem}
 </style>
 </head>
 <body>
@@ -594,28 +593,22 @@ textarea.nta::placeholder{color:var(--t3)}
     <span style="color:#8B5CF6">Geopolítica</span>
     <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Conflitos · Análise · Intelligence</span>
   </div>
-
-  <!-- Mapa de Conflitos s2 -->
   <div class="card s2">
     <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">🗺️</div>
       <span class="ch-lbl">Mapa de Conflitos · Global 2026</span>
-      <div class="ch-r">
-        <a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none" title="CrisisWatch">↗</a>
-      </div>
+      <div class="ch-r"><a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none">↗</a></div>
     </div>
     <div class="cmap-wrap" id="cmap-wrap"></div>
     <div class="cmap-legend">
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#EF4444"></div>Guerra activa</div>
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#F59E0B"></div>Alta intensidade</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#8B5CF6"></div>Zona de tensão</div>
+      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#8B5CF6"></div>Tensão</div>
       <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#3B82F6"></div>Risco nuclear</div>
     </div>
-    <div class="src">✦ ACLED · CFR · Crisis Group · UCDP · Actualizado Mar 2026</div>
+    <div class="src">✦ ACLED · CFR · Crisis Group · UCDP · Mar 2026</div>
   </div>
-
-  <!-- Feeds Geopolíticos s2 -->
   <div class="card s2">
     <div class="stripe" style="background:#8B5CF6"></div>
     <div class="ch">
@@ -1143,183 +1136,171 @@ setInterval(()=>{
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
 
-/* ── Mapa de Conflitos SVG ── */
-const CONFLICTS=[
-  {n:"Ucrânia",        t:"war",     lat:49.0, lon:32.0,  desc:"Invasão russa · Frente leste activa"},
-  {n:"Gaza",           t:"war",     lat:31.4, lon:34.4,  desc:"Conflito Israel–Hamas"},
-  {n:"Sudão",          t:"war",     lat:15.5, lon:32.5,  desc:"SAF vs RSF · Crise humanitária"},
-  {n:"Myanmar",        t:"war",     lat:19.7, lon:96.1,  desc:"Junta vs coligação resistência"},
-  {n:"Etiópia",        t:"war",     lat:9.1,  lon:40.5,  desc:"Amhara · Oromia · Tigray"},
-  {n:"RD Congo",       t:"war",     lat:-4.0, lon:21.8,  desc:"M23 · FDLR · Kivu"},
-  {n:"Sahel Mali/BF",  t:"war",     lat:12.0, lon:-2.0,  desc:"Jihadistas · AES · Wagner"},
-  {n:"Somália",        t:"war",     lat:5.1,  lon:46.2,  desc:"Al-Shabaab · Conflito interno"},
-  {n:"Iémen",          t:"war",     lat:15.5, lon:48.5,  desc:"Houthis · Pós-cessar-fogo frágil"},
-  {n:"Síria",          t:"war",     lat:35.0, lon:38.3,  desc:"Pós-Assad · Fragmentação"},
-  {n:"Afeganistão",    t:"war",     lat:33.9, lon:67.7,  desc:"Talibã · IS-K"},
-  {n:"Líbano",         t:"high",    lat:33.9, lon:35.5,  desc:"Pós-conflito · Hezbollah"},
-  {n:"Iraque",         t:"high",    lat:33.2, lon:43.7,  desc:"Milícias pró-Irão · IS residual"},
-  {n:"Moçambique N.",  t:"high",    lat:-13.0,lon:39.0,  desc:"Insurgência Cabo Delgado"},
-  {n:"Nigéria N.",     t:"high",    lat:11.8, lon:13.2,  desc:"Boko Haram · ISWAP"},
-  {n:"Haití",          t:"high",    lat:18.9, lon:-72.3, desc:"Gangues · Crise Estado"},
-  {n:"Cisjordânia",    t:"high",    lat:31.9, lon:35.2,  desc:"Colonatos · Violência crescente"},
-  {n:"Taiwan",         t:"tension", lat:24.0, lon:121.0, desc:"Tensão EUA–China"},
-  {n:"Coreia do Norte",t:"tension", lat:40.0, lon:127.5, desc:"Nuclear · ICBM · Soldados Rússia"},
-  {n:"Irão",           t:"tension", lat:32.4, lon:53.7,  desc:"Nuclear · Proxy regional"},
-  {n:"Kosovo",         t:"tension", lat:42.6, lon:21.2,  desc:"Tensão Sérvia · NATO"},
-  {n:"Geórgia",        t:"tension", lat:42.3, lon:43.4,  desc:"S.Ossétia · Influência russa"},
-  {n:"Moldávia",       t:"tension", lat:47.4, lon:28.9,  desc:"Transnístria · Pressão geopolítica"},
-  {n:"Arménia–Azerb.", t:"tension", lat:40.1, lon:47.6,  desc:"Pós-Karabakh · Paz frágil"},
-  {n:"Mar Sul China",  t:"tension", lat:14.0, lon:114.0, desc:"Filipinas · Vietname · China"},
-  {n:"Venezuela-Guiana",t:"tension",lat:6.4,  lon:-61.2, desc:"Disputa Essequibo"},
-  {n:"Paquistão–Índia",t:"nuclear", lat:30.0, lon:73.0,  desc:"Kashmir · Ambos nucleares"},
-  {n:"Rússia–OTAN",    t:"nuclear", lat:55.0, lon:37.6,  desc:"Retórica nuclear · Ucrânia"},
+/* ═══════════ MAPA DE CONFLITOS ═══════════ */
+const CFLCTS=[
+  {n:"Ucr\u00e2nia",t:"war",lat:49.0,lon:32.0,d:"Invas\u00e3o russa \u00b7 Frente leste"},
+  {n:"Gaza",t:"war",lat:31.4,lon:34.4,d:"Israel\u2013Hamas"},
+  {n:"Sud\u00e3o",t:"war",lat:15.5,lon:32.5,d:"SAF vs RSF \u00b7 Crise humanit\u00e1ria"},
+  {n:"Myanmar",t:"war",lat:19.7,lon:96.1,d:"Junta vs resist\u00eancia"},
+  {n:"Eti\u00f3pia",t:"war",lat:9.1,lon:40.5,d:"Amhara \u00b7 Oromia \u00b7 Tigray"},
+  {n:"RD Congo",t:"war",lat:-4.0,lon:21.8,d:"M23 \u00b7 Kivu"},
+  {n:"Sahel",t:"war",lat:12.0,lon:-2.0,d:"Jihadistas \u00b7 AES \u00b7 Wagner"},
+  {n:"Som\u00e1lia",t:"war",lat:5.1,lon:46.2,d:"Al-Shabaab"},
+  {n:"I\u00e9men",t:"war",lat:15.5,lon:48.5,d:"Houthis \u00b7 P\u00f3s-cessar-fogo"},
+  {n:"S\u00edria",t:"war",lat:35.0,lon:38.3,d:"P\u00f3s-Assad \u00b7 Fragmenta\u00e7\u00e3o"},
+  {n:"Afeganist\u00e3o",t:"war",lat:33.9,lon:67.7,d:"Talib\u00e3 \u00b7 IS-K"},
+  {n:"L\u00edbano",t:"high",lat:33.9,lon:35.5,d:"P\u00f3s-conflito \u00b7 Hezbollah"},
+  {n:"Iraque",t:"high",lat:33.2,lon:43.7,d:"Mil\u00edcias \u00b7 IS residual"},
+  {n:"Mo\u00e7ambique N.",t:"high",lat:-13.0,lon:39.0,d:"Insubg\u00eancia Cabo Delgado"},
+  {n:"Nig\u00e9ria N.",t:"high",lat:11.8,lon:13.2,d:"Boko Haram \u00b7 ISWAP"},
+  {n:"Haiti",t:"high",lat:18.9,lon:-72.3,d:"Gangues \u00b7 Crise Estado"},
+  {n:"Cisjord\u00e2nia",t:"high",lat:31.9,lon:35.2,d:"Colonatos \u00b7 Viol\u00eancia"},
+  {n:"Taiwan",t:"tension",lat:24.0,lon:121.0,d:"Tens\u00e3o EUA\u2013China"},
+  {n:"Coreia Norte",t:"tension",lat:40.0,lon:127.5,d:"Nuclear \u00b7 ICBM"},
+  {n:"Ir\u00e3o",t:"tension",lat:32.4,lon:53.7,d:"Nuclear \u00b7 Proxy regional"},
+  {n:"Kosovo",t:"tension",lat:42.6,lon:21.2,d:"Tens\u00e3o S\u00e9rvia \u00b7 NATO"},
+  {n:"Ge\u00f3rgia",t:"tension",lat:42.3,lon:43.4,d:"Influ\u00eancia russa"},
+  {n:"Mold\u00e1via",t:"tension",lat:47.4,lon:28.9,d:"Transnistria"},
+  {n:"Arm\u00e9nia-Azerb.",t:"tension",lat:40.1,lon:47.6,d:"P\u00f3s-Karabakh"},
+  {n:"Mar Sul China",t:"tension",lat:14.0,lon:114.0,d:"Filipinas \u00b7 China"},
+  {n:"Venezuela",t:"tension",lat:6.4,lon:-61.2,d:"Disputa Essequibo"},
+  {n:"Paquist\u00e3o-\u00cdndia",t:"nuclear",lat:30.0,lon:73.0,d:"Kashmir \u00b7 Ambos nucleares"},
+  {n:"R\u00fassia-OTAN",t:"nuclear",lat:55.0,lon:37.6,d:"Ret\u00f3rica nuclear"},
 ];
-const CMAP_COL={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-const CMAP_SZ={war:7,high:5.5,tension:4.5,nuclear:5.5};
-const CMAP_LABEL={war:"🔴 Guerra Activa",high:"🟠 Alta Intensidade",tension:"🟣 Zona de Tensão",nuclear:"🔵 Risco Nuclear"};
+const CMAP_C={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
+const CMAP_R={war:7,high:5.5,tension:4.5,nuclear:5.5};
+const CMAP_L={war:"Guerra Activa",high:"Alta Intensidade",tension:"Zona de Tens\u00e3o",nuclear:"Risco Nuclear"};
 
-function ll2xy(lat,lon){
-  return{x:((lon+180)/360*960+20),y:((90-lat)/180*480+10)};
-}
+function ll2xy(lat,lon){return{x:(lon+180)/360*960+20,y:(90-lat)/180*480+10};}
 
 function buildConflictMap(){
-  const wrap=document.getElementById("cmap-wrap");
+  var wrap=document.getElementById("cmap-wrap");
   if(!wrap)return;
-  let defs='<defs>';
-  let pulses='',dots='';
-  CONFLICTS.forEach((c,i)=>{
-    const{x,y}=ll2xy(c.lat,c.lon);
-    const col=CMAP_COL[c.t],r=CMAP_SZ[c.t];
-    if(c.t==='war'||c.t==='nuclear'){
-      defs+=`<radialGradient id="rg${i}" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="${col}" stop-opacity=".9"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/></radialGradient>`;
-      pulses+=`<circle cx="${x}" cy="${y}" r="${r*2}" fill="url(#rg${i})"><animate attributeName="r" values="${r*1.2};${r*3};${r*1.2}" dur="${1.4+i*.07}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0;.7" dur="${1.4+i*.07}s" repeatCount="indefinite"/></circle>`;
+  var defs="<defs><radialGradient id='og' cx='50%' cy='60%' r='80%'><stop offset='0%' stop-color='#0d1b3e'/><stop offset='100%' stop-color='#060a14'/></radialGradient>";
+  var pulses="",dots="";
+  CFLCTS.forEach(function(c,i){
+    var p=ll2xy(c.lat,c.lon),col=CMAP_C[c.t],r=CMAP_R[c.t];
+    if(c.t==="war"||c.t==="nuclear"){
+      defs+="<radialGradient id='rg"+i+"' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='"+col+"' stop-opacity='.8'/><stop offset='100%' stop-color='"+col+"' stop-opacity='0'/></radialGradient>";
+      pulses+="<circle cx='"+p.x+"' cy='"+p.y+"' r='"+(r*2)+"' fill='url(#rg"+i+")'><animate attributeName='r' values='"+(r*1.2)+";"+(r*3)+";"+(r*1.2)+"' dur='"+(1.4+i*0.06)+"s' repeatCount='indefinite'/><animate attributeName='opacity' values='.6;0;.6' dur='"+(1.4+i*0.06)+"s' repeatCount='indefinite'/></circle>";
     }
-    dots+=`<circle class="cmap-dot" cx="${x}" cy="${y}" r="${r}" fill="${col}" stroke="#06080f" stroke-width="1" opacity=".92" data-i="${i}" style="cursor:pointer"/>`;
+    dots+="<circle class='cdot' cx='"+p.x+"' cy='"+p.y+"' r='"+r+"' fill='"+col+"' stroke='#06080f' stroke-width='1' data-i='"+i+"' style='cursor:pointer'/>";
   });
-  defs+='</defs>';
-
-  const land=`<g fill="#14213d" stroke="#1e3260" stroke-width=".3" opacity=".85">
-<polygon points="480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110"/>
-<polygon points="500,62 513,56 524,60 527,73 516,81 504,79 499,72"/>
-<polygon points="530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87"/>
-<polygon points="562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117"/>
-<polygon points="702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117"/>
-<polygon points="542,132 582,127 612,132 622,147 602,157 572,154 547,147"/>
-<polygon points="481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152"/>
-<polygon points="102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97"/>
-<polygon points="202,142 232,137 247,147 242,162 222,164 202,157"/>
-<polygon points="202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187"/>
-<polygon points="752,282 812,272 842,287 837,317 802,327 762,317 747,302"/>
-<polygon points="332,37 372,30 397,40 392,60 362,64 332,57"/>
-<polygon points="550,232 560,227 567,242 560,257 550,252"/>
-<polygon points="787,102 798,97 806,102 802,114 790,110"/>
-<polygon points="770,107 780,102 784,112 777,117 770,114"/>
-<polygon points="702,162 742,157 762,164 760,177 740,180 702,174"/>
-</g>`;
-
-  wrap.innerHTML=`<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:410px">
-    <defs><radialGradient id="ocean-g" cx="50%" cy="60%" r="80%"><stop offset="0%" stop-color="#0d1b3e"/><stop offset="100%" stop-color="#060a14"/></radialGradient></defs>
-    <rect width="1000" height="500" fill="url(#ocean-g)"/>
-    ${land}${defs}${pulses}${dots}
-    <text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3550">ACLED · Crisis Group · CFR · Mar 2026</text>
-  </svg><div class="cmap-tooltip" id="cmap-tip"></div>`;
-
-  const tip=document.getElementById("cmap-tip");
-  wrap.querySelectorAll(".cmap-dot").forEach(dot=>{
-    dot.addEventListener("mouseenter",()=>{
-      const c=CONFLICTS[+dot.dataset.i];
-      tip.innerHTML=`<div class="cmap-tt-name">${c.n}</div><div class="cmap-tt-type" style="color:${CMAP_COL[c.t]}">${CMAP_LABEL[c.t]}</div><div class="cmap-tt-desc">${c.desc}</div>`;
+  defs+="</defs>";
+  var land="<g fill='#14213d' stroke='#1e3260' stroke-width='.3' opacity='.85'>"
+    +"<polygon points='480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110'/>"
+    +"<polygon points='500,62 513,56 524,60 527,73 516,81 504,79 499,72'/>"
+    +"<polygon points='530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87'/>"
+    +"<polygon points='562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117'/>"
+    +"<polygon points='702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117'/>"
+    +"<polygon points='542,132 582,127 612,132 622,147 602,157 572,154 547,147'/>"
+    +"<polygon points='481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152'/>"
+    +"<polygon points='102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97'/>"
+    +"<polygon points='202,142 232,137 247,147 242,162 222,164 202,157'/>"
+    +"<polygon points='202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187'/>"
+    +"<polygon points='752,282 812,272 842,287 837,317 802,327 762,317 747,302'/>"
+    +"<polygon points='332,37 372,30 397,40 392,60 362,64 332,57'/>"
+    +"<polygon points='550,232 560,227 567,242 560,257 550,252'/>"
+    +"<polygon points='787,102 798,97 806,102 802,114 790,110'/>"
+    +"<polygon points='770,107 780,102 784,112 777,117 770,114'/>"
+    +"<polygon points='702,162 742,157 762,164 760,177 740,180 702,174'/>"
+    +"</g>";
+  var svg="<svg viewBox='0 0 1000 500' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:410px'>"
+    +"<rect width='1000' height='500' fill='url(#og)'/>"
+    +land+defs+pulses+dots
+    +"<text x='15' y='494' font-family='monospace' font-size='7' fill='#2a3550'>ACLED - Crisis Group - CFR - Mar 2026</text>"
+    +"</svg>"
+    +"<div class='cmap-tip' id='cmap-tip'></div>";
+  wrap.innerHTML=svg;
+  var tip=document.getElementById("cmap-tip");
+  wrap.querySelectorAll(".cdot").forEach(function(dot){
+    dot.addEventListener("mouseenter",function(){
+      var c=CFLCTS[+dot.dataset.i];
+      tip.innerHTML="<div class='cmap-tip-name'>"+c.n+"</div><div class='cmap-tip-type' style='color:"+CMAP_C[c.t]+"'>"+CMAP_L[c.t]+"</div><div class='cmap-tip-desc'>"+c.d+"</div>";
       tip.classList.add("show");
     });
-    dot.addEventListener("mousemove",e=>{
-      const rc=wrap.getBoundingClientRect();
-      let tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
+    dot.addEventListener("mousemove",function(e){
+      var rc=wrap.getBoundingClientRect(),tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
       if(tx+215>rc.width)tx-=225;
       tip.style.left=tx+"px";tip.style.top=ty+"px";
     });
-    dot.addEventListener("mouseleave",()=>tip.classList.remove("show"));
+    dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
   });
 }
 
-/* ── RSS Geopolítico ── */
-const GEO_FEEDS=[
+/* ═══════════ RSS GEOPOLÍTICO ═══════════ */
+var GEO_FEEDS=[
   {id:"icg",label:"Crisis Group",  color:"#EF4444",url:"https://www.crisisgroup.org/rss/139"},
   {id:"gpf",label:"Geop. Futures", color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/"},
   {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",url:"https://news.google.com/rss/search?q=geopolitics+foreign+affairs&hl=en&gl=US&ceid=US:en"},
 ];
-const GEO_PROXIES=[
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-];
-let GEO_DATA=[],GEO_FILTER="all";
+var GEO_DATA=[],GEO_FILTER="all";
 
-async function fetchRSS(url){
-  // Google News tem CORS nativo
-  if(url.includes("news.google.com")){
-    try{const r=await fetch(url,{signal:AbortSignal.timeout(8000)});if(r.ok)return await r.text();}catch{}
-    return null;
-  }
-  for(const px of GEO_PROXIES){
-    try{
-      const r=await fetch(px(url),{signal:AbortSignal.timeout(8000)});
-      if(r.ok){const t=await r.text();if(t.length>200)return t;}
-    }catch{}
-  }
-  return null;
-}
-
-async function loadGeo(force=false){
+async function loadGeo(force){
   $("geo-body").innerHTML=ld();
   try{
-    const ck="geo_v3";
-    let cached=force?null:lsGet(ck);
+    var ck="geo_v4",cached=force?null:lsGet(ck);
     if(!cached){
-      const all=[];
-      await Promise.all(GEO_FEEDS.map(async feed=>{
+      var all=[];
+      for(var fi=0;fi<GEO_FEEDS.length;fi++){
+        var feed=GEO_FEEDS[fi];
         try{
-          const raw=await fetchRSS(feed.url);
-          if(!raw)return;
-          const xml=new DOMParser().parseFromString(raw,"text/xml");
-          [...xml.querySelectorAll("item")].slice(0,7).forEach(it=>{
-            const title=(it.querySelector("title")?.textContent||"").replace(/<!\[CDATA\[|\]\]>/g,"").trim();
-            const link=(it.querySelector("link")?.textContent||it.querySelector("link")?.getAttribute?.("href")||"").trim();
-            const pub=it.querySelector("pubDate")?.textContent||"";
-            const dt=pub?new Date(pub):new Date(0);
-            if(title&&title.length>5)all.push({id:feed.id,label:feed.label,color:feed.color,title,link,dt:dt.getTime()});
-          });
-        }catch{}
-      }));
-      all.sort((a,b)=>b.dt-a.dt);
-      if(!all.length)throw new Error("Feeds indisponíveis");
+          var raw=null,proxies=[
+            "https://corsproxy.io/?"+encodeURIComponent(feed.url),
+            "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)
+          ];
+          if(feed.url.indexOf("news.google.com")>=0){
+            var rg=await fetch(feed.url);
+            if(rg.ok)raw=await rg.text();
+          } else {
+            for(var pi=0;pi<proxies.length&&!raw;pi++){
+              try{var rp=await fetch(proxies[pi]);if(rp.ok){var t=await rp.text();if(t.length>200)raw=t;}}catch(pe){}
+            }
+          }
+          if(!raw)continue;
+          var xml=new DOMParser().parseFromString(raw,"text/xml");
+          var items=xml.querySelectorAll("item");
+          for(var ii=0;ii<Math.min(items.length,7);ii++){
+            var it=items[ii];
+            var title=(it.querySelector("title")||{textContent:""}).textContent.replace(/<!\[CDATA\[|\]\]>/g,"").trim();
+            var link=((it.querySelector("link")||{textContent:""}).textContent||"").trim();
+            var pub=(it.querySelector("pubDate")||{textContent:""}).textContent;
+            var dt=pub?new Date(pub).getTime():0;
+            if(title&&title.length>5)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
+          }
+        }catch(fe){console.warn("geo feed",feed.id,fe);}
+      }
+      all.sort(function(a,b){return b.dt-a.dt;});
+      if(!all.length)throw new Error("Feeds indispon\u00edveis");
       cached=all;lsSet(ck,cached);
     }
     GEO_DATA=cached;renderGeo();
   }catch(e){
-    $("geo-body").innerHTML=er(e.message)+`<div style="margin-top:8px">${GEO_FEEDS.map(f=>`<div style="margin:4px 0;font-size:.62rem">→ <a href="${f.url}" target="_blank" style="color:${f.color}">${f.label}</a></div>`).join("")}</div>`;
+    $("geo-body").innerHTML=er(e.message)+'<div style="margin-top:8px">'+GEO_FEEDS.map(function(f){return'<div style="margin:4px 0;font-size:.62rem">→ <a href="'+f.url+'" target="_blank" style="color:'+f.color+'">'+f.label+'</a></div>';}).join("")+"</div>";
   }
 }
 
 function switchGeo(f,btn){
-  document.querySelectorAll(".geo-tab").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll(".geo-tab").forEach(function(b){b.classList.remove("on");});
   if(btn)btn.classList.add("on");
   GEO_FILTER=f;renderGeo();
 }
 
 function renderGeo(){
-  const items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(x=>x.id===GEO_FILTER);
-  if(!items||!items.length){$("geo-body").innerHTML=`<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos disponíveis.</p>`;return;}
-  $("geo-body").innerHTML=items.slice(0,10).map(it=>{
-    const ago=it.dt?fmtAgo(it.dt):"";
-    return`<div class="geo-item" onclick="window.open('${(it.link||"#").replace(/'/g,"\'")}','_blank')">
-      <span class="geo-src-tag" style="color:${it.color};border-color:${it.color}44;background:${it.color}11">${it.label}</span>
-      <div class="geo-title">${it.title}</div>
-      <div class="geo-date">${ago}</div></div>`;
+  var items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
+  if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
+  $("geo-body").innerHTML=items.slice(0,10).map(function(it){
+    var ago=fmtAgo(it.dt);
+    var lnk=(it.link||"").replace(/'/g,"\'");
+    return'<div class="geo-item" onclick="window.open(\'' +lnk+ '\')">'
+      +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
+      +'<div class="geo-title">'+it.title+'</div>'
+      +'<div class="geo-date">'+ago+'</div></div>';
   }).join("");
 }
 
 function fmtAgo(ts){
-  const d=Math.floor((Date.now()-ts)/1000);
+  var d=Math.floor((Date.now()-ts)/1000);
   if(d<60)return"agora";if(d<3600)return Math.floor(d/60)+"min";
   if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
 }
