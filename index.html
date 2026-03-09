@@ -343,27 +343,6 @@ textarea.nta::placeholder{color:var(--t3)}
 .mkt-city.closed .mkt-city-dot{background:var(--b2)}
 /* Ticker tape sem margem inferior (a mkt-bar faz o espaçamento) */
 .tv-tape-wrap{margin-bottom:0!important}
-
-/* ── Geopolítica ── */
-.geo-item{padding:9px 0;border-bottom:1px solid var(--b);cursor:pointer}
-.geo-item:last-child{border-bottom:none}
-.geo-item:hover .geo-title{color:#8B5CF6}
-.geo-src-tag{display:inline-block;font-family:var(--mono);font-size:.44rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:1px 5px;border-radius:3px;margin-bottom:3px;border:1px solid}
-.geo-title{font-size:.71rem;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:2px}
-.geo-date{font-family:var(--mono);font-size:.49rem;color:var(--t3)}
-.geo-tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
-.geo-tab{font-family:var(--mono);font-size:.54rem;padding:3px 9px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s}
-.geo-tab.on{background:#8B5CF6;border-color:#8B5CF6;color:#fff;font-weight:700}
-.cmap-wrap{position:relative;border-radius:var(--rs);overflow:hidden;background:#060a14;border:1px solid var(--b)}
-.cmap-wrap svg{display:block;width:100%}
-.cmap-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-.cmap-leg-item{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.48rem;color:var(--t2)}
-.cmap-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.cmap-tip{position:absolute;background:#0f1629;border:1px solid var(--b2);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:.58rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.4;box-shadow:0 4px 16px #0008}
-.cmap-tip.show{opacity:1}
-.cmap-tip-name{font-weight:700;font-size:.62rem;margin-bottom:2px}
-.cmap-tip-type{font-size:.5rem;margin-bottom:3px}
-.cmap-tip-desc{color:var(--t2);font-size:.52rem}
 </style>
 </head>
 <body>
@@ -572,7 +551,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Indicadores de Mercado</span>
       <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div></div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Yahoo Finance · VIX · Ouro · Petróleo · USD Index · corsproxy.io</div>
+    <div class="src">✦ Twelve Data · VIX · Ouro · Petróleo · USD Index</div>
   </div>
 
 
@@ -586,45 +565,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eventos macroeconómicos relevantes</div>
   </div>
 
-
-
-  <!-- GEOPOLÍTICA -->
-  <div class="sec"><div class="sec-bar" style="background:#8B5CF6"></div>
-    <span style="color:#8B5CF6">Geopolítica</span>
-    <span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Conflitos · Análise · Intelligence</span>
-  </div>
-  <div class="card s2">
-    <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:#EF444422">🗺️</div>
-      <span class="ch-lbl">Mapa de Conflitos · Global 2026</span>
-      <div class="ch-r"><a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none">↗</a></div>
-    </div>
-    <div class="cmap-wrap" id="cmap-wrap"></div>
-    <div class="cmap-legend">
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#EF4444"></div>Guerra activa</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#F59E0B"></div>Alta intensidade</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#8B5CF6"></div>Tensão</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#3B82F6"></div>Risco nuclear</div>
-    </div>
-    <div class="src">✦ ACLED · CFR · Crisis Group · UCDP · Mar 2026</div>
-  </div>
-  <div class="card s2">
-    <div class="stripe" style="background:#8B5CF6"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
-      <span class="ch-lbl">Análise Geopolítica</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadGeo(true)">↺</button></div>
-    </div>
-    <div class="geo-tabs">
-      <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
-      <button class="geo-tab"    onclick="switchGeo('icg',this)">Crisis Group</button>
-      <button class="geo-tab"    onclick="switchGeo('gpf',this)">Geop. Futures</button>
-      <button class="geo-tab"    onclick="switchGeo('fa',this)">Foreign Affairs</button>
-    </div>
-    <div id="geo-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Crisis Group · Geopolitical Futures · Foreign Affairs · RSS</div>
-  </div>
 
   <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:400;letter-spacing:1px">· Portugal · Mundo</span></div>
   <div class="card s2">
@@ -710,7 +650,7 @@ const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","S�
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
 /* Cache 15min */
-const CACHE_TTL=15*60*1000,PFX="dash_v13_";
+const CACHE_TTL=15*60*1000,PFX="dash_v11_";
 function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 
@@ -945,23 +885,12 @@ let fxRates={};
 async function loadFX(force=false){
   $("fx-body").innerHTML=ld();
   try{
-    let data=force?null:lsGet("fx2");
+    let data=force?null:lsGet("fx");
     if(!data){
-      // Tentar Frankfurter primeiro, fallback exchangerate-api
       const syms=FX_PAIRS.map(p=>p.code).join(",");
-      let ok=false;
-      try{
-        const r=await fetch("https://api.frankfurter.dev/v1/latest?base=EUR",{signal:AbortSignal.timeout(8000)});
-        if(r.ok){const j=await r.json();data={rates:j.rates,date:j.date};ok=true;}
-      }catch{}
-      if(!ok){
-        // fallback: open.er-api.com (CORS nativo, sem chave)
-        const r2=await fetch("https://open.er-api.com/v6/latest/EUR",{signal:AbortSignal.timeout(8000)});
-        if(!r2.ok)throw new Error("Câmbio indisponível");
-        const j2=await r2.json();
-        data={rates:j2.rates,date:j2.time_last_update_utc?.slice(0,10)||""};
-      }
-      lsSet("fx2",data);
+      const r=await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${syms}`);
+      if(!r.ok)throw new Error(`Frankfurter ${r.status}`);
+      data=await r.json();lsSet("fx",data);
     }
     fxRates=data.rates||{};
     renderFX(data.date);
@@ -1049,37 +978,25 @@ const CRYPTO_IDS=[
   {id:"binancecoin",name:"BNB",      sym:"BNB",color:"#F59E0B"},
 ];
 async function loadCrypto(force=false){
-  const el=$("crypto-body");
-  if(el.dataset.loaded==="1"&&!force)return;
-  // Usar CoinGecko com múltiplos fallbacks de proxy
+  $("crypto-body").innerHTML=ld();
   try{
-    let data=force?null:lsGet("cgv2");
+    let data=force?null:lsGet("cg");
     if(!data){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
-      const url=`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`;
-      let raw=null;
-      // Tentar directo primeiro
-      try{const r=await fetch(url,{signal:AbortSignal.timeout(6000),headers:{Accept:"application/json"}});if(r.ok)raw=await r.json();}catch{}
-      // Fallback corsproxy
-      if(!raw){
-        try{const r=await fetch("https://corsproxy.io/?"+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)});if(r.ok)raw=await r.json();}catch{}
-      }
-      if(!raw)throw new Error("CoinGecko indisponível");
-      data=raw;lsSet("cgv2",data);
+      const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`);
+      if(!r.ok)throw new Error(`CoinGecko ${r.status}`);
+      data=await r.json();lsSet("cg",data);
     }
-    el.dataset.loaded="1";
-    el.innerHTML=`<div class="crypto-grid">${CRYPTO_IDS.map(c=>{
+    $("crypto-body").innerHTML=`<div class="crypto-grid">${CRYPTO_IDS.map(c=>{
       const q=data[c.id],price=q?.eur||0,pc=q?.eur_24h_change||0;
       return`<div class="ci2">
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-    <span style="font-family:var(--mono);font-size:.55rem;font-weight:700;color:${c.color}">${c.sym}</span>
-    <span style="font-family:var(--mono);font-size:.48rem;color:var(--t3)">${c.name}</span>
-  </div>
-  <div style="font-size:.85rem;font-weight:700;color:var(--text)">${price>0?fmtP(price,price>100?0:4):"—"}</div>
-  <div style="font-family:var(--mono);font-size:.52rem;margin-top:2px">${chg(pc)}</div>
-</div>`;}).join("")}</div>`;
-  }catch(e){el.innerHTML=er(e.message);}
+        <div class="ci2-top"><span class="ci2-sym">${c.sym}</span><span class="ci2-chg">${price>0?chg(pc):""}</span></div>
+        <div class="ci2-name">${c.name}</div>
+        <div class="ci2-price" style="color:${c.color}">${price>0?"€"+fmtP(price,price>100?2:4):"—"}</div>
+      </div>`;}).join("")}</div>`;
+  }catch(e){$("crypto-body").innerHTML=er(e.message);}
 }
+
 /* ── Twelve Data — Indicadores ── */
 const TD_BASE="https://api.twelvedata.com";
 async function tdGet(ep,params,force=false){
@@ -1099,33 +1016,18 @@ const MSTATS=[
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=ld();
   try{
-    const ck="mstv2",cached=force?null:lsGet(ck);
-    if(cached){renderMStats(cached);return;}
     const res={};
-    await Promise.all(MSTATS.map(async m=>{
-      try{
-        const url=`https://query1.finance.yahoo.com/v8/finance/chart/${m.sym}?interval=1d&range=5d`;
-        const r=await fetch("https://corsproxy.io/?"+encodeURIComponent(url),{signal:AbortSignal.timeout(9000)});
-        if(!r.ok)return;
-        const j=await r.json();
-        const meta=j?.chart?.result?.[0]?.meta;
-        if(meta){
-          const price=meta.regularMarketPrice||0;
-          const prev=meta.chartPreviousClose||price;
-          res[m.id]={price,change:prev?((price-prev)/prev*100):0};
-        }
-      }catch{}
-    }));
-    lsSet(ck,res);renderMStats(res);
+    for(const m of MSTATS){
+      try{const j=await tdGet("/quote",{symbol:m.sym},force);res[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};}catch{}
+      if(force)await new Promise(r=>setTimeout(r,500));
+    }
+    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
+      const q=res[m.id];
+      return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
+        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
+        <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
+    }).join("")}</div>`;
   }catch(e){$("mstats-body").innerHTML=er(e.message);}
-}
-function renderMStats(res){
-  $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-    const q=res[m.id];
-    return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
-      <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-      <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
-  }).join("")}</div>`;
 }
 
 /* ── Calendário Económico ── */
@@ -1159,7 +1061,6 @@ renderInflation();
 // Bolsa Lisboa — carregar EDP por defeito
 renderEuribor();
 loadElec();
-loadGeo();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),       400);
 setTimeout(()=>loadCrypto(),   600);
@@ -1169,184 +1070,9 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadElec();loadGeo();loadFX(true);loadCrypto(true);
+  loadElec();loadFX(true);loadCrypto(true);
   setTimeout(()=>loadMarketStats(true),1200);
 },CACHE_TTL);
-
-/* ═══ MAPA CONFLITOS ═══ */
-(function buildConflictMap(){
-  var w=document.getElementById("cmap-wrap");
-  if(!w)return;
-  var C=[
-    ["Ucrânia","war",49.0,32.0,"Invasão russa · Frente leste"],
-    ["Gaza","war",31.4,34.4,"Israel–Hamas"],
-    ["Sudão","war",15.5,32.5,"SAF vs RSF · Crise humanitária"],
-    ["Myanmar","war",19.7,96.1,"Junta vs resistência"],
-    ["Etiópia","war",9.1,40.5,"Amhara · Oromia · Tigray"],
-    ["RD Congo","war",-4.0,21.8,"M23 · Kivu Norte"],
-    ["Sahel","war",12.0,-2.0,"Jihadistas · AES · Wagner"],
-    ["Somália","war",5.1,46.2,"Al-Shabaab"],
-    ["Iémen","war",15.5,48.5,"Houthis · Cessar-fogo frágil"],
-    ["Síria","war",35.0,38.3,"Pós-Assad · Fragmentação"],
-    ["Afeganistão","war",33.9,67.7,"Talibã · IS-K"],
-    ["Líbano","high",33.9,35.5,"Pós-conflito · Hezbollah"],
-    ["Iraque","high",33.2,43.7,"Milícias · IS residual"],
-    ["Moçambique N.","high",-13.0,39.0,"Insurreição Cabo Delgado"],
-    ["Nigéria N.","high",11.8,13.2,"Boko Haram · ISWAP"],
-    ["Haiti","high",18.9,-72.3,"Gangues · Crise Estado"],
-    ["Cisjordânia","high",31.9,35.2,"Colonatos · Violência"],
-    ["Taiwan","tension",24.0,121.0,"Tensão EUA–China"],
-    ["Coreia Norte","tension",40.0,127.5,"Nuclear · ICBM"],
-    ["Irão","tension",32.4,53.7,"Nuclear · Proxy regional"],
-    ["Kosovo","tension",42.6,21.2,"Tensão Sérvia · NATO"],
-    ["Geórgia","tension",42.3,43.4,"Influência russa"],
-    ["Moldávia","tension",47.4,28.9,"Transnistria"],
-    ["Arménia-Azerb.","tension",40.1,47.6,"Pós-Karabakh"],
-    ["Mar Sul China","tension",14.0,114.0,"Filipinas · China"],
-    ["Venezuela","tension",6.4,-61.2,"Disputa Essequibo"],
-    ["Paquistão-Índia","nuclear",30.0,73.0,"Kashmir · Ambos nucleares"],
-    ["Rússia-OTAN","nuclear",55.0,37.6,"Retórica nuclear"]
-  ];
-  var CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-  var CR={war:7,high:5.5,tension:4.5,nuclear:5.5};
-  var CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Zona de Tensão",nuclear:"Risco Nuclear"};
-  function xy(a,o){return[(o+180)/360*960+20,(90-a)/180*480+10];}
-  var defs='<defs><radialGradient id="ogx" cx="50%" cy="60%" r="80%"><stop offset="0%" stop-color="#0d1b3e"/><stop offset="100%" stop-color="#060a14"/></radialGradient>';
-  var pulses="",dots="";
-  C.forEach(function(c,i){
-    var v=xy(c[2],c[3]),col=CC[c[1]],r=CR[c[1]];
-    if(c[1]==="war"||c[1]==="nuclear"){
-      defs+='<radialGradient id="rg'+i+'" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="'+col+'" stop-opacity=".8"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></radialGradient>';
-      pulses+='<circle cx="'+v[0]+'" cy="'+v[1]+'" r="'+(r*2)+'" fill="url(#rg'+i+')">'
-        +'<animate attributeName="r" values="'+(r*1.2)+';'+(r*3)+';'+(r*1.2)+'" dur="'+(1.4+i*0.06)+'s" repeatCount="indefinite"/>'
-        +'<animate attributeName="opacity" values=".6;0;.6" dur="'+(1.4+i*0.06)+'s" repeatCount="indefinite"/>'
-        +'</circle>';
-    }
-    dots+='<circle class="cdot" cx="'+v[0]+'" cy="'+v[1]+'" r="'+r+'" fill="'+col+'" stroke="#06080f" stroke-width="1" opacity=".9" data-i="'+i+'" style="cursor:pointer"/>';
-  });
-  defs+="</defs>";
-  var land='<g fill="#14213d" stroke="#1e3260" stroke-width=".3" opacity=".85">'
-    +'<polygon points="480,97 522,86 545,92 558,108 548,122 530,128 510,126 492,120 481,110"/>'
-    +'<polygon points="500,62 513,56 524,60 527,73 516,81 504,79 499,72"/>'
-    +'<polygon points="530,68 562,57 655,52 755,57 795,67 775,87 748,92 695,87 645,82 598,84 562,90 535,87"/>'
-    +'<polygon points="562,102 625,96 685,102 722,112 702,132 658,142 620,137 580,127 558,117"/>'
-    +'<polygon points="702,102 763,97 793,102 802,117 782,127 752,122 722,120 702,117"/>'
-    +'<polygon points="542,132 582,127 612,132 622,147 602,157 572,154 547,147"/>'
-    +'<polygon points="481,142 532,137 557,147 562,182 547,222 522,252 492,257 467,242 452,202 457,167 469,152"/>'
-    +'<polygon points="102,72 202,62 262,72 282,97 262,122 222,137 172,132 122,117 92,97"/>'
-    +'<polygon points="202,142 232,137 247,147 242,162 222,164 202,157"/>'
-    +'<polygon points="202,167 252,160 282,172 297,212 282,262 247,292 212,287 187,262 177,222 187,187"/>'
-    +'<polygon points="752,282 812,272 842,287 837,317 802,327 762,317 747,302"/>'
-    +'<polygon points="332,37 372,30 397,40 392,60 362,64 332,57"/>'
-    +'<polygon points="787,102 798,97 806,102 802,114 790,110"/>'
-    +'<polygon points="770,107 780,102 784,112 777,117 770,114"/>'
-    +'</g>';
-  w.innerHTML='<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:400px">'
-    +'<rect width="1000" height="500" fill="url(#ogx)"/>'
-    +land+defs+pulses+dots
-    +'<text x="15" y="494" font-family="monospace" font-size="7" fill="#2a3550">ACLED - Crisis Group - CFR - Mar 2026</text>'
-    +'</svg>'
-    +'<div class="cmap-tip" id="cmap-tip"></div>';
-  var tip=document.getElementById("cmap-tip");
-  w.querySelectorAll(".cdot").forEach(function(dot){
-    dot.addEventListener("mouseenter",function(){
-      var c=C[+dot.dataset.i];
-      tip.innerHTML='<div class="cmap-tip-name">'+c[0]+'</div>'
-        +'<div class="cmap-tip-type" style="color:'+CC[c[1]]+'">'+CL[c[1]]+'</div>'
-        +'<div class="cmap-tip-desc">'+c[4]+'</div>';
-      tip.classList.add("show");
-    });
-    dot.addEventListener("mousemove",function(e){
-      var rc=w.getBoundingClientRect(),tx=e.clientX-rc.left+12,ty=e.clientY-rc.top+12;
-      if(tx+215>rc.width)tx-=225;
-      tip.style.left=tx+"px";tip.style.top=ty+"px";
-    });
-    dot.addEventListener("mouseleave",function(){tip.classList.remove("show");});
-  });
-})();
-
-/* ═══ RSS GEOPOLÍTICO ═══ */
-var GEO_DATA=[],GEO_FILTER="all";
-var GEO_FEEDS=[
-  {id:"icg",label:"Crisis Group",color:"#EF4444",url:"https://www.crisisgroup.org/rss/139"},
-  {id:"gpf",label:"Geop. Futures",color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/"},
-  {id:"fa",label:"Foreign Affairs",color:"#8B5CF6",url:"https://news.google.com/rss/search?q=geopolitics+foreign+affairs&hl=en&gl=US&ceid=US:en"}
-];
-
-async function loadGeo(force){
-  $("geo-body").innerHTML=ld();
-  try{
-    var ck="geo_v6",cached=force?null:lsGet(ck);
-    if(!cached){
-      var all=[];
-      for(var fi=0;fi<GEO_FEEDS.length;fi++){
-        var feed=GEO_FEEDS[fi];
-        try{
-          var raw=null;
-          // Google News: CORS nativo
-          if(feed.url.indexOf("news.google")>=0){
-            try{var rg=await fetch(feed.url,{signal:AbortSignal.timeout(8000)});if(rg.ok)raw=await rg.text();}catch{}
-          } else {
-            // corsproxy.io e allorigins fallback
-            var pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),
-                     "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)];
-            for(var pi=0;pi<pxs.length&&!raw;pi++){
-              try{var rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(8000)});if(rp.ok){var t=await rp.text();if(t.length>200)raw=t;}}catch{}
-            }
-          }
-          if(!raw)continue;
-          var xml=new DOMParser().parseFromString(raw,"text/xml");
-          var items=xml.querySelectorAll("item");
-          for(var ii=0;ii<Math.min(items.length,7);ii++){
-            var it=items[ii];
-            var title=((it.querySelector("title")||{}).textContent||"").replace(/<!\[CDATA\[|\]\]>/g,"").trim();
-            var link=((it.querySelector("link")||{}).textContent||"").trim();
-            var pub=((it.querySelector("pubDate")||{}).textContent||"");
-            var dt=pub?new Date(pub).getTime():0;
-            if(title&&title.length>5) all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
-          }
-        }catch(fe){console.warn("geo",feed.id,fe);}
-      }
-      all.sort(function(a,b){return b.dt-a.dt;});
-      if(!all.length) throw new Error("Feeds indisponíveis de momento");
-      cached=all; lsSet(ck,cached);
-    }
-    GEO_DATA=cached; renderGeo();
-  }catch(e){
-    $("geo-body").innerHTML=er(e.message)
-      +"<div style='margin-top:8px'>"+GEO_FEEDS.map(function(f){
-        return "<div style='margin:3px 0;font-size:.62rem'>→ <a href='"+f.url+"' target='_blank' style='color:"+f.color+"'>"+f.label+"</a></div>";
-      }).join("")+"</div>";
-  }
-}
-
-function switchGeo(f,btn){
-  document.querySelectorAll(".geo-tab").forEach(function(b){b.classList.remove("on");});
-  if(btn) btn.classList.add("on");
-  GEO_FILTER=f; renderGeo();
-}
-
-function renderGeo(){
-  var items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
-  if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
-  $("geo-body").innerHTML=items.slice(0,10).map(function(it){
-    var ago=fmtAgo(it.dt);
-    var lnk=(it.link||"").replace(/'/g,"\'");
-    return '<div class="geo-item" onclick="window.open(''+lnk+'')">'
-      +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
-      +'<div class="geo-title">'+it.title+'</div>'
-      +'<div class="geo-date">'+ago+'</div></div>';
-  }).join("");
-}
-
-function fmtAgo(ts){
-  var d=Math.floor((Date.now()-ts)/1000);
-  if(d<60) return "agora";
-  if(d<3600) return Math.floor(d/60)+"min";
-  if(d<86400) return Math.floor(d/3600)+"h";
-  return Math.floor(d/86400)+"d";
-}
-
 </script>
 </body>
 </html>
