@@ -568,50 +568,14 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- Indicadores Mercado -->
   <div class="card">
     <div class="stripe" style="background:var(--purple)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--pd)">🔭</div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
     </div>
-    <div class="tradingview-widget-container" style="margin-top:6px">
-      <div class="tradingview-widget-container__widget"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-      {
-        "colorTheme": "dark",
-        "dateRange": "1D",
-        "showChart": true,
-        "locale": "en",
-        "width": "100%",
-        "height": "400",
-        "largeChartUrl": "",
-        "isTransparent": true,
-        "showSymbolLogo": true,
-        "showFloatingTooltip": true,
-        "plotLineColorGrowing": "rgba(41,98,255,1)",
-        "plotLineColorFalling": "rgba(41,98,255,1)",
-        "gridLineColor": "rgba(255,255,255,0.06)",
-        "scaleFontColor": "rgba(134,144,159,1)",
-        "belowLineFillColorGrowing": "rgba(41,98,255,0.12)",
-        "belowLineFillColorFalling": "rgba(41,98,255,0.12)",
-        "symbolActiveColor": "rgba(41,98,255,0.12)",
-        "tabs": [
-          {
-            "title": "Índices & Volatilidade",
-            "symbols": [
-              {"s": "CBOE:VIX",    "d": "VIX — Volatilidade"},
-              {"s": "TVC:DXY",     "d": "DXY — USD Index"},
-              {"s": "TVC:GOLD",    "d": "Ouro Spot"},
-              {"s": "TVC:USOIL",   "d": "Petróleo WTI"},
-              {"s": "TVC:SILVER",  "d": "Prata Spot"},
-              {"s": "TVC:US10Y",   "d": "Treasury 10Y"}
-            ],
-            "originalTitle": "Indices"
-          }
-        ]
-      }
-      </script>
-    </div>
-    <div class="src">✦ TradingView · VIX · Ouro · Petróleo WTI · USD Index</div>
+    <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="src">✦ open.er-api.com · Ouro · Prata · Petróleo · CBOE VIX</div>
   </div>
-
 
   <!-- Calendário Económico -->
   <div class="card">
@@ -1155,6 +1119,7 @@ renderEuribor();
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),       400);
+setTimeout(()=>loadMarketStats(), 800);
 setTimeout(()=>loadCrypto(),   600);
 
 setInterval(()=>{
@@ -1162,6 +1127,7 @@ setInterval(()=>{
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
+  setTimeout(()=>loadMarketStats(true),800);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS ═══ */
@@ -1314,6 +1280,74 @@ function fmtAgo(ts){
 /* boot geo */
 buildConflictMap();
 loadGeo();
+
+/* ── Indicadores de Mercado ── */
+async function loadMarketStats(force=false){
+  $("mstats-body").innerHTML=ld();
+  try{
+    const ck="mktv6", cached=force?null:lsGet(ck);
+    if(cached){renderMStats(cached);return;}
+    
+    // open.er-api.com devolve XAU (ouro) e XAG (prata) como "moedas"
+    // 1 USD = X onças → preço onça = 1/X USD
+    const r=await fetch("https://open.er-api.com/v6/latest/USD",{signal:AbortSignal.timeout(8000)});
+    if(!r.ok) throw new Error("API indisponível");
+    const j=await r.json();
+    const rates=j.rates||{};
+    
+    // Calcular preços
+    const xauPerUSD=rates.XAU||0;  // onças por 1 USD
+    const xagPerUSD=rates.XAG||0;
+    const goldUSD  =xauPerUSD>0?1/xauPerUSD:0;  // USD por onça
+    const silverUSD=xagPerUSD>0?1/xagPerUSD:0;
+    const eurUSD   =rates.EUR?1/rates.EUR:1.08;   // EUR/USD
+    const goldEUR  =goldUSD*eurUSD;
+    const silverEUR=silverUSD*eurUSD;
+    
+    // Petróleo WTI: usar API do EIA (U.S. Energy Information Administration)
+    // Endpoint público sem chave para preço mais recente
+    let oilUSD=0;
+    try{
+      const ro=await fetch("https://corsproxy.io/?"+encodeURIComponent("https://api.eia.gov/v2/petroleum/pri/spt/data/?frequency=daily&data[0]=value&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=1"),
+        {signal:AbortSignal.timeout(6000)});
+      if(ro.ok){const jo=await ro.json();oilUSD=parseFloat(jo?.response?.data?.[0]?.value||0);}
+    }catch{}
+    
+    const res={gold:{usd:goldUSD,eur:goldEUR},silver:{usd:silverUSD,eur:silverEUR},oil:{usd:oilUSD},eurUSD:1/rates.EUR};
+    lsSet(ck,res);
+    renderMStats(res);
+  }catch(e){$("mstats-body").innerHTML=er(e.message);}
+}
+
+function renderMStats(res){
+  const g=res.gold||{}, s=res.silver||{}, o=res.oil||{};
+  const fv=(v,d=2)=>v>0?("€"+fmtP(v,d)):"—";
+  const fd=(v,d=2)=>v>0?("$"+fmtP(v,d)):"—";
+  $("mstats-body").innerHTML=`
+  <div class="mstat-grid">
+    <div class="mstat">
+      <div class="mstat-lbl">🥇 Ouro</div>
+      <div class="mstat-val" style="color:var(--accent)">${fv(g.eur,0)}</div>
+      <div class="mstat-sub">${fd(g.usd,0)} · por onça troy</div>
+    </div>
+    <div class="mstat">
+      <div class="mstat-lbl">🥈 Prata</div>
+      <div class="mstat-val" style="color:#94a3b8">${fv(s.eur,2)}</div>
+      <div class="mstat-sub">${fd(s.usd,2)} · por onça troy</div>
+    </div>
+    <div class="mstat">
+      <div class="mstat-lbl">🛢️ Petróleo WTI</div>
+      <div class="mstat-val" style="color:var(--orange)">${o.usd>0?("$"+fmtP(o.usd,2)):"—"}</div>
+      <div class="mstat-sub">USD / barril · EIA</div>
+    </div>
+    <div class="mstat">
+      <div class="mstat-lbl">💵 EUR/USD</div>
+      <div class="mstat-val" style="color:var(--blue)">${res.eurUSD>0?fmtP(res.eurUSD,4):"—"}</div>
+      <div class="mstat-sub">Câmbio · open.er-api.com</div>
+    </div>
+  </div>`;
+}
+
 </script>
 </body>
 </html>
