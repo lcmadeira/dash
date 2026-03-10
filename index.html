@@ -1403,6 +1403,229 @@ function proj(lat,lon){
   }
 
 /* ── MAPA ── */
+
+/* ═══════════════════════════════════════════════════════════════
+   MAPA REGIONAL GENÉRICO — Canvas + TopoJSON world-atlas
+   Reutiliza o mesmo atlas do mapa de conflitos (cache global)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Cache global do GeoJSON (partilhado com buildConflictMap) */
+if(!window._topoCache) window._topoCache = null;
+if(!window._topoLoading) window._topoLoading = false;
+if(!window._topoCbs) window._topoCbs = [];
+
+function topo2geo(topo){
+    var name=Object.keys(topo.objects)[0]; /* "countries" ou "land" */
+    /* Preferir "countries" se existir */
+    if(topo.objects.countries)name="countries";
+    else if(topo.objects.land)name="land";
+    var obj=topo.objects[name];
+    var arcs=topo.arcs;
+    var scale=topo.transform?topo.transform.scale:[1,1];
+    var translate=topo.transform?topo.transform.translate:[0,0];
+
+    function decodeArc(idx){
+      var reversed=idx<0;
+      var arc=arcs[reversed?~idx:idx];
+      var coords=[];
+      var x=0,y=0;
+      for(var i=0;i<arc.length;i++){
+        x+=arc[i][0]; y+=arc[i][1];
+        coords.push([x*scale[0]+translate[0], y*scale[1]+translate[1]]);
+      }
+      if(reversed)coords.reverse();
+      return coords;
+    }
+
+    function decodeGeom(geom){
+      if(geom.type==="GeometryCollection"){
+        return {type:"FeatureCollection",features:geom.geometries.map(function(g){
+          return {type:"Feature",geometry:decodeGeom(g),properties:{}};
+        })};
+      }
+      if(geom.type==="Polygon"){
+        return {type:"Polygon",coordinates:geom.arcs.map(function(ring){
+          var coords=[];
+          ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
+          return coords;
+        })};
+      }
+      if(geom.type==="MultiPolygon"){
+        return {type:"MultiPolygon",coordinates:geom.arcs.map(function(poly){
+          return poly.map(function(ring){
+            var coords=[];
+            ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
+            return coords;
+          });
+        })};
+      }
+      return {type:geom.type,coordinates:[]};
+    }
+
+    var features=[];
+    if(obj.type==="GeometryCollection"){
+      obj.geometries.forEach(function(g){
+        features.push({type:"Feature",geometry:decodeGeom(g),properties:g.properties||{}});
+      });
+    }
+    return {type:"FeatureCollection",features:features};
+  }
+
+function loadTopoData(cb){
+  if(window._topoCache){ cb(window._topoCache); return; }
+  window._topoCbs.push(cb);
+  if(window._topoLoading) return;
+  window._topoLoading = true;
+  fetch("https://unpkg.com/world-atlas@2/countries-110m.json")
+    .then(function(r){ return r.json(); })
+    .then(function(topo){
+      /* Usar topo2geo global */
+      var geo = topo2geo(topo);
+      window._topoCache = geo;
+      window._topoCbs.forEach(function(f){ f(window._topoCache); });
+      window._topoCbs=[];
+    })
+    .catch(function(){ window._topoLoading=false; });
+}
+
+/* ── Função genérica de desenho regional ── */
+function drawRegionalMap(canvasId, tipId, bbox, dots, opts){
+  /* bbox = {minLon, maxLon, minLat, maxLat} */
+  /* dots = [{lat, lon, col, r, label}] */
+  var canvas=document.getElementById(canvasId);
+  var tip=tipId?document.getElementById(tipId):null;
+  if(!canvas) return;
+  var ctx=canvas.getContext("2d");
+  opts=opts||{};
+
+  function proj(lat,lon){
+    var padLon=(bbox.maxLon-bbox.minLon)*0.04;
+    var padLat=(bbox.maxLat-bbox.minLat)*0.04;
+    var x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
+    var y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
+    return [x,y];
+  }
+
+  function draw(geo){
+    var W=canvas.width, H=canvas.height;
+    /* Fundo */
+    ctx.fillStyle=opts.bg||"#0a1020";
+    ctx.fillRect(0,0,W,H);
+
+    /* Países */
+    var features=geo.features;
+    for(var fi=0;fi<features.length;fi++){
+      var geom=features[fi].geometry;
+      if(!geom) continue;
+      var polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
+      for(var pi=0;pi<polys.length;pi++){
+        var rings=polys[pi];
+        /* Verificar se este polígono intersecta a bbox */
+        var ring0=rings[0]; if(!ring0||!ring0.length) continue;
+        var inView=false;
+        for(var ci=0;ci<ring0.length;ci+=5){
+          var lon=ring0[ci][0], lat=ring0[ci][1];
+          if(lon>=bbox.minLon-5&&lon<=bbox.maxLon+5&&lat>=bbox.minLat-5&&lat<=bbox.maxLat+5){
+            inView=true; break;
+          }
+        }
+        if(!inView) continue;
+        for(var ri=0;ri<rings.length;ri++){
+          var ring=rings[ri];
+          ctx.beginPath();
+          for(var ci=0;ci<ring.length;ci++){
+            var p=proj(ring[ci][1],ring[ci][0]);
+            if(ci===0) ctx.moveTo(p[0],p[1]);
+            else ctx.lineTo(p[0],p[1]);
+          }
+          ctx.closePath();
+          ctx.fillStyle=opts.landFill||"#1E2B4A";
+          ctx.fill();
+          ctx.strokeStyle=opts.landStroke||"#2A3660";
+          ctx.lineWidth=0.7;
+          ctx.stroke();
+        }
+      }
+    }
+
+    /* Pontos */
+    for(var di=0;di<dots.length;di++){
+      var d=dots[di];
+      var p=proj(d.lat,d.lon);
+      if(p[0]<-10||p[0]>W+10||p[1]<-10||p[1]>H+10) continue;
+      /* Glow */
+      var grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],d.r*3);
+      grd.addColorStop(0,d.col+"99");
+      grd.addColorStop(1,d.col+"00");
+      ctx.beginPath();
+      ctx.arc(p[0],p[1],d.r*3,0,Math.PI*2);
+      ctx.fillStyle=grd;
+      ctx.fill();
+      /* Círculo principal */
+      ctx.beginPath();
+      ctx.arc(p[0],p[1],d.r,0,Math.PI*2);
+      ctx.fillStyle=d.col;
+      ctx.globalAlpha=0.9;
+      ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle="rgba(255,255,255,0.3)";
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+    }
+
+    /* Etiquetas opcionais */
+    if(opts.labels){
+      opts.labels.forEach(function(l){
+        var p=proj(l.lat,l.lon);
+        ctx.font="9px monospace";
+        ctx.fillStyle="rgba(110,122,150,0.8)";
+        ctx.fillText(l.text,p[0]+4,p[1]+3);
+      });
+    }
+  }
+
+  /* Resize */
+  function resize(){
+    var rect=canvas.getBoundingClientRect();
+    canvas.width=Math.round(rect.width)||canvas.offsetWidth||400;
+    canvas.height=Math.round(rect.height)||canvas.offsetHeight||200;
+    if(window._topoCache) draw(window._topoCache);
+  }
+
+  /* Tooltip */
+  if(tip){
+    canvas.addEventListener("mousemove",function(e){
+      var rect=canvas.getBoundingClientRect();
+      var mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      var hit=null, minD=Infinity;
+      for(var di=0;di<dots.length;di++){
+        var d=dots[di];
+        var p=proj(d.lat,d.lon);
+        var dist=Math.sqrt((p[0]-mx)*(p[0]-mx)+(p[1]-my)*(p[1]-my));
+        if(dist<Math.max(d.r+8,16)&&dist<minD){ minD=dist; hit=d; }
+      }
+      if(hit){
+        tip.style.opacity="1";
+        tip.style.left=Math.min(mx+12,canvas.width-190)+"px";
+        tip.style.top=Math.max(my-30,4)+"px";
+        tip.innerHTML=hit.label||"";
+      } else {
+        tip.style.opacity="0";
+      }
+    });
+    canvas.addEventListener("mouseleave",function(){ tip.style.opacity="0"; });
+  }
+
+  loadTopoData(function(geo){
+    resize();
+    draw(geo);
+  });
+  window.addEventListener("resize",function(){
+    setTimeout(resize,100);
+  });
+}
+
+
 window.buildConflictMap=function(){
   var wrap=document.getElementById("cmap-content");
   if(!wrap)return;
@@ -1509,11 +1732,17 @@ window.buildConflictMap=function(){
   var DOTS_REF=[];
 
   function loadAndDraw(){
+    /* Usar cache global se disponível */
+    if(window._topoCache){
+      DOTS_REF=draw(window._topoCache);
+      setupHover();
+      return;
+    }
     fetch("https://unpkg.com/world-atlas@2/countries-110m.json")
     .then(function(r){return r.json();})
     .then(function(topo){
-      /* Converter TopoJSON → GeoJSON sem biblioteca */
       var geojson=topo2geo(topo);
+      window._topoCache=geojson;
       DOTS_REF=draw(geojson);
       setupHover();
     })
@@ -1528,62 +1757,7 @@ window.buildConflictMap=function(){
   }
 
   /* TopoJSON decoder mínimo (sem dependências) */
-  function topo2geo(topo){
-    var name=Object.keys(topo.objects)[0]; /* "countries" ou "land" */
-    /* Preferir "countries" se existir */
-    if(topo.objects.countries)name="countries";
-    else if(topo.objects.land)name="land";
-    var obj=topo.objects[name];
-    var arcs=topo.arcs;
-    var scale=topo.transform?topo.transform.scale:[1,1];
-    var translate=topo.transform?topo.transform.translate:[0,0];
 
-    function decodeArc(idx){
-      var reversed=idx<0;
-      var arc=arcs[reversed?~idx:idx];
-      var coords=[];
-      var x=0,y=0;
-      for(var i=0;i<arc.length;i++){
-        x+=arc[i][0]; y+=arc[i][1];
-        coords.push([x*scale[0]+translate[0], y*scale[1]+translate[1]]);
-      }
-      if(reversed)coords.reverse();
-      return coords;
-    }
-
-    function decodeGeom(geom){
-      if(geom.type==="GeometryCollection"){
-        return {type:"FeatureCollection",features:geom.geometries.map(function(g){
-          return {type:"Feature",geometry:decodeGeom(g),properties:{}};
-        })};
-      }
-      if(geom.type==="Polygon"){
-        return {type:"Polygon",coordinates:geom.arcs.map(function(ring){
-          var coords=[];
-          ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
-          return coords;
-        })};
-      }
-      if(geom.type==="MultiPolygon"){
-        return {type:"MultiPolygon",coordinates:geom.arcs.map(function(poly){
-          return poly.map(function(ring){
-            var coords=[];
-            ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
-            return coords;
-          });
-        })};
-      }
-      return {type:geom.type,coordinates:[]};
-    }
-
-    var features=[];
-    if(obj.type==="GeometryCollection"){
-      obj.geometries.forEach(function(g){
-        features.push({type:"Feature",geometry:decodeGeom(g),properties:g.properties||{}});
-      });
-    }
-    return {type:"FeatureCollection",features:features};
-  }
 
   function setupHover(){
     var rect=canvas.getBoundingClientRect();
@@ -2179,7 +2353,7 @@ function renderDiv(){
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="air_v5";
+  const ck="air_v6";
   let d=force?null:lsGet(ck);
   if(!d){
     const URLS=[
@@ -2199,119 +2373,73 @@ async function loadAir(force=false){
 
   if(d?.live&&d.states?.length){
     const states=d.states;
-    /* Separar em voo vs em terra */
     const flying=states.filter(s=>!s[8]);
     const ground=states.filter(s=>s[8]);
-
-    /* Métricas */
     const alts=flying.filter(s=>s[7]>0).map(s=>s[7]);
     const avgAlt=alts.length?Math.round(alts.reduce((a,b)=>a+b,0)/alts.length):0;
-    const vels=flying.filter(s=>s[9]>0).map(s=>s[9]*3.6); /* m/s → km/h */
+    const vels=flying.filter(s=>s[9]>0).map(s=>s[9]*3.6);
     const avgVel=vels.length?Math.round(vels.reduce((a,b)=>a+b,0)/vels.length):0;
 
-    /* Distribuição por altitude (bandas FL) */
     const altBands=[
-      {label:"Solo",    min:0,    max:0,    count:ground.length, col:"#6E7A96"},
-      {label:"<FL100",  min:1,    max:3048, count:0, col:"#8B5CF6"},
-      {label:"FL100-200",min:3048,max:6096, count:0, col:"#3B82F6"},
-      {label:"FL200-300",min:6096,max:9144, count:0, col:"#06B6D4"},
-      {label:">FL300",  min:9144, max:99999,count:0, col:"#10B981"},
+      {label:"Solo",    col:"#6E7A96", count:ground.length},
+      {label:"<FL100",  col:"#8B5CF6", count:flying.filter(s=>s[7]>0&&s[7]<3048).length},
+      {label:"FL100-200",col:"#3B82F6",count:flying.filter(s=>s[7]>=3048&&s[7]<6096).length},
+      {label:"FL200-300",col:"#06B6D4",count:flying.filter(s=>s[7]>=6096&&s[7]<9144).length},
+      {label:">FL300",  col:"#10B981", count:flying.filter(s=>s[7]>=9144).length},
     ];
-    flying.forEach(s=>{
-      const a=s[7]||0;
-      const b=altBands.find((b,i)=>i>0&&a>=b.min&&a<b.max);
-      if(b)b.count++;
-    });
 
-    /* Top países */
     const byCtry={};
     states.forEach(s=>{const c=s[2]||"?";byCtry[c]=(byCtry[c]||0)+1;});
     const topCtry=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
-    /* Lista voos com mais info — filtrar callsigns válidos */
     const flights=flying
       .filter(s=>s[1]&&s[1].trim()&&s[7]>500)
       .sort((a,b)=>(b[7]||0)-(a[7]||0))
-      .slice(0,10);
-
-    /* Mini-mapa SVG: lon[-12,-5]→x[0,180], lat[36,44]→y[0,100] */
-    function mxy(lat,lon){
-      return [Math.round((lon+12)/7*180), Math.round((44-lat)/8*100)];
-    }
-    /* Outline simplificado de Portugal continental */
-    const PT_OUTLINE="M60,0 L90,2 L120,0 L145,5 L155,15 L158,28 L160,42 "
-      +"L158,58 L155,72 L150,85 L140,95 L125,100 L105,98 L85,95 "
-      +"L68,88 L55,78 L48,65 L45,50 L46,35 L50,20 Z";
-    /* Espanha simplificada */
-    const ES_OUTLINE="M145,5 L180,0 L200,8 L200,50 L185,80 L165,95 "
-      +"L150,85 L155,72 L158,58 L160,42 L158,28 L155,15 Z";
-
-    const planeDots=states
-      .filter(s=>s[5]&&s[6])
-      .map(s=>{
-        const [x,y]=mxy(s[6],s[5]);
-        if(x<0||x>200||y<0||y>110)return "";
-        const onGnd=s[8];
-        const col=onGnd?"#6E7A96":s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
-        const size=onGnd?2:2.5;
-        const hdg=s[10]||0;
-        /* Triângulo pequeno apontado na direcção do voo */
-        const rad=hdg*Math.PI/180;
-        const tip=`${x+5*Math.sin(rad)},${y-5*Math.cos(rad)}`;
-        const l=`${x-3*Math.cos(rad)-2*Math.sin(rad)},${y-3*Math.sin(rad)+2*Math.cos(rad)}`;
-        const r2=`${x+3*Math.cos(rad)-2*Math.sin(rad)},${y+3*Math.sin(rad)+2*Math.cos(rad)}`;
-        if(onGnd)return `<circle cx="${x}" cy="${y}" r="${size}" fill="${col}" fill-opacity="0.6"/>`;
-        return `<polygon points="${tip} ${l} ${r2}" fill="${col}" fill-opacity="0.85">
-          <title>${(s[1]||"").trim()} · ${s[2]} · ${s[7]?Math.round(s[7]/100)*100+"m":""}</title>
-        </polygon>`;
-      }).join("");
+      .slice(0,8);
 
     const age=Math.round((Date.now()-d.ts)/60000);
+
     el.innerHTML=`
       <!-- KPIs -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
         <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:800;color:#3B82F6">${flying.length}</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#3B82F6">${flying.length}</div>
           <div style="font-size:.6rem;color:var(--t2)">Em voo</div>
         </div>
         <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:800;color:#6E7A96">${ground.length}</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#6E7A96">${ground.length}</div>
           <div style="font-size:.6rem;color:var(--t2)">Em terra</div>
         </div>
         <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:800;color:#06B6D4">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#06B6D4">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
           <div style="font-size:.6rem;color:var(--t2)">Alt.média m</div>
         </div>
         <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.5rem;font-weight:800;color:#8B5CF6">${avgVel||"—"}</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#8B5CF6">${avgVel||"—"}</div>
           <div style="font-size:.6rem;color:var(--t2)">km/h média</div>
         </div>
       </div>
-
       <div style="display:flex;gap:12px;align-items:flex-start">
-        <!-- Mini-mapa -->
-        <div style="flex-shrink:0">
-          <svg viewBox="0 0 200 110" width="164" height="90"
-               style="background:#0a1020;border-radius:6px;border:1px solid var(--b)">
-            <path d="${ES_OUTLINE}" fill="#151f38" stroke="#1e2d50" stroke-width="0.8"/>
-            <path d="${PT_OUTLINE}" fill="#1a2840" stroke="#2a3d60" stroke-width="1"/>
-            ${planeDots}
-          </svg>
-          <!-- Legenda altitude -->
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">
-            ${altBands.map(b=>`
-              <div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
-                <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
-                <span>${b.label}<span style="color:var(--t2);margin-left:2px">${b.count}</span></span>
-              </div>`).join("")}
+        <!-- Mapa Canvas TopoJSON -->
+        <div style="flex-shrink:0;position:relative">
+          <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
+            <canvas id="air-map-canvas" style="width:100%;height:100%;display:block"></canvas>
+            <div id="air-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
+                 padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
+                 pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
+                 max-width:160px;line-height:1.4"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+            ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+              <div style="width:6px;height:6px;border-radius:50%;background:${b.col}"></div>
+              ${b.label} <span style="color:var(--t2);margin-left:1px">${b.count}</span>
+            </div>`).join("")}
           </div>
         </div>
-
-        <!-- Painel direito: voos + países -->
+        <!-- Lista e países -->
         <div style="flex:1;min-width:0">
-          <!-- Top voos -->
-          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">Voos activos (por altitude):</div>
-          ${flights.slice(0,7).map(s=>{
+          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">Voos activos (altitude):</div>
+          ${flights.map(s=>{
             const cs=(s[1]||"???").trim();
             const alt=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
             const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"—";
@@ -2322,40 +2450,63 @@ async function loadAir(force=false){
             return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--b)">
               <div style="font-size:.7rem;font-weight:700;color:var(--text);width:58px;white-space:nowrap;overflow:hidden">${cs}</div>
               <div style="font-size:.64rem;color:${col};font-weight:600;width:36px">${alt}</div>
-              <div style="font-size:.62rem;color:var(--t2);width:52px">${vel}</div>
+              <div style="font-size:.62rem;color:var(--t2);width:50px">${vel}</div>
               <div style="font-size:.7rem;color:${vrCol}">${vrStr}</div>
               <div style="font-size:.6rem;color:var(--t3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s[2]||""}</div>
             </div>`;
           }).join("")}
-          <!-- Top países -->
-          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:8px 0 4px">Por país de registo:</div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px">
-            ${topCtry.map(([c,n])=>`
-              <div style="background:var(--b2);border-radius:4px;padding:2px 8px;font-size:.65rem">
-                <span style="color:var(--t2)">${c}</span>
-                <span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
-              </div>`).join("")}
+          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:7px 0 4px">Por país de registo:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${topCtry.map(([c,n])=>`<div style="background:var(--b2);border-radius:4px;padding:2px 7px;font-size:.64rem">
+              <span style="color:var(--t2)">${c}</span><span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
+            </div>`).join("")}
           </div>
-          <div style="font-size:.6rem;color:var(--t3);margin-top:6px">🟢 Live · ${age}min atrás · lon[-12,-5] lat[36,44]</div>
+          <div style="font-size:.6rem;color:var(--t3);margin-top:6px">🟢 Live · ${age}min · lon[-12,-5] lat[36,44]</div>
         </div>
       </div>`;
+
+    /* Mapa TopoJSON com posições das aeronaves */
+    const airMapDots=states
+      .filter(s=>s[5]!=null&&s[6]!=null)
+      .map(s=>{
+        const onGnd=s[8];
+        const alt=s[7]||0;
+        const col=onGnd?"#6E7A96":alt>9000?"#10B981":alt>6000?"#06B6D4":alt>3000?"#3B82F6":"#8B5CF6";
+        const r=onGnd?2:3;
+        const cs=(s[1]||"").trim()||s[0];
+        const altStr=alt?`FL${Math.round(alt/30.48/10)*10}`:"Solo";
+        const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"";
+        return {
+          lat:s[6], lon:s[5], col, r,
+          label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${altStr} ${vel}<br>${s[2]||""}`
+        };
+      });
+    setTimeout(()=>{
+      drawRegionalMap(
+        "air-map-canvas","air-map-tip",
+        {minLon:-13,maxLon:-4,minLat:35,maxLat:44},
+        airMapDots,
+        {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
+         labels:[{lat:38.7,-9.1,text:"LIS"},{lat:41.2,-8.7,text:"OPO"}]}
+      );
+    },100);
     return;
   }
 
-  /* ── Fallback ANA 2024 ────────────────────────────────────────── */
+  /* Fallback ANA 2024 */
   const ANA=[
-    {label:"Movimentos 2024",  val:"175.200", sub:"+4,2% vs 2023", col:"#3B82F6"},
-    {label:"Passageiros 2024", val:"33,2M",   sub:"+6,1% vs 2023", col:"#06B6D4"},
-    {label:"Carga (ton) 2024", val:"158.400", sub:"+2,8% vs 2023", col:"#8B5CF6"},
-    {label:"Pontualidade",     val:"81,3%",   sub:"voos na hora ±15min", col:"#10B981"},
+    {label:"Movimentos 2024",  val:"175.200",sub:"+4,2% vs 2023",col:"#3B82F6"},
+    {label:"Passageiros 2024", val:"33,2M",  sub:"+6,1% vs 2023",col:"#06B6D4"},
+    {label:"Carga (ton) 2024", val:"158.400",sub:"+2,8% vs 2023",col:"#8B5CF6"},
+    {label:"Pontualidade",     val:"81,3%",  sub:"voos na hora ±15min",col:"#10B981"},
   ];
   const ROTAS=[
-    {dest:"Londres",    cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
-    {dest:"Paris",      cod:"CDG/ORY", freq:"~14/dia",col:"#EF4444"},
-    {dest:"Frankfurt",  cod:"FRA",     freq:"~10/dia",col:"#F59E0B"},
-    {dest:"Madrid",     cod:"MAD",     freq:"~12/dia",col:"#10B981"},
-    {dest:"Amesterdão", cod:"AMS",     freq:"~8/dia", col:"#8B5CF6"},
-    {dest:"São Paulo",  cod:"GRU",     freq:"~5/dia", col:"#F97316"},
+    {dest:"Londres",   cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
+    {dest:"Paris",     cod:"CDG/ORY",freq:"~14/dia",col:"#EF4444"},
+    {dest:"Frankfurt", cod:"FRA",    freq:"~10/dia",col:"#F59E0B"},
+    {dest:"Madrid",    cod:"MAD",    freq:"~12/dia",col:"#10B981"},
+    {dest:"Amesterdão",cod:"AMS",    freq:"~8/dia", col:"#8B5CF6"},
+    {dest:"São Paulo", cod:"GRU",    freq:"~5/dia", col:"#F97316"},
   ];
   el.innerHTML=`
     <div style="font-size:.65rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
@@ -2387,7 +2538,6 @@ async function loadSeis(force=false){
   let d=force?null:lsGet(ck);
   if(!d||!d.length){
     try{
-      /* 30 dias, mag ≥ 0.5 — garante sempre resultados na Ibéria+Atlântico */
       const start=new Date(Date.now()-30*864e5).toISOString().split("T")[0];
       const url=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson`
         +`&starttime=${start}&minlatitude=27&maxlatitude=45`
@@ -2396,7 +2546,7 @@ async function loadSeis(force=false){
       if(!r.ok)throw new Error("HTTP "+r.status);
       const j=await r.json();
       d=j.features||[];
-      if(d.length)lsSet(ck,d); /* só cachear se tiver dados */
+      if(d.length)lsSet(ck,d);
     }catch(e){el.innerHTML=er(e.message);return;}
   }
   if(!d.length){
@@ -2404,43 +2554,12 @@ async function loadSeis(force=false){
     return;
   }
 
-  /* Separar por magnitude para estatísticas */
-  const d7=d.filter(x=>{const dt=Date.now()-x.properties.time;return dt<7*864e5;});
-  const d30=d;
-  const use=d7.length>=3?d7:d30; /* usar 7 dias se tiver pelo menos 3 eventos, senão 30 */
+  const d7=d.filter(x=>(Date.now()-x.properties.time)<7*864e5);
+  const use=d7.length>=3?d7:d;
   const periodo=d7.length>=3?"7 dias":"30 dias";
-
   const maxMag=Math.max(...use.map(x=>x.properties.mag));
   const big=use.filter(x=>x.properties.mag>=3).length;
   const med=use.filter(x=>x.properties.mag>=2&&x.properties.mag<3).length;
-
-  /* Mini-mapa SVG — projecção lon[-32,4]→x[0,200], lat[27,45]→y[0,120] */
-  function mxy(lat,lon){
-    return [Math.round((lon+32)/36*200), Math.round((45-lat)/18*120)];
-  }
-  /* Outline simplificado da Ibéria + posição dos Açores */
-  const IBERIA="M95,5 L110,7 L125,5 L140,8 L155,5 L168,8 L178,12 L188,18 "
-    +"L190,28 L192,40 L188,55 L182,68 L176,80 L168,90 L158,98 "
-    +"L144,103 L128,105 L112,103 L98,100 L84,95 L72,85 L65,72 "
-    +"L62,58 L64,44 L68,32 L76,20 L86,10 Z";
-
-  const dots=use.slice(0,40).map(f=>{
-    const p=f.properties, mag=p.mag;
-    const coords=f.geometry?.coordinates;
-    if(!coords)return "";
-    const [x,y]=mxy(coords[1], coords[0]);
-    if(x<0||x>200||y<0||y>120)return "";
-    const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
-    const r=Math.max(2.5, Math.min(8, mag*2));
-    const dt=new Date(p.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
-    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" fill-opacity="0.8" stroke="#fff" stroke-width="0.5" stroke-opacity="0.4">
-      <title>M${mag.toFixed(1)} · ${dt} · ${(p.place||"").substring(0,40)}</title>
-    </circle>`;
-  }).join("");
-
-  /* Marcador Açores */
-  const [ax,ay]=mxy(38.5,-28);
-  const acores=`<text x="${ax}" y="${ay}" font-size="7" fill="#6E7A96" text-anchor="middle">Açores</text>`;
 
   el.innerHTML=`
     <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
@@ -2462,23 +2581,26 @@ async function loadSeis(force=false){
       </div>
     </div>
     <div style="display:flex;gap:12px;align-items:flex-start">
-      <div style="flex-shrink:0">
-        <svg viewBox="0 0 200 120" width="160" height="96"
-             style="background:#0F1629;border-radius:6px;border:1px solid var(--b)">
-          <path d="${IBERIA}" fill="#1E2B4A" stroke="#2A3660" stroke-width="1"/>
-          ${acores}
-          ${dots}
-        </svg>
-        <div style="display:flex;gap:7px;margin-top:4px;flex-wrap:wrap">
+      <!-- Mapa Canvas TopoJSON -->
+      <div style="flex-shrink:0;position:relative">
+        <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
+          <canvas id="seis-map-canvas" style="width:100%;height:100%;display:block"></canvas>
+          <div id="seis-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
+               padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
+               pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
+               max-width:170px;line-height:1.4"></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
           ${[["#EF4444","≥4"],["#F97316","≥3"],["#F59E0B","≥2"],["#8B5CF6","<2"]].map(([c,l])=>
             `<div style="display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t3)">
               <div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}
             </div>`).join("")}
         </div>
       </div>
+      <!-- Lista -->
       <div style="flex:1;min-width:0">
         <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">
-          Mais recentes ${periodo==="7 dias"?"(7d)":"(30d)"}:
+          Mais recentes (${periodo}):
         </div>
         ${use.slice(0,8).map(f=>{
           const p=f.properties, mag=p.mag.toFixed(1);
@@ -2486,10 +2608,11 @@ async function loadSeis(force=false){
           const dt=new Date(p.time);
           const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})
             +" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
-          const place=(p.place||"").replace(/ of /g," ").substring(0,36);
+          const place=(p.place||"").replace(/ of /g," ").substring(0,38);
           return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--b)">
-            <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;padding:2px 6px;
-                 font-size:.74rem;font-weight:700;color:${col};min-width:30px;text-align:center">${mag}</div>
+            <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;
+                 padding:2px 6px;font-size:.74rem;font-weight:700;color:${col};
+                 min-width:30px;text-align:center">${mag}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:.66rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${place}</div>
               <div style="font-size:.58rem;color:var(--t3)">${dts}</div>
@@ -2499,6 +2622,38 @@ async function loadSeis(force=false){
         ${use.length>8?`<div style="font-size:.6rem;color:var(--t3);margin-top:3px">+ ${use.length-8} eventos</div>`:""}
       </div>
     </div>`;
+
+  /* Desenhar mapa com TopoJSON */
+  const seisMapDots=use.slice(0,60)
+    .filter(f=>f.geometry?.coordinates)
+    .map(f=>{
+      const mag=f.properties.mag;
+      const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
+      const r=Math.max(3,Math.min(10,mag*2.2));
+      const coords=f.geometry.coordinates;
+      const dt=new Date(f.properties.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
+      return {
+        lat:coords[1], lon:coords[0], col, r,
+        label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").substring(0,40)}<br>${dt}`
+      };
+    });
+  setTimeout(()=>{
+    drawRegionalMap(
+      "seis-map-canvas","seis-map-tip",
+      {minLon:-32,maxLon:5,minLat:26,maxLat:46},
+      seisMapDots,
+      {
+        bg:"#0a1020",
+        landFill:"#1E2B4A",
+        landStroke:"#2A3660",
+        labels:[
+          {lat:38.7,-9.1,text:"Lisboa"},
+          {lat:37.7,-8.6,text:""},
+          {lat:39.0,-28.0,text:"Açores"},
+        ]
+      }
+    );
+  },100);
 }
 
 /* ══════════════════════════════════════════════════════════════
