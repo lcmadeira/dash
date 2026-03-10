@@ -1489,12 +1489,15 @@ function loadTopoData(cb){
 }
 
 /* ── Função genérica de desenho regional ── */
-function drawRegionalMap(canvasId, tipId, bbox, dots, opts){
-  /* bbox = {minLon, maxLon, minLat, maxLat} */
-  /* dots = [{lat, lon, col, r, label}] */
+function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
   var canvas=document.getElementById(canvasId);
   var tip=tipId?document.getElementById(tipId):null;
   if(!canvas) return;
+  /* Dimensões: usar valores explícitos ou detectar do DOM */
+  var W0 = fixedW || canvas.parentElement&&canvas.parentElement.offsetWidth || canvas.offsetWidth || 190;
+  var H0 = fixedH || canvas.parentElement&&canvas.parentElement.offsetHeight || canvas.offsetHeight || 130;
+  canvas.width  = W0;
+  canvas.height = H0;
   var ctx=canvas.getContext("2d");
   opts=opts||{};
 
@@ -1587,8 +1590,9 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts){
   /* Resize */
   function resize(){
     var rect=canvas.getBoundingClientRect();
-    canvas.width=Math.round(rect.width)||canvas.offsetWidth||400;
-    canvas.height=Math.round(rect.height)||canvas.offsetHeight||200;
+    var w = Math.round(rect.width) || fixedW || 190;
+    var h2 = Math.round(rect.height) || fixedH || 130;
+    if(w>0 && h2>0){ canvas.width=w; canvas.height=h2; }
     if(window._topoCache) draw(window._topoCache);
   }
 
@@ -1617,7 +1621,17 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts){
   }
 
   loadTopoData(function(geo){
-    resize();
+    /* Re-verificar se canvas ainda está no DOM */
+    if(!document.getElementById(canvasId)) return;
+    /* Re-verificar dimensões */
+    if(canvas.width===0 || canvas.height===0){
+      canvas.width = fixedW||190; canvas.height = fixedH||130;
+    }
+    if(!geo||!geo.features||!geo.features.length){
+      /* Sem dados: mostrar fundo simples */
+      ctx.fillStyle=opts.bg||"#0a1020"; ctx.fillRect(0,0,canvas.width,canvas.height);
+      return;
+    }
     draw(geo);
   });
   window.addEventListener("resize",function(){
@@ -2423,7 +2437,7 @@ async function loadAir(force=false){
         <!-- Mapa Canvas TopoJSON -->
         <div style="flex-shrink:0;position:relative">
           <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
-            <canvas id="air-map-canvas" style="width:100%;height:100%;display:block"></canvas>
+            <canvas id="air-map-canvas" width="190" height="130" style="width:100%;height:100%;display:block"></canvas>
             <div id="air-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
                  padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
                  pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
@@ -2481,15 +2495,21 @@ async function loadAir(force=false){
           label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${altStr} ${vel}<br>${s[2]||""}`
         };
       });
-    setTimeout(()=>{
+    function _drawAirMap(){
+      const c=document.getElementById("air-map-canvas");
+      if(!c||c.dataset.drawn) return;
+      c.dataset.drawn="1";
       drawRegionalMap(
         "air-map-canvas","air-map-tip",
         {minLon:-13,maxLon:-4,minLat:35,maxLat:44},
         airMapDots,
         {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
-         labels:[{lat:38.7,lon:-9.1,text:"LIS"},{lat:41.2,lon:-8.7,text:"OPO"}]}
+         labels:[{lat:38.7,lon:-9.1,text:"LIS"},{lat:41.2,lon:-8.7,text:"OPO"}]},
+        190, 130
       );
-    },100);
+    }
+    requestAnimationFrame(()=>requestAnimationFrame(_drawAirMap));
+    setTimeout(_drawAirMap, 1000);
     return;
   }
 
@@ -2584,7 +2604,7 @@ async function loadSeis(force=false){
       <!-- Mapa Canvas TopoJSON -->
       <div style="flex-shrink:0;position:relative">
         <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
-          <canvas id="seis-map-canvas" style="width:100%;height:100%;display:block"></canvas>
+          <canvas id="seis-map-canvas" width="190" height="130" style="width:100%;height:100%;display:block"></canvas>
           <div id="seis-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
                padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
                pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
@@ -2637,23 +2657,21 @@ async function loadSeis(force=false){
         label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").substring(0,40)}<br>${dt}`
       };
     });
-  setTimeout(()=>{
+  function _drawSeisMap(){
+    const c=document.getElementById("seis-map-canvas");
+    if(!c||c.dataset.drawn) return;
+    c.dataset.drawn="1";
     drawRegionalMap(
       "seis-map-canvas","seis-map-tip",
       {minLon:-32,maxLon:5,minLat:26,maxLat:46},
       seisMapDots,
-      {
-        bg:"#0a1020",
-        landFill:"#1E2B4A",
-        landStroke:"#2A3660",
-        labels:[
-          {lat:38.7,lon:-9.1,text:"Lisboa"},
-          {lat:37.7,lon:-8.6,text:""},
-          {lat:39.0,lon:-28.0,text:"Açores"},
-        ]
-      }
+      {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
+       labels:[{lat:38.7,lon:-9.1,text:"Lisboa"},{lat:39.0,lon:-28.0,text:"Açores"}]},
+      190, 130
     );
-  },100);
+  }
+  requestAnimationFrame(()=>requestAnimationFrame(_drawSeisMap));
+  setTimeout(_drawSeisMap, 1000);
 }
 
 /* ══════════════════════════════════════════════════════════════
