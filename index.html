@@ -707,7 +707,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
       <button class="geo-tab"    onclick="switchGeo('icg',this)">Crisis Group</button>
       <button class="geo-tab"    onclick="switchGeo('gpf',this)">Geop. Futures</button>
-      <button class="geo-tab"    onclick="switchGeo('fa',this)">Foreign Affairs</button>
+      <button class="geo-tab"    onclick="switchGeo('fa',this)">BBC World</button>
     </div>
     <div id="geo-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Crisis Group · Geopolitical Futures · Foreign Affairs · RSS</div>
@@ -1505,49 +1505,47 @@ window.switchCmap=function(tab,btn){
 /* ═══ RSS GEOPOLÍTICO ═══ */
 var GEO_DATA=[],GEO_FILTER="all";
 var GEO_FEEDS=[
- {id:"icg",label:"Crisis Group",color:"#EF4444",url:"https://www.crisisgroup.org/rss/139"},
- {id:"gpf",label:"Geop. Futures",color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/"},
- {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",
-  url:"https://news.google.com/rss/search?q=foreign+affairs+OR+geopolitics+OR+international+relations&hl=en-US&gl=US&ceid=US:en",
-  urlAlt:"https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en"},
+ {id:"icg",label:"Crisis Group",color:"#EF4444",url:"https://www.crisisgroup.org/rss/139",proxy:true},
+ {id:"gpf",label:"Geop. Futures",color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/",proxy:true},
+ {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",url:"https://feeds.bbci.co.uk/news/world/rss.xml",proxy:false},
 ];
 
 async function loadGeo(force){
  $("geo-body").innerHTML=ld();
  try{
-  var ck="geo_v9",cached=force?null:lsGet(ck);
+  var ck="geo_v10",cached=force?null:lsGet(ck);
   if(!cached){
    var all=[];
    for(var fi=0;fi<GEO_FEEDS.length;fi++){
-    var feed=GEO_FEEDS[fi];
+    var feed=GEO_FEEDS[fi],raw=null;
     try{
-     var raw=null;
-     if(feed.url.indexOf("news.google")>=0){
-      var gUrls=[feed.url];
-      if(feed.urlAlt)gUrls.push(feed.urlAlt);
-      for(var gi=0;gi<gUrls.length&&!raw;gi++){
-        try{var rg=await fetch(gUrls[gi],{signal:AbortSignal.timeout(9000)});
-          if(rg.ok){var rt=await rg.text();if(rt.includes("<item>"))raw=rt;}
-        }catch{}
-      }
-     } else {
-      var pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),"https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)];
+     if(!feed.proxy){
+      try{var rd=await fetch(feed.url,{signal:AbortSignal.timeout(9000)});
+        if(rd.ok){var rt=await rd.text();if(rt.includes("<item>"))raw=rt;}
+      }catch(e){}
+     }
+     if(!raw){
+      var pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),
+               "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)];
       for(var pi=0;pi<pxs.length&&!raw;pi++){
-       try{var rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(8000)});if(rp.ok){var t=await rp.text();if(t.length>200)raw=t;}}catch{}
+       try{var rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(10000)});
+         if(rp.ok){var tp=await rp.text();if(tp.includes("<item>"))raw=tp;}
+       }catch(e){}
       }
      }
      if(!raw)continue;
      var xml=new DOMParser().parseFromString(raw,"text/xml");
      var items=xml.querySelectorAll("item");
-     for(var ii=0;ii<Math.min(items.length,7);ii++){
+     for(var ii=0;ii<Math.min(items.length,8);ii++){
       var it=items[ii];
-      var title=((it.querySelector("title")||{}).textContent||"").replace(/<![\s\S]*?-->/g,"").replace(/<\/?[^>]+>/g,"").trim();
+      var title=((it.querySelector("title")||{}).textContent||"")
+        .replace(/CDATA/g,"").replace(/<[^>]+>/g,"").replace(/[\[\]!]/g,"").trim();
       var link=((it.querySelector("link")||{}).textContent||"").trim();
       var pub=((it.querySelector("pubDate")||{}).textContent||"");
-      var dt=pub?new Date(pub).getTime():0;
-      if(title&&title.length>5)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
+      var dt=pub?new Date(pub).getTime():Date.now()-(ii*3600000);
+      if(title&&title.length>8)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
      }
-    }catch(fe){console.warn("geo",feed.id,fe);}
+    }catch(fe){console.warn("geo feed",feed.id,fe);}
    }
    all.sort(function(a,b){return b.dt-a.dt;});
    if(!all.length)throw new Error("Feeds indispon\u00edveis");
