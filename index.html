@@ -931,7 +931,7 @@ const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","S�
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
 /* Cache 15min */
-const CACHE_TTL=15*60*1000,PFX="dash_v14_";
+const CACHE_TTL=15*60*1000,PFX="dash_v15_";
 function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
 function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
 
@@ -1335,8 +1335,7 @@ renderCalendar();
 loadHolidays();
 renderInflation();
 renderEuribor();
-renderExp();
-renderDiv();
+setTimeout(()=>{renderExp();renderDiv();},50);
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),         400);
@@ -2008,7 +2007,7 @@ async function loadRec(force=false){
 /* ══════════════════════════════════════════════════════════════
    PREÇOS AGRÍCOLAS — via tdGet()
    ══════════════════════════════════════════════════════════════ */
-const AGRI_SYMS=[
+var AGRI_SYMS=[
   {sym:"WHEAT",label:"Trigo",unit:"¢/bu",ico:"🌾"},
   {sym:"CORN", label:"Milho",unit:"¢/bu",ico:"🌽"},
   {sym:"SOYBEAN",label:"Soja",unit:"¢/bu",ico:"🫘"},
@@ -2044,7 +2043,7 @@ async function loadAgri(force=false){
 /* ══════════════════════════════════════════════════════════════
    EXPORTAÇÕES PT — dados estáticos INE 2024
    ══════════════════════════════════════════════════════════════ */
-const EXP_DATA={
+var EXP_DATA={
   destinos:[
     {n:"Espanha",v:26.1,c:"#EF4444"},{n:"França",v:11.3,c:"#3B82F6"},
     {n:"Alemanha",v:10.2,c:"#F59E0B"},{n:"EUA",v:5.9,c:"#8B5CF6"},
@@ -2058,7 +2057,7 @@ const EXP_DATA={
     {n:"Vinhos e bebidas",v:4.2,c:"#84CC16"},{n:"Papel e cartão",v:3.8,c:"#06B6D4"},
   ]
 };
-let EXP_MODE="destinos";
+var EXP_MODE="destinos";
 function switchExp(mode,btn){
   EXP_MODE=mode;
   document.querySelectorAll("#exp-card .rbtn").forEach(b=>b.classList.remove("on"));
@@ -2083,19 +2082,19 @@ function renderExp(){
 /* ══════════════════════════════════════════════════════════════
    DÍVIDA PÚBLICA — Eurostat 2023
    ══════════════════════════════════════════════════════════════ */
-const DIV_PAISES=[
+var DIV_PAISES=[
   {n:"Grécia",v:161.9,c:"#EF4444"},{n:"Itália",v:137.3,c:"#F97316"},
   {n:"Bélgica",v:105.2,c:"#F59E0B"},{n:"França",v:110.6,c:"#EAB308"},
   {n:"Espanha",v:107.7,c:"#EAB308"},{n:"Portugal",v:97.9,c:"#84CC16",hl:true},
   {n:"Zona Euro",v:88.6,c:"#8B5CF6"},{n:"Alemanha",v:63.6,c:"#3B82F6"},
   {n:"Holanda",v:46.5,c:"#06B6D4"},
 ];
-const DIV_TREND=[
+var DIV_TREND=[
   {y:"14",v:130.6},{y:"15",v:128.8},{y:"16",v:129.2},{y:"17",v:124.8},
   {y:"18",v:121.5},{y:"19",v:116.8},{y:"20",v:134.9},{y:"21",v:124.5},
   {y:"22",v:113.9},{y:"23",v:97.9},
 ];
-let DIV_MODE="bar";
+var DIV_MODE="bar";
 function switchDiv(mode,btn){
   DIV_MODE=mode;
   document.querySelectorAll("#div-card .rbtn").forEach(b=>b.classList.remove("on"));
@@ -2255,7 +2254,7 @@ async function loadSeis(force=false){
 /* ══════════════════════════════════════════════════════════════
    EMISSÕES CO2 — calculado do mix REE (apidatos.ree.es)
    ══════════════════════════════════════════════════════════════ */
-const CO2_F={
+var CO2_F={
   "Hídrica":0,"Eólica":0,"Solar fotovoltaico":0,"Geotérmica":0,
   "Biomassa":230,"Cogeração":400,"Fuel/Gás":490,
   "Ciclo Combinado":370,"Carvão":820,"Nuclear":12
