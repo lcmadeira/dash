@@ -568,11 +568,10 @@ textarea.nta::placeholder{color:var(--t3)}
   <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Sentimento · Commodities · Portugal</span>
 </div>
 
-<!-- ROW 1: Fear&Greed + Recessão + Exportações -->
+<!-- ROW 1: Fear & Greed (s2) + Indicador Recessão (s2) -->
 <div class="grid">
 
-  <!-- FEAR & GREED -->
-  <div class="card" id="fng-card">
+  <div class="card s2" id="fng-card">
     <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F59E0B,#10B981)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">😰</div>
@@ -583,13 +582,12 @@ textarea.nta::placeholder{color:var(--t3)}
       <div id="fng-gauge" style="position:relative;width:140px;height:75px;margin-bottom:8px"></div>
       <div id="fng-val" style="font-size:2.8rem;font-weight:800;line-height:1;letter-spacing:-2px"></div>
       <div id="fng-lbl" style="font-size:.78rem;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px"></div>
-      <div id="fng-prev" style="font-size:.68rem;color:var(--t2);margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:100%"></div>
+      <div id="fng-prev" style="font-size:.68rem;color:var(--t2);margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%"></div>
     </div>
     <div class="src">✦ Alternative.me · Fear &amp; Greed Index · Cripto Market</div>
   </div>
 
-  <!-- INDICADOR DE RECESSÃO -->
-  <div class="card" id="rec-card">
+  <div class="card s2" id="rec-card">
     <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#3B82F6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">📉</div>
@@ -600,24 +598,27 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
   </div>
 
-  <!-- PREÇOS AGRÍCOLAS -->
-  <div class="card s2" id="agri-card">
+</div><!-- /grid row1 -->
+
+<!-- ROW 2: Preços Agrícolas (full width s4) -->
+<div class="grid" style="margin-top:12px">
+
+  <div class="card s4" id="agri-card">
     <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#10B981)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌾</div>
       <span class="ch-lbl">Preços Agrícolas · Commodities</span>
       <div class="ch-r"><button class="rbtn" onclick="loadAgri(true)">↺</button></div>
     </div>
-    <div id="agri-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:6px 0"></div>
+    <div id="agri-body" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:6px 0"></div>
     <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
   </div>
 
-</div><!-- /grid row1 -->
+</div><!-- /grid row2 -->
 
-<!-- ROW 2: Exportações PT + Dívida Pública -->
+<!-- ROW 3: Exportações PT (s2) + Dívida Pública (s2) -->
 <div class="grid" style="margin-top:12px">
 
-  <!-- EXPORTAÇÕES PT -->
   <div class="card s2" id="exp-card">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),#EF4444)"></div>
     <div class="ch">
@@ -632,7 +633,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ INE · Estatísticas do Comércio Internacional · 2024</div>
   </div>
 
-  <!-- DÍVIDA PÚBLICA -->
   <div class="card s2" id="div-card">
     <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#8B5CF6)"></div>
     <div class="ch">
@@ -647,12 +647,11 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eurostat · General Government Debt · 2023 · % do PIB</div>
   </div>
 
-</div><!-- /grid row2 -->
+</div><!-- /grid row3 -->
 
-<!-- ROW 3: Tráfego Aéreo + Sismos + CO2 -->
+<!-- ROW 4: Tráfego Aéreo (s2) + Sismos (s2) -->
 <div class="grid" style="margin-top:12px">
 
-  <!-- TRÁFEGO AÉREO LISBOA -->
   <div class="card s2" id="air-card">
     <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
     <div class="ch">
@@ -664,7 +663,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ OpenSky Network (live) · ANA Aeroportos 2024 (fallback)</div>
   </div>
 
-  <!-- SISMOS IBÉRIA -->
   <div class="card s2" id="seis-card">
     <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#EF4444)"></div>
     <div class="ch">
@@ -676,7 +674,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
   </div>
 
-</div><!-- /grid row3 -->
+</div><!-- /grid row4 -->
 
 <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
