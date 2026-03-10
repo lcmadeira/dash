@@ -440,7 +440,9 @@ textarea.nta::placeholder{color:var(--t3)}
 
 <div class="grid">
 
-  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
+
+
+<div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
@@ -555,6 +557,126 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="imob-body"></div>
     <div class="src">✦ INE · Estatísticas Preços Habitação · Q3 2025 · actualizar: Mai 2026</div>
   </div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SECÇÃO: Economia Real · Portugal & Mundo
+     Cards: Fear&Greed · Recessão · Preços Agrícolas · Exportações PT · Dívida Pública
+     ════════════════════════════════════════════════════════════ -->
+<div class="sec"><div class="sec-bar" style="background:#10B981"></div>
+  <span style="color:#10B981">Economia Real</span>
+  <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Sentimento · Commodities · Portugal</span>
+</div>
+
+<!-- ROW 1: Fear&Greed + Recessão + Exportações -->
+<div class="grid">
+
+  <!-- FEAR & GREED -->
+  <div class="card" id="fng-card">
+    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F59E0B,#10B981)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#EF444422">😰</div>
+      <span class="ch-lbl">Fear &amp; Greed · Cripto</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadFng(true)">↺</button></div>
+    </div>
+    <div id="fng-body" style="display:flex;flex-direction:column;align-items:center;padding:10px 0 4px">
+      <div id="fng-gauge" style="position:relative;width:140px;height:75px;margin-bottom:8px"></div>
+      <div id="fng-val" style="font-size:2.8rem;font-weight:800;line-height:1;letter-spacing:-2px"></div>
+      <div id="fng-lbl" style="font-size:.78rem;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px"></div>
+      <div id="fng-prev" style="font-size:.68rem;color:var(--t2);margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:100%"></div>
+    </div>
+    <div class="src">✦ Alternative.me · Fear &amp; Greed Index · Cripto Market</div>
+  </div>
+
+  <!-- INDICADOR DE RECESSÃO -->
+  <div class="card" id="rec-card">
+    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#3B82F6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#3B82F622">📉</div>
+      <span class="ch-lbl">Indicador Recessão · EUA</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadRec(true)">↺</button></div>
+    </div>
+    <div id="rec-body" style="padding:6px 0"></div>
+    <div class="src">✦ Twelve Data · US Treasury 10Y–2Y Spread · Indicador histórico</div>
+  </div>
+
+  <!-- PREÇOS AGRÍCOLAS -->
+  <div class="card s2" id="agri-card">
+    <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#10B981)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#F59E0B22">🌾</div>
+      <span class="ch-lbl">Preços Agrícolas · Commodities</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadAgri(true)">↺</button></div>
+    </div>
+    <div id="agri-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:6px 0"></div>
+    <div class="src">✦ Twelve Data · Wheat · Corn · Soybean · Coffee · Sugar · Cotton</div>
+  </div>
+
+</div><!-- /grid row1 -->
+
+<!-- ROW 2: Exportações PT + Dívida Pública -->
+<div class="grid" style="margin-top:12px">
+
+  <!-- EXPORTAÇÕES PT -->
+  <div class="card s2" id="exp-card">
+    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),#EF4444)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--ad)">📦</div>
+      <span class="ch-lbl">Exportações · Portugal</span>
+      <div class="ch-r">
+        <button class="rbtn on" onclick="switchExp('destinos',this)">Destinos</button>
+        <button class="rbtn" onclick="switchExp('produtos',this)">Produtos</button>
+      </div>
+    </div>
+    <div id="exp-body"></div>
+    <div class="src">✦ INE · Estatísticas do Comércio Internacional · 2024</div>
+  </div>
+
+  <!-- DÍVIDA PÚBLICA -->
+  <div class="card s2" id="div-card">
+    <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#8B5CF6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#EF444422">🏛️</div>
+      <span class="ch-lbl">Dívida Pública · % PIB</span>
+      <div class="ch-r">
+        <button class="rbtn on" onclick="switchDiv('bar',this)">Países</button>
+        <button class="rbtn" onclick="switchDiv('trend',this)">Evolução PT</button>
+      </div>
+    </div>
+    <div id="div-body"></div>
+    <div class="src">✦ Eurostat · General Government Debt · 2023 · % do PIB</div>
+  </div>
+
+</div><!-- /grid row2 -->
+
+<!-- ROW 3: Tráfego Aéreo + Sismos + CO2 -->
+<div class="grid" style="margin-top:12px">
+
+  <!-- TRÁFEGO AÉREO LISBOA -->
+  <div class="card s2" id="air-card">
+    <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#3B82F622">✈️</div>
+      <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadAir(true)">↺</button></div>
+    </div>
+    <div id="air-body" style="padding:4px 0"></div>
+    <div class="src">✦ OpenSky Network · Espaço aéreo PT · Dados em tempo real</div>
+  </div>
+
+  <!-- SISMOS IBÉRIA -->
+  <div class="card s2" id="seis-card">
+    <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#EF4444)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#F59E0B22">🌍</div>
+      <span class="ch-lbl">Sismos · Ibéria · 7 dias</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadSeis(true)">↺</button></div>
+    </div>
+    <div id="seis-body" style="padding:4px 0"></div>
+    <div class="src">✦ USGS Earthquake Hazards Program · magnitude ≥ 1.5 · Península Ibérica</div>
+  </div>
+
+</div><!-- /grid row3 -->
 
 <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
@@ -714,7 +836,18 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Crisis Group · Geopolitical Futures · Foreign Affairs · RSS</div>
   </div>
 
-  <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Portugal · Mundo</span></div>
+  <div class="card s2" id="co2-card" style="margin-top:12px">
+  <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
+  <div class="ch">
+    <div class="ch-ico" style="background:#10B98122">🌱</div>
+    <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal</span>
+    <div class="ch-r"><button class="rbtn" onclick="loadCO2(true)">↺</button></div>
+  </div>
+  <div id="co2-body" style="padding:4px 0"></div>
+  <div class="src">✦ REN · Mix Energético PT · Emissões calculadas por fonte (gCO₂/kWh)</div>
+</div>
+
+<div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Portugal · Mundo</span></div>
   <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
@@ -1198,23 +1331,30 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-
 renderCalendar();
 loadHolidays();
 renderInflation();
-// Bolsa Lisboa — carregar EDP por defeito
 renderEuribor();
+renderExp();
+renderDiv();
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
-setTimeout(()=>loadFX(),       400);
+setTimeout(()=>loadFX(),         400);
 setTimeout(()=>loadMarketStats(), 800);
-setTimeout(()=>loadCrypto(),   600);
+setTimeout(()=>loadCrypto(),      600);
+setTimeout(()=>loadFng(),         500);
+setTimeout(()=>loadAgri(),       1000);
+setTimeout(()=>loadRec(),        1200);
+setTimeout(()=>loadSeis(),        700);
+setTimeout(()=>loadAir(),        1500);
+setTimeout(()=>loadCO2(),         900);
 
 setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
+  loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);
   setTimeout(()=>loadMarketStats(true),800);
 },CACHE_TTL);
 
@@ -1756,6 +1896,469 @@ function renderMunic(el){
 document.addEventListener("DOMContentLoaded",renderImob);
 setTimeout(renderImob,300);
 })();
+
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   FEAR & GREED INDEX (Alternative.me)
+   ══════════════════════════════════════════════════════════════ */
+async function loadFng(force){
+  var el=$("fng-body"); if(!el)return;
+  var ck="fng_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      var r=await fetch("https://api.alternative.me/fng/?limit=7&format=json",
+        {signal:AbortSignal.timeout(8000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      var j=await r.json();
+      d=j.data; if(d&&d.length)lsSet(ck,d);
+    }catch(e){ $("fng-val").innerHTML=er(e.message); return; }
+  }
+  if(!d||!d.length)return;
+  var cur=d[0], val=parseInt(cur.value);
+  var COLORS=[[0,25,"#EF4444"],[26,46,"#F97316"],[47,54,"#EAB308"],
+              [55,75,"#84CC16"],[76,100,"#10B981"]];
+  var col=COLORS.find(function(c){return val>=c[0]&&val<=c[1];})||COLORS[2];
+  var color=col[2];
+  /* Gauge semi-circular SVG */
+  var angle=(val/100)*180-90; /* -90° a 90° */
+  var r=60, cx=70, cy=70;
+  var rad=angle*Math.PI/180;
+  var nx=cx+r*Math.cos(rad-Math.PI/2+Math.PI);
+  var ny=cy+r*Math.sin(rad-Math.PI/2+Math.PI);
+  /* Arcos de cor */
+  function arc(a1,a2,c){
+    var r1=a1*Math.PI/180, r2=a2*Math.PI/180;
+    var x1=cx+r*Math.cos(r1), y1=cy+r*Math.sin(r1);
+    var x2=cx+r*Math.cos(r2), y2=cy+r*Math.sin(r2);
+    var laf=Math.abs(a2-a1)>180?1:0;
+    return '<path d="M'+x1+','+y1+' A'+r+','+r+' 0 '+laf+',1 '+x2+','+y2+'" stroke="'+c+'" stroke-width="8" fill="none" stroke-linecap="round"/>';
+  }
+  var gauge='<svg width="140" height="80" viewBox="0 20 140 80">'
+    +arc(180,216,"#EF4444")+arc(216,252,"#F97316")
+    +arc(252,288,"#EAB308")+arc(288,324,"#84CC16")+arc(324,360,"#10B981")
+    +'<line x1="'+cx+'" y1="'+cy+'" x2="'+nx+'" y2="'+ny
+    +'" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>'
+    +'</svg>';
+  $("fng-gauge").innerHTML=gauge;
+  $("fng-val").innerHTML='<span style="color:'+color+'">'+val+'</span>';
+  $("fng-val").style.color=color;
+  $("fng-lbl").innerHTML='<span style="color:'+color+'">'+cur.value_classification+'</span>';
+  /* Histórico 7 dias */
+  $("fng-prev").innerHTML=d.slice(1,4).map(function(x){
+    var v=parseInt(x.value);
+    var c2=(COLORS.find(function(cc){return v>=cc[0]&&v<=cc[1];})||COLORS[2])[2];
+    var dt=new Date(parseInt(x.timestamp)*1000);
+    var lbl=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"][dt.getDay()];
+    return '<div style="text-align:center;background:var(--b2);border-radius:6px;padding:4px 2px">'
+      +'<div style="font-size:.6rem;color:var(--t2)">'+lbl+'</div>'
+      +'<div style="font-size:.9rem;font-weight:700;color:'+c2+'">'+v+'</div>'
+      +'</div>';
+  }).join("");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INDICADOR DE RECESSÃO (Yield Curve 10Y-2Y)
+   ══════════════════════════════════════════════════════════════ */
+async function loadRec(force){
+  var el=$("rec-body"); if(!el)return;
+  el.innerHTML=ld();
+  var ck="rec_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      /* Buscar 10Y e 2Y separados via Twelve Data */
+      var [r10,r2]=await Promise.all([
+        fetch(TD_BASE+"time_series?symbol=US10Y&interval=1week&outputsize=52&apikey="+TD_KEY,
+          {signal:AbortSignal.timeout(9000)}),
+        fetch(TD_BASE+"time_series?symbol=US02Y&interval=1week&outputsize=52&apikey="+TD_KEY,
+          {signal:AbortSignal.timeout(9000)})
+      ]);
+      var j10=await r10.json(), j2=await r2.json();
+      if(j10.values&&j2.values){
+        var map2={};
+        j2.values.forEach(function(x){map2[x.datetime]=parseFloat(x.close);});
+        d=j10.values.map(function(x){
+          var s2=map2[x.datetime];
+          if(s2===undefined)return null;
+          return {dt:x.datetime,spread:parseFloat(x.close)-s2};
+        }).filter(Boolean).reverse();
+        if(d.length)lsSet(ck,d);
+      }
+    }catch(e){ el.innerHTML=er(e.message); return; }
+  }
+  if(!d||!d.length){ el.innerHTML=er("Sem dados"); return; }
+  var cur=d[d.length-1].spread;
+  var isInv=cur<0;
+  var col=isInv?"#EF4444":cur<0.5?"#F59E0B":"#10B981";
+  var status=isInv?"⚠️ INVERTIDA — sinal recessão":"✓ Normal";
+  /* Mini sparkline SVG */
+  var W=260,H=70, vals=d.map(function(x){return x.spread;});
+  var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+  var rng=mx-mn||1;
+  function px(i){return Math.round(i/(vals.length-1)*W);}
+  function py(v){return Math.round(H-(v-mn)/rng*H);}
+  var pts=vals.map(function(v,i){return px(i)+","+py(v);}).join(" ");
+  var fill=vals.map(function(v,i){return px(i)+","+py(v);}).join(" ")
+    +" "+W+","+(H+2)+" 0,"+(H+2);
+  /* Linha zero */
+  var zy=py(0);
+  var spark='<svg viewBox="0 0 '+W+' '+(H+4)+'" style="width:100%;height:64px">'
+    +'<polygon points="'+fill+'" fill="'+col+'22"/>'
+    +'<line x1="0" y1="'+zy+'" x2="'+W+'" y2="'+zy+'" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,3"/>'
+    +'<polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="2"/>'
+    +'<circle cx="'+px(vals.length-1)+'" cy="'+py(cur)+'" r="4" fill="'+col+'"/>'
+    +'</svg>';
+  el.innerHTML='<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">'
+    +'<div style="font-size:2.4rem;font-weight:800;color:'+col+'">'+cur.toFixed(2)+'<span style="font-size:1rem">pp</span></div>'
+    +'<div><div style="font-size:.75rem;font-weight:600;color:'+col+'">10Y − 2Y Spread</div>'
+    +'<div style="font-size:.68rem;color:var(--t2);margin-top:2px">'+status+'</div>'
+    +'<div style="font-size:.63rem;color:var(--t3);margin-top:2px">Inversão →&nbsp;recessão em 12-18 meses (histórico)</div></div>'
+    +'</div>'+spark;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREÇOS AGRÍCOLAS
+   ══════════════════════════════════════════════════════════════ */
+var AGRI_SYMS=[
+  {sym:"WHEAT",label:"Trigo",unit:"¢/bu",ico:"🌾"},
+  {sym:"CORN", label:"Milho",unit:"¢/bu",ico:"🌽"},
+  {sym:"SOYBEAN",label:"Soja",unit:"¢/bu",ico:"🫘"},
+  {sym:"COFFEE",label:"Café",unit:"¢/lb",ico:"☕"},
+  {sym:"SUGAR",label:"Açúcar",unit:"¢/lb",ico:"🍬"},
+  {sym:"COTTON",label:"Algodão",unit:"¢/lb",ico:"🤍"},
+];
+async function loadAgri(force){
+  var el=$("agri-body"); if(!el)return;
+  el.innerHTML='<div style="grid-column:1/-1">'+ld()+'</div>';
+  var ck="agri_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      var syms=AGRI_SYMS.map(function(s){return s.sym;}).join(",");
+      var r=await fetch(TD_BASE+"quote?symbol="+syms+"&apikey="+TD_KEY,
+        {signal:AbortSignal.timeout(10000)});
+      var j=await r.json();
+      d=Array.isArray(j)?j:[j];
+      if(d.length)lsSet(ck,d);
+    }catch(e){ el.innerHTML=er(e.message); return; }
+  }
+  el.innerHTML=AGRI_SYMS.map(function(s){
+    var q=d.find(function(x){return x.symbol===s.sym;})||{};
+    var price=parseFloat(q.close||q.price||0);
+    var chg=parseFloat(q.percent_change||0);
+    var col=chg>=0?"#10B981":"#EF4444";
+    var arrow=chg>=0?"▲":"▼";
+    return '<div style="background:var(--b2);border-radius:8px;padding:10px 10px 8px;border:1px solid var(--b)">'
+      +'<div style="font-size:1.3rem;margin-bottom:2px">'+s.ico+'</div>'
+      +'<div style="font-size:.68rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.3px">'+s.label+'</div>'
+      +'<div style="font-size:1.15rem;font-weight:700;color:var(--text);margin:2px 0">'+
+        (price?price.toFixed(1):"—")+'</div>'
+      +'<div style="font-size:.68rem;color:'+col+';font-weight:600">'+
+        (chg?(arrow+" "+Math.abs(chg).toFixed(2)+"%"):"—")+'</div>'
+      +'<div style="font-size:.58rem;color:var(--t3);margin-top:2px">'+s.unit+'</div>'
+      +'</div>';
+  }).join("");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORTAÇÕES PT (dados estáticos INE 2024)
+   ══════════════════════════════════════════════════════════════ */
+var EXP_DATA={
+  destinos:[
+    {n:"Espanha",v:26.1,c:"#EF4444"},
+    {n:"França",v:11.3,c:"#3B82F6"},
+    {n:"Alemanha",v:10.2,c:"#F59E0B"},
+    {n:"EUA",v:5.9,c:"#8B5CF6"},
+    {n:"Reino Unido",v:5.6,c:"#10B981"},
+    {n:"Angola",v:3.8,c:"#F97316"},
+    {n:"Países Baixos",v:3.5,c:"#06B6D4"},
+    {n:"Itália",v:3.2,c:"#84CC16"},
+  ],
+  produtos:[
+    {n:"Automóveis e peças",v:21.4,c:"#3B82F6"},
+    {n:"Combustíveis refinados",v:10.8,c:"#F59E0B"},
+    {n:"Maquinaria",v:9.1,c:"#8B5CF6"},
+    {n:"Produtos químicos",v:7.3,c:"#10B981"},
+    {n:"Calçado e têxteis",v:6.8,c:"#EF4444"},
+    {n:"Cortiça e madeira",v:5.9,c:"#F97316"},
+    {n:"Vinhos e bebidas",v:4.2,c:"#84CC16"},
+    {n:"Papel e cartão",v:3.8,c:"#06B6D4"},
+  ]
+};
+var EXP_MODE="destinos";
+function switchExp(mode,btn){
+  EXP_MODE=mode;
+  document.querySelectorAll("#exp-card .rbtn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  renderExp();
+}
+function renderExp(){
+  var el=$("exp-body"); if(!el)return;
+  var items=EXP_DATA[EXP_MODE];
+  var total=items.reduce(function(a,b){return a+b.v;},0);
+  el.innerHTML='<div style="margin-top:6px">'
+    +items.map(function(r){
+      var pct=(r.v/total*100).toFixed(1);
+      return '<div style="display:flex;align-items:center;gap:8px;margin:5px 0">'
+        +'<div style="font-size:.68rem;color:var(--t2);width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.n+'</div>'
+        +'<div style="flex:1;background:var(--b2);border-radius:3px;height:7px;overflow:hidden">'
+        +'<div style="width:'+pct+'%;height:100%;background:'+r.c+';border-radius:3px;transition:width .6s"></div></div>'
+        +'<div style="font-size:.68rem;color:var(--text);font-weight:600;width:38px;text-align:right">'+r.v.toFixed(1)+'%</div>'
+        +'</div>';
+    }).join("")
+    +'</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DÍVIDA PÚBLICA (dados estáticos Eurostat 2023)
+   ══════════════════════════════════════════════════════════════ */
+var DIV_PAISES=[
+  {n:"Grécia",v:161.9,c:"#EF4444"},
+  {n:"Itália",v:137.3,c:"#F97316"},
+  {n:"França",v:110.6,c:"#F59E0B"},
+  {n:"Espanha",v:107.7,c:"#EAB308"},
+  {n:"Portugal",v:97.9,c:"#84CC16",hl:true},
+  {n:"Bélgica",v:105.2,c:"#F59E0B"},
+  {n:"Alemanha",v:63.6,c:"#3B82F6"},
+  {n:"Holanda",v:46.5,c:"#06B6D4"},
+  {n:"Zona Euro",v:88.6,c:"#8B5CF6"},
+];
+var DIV_TREND=[
+  {y:"2014",v:130.6},{y:"2015",v:128.8},{y:"2016",v:129.2},
+  {y:"2017",v:124.8},{y:"2018",v:121.5},{y:"2019",v:116.8},
+  {y:"2020",v:134.9},{y:"2021",v:124.5},{y:"2022",v:113.9},
+  {y:"2023",v:97.9},
+];
+var DIV_MODE="bar";
+function switchDiv(mode,btn){
+  DIV_MODE=mode;
+  document.querySelectorAll("#div-card .rbtn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  renderDiv();
+}
+function renderDiv(){
+  var el=$("div-body"); if(!el)return;
+  if(DIV_MODE==="bar"){
+    var sorted=DIV_PAISES.slice().sort(function(a,b){return b.v-a.v;});
+    var mx=sorted[0].v;
+    el.innerHTML='<div style="margin-top:6px">'
+      +sorted.map(function(r){
+        var pct=(r.v/mx*100).toFixed(1);
+        var bold=r.hl?"font-weight:700;color:var(--text)":"";
+        return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
+          +'<div style="font-size:.67rem;color:'+(r.hl?"var(--text)":"var(--t2)")+';width:70px;'+(r.hl?"font-weight:700":"")+';white-space:nowrap">'+r.n+'</div>'
+          +'<div style="flex:1;background:var(--b2);border-radius:3px;height:7px">'
+          +'<div style="width:'+pct+'%;height:100%;background:'+r.c+';border-radius:3px;transition:width .6s;'+(r.hl?"box-shadow:0 0 6px "+r.c+"88":"")+'"></div></div>'
+          +'<div style="font-size:.68rem;font-weight:600;color:'+(r.hl?"var(--text)":"var(--t2)")+';width:48px;text-align:right">'+r.v+'%</div>'
+          +'</div>';
+      }).join("")+'</div>';
+  } else {
+    /* Trend PT */
+    var mx2=Math.max.apply(null,DIV_TREND.map(function(x){return x.v;}));
+    var mn2=Math.min.apply(null,DIV_TREND.map(function(x){return x.v;}));
+    var rng=mx2-mn2||1;
+    var W=260,H=60;
+    function px(i){return Math.round(i/(DIV_TREND.length-1)*W);}
+    function py(v){return Math.round(H-(v-mn2)/rng*H);}
+    var pts=DIV_TREND.map(function(x,i){return px(i)+","+py(x.v);}).join(" ");
+    var fill=DIV_TREND.map(function(x,i){return px(i)+","+py(x.v);}).join(" ")+" "+W+","+(H+2)+" 0,"+(H+2);
+    var spark='<svg viewBox="0 0 '+W+' '+(H+20)+'" style="width:100%;height:72px">'
+      +'<polygon points="'+fill+'" fill="#84CC1622"/>'
+      +'<polyline points="'+pts+'" fill="none" stroke="#84CC16" stroke-width="2"/>'
+      +DIV_TREND.filter(function(x,i){return i%2===0||i===DIV_TREND.length-1;}).map(function(x,i,arr){
+        var idx=DIV_TREND.indexOf(x);
+        return '<text x="'+px(idx)+'" y="'+(H+14)+'" font-size="8" fill="#6E7A96" text-anchor="middle">'+x.y+'</text>'
+          +'<text x="'+px(idx)+'" y="'+(py(x.v)-4)+'" font-size="8" fill="#84CC16" text-anchor="middle">'+x.v+'</text>';
+      }).join("")
+      +'</svg>';
+    el.innerHTML='<div style="margin-top:4px"><div style="font-size:.7rem;color:var(--t2);margin-bottom:4px">Portugal · Dívida % PIB · 2014–2023</div>'+spark+'</div>';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TRÁFEGO AÉREO LISBOA
+   ══════════════════════════════════════════════════════════════ */
+async function loadAir(force){
+  var el=$("air-body"); if(!el)return;
+  el.innerHTML=ld();
+  var ck="air_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      /* OpenSky: bbox Portugal + Espanha próxima */
+      var url="https://opensky-network.org/api/states/all?lamin=36&lomin=-10&lamax=44&lomax=-5";
+      var purl="https://corsproxy.io/?"+encodeURIComponent(url);
+      var r=await fetch(purl,{signal:AbortSignal.timeout(12000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      var j=await r.json();
+      d={ts:Date.now(),states:j.states||[],total:j.states?j.states.length:0};
+      lsSet(ck,d);
+    }catch(e){ el.innerHTML=er(e.message); return; }
+  }
+  var states=d.states||[];
+  var total=states.length;
+  /* Calcular estatísticas */
+  var onGround=states.filter(function(s){return s[8];}).length;
+  var airborne=total-onGround;
+  var avgAlt=0, altCount=0;
+  states.forEach(function(s){if(!s[8]&&s[7]){avgAlt+=s[7];altCount++;}});
+  avgAlt=altCount?Math.round(avgAlt/altCount):0;
+  /* Países de origem */
+  var byCountry={};
+  states.forEach(function(s){
+    var c=s[2]||"??";
+    byCountry[c]=(byCountry[c]||0)+1;
+  });
+  var topCountries=Object.entries(byCountry).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  var age=Math.round((Date.now()-d.ts)/60000);
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+    +'<div style="font-size:1.6rem;font-weight:800;color:#3B82F6">'+airborne+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2);margin-top:2px">Em voo</div></div>'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+    +'<div style="font-size:1.6rem;font-weight:800;color:#06B6D4">'+total+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2);margin-top:2px">Total detectados</div></div>'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+    +'<div style="font-size:1.6rem;font-weight:800;color:#8B5CF6">'+(avgAlt?(avgAlt/1000).toFixed(1)+"k":"—")+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2);margin-top:2px">Alt. média (m)</div></div>'
+    +'</div>'
+    +'<div style="font-size:.68rem;color:var(--t2);margin-bottom:4px;font-weight:600">Top países de registo:</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px">'
+    +topCountries.map(function(c){
+      return '<div style="background:var(--b2);border-radius:5px;padding:3px 8px;font-size:.67rem">'
+        +'<span style="color:var(--t2)">'+c[0]+'</span> <span style="color:var(--text);font-weight:600">'+c[1]+'</span></div>';
+    }).join("")
+    +'</div>'
+    +'<div style="font-size:.6rem;color:var(--t3);margin-top:6px">Actualizado há '+age+' min · Área: 36–44°N, 5–10°W</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SISMOS IBÉRIA (USGS)
+   ══════════════════════════════════════════════════════════════ */
+async function loadSeis(force){
+  var el=$("seis-body"); if(!el)return;
+  el.innerHTML=ld();
+  var ck="seis_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      var url="https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson"
+        +"&starttime="+(new Date(Date.now()-7*86400000).toISOString().split("T")[0])
+        +"&minlatitude=35&maxlatitude=44&minlongitude=-10&maxlongitude=4"
+        +"&minmagnitude=1.5&orderby=time&limit=50";
+      var r=await fetch(url,{signal:AbortSignal.timeout(10000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      var j=await r.json();
+      d=j.features||[];
+      if(d.length)lsSet(ck,d);
+    }catch(e){ el.innerHTML=er(e.message); return; }
+  }
+  if(!d.length){ el.innerHTML='<div style="color:var(--t2);font-size:.75rem;padding:8px 0">✓ Sem sismos ≥ 1.5 nos últimos 7 dias</div>'; return; }
+  var top=d.slice(0,8);
+  var maxMag=Math.max.apply(null,d.map(function(x){return x.properties.mag;}));
+  el.innerHTML='<div style="display:flex;gap:10px;margin-bottom:10px">'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px 14px;text-align:center">'
+    +'<div style="font-size:1.8rem;font-weight:800;color:#F59E0B">'+d.length+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2)">Sismos 7d</div></div>'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px 14px;text-align:center">'
+    +'<div style="font-size:1.8rem;font-weight:800;color:#EF4444">'+maxMag.toFixed(1)+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2)">Mag. máx</div></div>'
+    +'<div style="background:var(--b2);border-radius:8px;padding:8px 14px;text-align:center">'
+    +'<div style="font-size:1.8rem;font-weight:800;color:#8B5CF6">'
+    +d.filter(function(x){return x.properties.mag>=3.0;}).length+'</div>'
+    +'<div style="font-size:.62rem;color:var(--t2)">Mag ≥ 3.0</div></div>'
+    +'</div>'
+    +'<div style="font-size:.68rem;font-weight:600;color:var(--t2);margin-bottom:4px">Mais recentes:</div>'
+    +top.map(function(f){
+      var p=f.properties;
+      var mag=p.mag.toFixed(1);
+      var col=mag>=4?"#EF4444":mag>=3?"#F59E0B":"#8B5CF6";
+      var dt=new Date(p.time);
+      var dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})+" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
+      var place=(p.place||"").replace(/ of /g," ").replace(/ the /g," ");
+      return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--b)">'
+        +'<div style="background:'+col+'22;border:1px solid '+col+'44;border-radius:5px;padding:3px 7px;font-size:.78rem;font-weight:700;color:'+col+';min-width:36px;text-align:center">'+mag+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:.68rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+place+'</div>'
+        +'<div style="font-size:.6rem;color:var(--t3)">'+dts+'</div></div>'
+        +'</div>';
+    }).join("")
+    +(d.length>8?'<div style="font-size:.62rem;color:var(--t3);margin-top:4px">+ '+(d.length-8)+' sismos adicionais</div>':"");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EMISSÕES CO2 (calculado a partir do mix REE)
+   ══════════════════════════════════════════════════════════════ */
+var CO2_FACTORS={
+  "Hídrica":0,"Eólica":0,"Solar fotovoltaico":0,"Geotérmica":0,
+  "Biomassa":230,"Cogeração":400,"Fuel/Gás":490,
+  "Ciclo Combinado":370,"Carvão":820,"Nuclear":0
+};
+async function loadCO2(force){
+  var el=$("co2-body"); if(!el)return;
+  el.innerHTML=ld();
+  var ck="co2_v2", d=force?null:lsGet(ck);
+  if(!d){
+    try{
+      var hoje=new Date().toISOString().split("T")[0];
+      var url="https://apidatos.ree.es/pt/datos/generacion/estructura-generacion"
+        +"?start_date="+hoje+"T00:00&end_date="+hoje+"T23:59"
+        +"&time_trunc=day&geo_trunc=electric_system&geo_limit=peninsular&geo_ids=8741";
+      var r=await fetch(url,{signal:AbortSignal.timeout(10000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      var j=await r.json();
+      d=j; lsSet(ck,d);
+    }catch(e){ el.innerHTML=er(e.message); return; }
+  }
+  try{
+    var included=d.data&&d.data.attributes&&d.data.attributes.content?
+      d.data.attributes.content:[];
+    var total=0, co2=0, renewable=0;
+    var breakdown=[];
+    included.forEach(function(g){
+      var vals=g.attributes&&g.attributes.values;
+      if(!vals||!vals.length)return;
+      var v=vals[vals.length-1].value||0;
+      total+=v;
+      var f=CO2_FACTORS[g.type];
+      var em=(f!==undefined?f:300)*v/1000; /* tCO2 */
+      co2+=em;
+      var isRen=["Hídrica","Eólica","Solar fotovoltaico","Geotérmica"].includes(g.type);
+      if(isRen)renewable+=v;
+      breakdown.push({n:g.type,v:v,f:f!==undefined?f:300,em:em});
+    });
+    var renPct=total>0?(renewable/total*100):0;
+    var co2g=total>0?(co2/total*1000):0; /* gCO2/kWh */
+    var col=co2g<100?"#10B981":co2g<200?"#84CC16":co2g<300?"#F59E0B":"#EF4444";
+    breakdown.sort(function(a,b){return b.v-a.v;});
+    el.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">'
+      +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+      +'<div style="font-size:1.6rem;font-weight:800;color:'+col+'">'+Math.round(co2g)+'</div>'
+      +'<div style="font-size:.62rem;color:var(--t2)">gCO₂/kWh</div></div>'
+      +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+      +'<div style="font-size:1.6rem;font-weight:800;color:#10B981">'+renPct.toFixed(0)+'%</div>'
+      +'<div style="font-size:.62rem;color:var(--t2)">Renováveis</div></div>'
+      +'<div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">'
+      +'<div style="font-size:1.6rem;font-weight:800;color:#3B82F6">'+Math.round(total/1000)+'</div>'
+      +'<div style="font-size:.62rem;color:var(--t2)">GWh produzidos</div></div>'
+      +'</div>'
+      +'<div style="font-size:.68rem;font-weight:600;color:var(--t2);margin-bottom:6px">Mix por fonte:</div>'
+      +'<div>'
+      +breakdown.slice(0,6).map(function(x){
+        var pct=total>0?(x.v/total*100).toFixed(1):0;
+        var fc=CO2_FACTORS[x.n]!==undefined?CO2_FACTORS[x.n]:300;
+        var fc_col=fc===0?"#10B981":fc<300?"#F59E0B":"#EF4444";
+        return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0">'
+          +'<div style="font-size:.65rem;color:var(--t2);width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.n+'</div>'
+          +'<div style="flex:1;background:var(--b2);border-radius:3px;height:6px">'
+          +'<div style="width:'+pct+'%;height:100%;background:'+fc_col+';border-radius:3px"></div></div>'
+          +'<div style="font-size:.65rem;color:var(--text);font-weight:600;width:35px;text-align:right">'+pct+'%</div>'
+          +'<div style="font-size:.6rem;color:'+fc_col+';width:45px;text-align:right">'+fc+'g</div>'
+          +'</div>';
+      }).join("")
+      +'</div>';
+  }catch(e){ el.innerHTML=er("Erro ao processar dados"); }
+}
+
+
 
 </script>
 </body>
