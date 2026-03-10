@@ -2487,7 +2487,7 @@ async function loadAir(force=false){
         {minLon:-13,maxLon:-4,minLat:35,maxLat:44},
         airMapDots,
         {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
-         labels:[{lat:38.7,-9.1,text:"LIS"},{lat:41.2,-8.7,text:"OPO"}]}
+         labels:[{lat:38.7,lon:-9.1,text:"LIS"},{lat:41.2,lon:-8.7,text:"OPO"}]}
       );
     },100);
     return;
@@ -2647,9 +2647,9 @@ async function loadSeis(force=false){
         landFill:"#1E2B4A",
         landStroke:"#2A3660",
         labels:[
-          {lat:38.7,-9.1,text:"Lisboa"},
-          {lat:37.7,-8.6,text:""},
-          {lat:39.0,-28.0,text:"Açores"},
+          {lat:38.7,lon:-9.1,text:"Lisboa"},
+          {lat:37.7,lon:-8.6,text:""},
+          {lat:39.0,lon:-28.0,text:"Açores"},
         ]
       }
     );
