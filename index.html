@@ -2181,10 +2181,9 @@ function renderDiv(){
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="air_v4";
+  const ck="air_v5";
   let d=force?null:lsGet(ck);
   if(!d){
-    /* Tentar OpenSky directamente (sem proxy) */
     const URLS=[
       "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5",
       "https://corsproxy.io/?url=https://opensky-network.org/api/states/all?lamin=36%26lomin=-12%26lamax=44%26lomax=-5",
@@ -2192,76 +2191,176 @@ async function loadAir(force=false){
     ];
     for(const url of URLS){
       try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+        const r=await fetch(url,{signal:AbortSignal.timeout(10000)});
         if(!r.ok)continue;
         const j=await r.json();
-        if(j.states){d={ts:Date.now(),states:j.states,live:true};lsSet(ck,d);break;}
+        if(j.states?.length){d={ts:Date.now(),states:j.states,live:true};lsSet(ck,d);break;}
       }catch{}
     }
   }
 
-  /* Se conseguiu dados live */
-  if(d&&d.live&&d.states){
+  if(d?.live&&d.states?.length){
     const states=d.states;
-    const airborne=states.filter(s=>!s[8]).length;
-    const alts=states.filter(s=>!s[8]&&s[7]).map(s=>s[7]);
+    /* Separar em voo vs em terra */
+    const flying=states.filter(s=>!s[8]);
+    const ground=states.filter(s=>s[8]);
+
+    /* Métricas */
+    const alts=flying.filter(s=>s[7]>0).map(s=>s[7]);
     const avgAlt=alts.length?Math.round(alts.reduce((a,b)=>a+b,0)/alts.length):0;
+    const vels=flying.filter(s=>s[9]>0).map(s=>s[9]*3.6); /* m/s → km/h */
+    const avgVel=vels.length?Math.round(vels.reduce((a,b)=>a+b,0)/vels.length):0;
+
+    /* Distribuição por altitude (bandas FL) */
+    const altBands=[
+      {label:"Solo",    min:0,    max:0,    count:ground.length, col:"#6E7A96"},
+      {label:"<FL100",  min:1,    max:3048, count:0, col:"#8B5CF6"},
+      {label:"FL100-200",min:3048,max:6096, count:0, col:"#3B82F6"},
+      {label:"FL200-300",min:6096,max:9144, count:0, col:"#06B6D4"},
+      {label:">FL300",  min:9144, max:99999,count:0, col:"#10B981"},
+    ];
+    flying.forEach(s=>{
+      const a=s[7]||0;
+      const b=altBands.find((b,i)=>i>0&&a>=b.min&&a<b.max);
+      if(b)b.count++;
+    });
+
+    /* Top países */
     const byCtry={};
-    states.forEach(s=>{const c=s[2]||"??";byCtry[c]=(byCtry[c]||0)+1;});
-    const top=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    states.forEach(s=>{const c=s[2]||"?";byCtry[c]=(byCtry[c]||0)+1;});
+    const topCtry=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    /* Lista voos com mais info — filtrar callsigns válidos */
+    const flights=flying
+      .filter(s=>s[1]&&s[1].trim()&&s[7]>500)
+      .sort((a,b)=>(b[7]||0)-(a[7]||0))
+      .slice(0,10);
+
+    /* Mini-mapa SVG: lon[-12,-5]→x[0,180], lat[36,44]→y[0,100] */
+    function mxy(lat,lon){
+      return [Math.round((lon+12)/7*180), Math.round((44-lat)/8*100)];
+    }
+    /* Outline simplificado de Portugal continental */
+    const PT_OUTLINE="M60,0 L90,2 L120,0 L145,5 L155,15 L158,28 L160,42 "
+      +"L158,58 L155,72 L150,85 L140,95 L125,100 L105,98 L85,95 "
+      +"L68,88 L55,78 L48,65 L45,50 L46,35 L50,20 Z";
+    /* Espanha simplificada */
+    const ES_OUTLINE="M145,5 L180,0 L200,8 L200,50 L185,80 L165,95 "
+      +"L150,85 L155,72 L158,58 L160,42 L158,28 L155,15 Z";
+
+    const planeDots=states
+      .filter(s=>s[5]&&s[6])
+      .map(s=>{
+        const [x,y]=mxy(s[6],s[5]);
+        if(x<0||x>200||y<0||y>110)return "";
+        const onGnd=s[8];
+        const col=onGnd?"#6E7A96":s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
+        const size=onGnd?2:2.5;
+        const hdg=s[10]||0;
+        /* Triângulo pequeno apontado na direcção do voo */
+        const rad=hdg*Math.PI/180;
+        const tip=`${x+5*Math.sin(rad)},${y-5*Math.cos(rad)}`;
+        const l=`${x-3*Math.cos(rad)-2*Math.sin(rad)},${y-3*Math.sin(rad)+2*Math.cos(rad)}`;
+        const r2=`${x+3*Math.cos(rad)-2*Math.sin(rad)},${y+3*Math.sin(rad)+2*Math.cos(rad)}`;
+        if(onGnd)return `<circle cx="${x}" cy="${y}" r="${size}" fill="${col}" fill-opacity="0.6"/>`;
+        return `<polygon points="${tip} ${l} ${r2}" fill="${col}" fill-opacity="0.85">
+          <title>${(s[1]||"").trim()} · ${s[2]} · ${s[7]?Math.round(s[7]/100)*100+"m":""}</title>
+        </polygon>`;
+      }).join("");
+
     const age=Math.round((Date.now()-d.ts)/60000);
     el.innerHTML=`
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-        <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:1.7rem;font-weight:800;color:#3B82F6">${airborne}</div>
-          <div style="font-size:.62rem;color:var(--t2);margin-top:2px">Em voo</div>
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
+        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;color:#3B82F6">${flying.length}</div>
+          <div style="font-size:.6rem;color:var(--t2)">Em voo</div>
         </div>
-        <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:1.7rem;font-weight:800;color:#06B6D4">${states.length}</div>
-          <div style="font-size:.62rem;color:var(--t2);margin-top:2px">Detectados</div>
+        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;color:#6E7A96">${ground.length}</div>
+          <div style="font-size:.6rem;color:var(--t2)">Em terra</div>
         </div>
-        <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:1.7rem;font-weight:800;color:#8B5CF6">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
-          <div style="font-size:.62rem;color:var(--t2);margin-top:2px">Alt. média (m)</div>
+        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;color:#06B6D4">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+          <div style="font-size:.6rem;color:var(--t2)">Alt.média m</div>
+        </div>
+        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
+          <div style="font-size:1.5rem;font-weight:800;color:#8B5CF6">${avgVel||"—"}</div>
+          <div style="font-size:.6rem;color:var(--t2)">km/h média</div>
         </div>
       </div>
-      <div style="font-size:.68rem;color:var(--t2);margin-bottom:5px;font-weight:600">Top países de registo:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${top.map(([c,n])=>`<div style="background:var(--b2);border-radius:5px;padding:3px 9px;font-size:.67rem">
-          <span style="color:var(--t2)">${c}</span> <span style="color:var(--text);font-weight:600">${n}</span>
-        </div>`).join("")}
-      </div>
-      <div style="font-size:.6rem;color:var(--t3);margin-top:7px">🟢 Dados live · actualizado há ${age} min</div>`;
+
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <!-- Mini-mapa -->
+        <div style="flex-shrink:0">
+          <svg viewBox="0 0 200 110" width="164" height="90"
+               style="background:#0a1020;border-radius:6px;border:1px solid var(--b)">
+            <path d="${ES_OUTLINE}" fill="#151f38" stroke="#1e2d50" stroke-width="0.8"/>
+            <path d="${PT_OUTLINE}" fill="#1a2840" stroke="#2a3d60" stroke-width="1"/>
+            ${planeDots}
+          </svg>
+          <!-- Legenda altitude -->
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">
+            ${altBands.map(b=>`
+              <div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+                <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
+                <span>${b.label}<span style="color:var(--t2);margin-left:2px">${b.count}</span></span>
+              </div>`).join("")}
+          </div>
+        </div>
+
+        <!-- Painel direito: voos + países -->
+        <div style="flex:1;min-width:0">
+          <!-- Top voos -->
+          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">Voos activos (por altitude):</div>
+          ${flights.slice(0,7).map(s=>{
+            const cs=(s[1]||"???").trim();
+            const alt=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
+            const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"—";
+            const vr=s[11];
+            const vrStr=vr>2?"▲":vr<-2?"▼":"→";
+            const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
+            const col=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
+            return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--b)">
+              <div style="font-size:.7rem;font-weight:700;color:var(--text);width:58px;white-space:nowrap;overflow:hidden">${cs}</div>
+              <div style="font-size:.64rem;color:${col};font-weight:600;width:36px">${alt}</div>
+              <div style="font-size:.62rem;color:var(--t2);width:52px">${vel}</div>
+              <div style="font-size:.7rem;color:${vrCol}">${vrStr}</div>
+              <div style="font-size:.6rem;color:var(--t3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s[2]||""}</div>
+            </div>`;
+          }).join("")}
+          <!-- Top países -->
+          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:8px 0 4px">Por país de registo:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${topCtry.map(([c,n])=>`
+              <div style="background:var(--b2);border-radius:4px;padding:2px 8px;font-size:.65rem">
+                <span style="color:var(--t2)">${c}</span>
+                <span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
+              </div>`).join("")}
+          </div>
+          <div style="font-size:.6rem;color:var(--t3);margin-top:6px">🟢 Live · ${age}min atrás · lon[-12,-5] lat[36,44]</div>
+        </div>
+      </div>`;
     return;
   }
 
-  /* Fallback: estatísticas ANA 2024 (dados públicos anuais) */
-  const now=new Date();
-  const hour=now.getHours();
-  /* Movimentos típicos em Lisboa por hora do dia (ANA 2024, média diária ~450 movimentos) */
-  const HOURLY=[8,6,5,4,4,6,12,22,28,32,34,36,35,34,33,32,33,35,34,30,26,22,18,12];
-  const movHora=HOURLY[hour];
-  const passHora=Math.round(movHora*142); /* ~142 pax/movimento média LIS */
-  /* Estatísticas anuais ANA 2024 */
+  /* ── Fallback ANA 2024 ────────────────────────────────────────── */
   const ANA=[
-    {label:"Movimentos 2024",val:"175.200",sub:"+4,2% vs 2023",col:"#3B82F6"},
-    {label:"Passageiros 2024",val:"33,2M",sub:"+6,1% vs 2023",col:"#06B6D4"},
-    {label:"Carga (ton) 2024",val:"158.400",sub:"+2,8% vs 2023",col:"#8B5CF6"},
-    {label:"Pontualidade",val:"81,3%",sub:"voos na hora ±15min",col:"#10B981"},
+    {label:"Movimentos 2024",  val:"175.200", sub:"+4,2% vs 2023", col:"#3B82F6"},
+    {label:"Passageiros 2024", val:"33,2M",   sub:"+6,1% vs 2023", col:"#06B6D4"},
+    {label:"Carga (ton) 2024", val:"158.400", sub:"+2,8% vs 2023", col:"#8B5CF6"},
+    {label:"Pontualidade",     val:"81,3%",   sub:"voos na hora ±15min", col:"#10B981"},
   ];
-  /* Top rotas LIS 2024 */
   const ROTAS=[
-    {dest:"Londres",cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
-    {dest:"Paris",cod:"CDG/ORY",freq:"~14/dia",col:"#EF4444"},
-    {dest:"Frankfurt",cod:"FRA",freq:"~10/dia",col:"#F59E0B"},
-    {dest:"Madrid",cod:"MAD",freq:"~12/dia",col:"#10B981"},
-    {dest:"Amesterdão",cod:"AMS",freq:"~8/dia",col:"#8B5CF6"},
-    {dest:"São Paulo",cod:"GRU",freq:"~5/dia",col:"#F97316"},
+    {dest:"Londres",    cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
+    {dest:"Paris",      cod:"CDG/ORY", freq:"~14/dia",col:"#EF4444"},
+    {dest:"Frankfurt",  cod:"FRA",     freq:"~10/dia",col:"#F59E0B"},
+    {dest:"Madrid",     cod:"MAD",     freq:"~12/dia",col:"#10B981"},
+    {dest:"Amesterdão", cod:"AMS",     freq:"~8/dia", col:"#8B5CF6"},
+    {dest:"São Paulo",  cod:"GRU",     freq:"~5/dia", col:"#F97316"},
   ];
   el.innerHTML=`
-    <div style="font-size:.65rem;color:#F59E0B;margin-bottom:8px;display:flex;align-items:center;gap:5px">
-      <span>⚠</span><span>OpenSky indisponível · estatísticas ANA 2024</span>
-    </div>
+    <div style="font-size:.65rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px">
       ${ANA.map(x=>`<div style="background:var(--b2);border-radius:8px;padding:8px 10px">
         <div style="font-size:.6rem;color:var(--t2);margin-bottom:2px">${x.label}</div>
@@ -2269,7 +2368,7 @@ async function loadAir(force=false){
         <div style="font-size:.58rem;color:var(--t3)">${x.sub}</div>
       </div>`).join("")}
     </div>
-    <div style="font-size:.68rem;color:var(--t2);margin-bottom:5px;font-weight:600">Top rotas Lisboa · 2024</div>
+    <div style="font-size:.68rem;color:var(--t2);margin-bottom:5px;font-weight:600">Top rotas Lisboa 2024</div>
     ${ROTAS.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--b)">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="width:6px;height:6px;border-radius:50%;background:${r.col}"></div>
@@ -2277,8 +2376,7 @@ async function loadAir(force=false){
         <div style="font-size:.62rem;color:var(--t3)">${r.cod}</div>
       </div>
       <div style="font-size:.67rem;color:var(--t2);font-weight:600">${r.freq}</div>
-    </div>`).join("")}
-    <div style="font-size:.6rem;color:var(--t3);margin-top:6px">✦ ANA Aeroportos · Relatório Anual 2024 · EUROCONTROL</div>`;
+    </div>`).join("")}`;
 }
 
 /* ══════════════════════════════════════════════════════════════
