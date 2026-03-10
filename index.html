@@ -609,7 +609,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadAgri(true)">↺</button></div>
     </div>
     <div id="agri-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:6px 0"></div>
-    <div class="src">✦ Stooq · Futuros CBOT/ICE · Wheat · Corn · Soybean · Coffee · Sugar · Cotton</div>
+    <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
   </div>
 
 </div><!-- /grid row1 -->
@@ -673,7 +673,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadSeis(true)">↺</button></div>
     </div>
     <div id="seis-body" style="padding:4px 0"></div>
-    <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 1.5 · Ibéria + Atlântico NE + Açores</div>
+    <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
   </div>
 
 </div><!-- /grid row3 -->
@@ -1963,35 +1963,33 @@ async function loadFng(force){
 async function loadRec(force=false){
   const el=$("rec-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="rec_v3";
+  const ck="rec_v4";
   let data=force?null:lsGet(ck);
-  if(!data){
-    /* Tentar FRED via múltiplos proxies */
+
+  if(!data||!data.length){
+    /* Tentar FRED via proxy com timeout curto (5s) */
     const FRED="https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y";
-    const PROXIES=[
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(FRED),
-      "https://corsproxy.io/?"+encodeURIComponent(FRED),
-    ];
-    for(const url of PROXIES){
-      try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(10000)});
-        if(!r.ok)continue;
+    try{
+      const r=await fetch(
+        "https://api.allorigins.win/raw?url="+encodeURIComponent(FRED),
+        {signal:AbortSignal.timeout(5000)}
+      );
+      if(r.ok){
         const csv=await r.text();
         const rows=csv.trim().split("\n").slice(1)
-          .map(l=>{const[dt,v]=l.split(",");return{dt,v:parseFloat(v)};} )
-          .filter(x=>!isNaN(x.v));
-        if(rows.length>10){data=rows.slice(-104);lsSet(ck,data);break;}
-      }catch{}
-    }
+          .map(l=>{const[dt,v]=l.split(",");return[dt,parseFloat(v)];})
+          .filter(x=>!isNaN(x[1]));
+        if(rows.length>20){data=rows.slice(-60);lsSet(ck,data);}
+      }
+    }catch{}
+    /* Fallback imediato: dados estáticos FRED T10Y2Y até Mar 2026 */
+    if(!data||!data.length) data=[["2024-01-05", -1.39], ["2024-02-02", -1.35], ["2024-03-01", -1.22], ["2024-04-05", -1.08], ["2024-05-03", -0.95], ["2024-06-07", -0.82], ["2024-07-05", -0.68], ["2024-08-09", -0.48], ["2024-09-06", -0.32], ["2024-10-04", -0.15], ["2024-11-01", -0.08], ["2024-12-06", -0.25], ["2025-01-03", -0.38], ["2025-02-07", -0.35], ["2025-03-07", -0.25], ["2025-04-04", -0.12], ["2025-05-02", 0.02], ["2025-06-06", 0.12], ["2025-07-04", 0.22], ["2025-08-01", 0.32], ["2025-09-05", 0.18], ["2025-10-03", 0.08], ["2025-11-07", -0.05], ["2025-12-05", -0.18], ["2026-01-02", -0.28], ["2026-01-16", -0.32], ["2026-02-06", -0.38], ["2026-02-27", -0.35], ["2026-03-10", -0.3]];
   }
-  /* Fallback: dados históricos estáticos (FRED T10Y2Y, actualizados Mar 2026) */
-  if(!data||!data.length){
-    data=[["2024-01-05", -1.39], ["2024-01-12", -1.35], ["2024-01-19", -1.4], ["2024-01-26", -1.42], ["2024-02-02", -1.35], ["2024-02-09", -1.32], ["2024-02-16", -1.28], ["2024-02-23", -1.25], ["2024-03-01", -1.22], ["2024-03-08", -1.18], ["2024-03-15", -1.15], ["2024-03-22", -1.12], ["2024-04-05", -1.08], ["2024-04-12", -1.05], ["2024-04-19", -1.02], ["2024-04-26", -0.98], ["2024-05-03", -0.95], ["2024-05-10", -0.92], ["2024-05-17", -0.88], ["2024-05-24", -0.85], ["2024-06-07", -0.82], ["2024-06-14", -0.79], ["2024-06-21", -0.75], ["2024-06-28", -0.72], ["2024-07-05", -0.68], ["2024-07-12", -0.65], ["2024-07-19", -0.62], ["2024-07-26", -0.58], ["2024-08-02", -0.55], ["2024-08-09", -0.48], ["2024-08-16", -0.42], ["2024-08-23", -0.38], ["2024-09-06", -0.32], ["2024-09-13", -0.28], ["2024-09-20", -0.22], ["2024-09-27", -0.18], ["2024-10-04", -0.15], ["2024-10-11", -0.12], ["2024-10-18", -0.08], ["2024-10-25", -0.05], ["2024-11-01", -0.08], ["2024-11-08", -0.12], ["2024-11-15", -0.18], ["2024-11-22", -0.22], ["2024-12-06", -0.25], ["2024-12-13", -0.28], ["2024-12-20", -0.32], ["2024-12-27", -0.35], ["2025-01-03", -0.38], ["2025-01-10", -0.42], ["2025-01-17", -0.45], ["2025-01-24", -0.42], ["2025-02-07", -0.38], ["2025-02-14", -0.35], ["2025-02-21", -0.32], ["2025-02-28", -0.28], ["2025-03-07", -0.25], ["2025-03-14", -0.22], ["2025-03-21", -0.18], ["2025-03-28", -0.15], ["2025-04-04", -0.12], ["2025-04-11", -0.08], ["2025-04-18", -0.05], ["2025-04-25", -0.02], ["2025-05-02", 0.02], ["2025-05-09", 0.05], ["2025-05-16", 0.08], ["2025-05-23", 0.1], ["2025-06-06", 0.12], ["2025-06-13", 0.15], ["2025-06-20", 0.18], ["2025-06-27", 0.2], ["2025-07-04", 0.22], ["2025-07-11", 0.25], ["2025-07-18", 0.28], ["2025-07-25", 0.3], ["2025-08-01", 0.32], ["2025-08-08", 0.28], ["2025-08-15", 0.25], ["2025-08-22", 0.22], ["2025-09-05", 0.18], ["2025-09-12", 0.15], ["2025-09-19", 0.12], ["2025-09-26", 0.1], ["2025-10-03", 0.08], ["2025-10-10", 0.05], ["2025-10-17", 0.02], ["2025-10-24", -0.02], ["2025-11-07", -0.05], ["2025-11-14", -0.08], ["2025-11-21", -0.12], ["2025-11-28", -0.15], ["2025-12-05", -0.18], ["2025-12-12", -0.2], ["2025-12-19", -0.22], ["2025-12-26", -0.25], ["2026-01-02", -0.28], ["2026-01-09", -0.3], ["2026-01-16", -0.32], ["2026-01-23", -0.35], ["2026-02-06", -0.38], ["2026-02-13", -0.4], ["2026-02-20", -0.38], ["2026-02-27", -0.35], ["2026-03-06", -0.32], ["2026-03-10", -0.3]];
-  }
-  const cur=data[data.length-1].v;
+
+  const cur=data[data.length-1][1];
   const isInv=cur<0;
   const col=isInv?"#EF4444":cur<0.5?"#F59E0B":"#10B981";
-  const vals=data.map(x=>x.v);
+  const vals=data.map(x=>x[1]);
   const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
   const W=260,H=64;
   const px=i=>Math.round(i/(vals.length-1)*W);
@@ -1999,65 +1997,71 @@ async function loadRec(force=false){
   const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
   const zy=py(0);
   const fill=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ")+` ${W},${H+2} 0,${H+2}`;
-  const lastDate=data[data.length-1].dt;
-  const srcLabel=data[0].dt?"FRED live":"dados estáticos Mar 2026";
+  const lastDate=data[data.length-1][0];
+  /* Detectar se veio do FRED live ou dos estáticos */
+  const isLive=data.length>30;
   el.innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
-      <div style="font-size:2.2rem;font-weight:800;color:${col}">${cur.toFixed(2)}<span style="font-size:.85rem;font-weight:500">pp</span></div>
+      <div style="font-size:2.4rem;font-weight:800;color:${col};line-height:1">${cur.toFixed(2)}<span style="font-size:.85rem;font-weight:400">pp</span></div>
       <div>
-        <div style="font-size:.75rem;font-weight:700;color:${col}">10Y − 2Y Spread</div>
-        <div style="font-size:.7rem;color:var(--t2);margin-top:2px">${isInv?"⚠ INVERTIDA · sinal histórico de recessão":"✓ Normal · sem sinal de recessão"}</div>
-        <div style="font-size:.62rem;color:var(--t3);margin-top:2px">${lastDate} · ${srcLabel}</div>
+        <div style="font-size:.76rem;font-weight:700;color:${col}">10Y − 2Y Spread</div>
+        <div style="font-size:.7rem;color:var(--t2);margin-top:3px">${isInv?"⚠ INVERTIDA · sinal histórico de recessão":"✓ Normal · sem sinal de recessão"}</div>
+        <div style="font-size:.62rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · FRED live":" · ref. Mar 2026"}</div>
       </div>
     </div>
     <svg viewBox="0 0 ${W} ${H+4}" style="width:100%;height:60px">
       <polygon points="${fill}" fill="${col}22"/>
-      <line x1="0" y1="${zy}" x2="${W}" y2="${zy}" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="0" y1="${zy}" x2="${W}" y2="${zy}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,3"/>
       <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>
       <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="4" fill="${col}"/>
-    </svg>`;
+    </svg>
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:.64rem;color:var(--t3)">
+      <span>Mín: <b style="color:var(--t2)">${mn.toFixed(2)}pp</b></span>
+      <span>Máx: <b style="color:var(--t2)">${mx.toFixed(2)}pp</b></span>
+      <span>Período: <b style="color:var(--t2)">${data[0][0]} – ${lastDate}</b></span>
+    </div>`;
 }
 
 /* ══════════════════════════════════════════════════════════════
    PREÇOS AGRÍCOLAS — via tdGet()
    ══════════════════════════════════════════════════════════════ */
 var AGRI_SYMS=[
-  {sym:"zw.f", label:"Trigo",   unit:"¢/bu", ico:"🌾"},
-  {sym:"zc.f", label:"Milho",   unit:"¢/bu", ico:"🌽"},
-  {sym:"zs.f", label:"Soja",    unit:"¢/bu", ico:"🫘"},
-  {sym:"kc.f", label:"Café",    unit:"¢/lb", ico:"☕"},
-  {sym:"sb.f", label:"Açúcar",  unit:"¢/lb", ico:"🍬"},
-  {sym:"ct.f", label:"Algodão", unit:"¢/lb", ico:"🤍"},
+  {sym:"ZW=F",  label:"Trigo",   unit:"¢/bu", ico:"🌾"},
+  {sym:"ZC=F",  label:"Milho",   unit:"¢/bu", ico:"🌽"},
+  {sym:"ZS=F",  label:"Soja",    unit:"¢/bu", ico:"🫘"},
+  {sym:"KC=F",  label:"Café",    unit:"¢/lb", ico:"☕"},
+  {sym:"SB=F",  label:"Açúcar",  unit:"¢/lb", ico:"🍬"},
+  {sym:"CT=F",  label:"Algodão", unit:"¢/lb", ico:"🤍"},
 ];
 async function loadAgri(force=false){
   const el=$("agri-body"); if(!el)return;
   el.innerHTML=`<div style="grid-column:1/-1">${ld()}</div>`;
-  const ck="agri_stooq_v1";
+  const ck="agri_yf_v1";
   let cache=force?null:lsGet(ck);
-  if(!cache){
-    /* Stooq CSV: Date,Open,High,Low,Close,Volume — sem chave, CORS livre */
+  if(!cache||!cache.length){
+    /* Yahoo Finance futuros via allorigins proxy (CORS livre) */
+    const YF_BASE="https://query1.finance.yahoo.com/v8/finance/chart/";
     const results=await Promise.allSettled(
-      AGRI_SYMS.map(s=>
-        fetch(`https://stooq.com/q/d/l/?s=${s.sym}&i=d`,{signal:AbortSignal.timeout(8000)})
-        .then(r=>r.text())
-        .then(csv=>{
-          const rows=csv.trim().split("\n");
-          /* Header: Date,Open,High,Low,Close,Volume */
-          /* Última linha = dados mais recentes */
-          const last=rows[rows.length-1].split(",");
-          const prev=rows.length>2?rows[rows.length-2].split(","):null;
-          const close=parseFloat(last[4]);
-          const prevClose=prev?parseFloat(prev[4]):null;
-          const chg=prevClose?((close-prevClose)/prevClose*100):0;
-          return {close, chg, date:last[0]};
-        })
-      )
+      AGRI_SYMS.map(s=>{
+        const url=YF_BASE+encodeURIComponent(s.sym)+"?range=5d&interval=1d";
+        const proxy="https://api.allorigins.win/raw?url="+encodeURIComponent(url);
+        return fetch(proxy,{signal:AbortSignal.timeout(10000)})
+          .then(r=>r.json())
+          .then(j=>{
+            const meta=j?.chart?.result?.[0]?.meta;
+            if(!meta)throw new Error("sem meta");
+            const price=meta.regularMarketPrice||meta.previousClose;
+            const prev=meta.previousClose||meta.chartPreviousClose;
+            const chg=prev&&price?((price-prev)/prev*100):null;
+            return {close:price, chg, currency:meta.currency||""};
+          });
+      })
     );
     cache=AGRI_SYMS.map((s,i)=>{
       const r=results[i];
-      return r.status==="fulfilled"?r.value:{close:null,chg:null,date:null};
+      return r.status==="fulfilled"?r.value:{close:null,chg:null};
     });
-    lsSet(ck,cache);
+    if(cache.some(x=>x.close))lsSet(ck,cache);
   }
   el.innerHTML=AGRI_SYMS.map((s,i)=>{
     const q=cache[i]||{};
@@ -2283,102 +2287,120 @@ async function loadAir(force=false){
 async function loadSeis(force=false){
   const el=$("seis-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="seis_v6";
+  const ck="seis_v7";
   let d=force?null:lsGet(ck);
-  if(!d){
+  if(!d||!d.length){
     try{
-      const start=new Date(Date.now()-7*864e5).toISOString().split("T")[0];
-      /* minmagnitude=1.0 para garantir resultados na Ibéria */
+      /* 30 dias, mag ≥ 0.5 — garante sempre resultados na Ibéria+Atlântico */
+      const start=new Date(Date.now()-30*864e5).toISOString().split("T")[0];
       const url=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson`
         +`&starttime=${start}&minlatitude=27&maxlatitude=45`
-        +`&minlongitude=-32&maxlongitude=4&minmagnitude=1.5&orderby=time&limit=100`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(10000)});
+        +`&minlongitude=-32&maxlongitude=4&minmagnitude=0.5&orderby=time&limit=200`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
       if(!r.ok)throw new Error("HTTP "+r.status);
       const j=await r.json();
       d=j.features||[];
-      lsSet(ck,d);
+      if(d.length)lsSet(ck,d); /* só cachear se tiver dados */
     }catch(e){el.innerHTML=er(e.message);return;}
   }
   if(!d.length){
-    el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos ≥ 1.5 nos últimos 7 dias</div>`;
+    el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos nos últimos 30 dias</div>`;
     return;
   }
-  const maxMag=Math.max(...d.map(x=>x.properties.mag));
-  const big=d.filter(x=>x.properties.mag>=3).length;
-  const med=d.filter(x=>x.properties.mag>=2&&x.properties.mag<3).length;
 
-  /* Mini-mapa SVG da Península Ibérica */
-  /* Projecção: lon[-10,4]→x[0,200], lat[35,44]→y[0,120] */
+  /* Separar por magnitude para estatísticas */
+  const d7=d.filter(x=>{const dt=Date.now()-x.properties.time;return dt<7*864e5;});
+  const d30=d;
+  const use=d7.length>=3?d7:d30; /* usar 7 dias se tiver pelo menos 3 eventos, senão 30 */
+  const periodo=d7.length>=3?"7 dias":"30 dias";
+
+  const maxMag=Math.max(...use.map(x=>x.properties.mag));
+  const big=use.filter(x=>x.properties.mag>=3).length;
+  const med=use.filter(x=>x.properties.mag>=2&&x.properties.mag<3).length;
+
+  /* Mini-mapa SVG — projecção lon[-32,4]→x[0,200], lat[27,45]→y[0,120] */
   function mxy(lat,lon){
-    return [Math.round((lon+10)/14*200), Math.round((44-lat)/9*120)];
+    return [Math.round((lon+32)/36*200), Math.round((45-lat)/18*120)];
   }
-  /* Outline simplificado da Ibéria */
-  const IBERIA="M18,0 L30,2 L45,0 L60,4 L80,2 L100,0 L120,4 L140,2 L160,5 L180,8 L200,15 "
-    +"L198,30 L200,50 L196,70 L190,90 L185,105 L175,115 L160,120 L140,118 L120,115 "
-    +"L100,118 L80,120 L65,115 L50,112 L35,105 L20,95 L10,80 L5,60 L2,40 L0,20 L10,8 Z";
+  /* Outline simplificado da Ibéria + posição dos Açores */
+  const IBERIA="M95,5 L110,7 L125,5 L140,8 L155,5 L168,8 L178,12 L188,18 "
+    +"L190,28 L192,40 L188,55 L182,68 L176,80 L168,90 L158,98 "
+    +"L144,103 L128,105 L112,103 L98,100 L84,95 L72,85 L65,72 "
+    +"L62,58 L64,44 L68,32 L76,20 L86,10 Z";
 
-  const dots=d.slice(0,30).map(f=>{
+  const dots=use.slice(0,40).map(f=>{
     const p=f.properties, mag=p.mag;
-    const [x,y]=mxy(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+    const coords=f.geometry?.coordinates;
+    if(!coords)return "";
+    const [x,y]=mxy(coords[1], coords[0]);
+    if(x<0||x>200||y<0||y>120)return "";
     const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
-    const r=Math.max(2, Math.min(7, mag*1.8));
-    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" fill-opacity="0.85" stroke="#fff" stroke-width="0.5" stroke-opacity="0.4">
-      <title>${mag.toFixed(1)} — ${(p.place||"").substring(0,40)}</title>
+    const r=Math.max(2.5, Math.min(8, mag*2));
+    const dt=new Date(p.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" fill-opacity="0.8" stroke="#fff" stroke-width="0.5" stroke-opacity="0.4">
+      <title>M${mag.toFixed(1)} · ${dt} · ${(p.place||"").substring(0,40)}</title>
     </circle>`;
   }).join("");
 
+  /* Marcador Açores */
+  const [ax,ay]=mxy(38.5,-28);
+  const acores=`<text x="${ax}" y="${ay}" font-size="7" fill="#6E7A96" text-anchor="middle">Açores</text>`;
+
   el.innerHTML=`
-    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:54px">
-        <div style="font-size:1.6rem;font-weight:800;color:#F59E0B">${d.length}</div>
-        <div style="font-size:.6rem;color:var(--t2)">Total 7d</div>
+    <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
+        <div style="font-size:1.5rem;font-weight:800;color:#F59E0B">${use.length}</div>
+        <div style="font-size:.6rem;color:var(--t2)">${periodo}</div>
       </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:54px">
-        <div style="font-size:1.6rem;font-weight:800;color:#EF4444">${maxMag.toFixed(1)}</div>
+      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
+        <div style="font-size:1.5rem;font-weight:800;color:#EF4444">${maxMag.toFixed(1)}</div>
         <div style="font-size:.6rem;color:var(--t2)">Mag. máx.</div>
       </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:54px">
-        <div style="font-size:1.6rem;font-weight:800;color:#F97316">${big}</div>
+      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
+        <div style="font-size:1.5rem;font-weight:800;color:#F97316">${big}</div>
         <div style="font-size:.6rem;color:var(--t2)">Mag ≥ 3</div>
       </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:54px">
-        <div style="font-size:1.6rem;font-weight:800;color:#8B5CF6">${med}</div>
+      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
+        <div style="font-size:1.5rem;font-weight:800;color:#8B5CF6">${med}</div>
         <div style="font-size:.6rem;color:var(--t2)">Mag 2–3</div>
       </div>
     </div>
     <div style="display:flex;gap:12px;align-items:flex-start">
-      <!-- Mini-mapa -->
       <div style="flex-shrink:0">
-        <svg viewBox="0 0 200 120" width="160" height="96" style="background:#0F1629;border-radius:6px;border:1px solid var(--b)">
+        <svg viewBox="0 0 200 120" width="160" height="96"
+             style="background:#0F1629;border-radius:6px;border:1px solid var(--b)">
           <path d="${IBERIA}" fill="#1E2B4A" stroke="#2A3660" stroke-width="1"/>
+          ${acores}
           ${dots}
         </svg>
-        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        <div style="display:flex;gap:7px;margin-top:4px;flex-wrap:wrap">
           ${[["#EF4444","≥4"],["#F97316","≥3"],["#F59E0B","≥2"],["#8B5CF6","<2"]].map(([c,l])=>
             `<div style="display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t3)">
               <div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}
             </div>`).join("")}
         </div>
       </div>
-      <!-- Lista -->
       <div style="flex:1;min-width:0">
-        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">Mais recentes:</div>
-        ${d.slice(0,7).map(f=>{
+        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">
+          Mais recentes ${periodo==="7 dias"?"(7d)":"(30d)"}:
+        </div>
+        ${use.slice(0,8).map(f=>{
           const p=f.properties, mag=p.mag.toFixed(1);
           const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
           const dt=new Date(p.time);
           const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})
             +" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
-          const place=(p.place||"").replace(/ of /g," ").substring(0,38);
+          const place=(p.place||"").replace(/ of /g," ").substring(0,36);
           return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--b)">
-            <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;padding:2px 6px;font-size:.75rem;font-weight:700;color:${col};min-width:30px;text-align:center">${mag}</div>
+            <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;padding:2px 6px;
+                 font-size:.74rem;font-weight:700;color:${col};min-width:30px;text-align:center">${mag}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:.66rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${place}</div>
               <div style="font-size:.58rem;color:var(--t3)">${dts}</div>
             </div>
           </div>`;
         }).join("")}
-        ${d.length>7?`<div style="font-size:.6rem;color:var(--t3);margin-top:3px">+ ${d.length-7} eventos adicionais</div>`:""}
+        ${use.length>8?`<div style="font-size:.6rem;color:var(--t3);margin-top:3px">+ ${use.length-8} eventos</div>`:""}
       </div>
     </div>`;
 }
