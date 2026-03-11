@@ -2606,127 +2606,104 @@ async function loadAir(force=false){
       </div>
     </div>`;
 
-    /* ── MAPA TopoJSON ── */
+    /* ── MAPA SVG Hardcoded ── */
     const airDots=states.filter(s=>s[5]!=null&&s[6]!=null).map(s=>{
       const onGnd=s[8], alt=s[7]||0;
       const col=onGnd?"#6E7A96":alt>9000?"#10B981":alt>6000?"#06B6D4":alt>3000?"#3B82F6":"#8B5CF6";
       const cs=(s[1]||"").trim()||s[0];
       const fl=alt?`FL${Math.round(alt/30.48/10)*10}`:"Solo";
       const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"";
-      const hdg=s[10]||0;
-      return {lat:s[6],lon:s[5],col,r:onGnd?2:3,hdg,
+      return {lat:s[6],lon:s[5],col,r:onGnd?2:3,hdg:s[10]||0,
               label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${fl} ${vel}<br>${s[2]||""}`};
     });
 
-    /* Usar buildConflictMap approach: chamar directamente quando geo disponível */
     function paintAirMap(){
       const canvas=document.getElementById("air-map-canvas");
       if(!canvas) return;
-      const geo=window._topoCache;
-      if(!geo||!geo.features) return;
-
       canvas.width=220; canvas.height=160;
       const ctx=canvas.getContext("2d");
-      const bbox={minLon:-13,maxLon:-4,minLat:35,maxLat:44};
+      const W=220, H=160;
 
+      const minLon=-13,maxLon=-4,minLat=35,maxLat=44;
+      const padLon=(maxLon-minLon)*0.04, padLat=(maxLat-minLat)*0.04;
       function proj(lat,lon){
-        const padLon=(bbox.maxLon-bbox.minLon)*0.05;
-        const padLat=(bbox.maxLat-bbox.minLat)*0.05;
-        const x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
-        const y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
+        const x=(lon-(minLon-padLon))/((maxLon+padLon)-(minLon-padLon))*W;
+        const y=(1-(lat-(minLat-padLat))/((maxLat+padLat)-(minLat-padLat)))*H;
         return [x,y];
       }
 
-      /* Fundo */
-      ctx.fillStyle="#0a1020"; ctx.fillRect(0,0,220,160);
+      /* Fundo oceano */
+      ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
 
-      /* Oceano grid */
-      ctx.strokeStyle="rgba(255,255,255,0.04)"; ctx.lineWidth=0.5;
-      for(let lon=-12;lon<=-4;lon+=2){const[x]=proj(39,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,160);ctx.stroke();}
-      for(let lat=36;lat<=44;lat+=2){const[,y]=proj(lat,-8);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(220,y);ctx.stroke();}
+      /* Grid */
+      ctx.strokeStyle="rgba(255,255,255,0.03)"; ctx.lineWidth=0.5;
+      for(let lon=-12;lon<=-4;lon+=2){const[x]=proj(39,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+      for(let lat=36;lat<=44;lat+=2){const[,y]=proj(lat,-8);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-      /* Países */
-      geo.features.forEach(f=>{
-        if(!f?.geometry) return;
-        const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
-        polys.forEach(poly=>{
-          const ring0=poly[0]; if(!ring0?.length) return;
-          /* Filtrar para bbox */
-          const inView=ring0.some((c,i)=>i%4===0&&c[0]>=-18&&c[0]<=1&&c[1]>=30&&c[1]<=50);
-          if(!inView) return;
-          poly.forEach(ring=>{
-            ctx.beginPath();
-            ring.forEach((c,i)=>{
-              const[x,y]=proj(c[1],c[0]);
-              i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-            });
-            ctx.closePath();
-            ctx.fillStyle="#1A2B45"; ctx.fill();
-            ctx.strokeStyle="#263d5e"; ctx.lineWidth=0.8; ctx.stroke();
-          });
-        });
-      });
+      /* Países SVG paths hardcoded */
+      function drawPath(pathStr, fill, stroke){
+        const p=new Path2D(pathStr);
+        ctx.fillStyle=fill; ctx.fill(p);
+        ctx.strokeStyle=stroke; ctx.lineWidth=0.8; ctx.stroke(p);
+      }
+      drawPath("M128.0,18.6L159.7,18.6L159.8,21.5L167.2,23.6L172.4,25.8L185.0,27.5L185.2,32.3L172.5,38.7L167.0,60.4L141.6,67.7L140.3,70.0L136.5,70.0L130.4,63.4L130.4,60.4L131.2,53.8L132.9,45.8L134.2,40.3L133.1,34.5L135.7,33.5L134.2,30.4L123.7,29.4L123.4,21.5L128.0,18.6Z","#1a2d48","#263d5e");
+      drawPath("M123.7,29.4L134.2,30.4L135.7,33.5L133.1,34.5L134.2,40.3L132.9,45.8L131.2,53.8L130.4,60.4L131.2,63.3L128.9,63.6L128.0,63.7L124.6,63.3L123.0,61.0L123.7,58.6L121.7,53.9L120.4,52.0L121.7,46.1L123.9,40.9L123.9,32.7L124.4,31.2L123.6,30.0L123.7,29.4Z","#1e3454","#2e4a72");
+      drawPath("M138.8,70.7L158.6,73.3L157.6,76.6L138.2,83.2L128.0,79.9L141.3,75.9L138.8,70.7Z","#1a2d3a","#253a4a");
 
-      /* Aeronaves como triângulos direccionais */
+      /* Aeronaves */
       airDots.forEach(d=>{
         const[x,y]=proj(d.lat,d.lon);
-        if(x<-5||x>225||y<-5||y>165) return;
-        const rad=(d.hdg||0)*Math.PI/180;
-        const size=d.r===2?3:4;
+        if(x<-5||x>W+5||y<-5||y>H+5) return;
+        const size=d.r===2?2.5:3.5;
         /* Glow */
         const grd=ctx.createRadialGradient(x,y,0,x,y,size*3);
-        grd.addColorStop(0,d.col+"66"); grd.addColorStop(1,d.col+"00");
+        grd.addColorStop(0,d.col+"55"); grd.addColorStop(1,d.col+"00");
         ctx.beginPath(); ctx.arc(x,y,size*3,0,Math.PI*2);
         ctx.fillStyle=grd; ctx.fill();
-        /* Triângulo */
-        ctx.save(); ctx.translate(x,y); ctx.rotate(rad);
+        /* Triângulo direccional */
+        ctx.save(); ctx.translate(x,y); ctx.rotate(d.hdg*Math.PI/180);
         ctx.beginPath();
-        ctx.moveTo(0,-size*1.8);
-        ctx.lineTo(-size,size);
-        ctx.lineTo(size,size);
+        ctx.moveTo(0,-size*1.8); ctx.lineTo(-size*0.9,size); ctx.lineTo(size*0.9,size);
         ctx.closePath();
-        ctx.fillStyle=d.col; ctx.globalAlpha=0.9; ctx.fill();
+        ctx.fillStyle=d.col; ctx.globalAlpha=0.92; ctx.fill();
         ctx.globalAlpha=1; ctx.restore();
       });
 
-      /* Labels cidades */
+      /* Labels aeroportos */
       [{lat:38.72,lon:-9.14,txt:"LIS"},{lat:41.15,lon:-8.67,txt:"OPO"},
        {lat:37.02,lon:-7.93,txt:"FAO"},{lat:40.42,lon:-3.70,txt:"MAD"}].forEach(l=>{
         const[x,y]=proj(l.lat,l.lon);
-        if(x<0||x>220||y<0||y>160) return;
-        ctx.fillStyle="#4A90B8"; ctx.font="bold 8px monospace";
-        ctx.fillText(l.txt,x+3,y-2);
-        ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
-        ctx.fillStyle="#4A90B8aa"; ctx.fill();
+        if(x<0||x>W||y<0||y>H) return;
+        ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
+        ctx.fillStyle="#4A90B8"; ctx.fill();
+        ctx.fillStyle="#6AB0D8"; ctx.font="bold 7.5px monospace";
+        ctx.fillText(l.txt,x+4,y+3);
       });
 
-      /* Tooltip hover */
+      /* Tooltip */
       const tip=document.getElementById("air-map-tip");
       if(tip){
         canvas.onmousemove=function(e){
           const rect=canvas.getBoundingClientRect();
-          const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+          const scaleX=W/rect.width, scaleY=H/rect.height;
           const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
           let hit=null, minD=Infinity;
           airDots.forEach(d=>{
             const[px,py]=proj(d.lat,d.lon);
             const dist=Math.hypot(px-mx,py-my);
-            if(dist<18&&dist<minD){minD=dist;hit=d;}
+            if(dist<16&&dist<minD){minD=dist;hit=d;}
           });
           if(hit){
             tip.style.opacity="1";
-            tip.style.left=Math.min(e.offsetX+12,rect.width-180)+"px";
+            tip.style.left=Math.min(e.offsetX+12,rect.width-185)+"px";
             tip.style.top=Math.max(e.offsetY-35,4)+"px";
             tip.innerHTML=hit.label;
-          } else { tip.style.opacity="0"; }
+          } else tip.style.opacity="0";
         };
         canvas.onmouseleave=()=>tip.style.opacity="0";
       }
     }
-
-    /* Chamar imediatamente se geo já disponível, senão aguardar */
-    if(window._topoCache) paintAirMap();
-    else loadTopoData(()=>paintAirMap());
+    paintAirMap();
     return;
   }
 
@@ -2772,7 +2749,7 @@ async function loadAir(force=false){
 async function loadSeis(force=false){
   const el=$("seis-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="seis_v7";
+  const ck="seis_v8";
   let d=force?null:lsGet(ck);
   if(!d||!d.length){
     try{
@@ -2788,7 +2765,7 @@ async function loadSeis(force=false){
     }catch(e){el.innerHTML=er(e.message);return;}
   }
   if(!d.length){
-    el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos nos últimos 30 dias</div>`;
+    el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos registados</div>`;
     return;
   }
 
@@ -2799,97 +2776,161 @@ async function loadSeis(force=false){
   const big=use.filter(x=>x.properties.mag>=3).length;
   const med=use.filter(x=>x.properties.mag>=2&&x.properties.mag<3).length;
 
+  /* Pontos para o mapa */
+  const seisDots=use.filter(f=>f.geometry?.coordinates).map(f=>{
+    const mag=f.properties.mag, c=f.geometry.coordinates;
+    const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
+    const r=Math.max(3,Math.min(9,mag*2.2));
+    const dt=new Date(f.properties.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
+    return {lat:c[1],lon:c[0],col,r,mag,
+             label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").slice(0,40)}<br>${dt}`};
+  });
+
   el.innerHTML=`
-    <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
-        <div style="font-size:1.5rem;font-weight:800;color:#F59E0B">${use.length}</div>
-        <div style="font-size:.6rem;color:var(--t2)">${periodo}</div>
+  <!-- Layout: mapa à esquerda, KPIs+lista à direita -->
+  <div style="display:flex;gap:10px;align-items:flex-start">
+
+    <!-- MAPA -->
+    <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px">
+      <div style="position:relative;width:200px;height:140px;border-radius:7px;
+           overflow:hidden;border:1px solid var(--b);background:#0a1020">
+        <canvas id="seis-map-canvas" width="200" height="140"
+                style="width:100%;height:100%;display:block"></canvas>
+        <div id="seis-map-tip" style="position:absolute;background:#1E2340cc;
+             border:1px solid #3D4560;padding:5px 8px;border-radius:5px;
+             font-size:.64rem;color:#DDE3F0;pointer-events:none;opacity:0;
+             transition:opacity .15s;z-index:10;max-width:160px;line-height:1.4;
+             white-space:nowrap"></div>
       </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
-        <div style="font-size:1.5rem;font-weight:800;color:#EF4444">${maxMag.toFixed(1)}</div>
-        <div style="font-size:.6rem;color:var(--t2)">Mag. máx.</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
-        <div style="font-size:1.5rem;font-weight:800;color:#F97316">${big}</div>
-        <div style="font-size:.6rem;color:var(--t2)">Mag ≥ 3</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:7px 12px;text-align:center;min-width:52px">
-        <div style="font-size:1.5rem;font-weight:800;color:#8B5CF6">${med}</div>
-        <div style="font-size:.6rem;color:var(--t2)">Mag 2–3</div>
+      <!-- Legenda -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        ${[["#EF4444","≥4"],["#F97316","≥3"],["#F59E0B","≥2"],["#8B5CF6","<2"]].map(([c,l])=>
+          `<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+            <div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}
+          </div>`).join("")}
       </div>
     </div>
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <!-- Mapa Canvas TopoJSON -->
-      <div style="flex-shrink:0;position:relative">
-        <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
-          <canvas id="seis-map-canvas" width="190" height="130" style="width:100%;height:100%;display:block"></canvas>
-          <div id="seis-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
-               padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
-               pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
-               max-width:170px;line-height:1.4"></div>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
-          ${[["#EF4444","≥4"],["#F97316","≥3"],["#F59E0B","≥2"],["#8B5CF6","<2"]].map(([c,l])=>
-            `<div style="display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t3)">
-              <div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}
-            </div>`).join("")}
-        </div>
-      </div>
-      <!-- Lista -->
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">
-          Mais recentes (${periodo}):
-        </div>
-        ${use.slice(0,8).map(f=>{
-          const p=f.properties, mag=p.mag.toFixed(1);
-          const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
-          const dt=new Date(p.time);
-          const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})
-            +" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
-          const place=(p.place||"").replace(/ of /g," ").substring(0,38);
-          return `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--b)">
-            <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;
-                 padding:2px 6px;font-size:.74rem;font-weight:700;color:${col};
-                 min-width:30px;text-align:center">${mag}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:.66rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${place}</div>
-              <div style="font-size:.58rem;color:var(--t3)">${dts}</div>
-            </div>
-          </div>`;
-        }).join("")}
-        ${use.length>8?`<div style="font-size:.6rem;color:var(--t3);margin-top:3px">+ ${use.length-8} eventos</div>`:""}
-      </div>
-    </div>`;
 
-  /* Desenhar mapa com TopoJSON */
-  const seisMapDots=use.slice(0,60)
-    .filter(f=>f.geometry?.coordinates)
-    .map(f=>{
-      const mag=f.properties.mag;
-      const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
-      const r=Math.max(3,Math.min(10,mag*2.2));
-      const coords=f.geometry.coordinates;
-      const dt=new Date(f.properties.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
-      return {
-        lat:coords[1], lon:coords[0], col, r,
-        label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").substring(0,40)}<br>${dt}`
-      };
+    <!-- DIREITA: KPIs + lista -->
+    <div style="flex:1;min-width:0">
+      <!-- KPIs compactos -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
+        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${use.length}</div>
+          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">${periodo}</div>
+        </div>
+        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${maxMag.toFixed(1)}</div>
+          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Máx.</div>
+        </div>
+        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#F97316;line-height:1">${big}</div>
+          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Mag ≥3</div>
+        </div>
+        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${med}</div>
+          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Mag 2-3</div>
+        </div>
+      </div>
+      <!-- Lista sismos recentes -->
+      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">
+        Mais recentes (${periodo}):
+      </div>
+      ${use.slice(0,8).map(f=>{
+        const p=f.properties, mag=p.mag.toFixed(1);
+        const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
+        const dt=new Date(p.time);
+        const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})
+          +" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
+        const place=(p.place||"").replace(/ of /g," ").slice(0,36);
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;
+                     border-bottom:1px solid var(--b)">
+          <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;
+               padding:2px 5px;font-size:.72rem;font-weight:700;color:${col};
+               min-width:30px;text-align:center;flex-shrink:0">${mag}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.65rem;color:var(--text);white-space:nowrap;
+                 overflow:hidden;text-overflow:ellipsis">${place}</div>
+            <div style="font-size:.57rem;color:var(--t3)">${dts}</div>
+          </div>
+        </div>`;
+      }).join("")}
+      ${use.length>8?`<div style="font-size:.58rem;color:var(--t3);margin-top:3px;padding-left:2px">+ ${use.length-8} eventos registados</div>`:""}</div>
+  </div>`;
+
+  /* ── MAPA SVG Hardcoded ── */
+  (function(){
+    const canvas=document.getElementById("seis-map-canvas");
+    if(!canvas) return;
+    const W=200,H=140,ctx=canvas.getContext("2d");
+    const minLon=-32,maxLon=5,minLat=26,maxLat=46;
+    const padLon=(maxLon-minLon)*0.03, padLat=(maxLat-minLat)*0.03;
+    function proj(lat,lon){
+      const x=(lon-(minLon-padLon))/((maxLon+padLon)-(minLon-padLon))*W;
+      const y=(1-(lat-(minLat-padLat))/((maxLat+padLat)-(minLat-padLat)))*H;
+      return [x,y];
+    }
+    /* Fundo */
+    ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
+    /* Grid */
+    ctx.strokeStyle="rgba(255,255,255,0.03)"; ctx.lineWidth=0.4;
+    [-30,-20,-10,0].forEach(lon=>{const[x]=proj(35,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+    [30,40].forEach(lat=>{const[,y]=proj(lat,0);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
+    /* Países */
+    function drawPath(d,fill,stroke){
+      const p=new Path2D(d);
+      ctx.fillStyle=fill;ctx.fill(p);
+      ctx.strokeStyle=stroke;ctx.lineWidth=0.7;ctx.stroke(p);
+    }
+    drawPath("M128.0,18.6L159.7,18.6L159.8,21.5L167.2,23.6L172.4,25.8L185.0,27.5L185.2,32.3L172.5,38.7L167.0,60.4L141.6,67.7L140.3,70.0L136.5,70.0L130.4,63.4L130.4,60.4L131.2,53.8L132.9,45.8L134.2,40.3L133.1,34.5L135.7,33.5L134.2,30.4L123.7,29.4L123.4,21.5L128.0,18.6Z","#1a2d48","#263d5e");
+    drawPath("M123.7,29.4L134.2,30.4L135.7,33.5L133.1,34.5L134.2,40.3L132.9,45.8L131.2,53.8L130.4,60.4L131.2,63.3L128.9,63.6L128.0,63.7L124.6,63.3L123.0,61.0L123.7,58.6L121.7,53.9L120.4,52.0L121.7,46.1L123.9,40.9L123.9,32.7L124.4,31.2L123.6,30.0L123.7,29.4Z","#1e3454","#2e4a72");
+    drawPath("M138.8,70.7L158.6,73.3L157.6,76.6L138.2,83.2L128.0,79.9L141.3,75.9L138.8,70.7Z","#1a2d3a","#253a4a");
+    drawPath("M168.8,62.7L184.1,63.4L194.3,64.7L184.1,66.7L168.8,65.4L168.8,62.7Z","#1a2a36","#24394a");
+    /* Açores */
+    drawPath("M37.0,57.7L40.8,57.7L40.8,59.0L38.8,59.4L37.0,59.0L37.0,57.7Z","#1e3454","#2e4a72");
+    drawPath("M22.0,52.2L25.0,52.2L25.0,54.2L22.5,54.2L22.0,52.2Z","#1e3454","#2e4a72");
+    drawPath("M80.6,89.2L84.2,89.2L84.2,92.5L81.6,92.5L80.6,89.2Z","#1e3454","#2e4a72");
+    /* Label Açores */
+    const[ax,ay]=proj(39.0,-28.0);
+    ctx.fillStyle="#4A6A8A"; ctx.font="6px monospace"; ctx.fillText("Açores",ax-8,ay-6);
+
+    /* Sismos */
+    seisDots.forEach(d=>{
+      const[x,y]=proj(d.lat,d.lon);
+      if(x<-5||x>W+5||y<-5||y>H+5) return;
+      /* Pulsar ring */
+      ctx.beginPath(); ctx.arc(x,y,d.r*2,0,Math.PI*2);
+      ctx.fillStyle=d.col+"30"; ctx.fill();
+      /* Círculo */
+      ctx.beginPath(); ctx.arc(x,y,d.r,0,Math.PI*2);
+      ctx.fillStyle=d.col; ctx.globalAlpha=0.88; ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.strokeStyle="rgba(255,255,255,0.25)"; ctx.lineWidth=0.5; ctx.stroke();
     });
-  function _drawSeisMap(){
-    const c=document.getElementById("seis-map-canvas");
-    if(!c||c.dataset.drawn) return;
-    c.dataset.drawn="1";
-    drawRegionalMap(
-      "seis-map-canvas","seis-map-tip",
-      {minLon:-32,maxLon:5,minLat:26,maxLat:46},
-      seisMapDots,
-      {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
-       labels:[{lat:38.7,lon:-9.1,text:"Lisboa"},{lat:39.0,lon:-28.0,text:"Açores"}]},
-      190, 130
-    );
-  }
-  requestAnimationFrame(()=>requestAnimationFrame(_drawSeisMap));
-  setTimeout(_drawSeisMap, 1000);
+
+    /* Tooltip */
+    const tip=document.getElementById("seis-map-tip");
+    if(tip){
+      canvas.onmousemove=function(e){
+        const rect=canvas.getBoundingClientRect();
+        const scaleX=W/rect.width, scaleY=H/rect.height;
+        const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
+        let hit=null, minD=Infinity;
+        seisDots.forEach(d=>{
+          const[px,py]=proj(d.lat,d.lon);
+          const dist=Math.hypot(px-mx,py-my);
+          if(dist<14&&dist<minD){minD=dist;hit=d;}
+        });
+        if(hit){
+          tip.style.opacity="1";
+          tip.style.left=Math.min(e.offsetX+10,rect.width-170)+"px";
+          tip.style.top=Math.max(e.offsetY-35,4)+"px";
+          tip.innerHTML=hit.label;
+        } else tip.style.opacity="0";
+      };
+      canvas.onmouseleave=()=>tip.style.opacity="0";
+    }
+  })();
 }
 
 /* ══════════════════════════════════════════════════════════════
