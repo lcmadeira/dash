@@ -545,6 +545,27 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
   </div>
 
+  <!-- Gás Natural TTF -->
+  <div class="card">
+    <div class="stripe" style="background:#3B82F6"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#3B82F620">🔥</div>
+      <span class="ch-lbl">Gás Natural · TTF</span>
+      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
+    </div>
+    <div id="ttf-body">
+      <div class="tv-widget-wrap">
+        <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {"symbols":[["TTF Gas","ICEEUR:TTF1!|3M"],["Henry Hub","NYMEX:NG1!|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#3B82F6","topColor":"rgba(59,130,246,0.15)","bottomColor":"rgba(59,130,246,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        </script></div>
+      </div>
+      <!-- Contexto TTF -->
+      <div id="ttf-ctx" style="margin-top:8px"></div>
+    </div>
+    <div class="src">✦ TradingView · TTF (ICE Endex) · Henry Hub (NYMEX) · €/MWh</div>
+  </div>
+
 
   <div class="card">
     <div class="stripe" style="background:var(--blue)"></div>
@@ -850,7 +871,7 @@ textarea.nta::placeholder{color:var(--t3)}
   <!-- GEOPOLÍTICA -->
   <div class="sec"><div class="sec-bar" style="background:#8B5CF6"></div>
     <span style="color:#8B5CF6">Geopolítica</span>
-    <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Conflitos · Análise · Intelligence</span>
+    <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Conflitos · Análise · Liberdade · CO₂</span>
   </div>
   <div class="card s2">
     <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
@@ -900,6 +921,18 @@ textarea.nta::placeholder{color:var(--t3)}
   <div id="co2-body" style="padding:4px 0"></div>
   <div class="src">✦ DGEG · REN Relatório Anual 2024 · Intensidade carbónica gCO₂/kWh</div>
 </div>
+
+  <!-- Liberdade de Imprensa & Democracia -->
+  <div class="card s4">
+    <div class="stripe" style="background:linear-gradient(90deg,#8B5CF6,#3B82F6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#8B5CF620">🗽</div>
+      <span class="ch-lbl">Liberdade de Imprensa · Democracia</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadPress(true)">↺</button></div>
+    </div>
+    <div id="press-body"></div>
+    <div class="src">✦ RSF Press Freedom Index 2024 · EIU Democracy Index 2024 · Freedom House 2024</div>
+  </div>
 
 <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Portugal · Mundo</span></div>
   <div class="card s2">
@@ -1401,6 +1434,8 @@ setTimeout(()=>loadRec(),        1200);
 setTimeout(()=>loadSeis(),        700);
 setTimeout(()=>loadAir(),        1500);
 setTimeout(()=>loadCO2(),         900);
+setTimeout(()=>loadTTF(),          300);
+setTimeout(()=>loadPress(),        400);
 
 setInterval(()=>{
   loadWeather();
@@ -2144,6 +2179,247 @@ setTimeout(renderImob,300);
 /* ══════════════════════════════════════════════════════════════
    FEAR & GREED INDEX — Alternative.me (CORS livre)
    ══════════════════════════════════════════════════════════════ */
+
+/* ── GÁS NATURAL TTF: contexto ── */
+function loadTTF(){
+  const el=document.getElementById("ttf-ctx");
+  if(!el) return;
+  /* Dados de contexto TTF Mar 2026 */
+  const TTF={
+    cur:38.5, peak2022:339.0, avg2023:42.0, avg2024:34.0,
+    storagePct:44.0, storageAvg5y:36.0,
+    /* Histórico mensal TTF 2024-2026 (€/MWh) */
+    hist:[
+      ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
+      ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
+      ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
+      ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
+      ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
+      ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
+      ["Jan 26",42.8],["Fev 26",40.2],["Mar 26",38.5]
+    ]
+  };
+
+  const vals=TTF.hist.map(x=>x[1]);
+  const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
+  const W=280, H=50;
+  const px=i=>Math.round(i/(vals.length-1)*W);
+  const py=v=>Math.round(H-(v-mn)/rng*H);
+  const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
+  const fill=pts+` ${W},${H+2} 0,${H+2}`;
+  const cur=TTF.cur, col="#3B82F6";
+  const vsAvg24=((cur-TTF.avg2024)/TTF.avg2024*100).toFixed(1);
+  const vsPeak=(cur/TTF.peak2022*100).toFixed(1);
+  const storageCol=TTF.storagePct>TTF.storageAvg5y?"#10B981":"#F59E0B";
+
+  el.innerHTML=`
+  <!-- KPIs compactos -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
+    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
+      <div style="font-size:.55rem;color:var(--t3)">Preço Spot</div>
+      <div style="font-size:.95rem;font-weight:800;color:${col}">${cur} <span style="font-size:.55rem;font-weight:400">€/MWh</span></div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
+      <div style="font-size:.55rem;color:var(--t3)">vs 2024 médio</div>
+      <div style="font-size:.95rem;font-weight:800;color:${vsAvg24>0?"#EF4444":"#10B981"}">${vsAvg24>0?"+":""}${vsAvg24}%</div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
+      <div style="font-size:.55rem;color:var(--t3)">% do pico 2022</div>
+      <div style="font-size:.95rem;font-weight:800;color:#10B981">${vsPeak}%</div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
+      <div style="font-size:.55rem;color:var(--t3)">Reservas EU</div>
+      <div style="font-size:.95rem;font-weight:800;color:${storageCol}">${TTF.storagePct}%</div>
+    </div>
+  </div>
+  <!-- Sparkline histórico -->
+  <div style="margin-bottom:5px">
+    <div style="font-size:.58rem;color:var(--t3);margin-bottom:2px">Evolução TTF Jan 2024 → Mar 2026 (€/MWh)</div>
+    <svg viewBox="0 0 ${W} ${H+8}" style="width:100%;height:${H+8}px">
+      <polygon points="${fill}" fill="${col}15"/>
+      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8"/>
+      <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="3.5" fill="${col}"/>
+      <!-- Pico label -->
+      <text x="${px(vals.length-1)-2}" y="${py(cur)-5}" font-size="7" fill="${col}" text-anchor="end">€${cur}</text>
+    </svg>
+  </div>
+  <!-- Contexto -->
+  <div style="background:#3B82F611;border-left:3px solid #3B82F6;border-radius:0 5px 5px 0;
+       padding:5px 9px;font-size:.63rem;color:var(--t2);line-height:1.5">
+    Reservas EU a <b style="color:${storageCol}">${TTF.storagePct}%</b> 
+    (média 5 anos mesma época: ${TTF.storageAvg5y}%). 
+    Preço <b>${((cur/TTF.peak2022)*100).toFixed(0)}%</b> abaixo do pico de Ago 2022 (€${TTF.peak2022}/MWh).
+    Fim do contrato gás russo via Ucrânia (Jan 2025) já absorvido pelo mercado.
+  </div>`;
+}
+
+/* ── LIBERDADE DE IMPRENSA & DEMOCRACIA ── */
+function loadPress(force){
+  const el=document.getElementById("press-body");
+  if(!el) return;
+
+  /* RSF Press Freedom Index 2024 (score 0-100, maior=melhor) */
+  /* Fonte: rsf.org/en/index */
+  const RSF=[
+    {c:"🇳🇴",n:"Noruega",   rank:1,  score:91.89,trend:0,   status:"Livre"},
+    {c:"🇩🇰",n:"Dinamarca", rank:2,  score:89.61,trend:+1,  status:"Livre"},
+    {c:"🇸🇪",n:"Suécia",    rank:3,  score:88.36,trend:-1,  status:"Livre"},
+    {c:"🇫🇮",n:"Finlândia", rank:4,  score:87.94,trend:0,   status:"Livre"},
+    {c:"🇳🇱",n:"Holanda",   rank:5,  score:87.08,trend:+3,  status:"Livre"},
+    {c:"🇵🇹",n:"Portugal",  rank:8,  score:84.27,trend:+2,  status:"Livre"},
+    {c:"🇩🇪",n:"Alemanha",  rank:10, score:82.43,trend:-3,  status:"Livre"},
+    {c:"🇫🇷",n:"França",    rank:21, score:76.92,trend:+5,  status:"Livre"},
+    {c:"🇪🇸",n:"Espanha",   rank:30, score:70.31,trend:-4,  status:"Satisfatório"},
+    {c:"🇬🇧",n:"Reino Unido",rank:23,score:75.48,trend:+1,  status:"Livre"},
+    {c:"🇺🇸",n:"EUA",       rank:55, score:66.59,trend:-10, status:"Problemático"},
+    {c:"🇧🇷",n:"Brasil",    rank:82, score:55.47,trend:+6,  status:"Problemático"},
+    {c:"🇮🇳",n:"Índia",     rank:159,score:31.28,trend:-2,  status:"Difícil"},
+    {c:"🇷🇺",n:"Rússia",    rank:164,score:22.16,trend:-5,  status:"Muito grave"},
+    {c:"🇨🇳",n:"China",     rank:172,score:20.32,trend:-3,  status:"Muito grave"},
+  ];
+
+  /* EIU Democracy Index 2024 (0-10) */
+  /* Fonte: eiu.com/democracy-index */
+  const EIU=[
+    {c:"🇳🇴",n:"Noruega",   score:9.81,type:"Democracia plena"},
+    {c:"🇮🇸",n:"Islândia",  score:9.45,type:"Democracia plena"},
+    {c:"🇸🇪",n:"Suécia",    score:9.39,type:"Democracia plena"},
+    {c:"🇳🇿",n:"Nova Zelândia",score:9.37,type:"Democracia plena"},
+    {c:"🇩🇰",n:"Dinamarca", score:9.22,type:"Democracia plena"},
+    {c:"🇵🇹",n:"Portugal",  score:7.90,type:"Democracia plena"},
+    {c:"🇩🇪",n:"Alemanha",  score:8.80,type:"Democracia plena"},
+    {c:"🇺🇸",n:"EUA",       score:7.85,type:"Democracia com falhas"},
+    {c:"🇧🇷",n:"Brasil",    score:6.78,type:"Democracia com falhas"},
+    {c:"🇷🇺",n:"Rússia",    score:2.22,type:"Regime autoritário"},
+    {c:"🇨🇳",n:"China",     score:1.97,type:"Regime autoritário"},
+  ];
+
+  /* Estatísticas globais RSF 2024 */
+  const GLOBAL={
+    livre:31.4, satisfatorio:24.6, problematico:17.8, dificil:13.2, muitoGrave:13.0,
+    total:180,
+    tendencia:"↓ Situação deteriorou-se em 60% dos países em 2024"
+  };
+
+  /* Distribuição regional */
+  const REGIONS=[
+    {r:"Europa",score:71.2,col:"#10B981"},
+    {r:"Américas",score:57.8,col:"#3B82F6"},
+    {r:"Ásia-Pacífico",score:45.6,col:"#F59E0B"},
+    {r:"MENA",score:38.2,col:"#F97316"},
+    {r:"África",score:42.1,col:"#8B5CF6"},
+    {r:"Ásia Central",score:22.4,col:"#EF4444"},
+  ];
+
+  const statusCol={
+    "Livre":"#10B981","Satisfatório":"#84CC16","Problemático":"#F59E0B",
+    "Difícil":"#F97316","Muito grave":"#EF4444"
+  };
+
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+    <!-- COLUNA 1: RSF Press Freedom -->
+    <div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <div style="font-size:.72rem;font-weight:700;color:#8B5CF6;text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
+        <div style="font-size:.58rem;color:var(--t3)">RSF 2024</div>
+      </div>
+
+      <!-- Distribuição global -->
+      <div style="margin-bottom:8px">
+        <div style="font-size:.6rem;color:var(--t3);margin-bottom:3px">Distribuição global (${GLOBAL.total} países)</div>
+        <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px">
+          ${Object.entries({Livre:GLOBAL.livre,"Satisf.":GLOBAL.satisfatorio,"Problem.":GLOBAL.problematico,"Difícil":GLOBAL.dificil,"M.Grave":GLOBAL.muitoGrave})
+            .map(([k,v],i)=>{
+              const cols=["#10B981","#84CC16","#F59E0B","#F97316","#EF4444"];
+              return `<div style="flex:${v};background:${cols[i]}" title="${k}: ${v}%"></div>`;
+            }).join("")}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.55rem;color:var(--t3);margin-top:2px">
+          <span style="color:#10B981">Livre ${GLOBAL.livre}%</span>
+          <span style="color:#EF4444">M.Grave ${GLOBAL.muitoGrave}%</span>
+        </div>
+        <div style="font-size:.6rem;color:#F59E0B;margin-top:3px">${GLOBAL.tendencia}</div>
+      </div>
+
+      <!-- Tabela países seleccionados -->
+      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
+      ${RSF.map(r=>{
+        const col=statusCol[r.status]||"#6E7A96";
+        const trendIcon=r.trend>0?"↑":r.trend<0?"↓":"→";
+        const trendCol=r.trend>0?"#10B981":r.trend<0?"#EF4444":"#6E7A96";
+        const barW=Math.round(r.score);
+        return `<div style="display:grid;grid-template-columns:16px 80px 24px 1fr 30px;
+                     align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
+          <span style="font-size:.8rem">${r.c}</span>
+          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
+                font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
+          <span style="font-size:.58rem;color:var(--t3)">#${r.rank}</span>
+          <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
+            <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
+          </div>
+          <span style="font-size:.6rem;color:${trendCol};text-align:right">${trendIcon}${Math.abs(r.trend)||""}</span>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <!-- COLUNA 2: EIU Democracy + Regiões -->
+    <div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <div style="font-size:.72rem;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
+        <div style="font-size:.58rem;color:var(--t3)">EIU 2024</div>
+      </div>
+
+      <!-- Categorias EIU -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:8px">
+        ${[["Democracia plena","#10B981","8-10"],["Dem. com falhas","#84CC16","6-8"],
+           ["Regime híbrido","#F59E0B","4-6"],["Reg. autoritário","#EF4444","0-4"]].map(([lbl,col,range])=>
+          `<div style="background:${col}18;border:1px solid ${col}33;border-radius:5px;padding:4px 6px">
+            <div style="font-size:.58rem;font-weight:600;color:${col}">${lbl}</div>
+            <div style="font-size:.55rem;color:var(--t3)">${range} / 10</div>
+          </div>`).join("")}
+      </div>
+
+      <!-- Países EIU -->
+      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
+      ${EIU.map(r=>{
+        const col=r.score>=8?"#10B981":r.score>=6?"#84CC16":r.score>=4?"#F59E0B":"#EF4444";
+        const barW=Math.round(r.score*10);
+        return `<div style="display:grid;grid-template-columns:16px 90px 1fr 30px;
+                     align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
+          <span style="font-size:.8rem">${r.c}</span>
+          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
+                font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
+          <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
+            <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
+          </div>
+          <span style="font-size:.63rem;color:${col};font-weight:600;text-align:right">${r.score.toFixed(1)}</span>
+        </div>`;
+      }).join("")}
+
+      <!-- Score médio mundial -->
+      <div style="background:var(--b2);border-radius:6px;padding:6px 8px;margin-top:8px;
+           font-size:.63rem;color:var(--t2)">
+        <b style="color:var(--text)">Média mundial 2024: 5.17</b> /10 · mínimo histórico
+        <div style="font-size:.58rem;color:var(--t3);margin-top:1px">Apenas 7.8% da pop. mundial vive em democracia plena</div>
+      </div>
+
+      <!-- Score regiões -->
+      <div style="margin-top:8px">
+        <div style="font-size:.63rem;font-weight:600;color:var(--t2);margin-bottom:4px">Score por região (RSF):</div>
+        ${REGIONS.map(r=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
+          <span style="font-size:.6rem;color:var(--t3);width:70px;flex-shrink:0">${r.r}</span>
+          <div style="flex:1;background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
+            <div style="width:${r.score}%;height:100%;background:${r.col};border-radius:2px"></div>
+          </div>
+          <span style="font-size:.6rem;color:${r.col};font-weight:600;width:30px;text-align:right">${r.score}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
 async function loadFng(force){
   const el=$("fng-body"); if(!el)return;
   el.innerHTML=ld();
