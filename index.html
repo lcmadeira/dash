@@ -3031,6 +3031,13 @@ function loadSMN(force){
 /* ══════════════════════════════════════════════════════
    TRANSPORTES PT
    ══════════════════════════════════════════════════════ */
+function switchTr(tab,btn){
+  document.querySelectorAll("#tr-tab-p,#tr-tab-h,#tr-tab-b").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  document.getElementById("tr-passes").style.display=     tab==="passes"?"":"none";
+  document.getElementById("tr-horarios").style.display=   tab==="horarios"?"":"none";
+  document.getElementById("tr-autocarros").style.display= tab==="autocarros"?"":"none";
+}
 function loadTransp(force){
   const el=document.getElementById("transp-body");
   if(!el) return;
@@ -3126,7 +3133,16 @@ function loadTransp(force){
   ];
 
   el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <!-- Tabs Transportes -->
+    <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+      <button class="rbtn on" id="tr-tab-p"  onclick="switchTr('passes',this)">🎫 Passes</button>
+      <button class="rbtn"    id="tr-tab-h"  onclick="switchTr('horarios',this)">🚆 Horários CP</button>
+      <button class="rbtn"    id="tr-tab-b"  onclick="switchTr('autocarros',this)">🚌 Autocarros</button>
+    </div>
+
+    <!-- Tab 1: Passes + Bilhetes + Ligações -->
+    <div id="tr-passes">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 
     <!-- ESQ: Passes + Estado -->
     <div>
@@ -3234,8 +3250,11 @@ function loadTransp(force){
         💡 Passe Metropolitano (40€/mês) = <b style="color:#10B981">~25 viagens</b>.
         Compensa a partir do 13.º dia útil com ida+volta.
       </div>
+    </div>
 
-    <!-- Horários CP Lisboa↔Évora -->
+    <!-- Tab 2: Horários CP -->
+    <div id="tr-horarios" style="display:none">
+<!-- Horários CP Lisboa↔Évora -->
     <div style="margin-top:12px">
       <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
         🚆 Horários CP Lisboa↔Évora
@@ -3287,8 +3306,11 @@ function loadTransp(force){
         IC reserva obrigatória · desde 14.60€ · partida destacada em tempo real ▶
       </div>
     </div>
+    </div>
 
-    <!-- Autocarros regionais -->
+    <!-- Tab 3: Autocarros regionais -->
+    <div id="tr-autocarros" style="display:none">
+<!-- Autocarros regionais -->
     <div style="margin-top:10px">
       <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
         🚌 Autocarros regionais · de Évora
@@ -3310,7 +3332,9 @@ function loadTransp(force){
     </div>
 
     </div>
-  </div>`;
+  </div>
+    </div>
+`;
 }
 
 
