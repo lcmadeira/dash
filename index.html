@@ -1545,6 +1545,12 @@ async function loadElec(force=false){
 
 
 /* ── Feriados ── */
+function switchHolTab(tab,btn){
+  document.querySelectorAll("#hol-tab-res,#hol-tab-hol").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  document.getElementById("hol-resumo").style.display=tab==="resumo"?"":"none";
+  document.getElementById("hol-feriados").style.display=tab==="feriados"?"":"none";
+}
 async function loadHolidays(force=false){
   $("hol-body").innerHTML=ld();
   try{
@@ -1690,6 +1696,14 @@ async function loadHolidays(force=false){
 
     /* ── Render ─────────────────────────────────────────── */
     $("hol-body").innerHTML=`
+    <!-- Tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="rbtn on" id="hol-tab-res" onclick="switchHolTab('resumo',this)">Resumo</button>
+      <button class="rbtn"    id="hol-tab-hol" onclick="switchHolTab('feriados',this)">Feriados ${year}</button>
+    </div>
+    <!-- Tab Resumo -->
+    <div id="hol-resumo">
+
 
     <!-- KPI: próximo feriado -->
     ${next?`<div style="background:var(--b2);border-radius:10px;padding:10px 14px;
@@ -1771,6 +1785,10 @@ async function loadHolidays(force=false){
       </div>
     </div>
 
+
+    </div>
+    <!-- Tab Feriados -->
+    <div id="hol-feriados" style="display:none">
     <!-- Lista de feriados -->
     <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       📋 Feriados nacionais · ${year}
@@ -1817,7 +1835,9 @@ async function loadHolidays(force=false){
           </span>`:`<span style="font-size:.6rem;color:var(--t3)">✓</span>`}
         </div>`;
       }).join("")}
-    </div>`;
+    </div>
+    </div>
+`;
 
   }catch(e){
     $("hol-body").innerHTML=er(e.message);
