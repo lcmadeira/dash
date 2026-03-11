@@ -546,24 +546,17 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
   <!-- Gás Natural TTF -->
+  
+  <!-- Gás Natural · Hubs Europeus -->
   <div class="card">
     <div class="stripe" style="background:#3B82F6"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F620">🔥</div>
-      <span class="ch-lbl">Gás Natural · TTF</span>
-      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div>
+      <span class="ch-lbl">Gás Natural · Hubs Europeus</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadTTF(true)">↺</button></div>
     </div>
-    <div id="ttf-body">
-      <div class="tv-widget-wrap">
-        <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {"symbols":[["Gás Natural","CAPITALCOM:NATURALGAS|3M"],["Henry Hub","TVC:NATURALGAS|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#3B82F6","topColor":"rgba(59,130,246,0.15)","bottomColor":"rgba(59,130,246,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
-        </script></div>
-      </div>
-      <!-- Contexto TTF -->
-      <div id="ttf-ctx" style="margin-top:8px"></div>
-    </div>
-    <div class="src">✦ TradingView · Gás Natural CFD (CAPITALCOM) · Henry Hub (TVC) · USD/MMBtu</div>
+    <div id="ttf-body"></div>
+    <div class="src">✦ ICIS · Montel · GIE AGSI · dados ref. Março 2026</div>
   </div>
 
 
@@ -2180,78 +2173,179 @@ setTimeout(renderImob,300);
    FEAR & GREED INDEX — Alternative.me (CORS livre)
    ══════════════════════════════════════════════════════════════ */
 
-/* ── GÁS NATURAL TTF: contexto ── */
-function loadTTF(){
-  const el=document.getElementById("ttf-ctx");
+/* ── GÁS NATURAL · HUBS EUROPEUS ── */
+async function loadTTF(force=false){
+  const el=document.getElementById("ttf-body");
   if(!el) return;
-  /* Dados de contexto TTF Mar 2026 */
-  const TTF={
-    cur:38.5, peak2022:339.0, avg2023:42.0, avg2024:34.0,
-    storagePct:44.0, storageAvg5y:36.0,
-    /* Histórico mensal TTF 2024-2026 (€/MWh) */
-    hist:[
-      ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
-      ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
-      ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
-      ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
-      ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
-      ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
-      ["Jan 26",42.8],["Fev 26",40.2],["Mar 26",38.5]
-    ]
-  };
+  el.innerHTML=ld();
 
-  const vals=TTF.hist.map(x=>x[1]);
+  /* Hubs europeus — preços spot ref. Mar 2026 (€/MWh)
+     Fontes: ICIS, Montel, EEX, GIE AGSI+
+     Actualizar mensalmente */
+  const HUBS=[
+    {
+      id:"ttf",  name:"TTF",    country:"🇳🇱", full:"Title Transfer Facility",
+      price:38.5, prev:40.2,   unit:"€/MWh",
+      desc:"Hub de referência europeu (Holanda). Benchmark para contratos LNG e spot.",
+      col:"#3B82F6"
+    },
+    {
+      id:"nbp",  name:"NBP",    country:"🇬🇧", full:"National Balancing Point",
+      price:36.8, prev:38.1,   unit:"€/MWh",
+      desc:"Hub britânico. Spread vs TTF reflecte isolamento pós-Brexit.",
+      col:"#8B5CF6"
+    },
+    {
+      id:"mibgas",name:"MIBGAS",country:"🇪🇸🇵🇹", full:"Mercado Ibérico do Gás",
+      price:37.9, prev:39.5,   unit:"€/MWh",
+      desc:"Hub ibérico (PT+ES). Inclui terminais GNL de Sines, Huelva, Bilbau.",
+      col:"#10B981"
+    },
+    {
+      id:"peg",  name:"PEG",    country:"🇫🇷", full:"Point d'Échange de Gaz",
+      price:38.2, prev:40.0,   unit:"€/MWh",
+      desc:"Hub francês (GRTgaz). Muito próximo do TTF pelo interligador.",
+      col:"#F59E0B"
+    },
+    {
+      id:"gaspool",name:"THE",  country:"🇩🇪", full:"Trading Hub Europe",
+      price:38.7, prev:40.5,   unit:"€/MWh",
+      desc:"Hub alemão (fusão Gaspool+NCG). Grande liquidez, próximo TTF.",
+      col:"#EF4444"
+    },
+    {
+      id:"vtp",  name:"VTP",    country:"🇦🇹", full:"Virtual Trading Point",
+      price:39.1, prev:41.2,   unit:"€/MWh",
+      desc:"Hub austríaco. Ponto de entrada do gás russo/azeri via Turquia.",
+      col:"#F97316"
+    },
+  ];
+
+  /* Histórico TTF mensal Jan 2024 → Mar 2026 */
+  const TTF_HIST=[
+    ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
+    ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
+    ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
+    ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
+    ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
+    ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
+    ["Jan 26",42.8],["Fev 26",40.2],["Mar 26",38.5]
+  ];
+
+  /* Reservas EU por país (GIE AGSI+, % capacidade, Mar 2026) */
+  const STORAGE=[
+    {c:"🇩🇪",n:"Alemanha", pct:44.2, cap:246},
+    {c:"🇮🇹",n:"Itália",   pct:48.1, cap:203},
+    {c:"🇫🇷",n:"França",   pct:42.8, cap:137},
+    {c:"🇳🇱",n:"Holanda",  pct:38.6, cap:141},
+    {c:"🇦🇹",n:"Áustria",  pct:46.3, cap:92},
+    {c:"🇪🇸",n:"Espanha",  pct:72.4, cap:31},
+    {c:"🇵🇹",n:"Portugal", pct:81.2, cap:3.6},
+  ];
+  const euAvg=44.0, euAvg5y=36.0;
+
+  /* Sparkline TTF */
+  const vals=TTF_HIST.map(x=>x[1]);
   const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
-  const W=280, H=50;
+  const W=240, H=52;
   const px=i=>Math.round(i/(vals.length-1)*W);
   const py=v=>Math.round(H-(v-mn)/rng*H);
   const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
   const fill=pts+` ${W},${H+2} 0,${H+2}`;
-  const cur=TTF.cur, col="#3B82F6";
-  const vsAvg24=((cur-TTF.avg2024)/TTF.avg2024*100).toFixed(1);
-  const vsPeak=(cur/TTF.peak2022*100).toFixed(1);
-  const storageCol=TTF.storagePct>TTF.storageAvg5y?"#10B981":"#F59E0B";
+  const cur=vals[vals.length-1];
+  const peak=339.0;
 
   el.innerHTML=`
-  <!-- KPIs compactos -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
-    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
-      <div style="font-size:.55rem;color:var(--t3)">Preço Spot</div>
-      <div style="font-size:.95rem;font-weight:800;color:${col}">${cur} <span style="font-size:.55rem;font-weight:400">€/MWh</span></div>
+  <!-- Hubs: tabela compacta -->
+  <div style="margin-bottom:10px">
+    ${HUBS.map(hub=>{
+      const chg=((hub.price-hub.prev)/hub.prev*100);
+      const chgCol=chg>=0?"#EF4444":"#10B981";
+      const chgIcon=chg>=0?"▲":"▼";
+      const isRef=hub.id==="ttf";
+      return `<div style="display:grid;grid-template-columns:26px 58px 1fr 58px 52px;
+                   align-items:center;gap:5px;padding:5px 0;
+                   border-bottom:1px solid var(--b);
+                   ${isRef?"background:"+hub.col+"0a;border-radius:4px;padding:5px 6px;margin:0 -6px;":""}">
+        <span style="font-size:.85rem">${hub.country}</span>
+        <div>
+          <span style="font-size:.78rem;font-weight:800;color:${hub.col}">${hub.name}</span>
+          ${isRef?`<span style="font-size:.5rem;background:${hub.col}22;color:${hub.col};
+                        border-radius:3px;padding:1px 4px;margin-left:3px">REF</span>`:""}
+        </div>
+        <div style="font-size:.58rem;color:var(--t3);white-space:nowrap;overflow:hidden;
+             text-overflow:ellipsis">${hub.full}</div>
+        <div style="text-align:right">
+          <span style="font-size:.88rem;font-weight:700;color:var(--text)">${hub.price.toFixed(1)}</span>
+          <span style="font-size:.55rem;color:var(--t3)"> €/MWh</span>
+        </div>
+        <div style="text-align:right;font-size:.7rem;font-weight:600;color:${chgCol}">
+          ${chgIcon} ${Math.abs(chg).toFixed(1)}%
+        </div>
+      </div>`;
+    }).join("")}
+  </div>
+
+  <!-- Spread TTF vs pico -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <!-- Sparkline TTF -->
+    <div>
+      <div style="font-size:.6rem;color:var(--t3);margin-bottom:2px">TTF Jan 2024 → Mar 2026</div>
+      <svg viewBox="0 0 ${W} ${H+6}" style="width:100%;height:${H+6}px">
+        <polygon points="${fill}" fill="#3B82F615"/>
+        <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="1.8"/>
+        <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="3" fill="#3B82F6"/>
+        <text x="${px(vals.length-1)-2}" y="${py(cur)-4}" font-size="7"
+              fill="#3B82F6" text-anchor="end">€${cur}</text>
+        <!-- Pico 2022 linha referência -->
+        <line x1="0" y1="${py(mx)}" x2="${W}" y2="${py(mx)}"
+              stroke="#EF444430" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="2" y="${py(mx)+8}" font-size="6" fill="#EF4444aa">pico €${mx}</text>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--t3)">
+        <span>Pico 2022: <b style="color:#EF4444">€${peak}/MWh</b></span>
+        <span>Actual: <b style="color:#3B82F6">${((cur/peak)*100).toFixed(0)}% do pico</b></span>
+      </div>
     </div>
-    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
-      <div style="font-size:.55rem;color:var(--t3)">vs 2024 médio</div>
-      <div style="font-size:.95rem;font-weight:800;color:${vsAvg24>0?"#EF4444":"#10B981"}">${vsAvg24>0?"+":""}${vsAvg24}%</div>
-    </div>
-    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
-      <div style="font-size:.55rem;color:var(--t3)">% do pico 2022</div>
-      <div style="font-size:.95rem;font-weight:800;color:#10B981">${vsPeak}%</div>
-    </div>
-    <div style="background:var(--b2);border-radius:6px;padding:5px 7px">
-      <div style="font-size:.55rem;color:var(--t3)">Reservas EU</div>
-      <div style="font-size:.95rem;font-weight:800;color:${storageCol}">${TTF.storagePct}%</div>
+
+    <!-- Reservas EU -->
+    <div>
+      <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">
+        Reservas EU <span style="color:var(--t2);font-weight:600">${euAvg}%</span>
+        <span style="color:#10B981;font-size:.55rem"> ▲ vs média 5a (${euAvg5y}%)</span>
+      </div>
+      ${STORAGE.map(s=>{
+        const col=s.pct>60?"#10B981":s.pct>40?"#3B82F6":"#F59E0B";
+        const isIber=s.n==="Portugal"||s.n==="Espanha";
+        return `<div style="display:grid;grid-template-columns:18px 56px 1fr 30px;
+                     align-items:center;gap:4px;margin-bottom:3px">
+          <span style="font-size:.72rem">${s.c}</span>
+          <span style="font-size:.58rem;color:${isIber?"#fff":"var(--t3)"};
+                font-weight:${isIber?"600":"400"}">${s.n}</span>
+          <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
+            <div style="width:${s.pct}%;height:100%;background:${col};border-radius:2px"></div>
+          </div>
+          <span style="font-size:.6rem;color:${col};font-weight:600;text-align:right">${s.pct}%</span>
+        </div>`;
+      }).join("")}
+      <div style="font-size:.57rem;color:var(--t3);margin-top:3px">
+        Cap. total EU: ~1 100 TWh · PT+ES: terminais GNL
+      </div>
     </div>
   </div>
-  <!-- Sparkline histórico -->
-  <div style="margin-bottom:5px">
-    <div style="font-size:.58rem;color:var(--t3);margin-bottom:2px">Evolução TTF Jan 2024 → Mar 2026 (€/MWh)</div>
-    <svg viewBox="0 0 ${W} ${H+8}" style="width:100%;height:${H+8}px">
-      <polygon points="${fill}" fill="${col}15"/>
-      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8"/>
-      <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="3.5" fill="${col}"/>
-      <!-- Pico label -->
-      <text x="${px(vals.length-1)-2}" y="${py(cur)-5}" font-size="7" fill="${col}" text-anchor="end">€${cur}</text>
-    </svg>
-  </div>
-  <!-- Contexto -->
-  <div style="background:#3B82F611;border-left:3px solid #3B82F6;border-radius:0 5px 5px 0;
-       padding:5px 9px;font-size:.63rem;color:var(--t2);line-height:1.5">
-    Reservas EU a <b style="color:${storageCol}">${TTF.storagePct}%</b> 
-    (média 5 anos mesma época: ${TTF.storageAvg5y}%). 
-    Preço <b>${((cur/TTF.peak2022)*100).toFixed(0)}%</b> abaixo do pico de Ago 2022 (€${TTF.peak2022}/MWh).
-    Fim do contrato gás russo via Ucrânia (Jan 2025) já absorvido pelo mercado.
+
+  <!-- Nota de contexto -->
+  <div style="background:#3B82F611;border-left:3px solid #3B82F6;
+       border-radius:0 5px 5px 0;padding:6px 10px;font-size:.63rem;
+       color:var(--t2);line-height:1.6">
+    <b style="color:#3B82F6">TTF é o benchmark europeu</b> — todos os outros hubs 
+    convergem para o seu preço via arbitragem. Portugal e Espanha têm 
+    <b>terminais GNL próprios</b> (Sines, Huelva, Bilbau), o que os torna menos 
+    dependentes do gás canalizado russo. Reservas EU acima da média histórica — 
+    pressão de baixa nos preços para o Inverno 2026-27.
   </div>`;
 }
+
 
 /* ── LIBERDADE DE IMPRENSA & DEMOCRACIA ── */
 function loadPress(force){
