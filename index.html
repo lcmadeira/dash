@@ -1453,22 +1453,45 @@ const MSTATS=[
   {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
 ];
 /* ── Calendário Económico ── */
-const EVENTS=[
-  {title:"Decisão BCE sobre taxas de juro",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"NFP — Emprego não agrícola EUA", date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Taxa de desemprego EUA",         date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"IPC Portugal (fevereiro)",       date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC EUA (fevereiro)",            date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",           date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"Confiança consumidor Zona Euro", date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
+const /* Calendário económico — actualizado 11 Mar 2026
+   Fontes: Fed, BCE, INE, BLS, Eurostat */
+EVENTS=[
+  /* ── Já aconteceu mas relevante como contexto ── */
+  {title:"BCE · Decisão taxas (resultado: -25bp → 2.50%)", date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h",past:true},
+  {title:"NFP EUA fevereiro (+151k)",                      date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
+  {title:"IPC Portugal fevereiro (+2.3% hom.)",            date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m",past:true},
+  /* ── Próximos eventos ── */
+  {title:"IPC EUA fevereiro",            date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"Vendas a retalho EUA",         date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"Confiança consumidor ZE",      date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
+  {title:"FOMC · Decisão taxas Fed ★",   date:"19 Mar",time:"19:00",country:"🇺🇸",imp:"h"},
+  {title:"PMI Flash Zona Euro (março)",  date:"23 Mar",time:"09:00",country:"🇪🇺",imp:"m"},
+  {title:"PIB EUA Q4 2025 · leitura final",date:"27 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"PIB Portugal Q4 2025 · INE",   date:"28 Mar",time:"11:00",country:"🇵🇹",imp:"m"},
+  {title:"IPC Zona Euro março · flash",  date:"31 Mar",time:"10:00",country:"🇪🇺",imp:"h"},
+  {title:"NFP EUA março",                date:"03 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"IPC Portugal março · INE",     date:"09 Abr",time:"10:00",country:"🇵🇹",imp:"m"},
+  {title:"IPC EUA março",                date:"14 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"Vendas a retalho EUA",         date:"16 Abr",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"BCE · Decisão taxas ★",        date:"17 Abr",time:"13:45",country:"🇪🇺",imp:"h"},
+  {title:"PMI Flash Zona Euro (abril)",  date:"23 Abr",time:"09:00",country:"🇪🇺",imp:"m"},
+  {title:"PIB EUA Q1 2026 · 1.ª leitura",date:"29 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"FOMC · Decisão taxas Fed",     date:"07 Mai",time:"19:00",country:"🇺🇸",imp:"h"},
 ];
 function renderCalendar(){
   $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
-    <div class="ev"><div class="ev-dot" style="background:${e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
-      <div class="ev-body"><div class="ev-title">${e.country} ${e.title}</div>
+    <div class="ev" style="${e.past?"opacity:.45;":""}">
+      <div class="ev-dot" style="background:${e.past?"var(--t3)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
+      <div class="ev-body">
+        <div class="ev-title" style="${e.past?"text-decoration:line-through;color:var(--t3);":""}">
+          ${e.country} ${e.title}
+        </div>
         <div class="ev-meta"><span>${e.date} · ${e.time} Lisboa</span>
-          <span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>
-        </div></div></div>`).join("")}</div>`;
+          ${!e.past?`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`
+          :`<span style="font-size:.6rem;color:var(--t3)">✓ concluído</span>`}
+        </div>
+      </div>
+    </div>`).join("")}</div>`;
 }
 
 /* ── Boot ── */
