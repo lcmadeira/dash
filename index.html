@@ -726,7 +726,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="div-body"></div>
-    <div class="src">✦ Eurostat · General Government Debt · 2023 · % do PIB</div>
+    <div class="src">✦ Eurostat · General Government Debt · 2024 · % do PIB</div>
   </div>
 
 </div><!-- /grid row3 -->
@@ -3498,17 +3498,23 @@ function renderExp(){
 /* ══════════════════════════════════════════════════════════════
    DÍVIDA PÚBLICA — Eurostat 2023
    ══════════════════════════════════════════════════════════════ */
-var DIV_PAISES=[
-  {n:"Grécia",v:161.9,c:"#EF4444"},{n:"Itália",v:137.3,c:"#F97316"},
-  {n:"Bélgica",v:105.2,c:"#F59E0B"},{n:"França",v:110.6,c:"#EAB308"},
-  {n:"Espanha",v:107.7,c:"#EAB308"},{n:"Portugal",v:97.9,c:"#84CC16",hl:true},
-  {n:"Zona Euro",v:88.6,c:"#8B5CF6"},{n:"Alemanha",v:63.6,c:"#3B82F6"},
-  {n:"Holanda",v:46.5,c:"#06B6D4"},
+var /* Dívida Pública — Eurostat EDP, dados anuais 2024 (publicados Out 2025)
+   Fonte: ec.europa.eu/eurostat/web/products-euro-indicators */
+DIV_PAISES=[
+  {n:"Grécia",  v:154.2,c:"#EF4444"},
+  {n:"Itália",  v:134.9,c:"#F97316"},
+  {n:"França",  v:113.2,c:"#EAB308"},
+  {n:"Bélgica", v:103.9,c:"#F59E0B"},
+  {n:"Espanha", v:101.6,c:"#F59E0B"},
+  {n:"Portugal",v:94.6, c:"#84CC16",hl:true},
+  {n:"Zona Euro",v:87.1,c:"#8B5CF6"},
+  {n:"Alemanha",v:62.4, c:"#3B82F6"},
+  {n:"Holanda", v:43.8, c:"#06B6D4"},
 ];
 var DIV_TREND=[
   {y:"14",v:130.6},{y:"15",v:128.8},{y:"16",v:129.2},{y:"17",v:124.8},
   {y:"18",v:121.5},{y:"19",v:116.8},{y:"20",v:134.9},{y:"21",v:124.5},
-  {y:"22",v:113.9},{y:"23",v:97.9},
+  {y:"22",v:113.9},{y:"23",v:97.9},{y:"24",v:94.6},
 ];
 var DIV_MODE="bar";
 function switchDiv(mode,btn){
