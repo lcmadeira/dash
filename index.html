@@ -712,7 +712,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="exp-body"></div>
-    <div class="src">✦ INE · Estatísticas do Comércio Internacional · 2024</div>
+    <div class="src">✦ INE · AICEP · Estatísticas Comércio Internacional · Jan-Nov 2024</div>
   </div>
 
   <div class="card s2" id="div-card">
@@ -3450,18 +3450,27 @@ async function loadAgri(force=false){
 /* ══════════════════════════════════════════════════════════════
    EXPORTAÇÕES PT — dados estáticos INE 2024
    ══════════════════════════════════════════════════════════════ */
-var EXP_DATA={
+var /* Exportações PT — INE/AICEP Jan-Nov 2024 (publicado Jan 2025) */
+EXP_DATA={
   destinos:[
-    {n:"Espanha",v:26.1,c:"#EF4444"},{n:"França",v:11.3,c:"#3B82F6"},
-    {n:"Alemanha",v:10.2,c:"#F59E0B"},{n:"EUA",v:5.9,c:"#8B5CF6"},
-    {n:"Reino Unido",v:5.6,c:"#10B981"},{n:"Angola",v:3.8,c:"#F97316"},
-    {n:"Países Baixos",v:3.5,c:"#06B6D4"},{n:"Itália",v:3.2,c:"#84CC16"},
+    {n:"Espanha",      v:25.9,c:"#EF4444"},
+    {n:"Alemanha",     v:12.6,c:"#F59E0B"},
+    {n:"França",       v:12.1,c:"#3B82F6"},
+    {n:"EUA",          v:6.7, c:"#8B5CF6"},
+    {n:"Reino Unido",  v:4.5, c:"#10B981"},
+    {n:"Angola",       v:3.2, c:"#F97316"},
+    {n:"Países Baixos",v:3.3, c:"#06B6D4"},
+    {n:"Itália",       v:3.0, c:"#84CC16"},
   ],
   produtos:[
-    {n:"Automóveis e peças",v:21.4,c:"#3B82F6"},{n:"Combustíveis",v:10.8,c:"#F59E0B"},
-    {n:"Maquinaria",v:9.1,c:"#8B5CF6"},{n:"Produtos químicos",v:7.3,c:"#10B981"},
-    {n:"Calçado e têxteis",v:6.8,c:"#EF4444"},{n:"Cortiça e madeira",v:5.9,c:"#F97316"},
-    {n:"Vinhos e bebidas",v:4.2,c:"#84CC16"},{n:"Papel e cartão",v:3.8,c:"#06B6D4"},
+    {n:"Máquinas e Aparelhos",    v:14.8,c:"#3B82F6"},
+    {n:"Veículos e Transp.",      v:12.5,c:"#F59E0B"},
+    {n:"Produtos Agrícolas",      v:8.4, c:"#10B981"},
+    {n:"Produtos Químicos",       v:8.1, c:"#8B5CF6"},
+    {n:"Combustíveis Minerais",   v:7.8, c:"#EF4444"},
+    {n:"Calçado e Têxteis",       v:6.5, c:"#F97316"},
+    {n:"Cortiça e Madeira",       v:5.2, c:"#84CC16"},
+    {n:"Papel e Cartão",          v:3.5, c:"#06B6D4"},
   ]
 };
 var EXP_MODE="destinos";
