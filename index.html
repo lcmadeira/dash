@@ -3076,18 +3076,53 @@ function loadTransp(force){
   ];
 
   /* Ligações CP de referência */
+  /* Ligações CP — tarifas em vigor desde 1 Jan 2025 (+2.02%)
+     Horário Linha do Alentejo em vigor desde 14 Dez 2025 (cp.pt) */
   const LIGACOES=[
-    {orig:"Lisboa Or.",dest:"Porto Camp.",  dur:"2h55",tipo:"Alfa",preco:25.30,col:"#3B82F6"},
-    {orig:"Lisboa Or.",dest:"Faro",         dur:"2h45",tipo:"IC",  preco:22.60,col:"#10B981"},
-    {orig:"Lisboa Or.",dest:"Coimbra B",    dur:"1h30",tipo:"Alfa",preco:17.80,col:"#3B82F6"},
-    {orig:"Porto Camp.",dest:"Vigo",        dur:"1h10",tipo:"Int.",preco:15.00,col:"#8B5CF6"},
-    {orig:"Lisboa S.Ap.",dest:"Cascais",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
-    {orig:"Lisboa Rossio",dest:"Sintra",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
-    /* Évora */
-    {orig:"Lisboa Or.",dest:"Évora",        dur:"1h37",tipo:"IC",  preco:14.30,col:"#F59E0B"},
-    {orig:"Évora",dest:"Lisboa Or.",        dur:"1h37",tipo:"IC",  preco:14.30,col:"#F59E0B"},
-    {orig:"Évora",dest:"Faro",             dur:"3h20",tipo:"IR",  preco:18.50,col:"#10B981"},
-    {orig:"Évora",dest:"Porto Camp.",      dur:"4h30",tipo:"IC",  preco:28.40,col:"#3B82F6"},
+    {orig:"Lisboa Or.",dest:"Porto Camp.",  dur:"2h55",tipo:"Alfa",preco:26.10,col:"#3B82F6"},
+    {orig:"Lisboa Or.",dest:"Faro",         dur:"2h45",tipo:"IC",  preco:23.10,col:"#10B981"},
+    {orig:"Lisboa Or.",dest:"Coimbra B",    dur:"1h30",tipo:"Alfa",preco:18.20,col:"#3B82F6"},
+    {orig:"Porto Camp.",dest:"Vigo",        dur:"1h10",tipo:"Int.",preco:15.30,col:"#8B5CF6"},
+    {orig:"Lisboa S.Ap.",dest:"Cascais",    dur:"0h40",tipo:"Urb.",preco:1.64, col:"#F59E0B"},
+    {orig:"Lisboa Rossio",dest:"Sintra",    dur:"0h40",tipo:"Urb.",preco:1.64, col:"#F59E0B"},
+    /* Évora — Linha do Alentejo */
+    {orig:"Lisboa Or.",dest:"Évora",        dur:"1h33",tipo:"IC",  preco:14.60,col:"#F59E0B"},
+    {orig:"Évora",dest:"Lisboa Or.",        dur:"1h30",tipo:"IC",  preco:14.60,col:"#F59E0B"},
+    {orig:"Évora",dest:"Faro",             dur:"3h20",tipo:"IC",  preco:18.90,col:"#10B981"},
+    {orig:"Évora",dest:"Porto Camp.",      dur:"4h25",tipo:"IC",  preco:29.00,col:"#3B82F6"},
+  ];
+
+  /* Horários CP Lisboa↔Évora — Linha do Alentejo
+     Horário em vigor desde 14 Dez 2025 · Fonte: cp.pt
+     IC = Intercidades (reserva obrigatória) · R = Regional
+     Obs: 1=Diário · 7=Seg-Sex s/ feriados · 2=Sáb/Dom/Fer */
+  const HORARIOS_LX_EV=[
+    {p:"07:02",c:"08:42",tipo:"IC",obs:"1"},
+    {p:"09:02",c:"10:35",tipo:"IC",obs:"1"},
+    {p:"09:58",c:"11:35",tipo:"IC",obs:"7"},
+    {p:"13:35",c:"15:08",tipo:"IC",obs:"1"},
+    {p:"17:02",c:"18:35",tipo:"IC",obs:"1"},
+    {p:"19:02",c:"20:35",tipo:"IC",obs:"1"},
+  ];
+  const HORARIOS_EV_LX=[
+    {p:"07:06",c:"08:36",tipo:"IC",obs:"1"},
+    {p:"09:06",c:"10:36",tipo:"IC",obs:"1"},
+    {p:"11:35",c:"13:06",tipo:"IC",obs:"7"},
+    {p:"14:23",c:"...",  tipo:"R", obs:"7"},
+    {p:"16:57",c:"18:36",tipo:"IC",obs:"1"},
+    {p:"19:06",c:"20:36",tipo:"IC",obs:"1"},
+  ];
+
+  /* Rede RVTEJO / Rodoviária do Alentejo — autocarros regionais
+     Fontes: rvtejo.pt · rodalentejo.pt · Rede Expressos (Mar 2026) */
+  const RVTEJO=[
+    {dest:"Estremoz",       dur:"~50min", freq:"~6/dia", preco:"8€",   op:"Rede Expressos",  ico:"🏰"},
+    {dest:"Portalegre",     dur:"~1h25",  freq:"~4/dia", preco:"12€",  op:"Rede Expressos",  ico:"🏔️"},
+    {dest:"Beja",           dur:"~1h20",  freq:"~5/dia", preco:"8€",   op:"Rede Expressos",  ico:"🌾"},
+    {dest:"Montemor-o-Novo",dur:"~40min", freq:"~4/dia", preco:"5€",   op:"RVTEJO",          ico:"🏘️"},
+    {dest:"Reguengos Mons.",dur:"~45min", freq:"~3/dia", preco:"6€",   op:"Rodalentejo",     ico:"🍷"},
+    {dest:"Arraiolos",      dur:"~30min", freq:"~3/dia", preco:"4€",   op:"RVTEJO",          ico:"🏡"},
+    {dest:"Mora / Sousel",  dur:"~1h",    freq:"~2/dia", preco:"7€",   op:"RVTEJO",          ico:"🌳"},
   ];
 
   el.innerHTML=`
@@ -3199,6 +3234,81 @@ function loadTransp(force){
         💡 Passe Metropolitano (40€/mês) = <b style="color:#10B981">~25 viagens</b>.
         Compensa a partir do 13.º dia útil com ida+volta.
       </div>
+
+    <!-- Horários CP Lisboa↔Évora -->
+    <div style="margin-top:12px">
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+        🚆 Horários CP Lisboa↔Évora
+        <span style="font-size:.55rem;font-weight:400;color:var(--t3)"> · em vigor desde 14 Dez 2025 · cp.pt</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:.6rem;font-weight:600;color:#F59E0B;margin-bottom:3px">Lisboa Or. → Évora</div>
+          ${HORARIOS_LX_EV.map(t=>{
+            const now=new Date(),cur=now.getHours()*60+now.getMinutes();
+            const [ph,pm]=t.p.split(":").map(Number), dep=ph*60+pm;
+            const isPast=dep<cur;
+            const nextDep=HORARIOS_LX_EV.filter(x=>x.p.split(":").map(Number).reduce((a,b,i)=>i?a+b:a*60)>=cur)[0];
+            const isNext=t===nextDep;
+            return `<div style="display:flex;align-items:center;gap:4px;padding:3px 5px;border-radius:5px;
+                  margin-bottom:2px;${isNext?"background:#F59E0B18;border:1px solid #F59E0B44;":isPast?"opacity:.38;":"background:var(--b2);"}">
+              <span style="font-family:var(--mono);font-size:.68rem;font-weight:${isNext?700:400};
+                    color:${isPast?"var(--t3)":isNext?"#F59E0B":"var(--text)"};
+                    min-width:36px">${t.p}</span>
+              <span style="font-size:.52rem;background:${t.tipo==="IC"?"#3B82F622":"#10B98122"};
+                    color:${t.tipo==="IC"?"#3B82F6":"#10B981"};border-radius:3px;padding:1px 3px">${t.tipo}</span>
+              <span style="font-size:.52rem;color:var(--t3);margin-left:auto">${t.c}</span>
+              ${isNext?`<span style="font-size:.5rem;color:#F59E0B">▶</span>`:""}
+            </div>`;
+          }).join("")}
+        </div>
+        <div>
+          <div style="font-size:.6rem;font-weight:600;color:#10B981;margin-bottom:3px">Évora → Lisboa Or.</div>
+          ${HORARIOS_EV_LX.map(t=>{
+            const now=new Date(),cur=now.getHours()*60+now.getMinutes();
+            const [ph,pm]=t.p.split(":").map(Number), dep=ph*60+pm;
+            const isPast=dep<cur;
+            const nextDep=HORARIOS_EV_LX.filter(x=>x.p.split(":").map(Number).reduce((a,b,i)=>i?a+b:a*60)>=cur)[0];
+            const isNext=t===nextDep;
+            return `<div style="display:flex;align-items:center;gap:4px;padding:3px 5px;border-radius:5px;
+                  margin-bottom:2px;${isNext?"background:#10B98118;border:1px solid #10B98144;":isPast?"opacity:.38;":"background:var(--b2);"}">
+              <span style="font-family:var(--mono);font-size:.68rem;font-weight:${isNext?700:400};
+                    color:${isPast?"var(--t3)":isNext?"#10B981":"var(--text)"};
+                    min-width:36px">${t.p}</span>
+              <span style="font-size:.52rem;background:${t.tipo==="IC"?"#3B82F622":"#10B98122"};
+                    color:${t.tipo==="IC"?"#3B82F6":"#10B981"};border-radius:3px;padding:1px 3px">${t.tipo}</span>
+              <span style="font-size:.52rem;color:var(--t3);margin-left:auto">${t.c}</span>
+              ${isNext?`<span style="font-size:.5rem;color:#10B981">▶</span>`:""}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
+      <div style="font-size:.52rem;color:var(--t3);margin-top:3px">
+        IC reserva obrigatória · desde 14.60€ · partida destacada em tempo real ▶
+      </div>
+    </div>
+
+    <!-- Autocarros regionais -->
+    <div style="margin-top:10px">
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+        🚌 Autocarros regionais · de Évora
+        <span style="font-size:.55rem;font-weight:400;color:var(--t3)"> · RVTEJO · Rede Expressos · Rodalentejo</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        ${RVTEJO.map(r=>`
+          <div style="background:var(--b2);border-radius:6px;padding:5px 8px;border:1px solid var(--b)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:.65rem;font-weight:600;color:var(--text)">${r.ico} ${r.dest}</span>
+              <span style="font-size:.65rem;font-weight:700;color:#10B981">${r.preco}</span>
+            </div>
+            <div style="font-size:.53rem;color:var(--t3);margin-top:1px">${r.dur} · ${r.freq} · ${r.op}</div>
+          </div>`).join("")}
+      </div>
+      <div style="font-size:.52rem;color:var(--t3);margin-top:3px">
+        Central de Camionagem · Av. Túlio Espanca · preços desde/aproximados
+      </div>
+    </div>
+
     </div>
   </div>`;
 }
