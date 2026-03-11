@@ -896,9 +896,13 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
-      <div class="ch-r"><span class="badge">Esta semana</span></div></div>
+    </div>
+    <div style="display:flex;gap:4px;margin:6px 0 8px">
+      <button class="rbtn on" id="cal-tab-up" onclick="switchCal('upcoming',this)">Próximos</button>
+      <button class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
+    </div>
     <div id="cal-body"></div>
-    <div class="src">✦ Eventos macroeconómicos relevantes</div>
+    <div class="src">✦ Fed · BCE · INE · BLS · Eurostat</div>
   </div>
 
 
@@ -1478,17 +1482,31 @@ EVENTS=[
   {title:"PIB EUA Q1 2026 · 1.ª leitura",date:"29 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
   {title:"FOMC · Decisão taxas Fed",     date:"07 Mai",time:"19:00",country:"🇺🇸",imp:"h"},
 ];
+var CAL_TAB="upcoming";
+function switchCal(tab,btn){
+  CAL_TAB=tab;
+  document.querySelectorAll("#cal-tab-up,#cal-tab-pa").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  renderCalendar();
+}
 function renderCalendar(){
-  $("cal-body").innerHTML=`<div class="ev-list">${EVENTS.map(e=>`
-    <div class="ev" style="${e.past?"opacity:.45;":""}">
-      <div class="ev-dot" style="background:${e.past?"var(--t3)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
+  const items=EVENTS.filter(e=>CAL_TAB==="past"?e.past:!e.past);
+  if(!items.length){
+    $("cal-body").innerHTML=`<div style="padding:16px;text-align:center;font-size:.72rem;color:var(--t3)">
+      ${CAL_TAB==="past"?"Sem eventos concluídos registados.":"Sem eventos próximos."}
+    </div>`;
+    return;
+  }
+  $("cal-body").innerHTML=`<div class="ev-list">${items.map(e=>`
+    <div class="ev">
+      <div class="ev-dot" style="background:${CAL_TAB==="past"?"var(--green)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
       <div class="ev-body">
-        <div class="ev-title" style="${e.past?"text-decoration:line-through;color:var(--t3);":""}">
-          ${e.country} ${e.title}
-        </div>
-        <div class="ev-meta"><span>${e.date} · ${e.time} Lisboa</span>
-          ${!e.past?`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`
-          :`<span style="font-size:.6rem;color:var(--t3)">✓ concluído</span>`}
+        <div class="ev-title">${e.country} ${e.title}</div>
+        <div class="ev-meta">
+          <span>${e.date} · ${e.time} Lisboa</span>
+          ${CAL_TAB==="past"
+            ?`<span style="font-size:.6rem;color:var(--green);font-weight:600">✓ concluído</span>`
+            :`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`}
         </div>
       </div>
     </div>`).join("")}</div>`;
