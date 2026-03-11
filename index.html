@@ -1194,7 +1194,18 @@ async function renderFuel(force=false){
 
 /* ── Eletricidade ── */
 /* ── Eletricidade — API REE/REData (apidatos.ree.es) CORS nativo ── */
-const ELEC_TARIFAS={simples:0.2134,vazio:0.1423,fvazio:0.2567};
+const ELEC_TARIFAS={
+  simples:0.2134,
+  /* Bi-horária */
+  vazio:0.1423, fvazio:0.2567,
+  /* Tri-horária ERSE 2025-2026 */
+  /* Ponta: 09-12h e 18-21h dias úteis */
+  /* Cheia: 07-09h, 12-18h, 21-24h dias úteis + 09-22h fim-de-semana */
+  /* Vazio: 00-07h todos os dias */
+  triVazio:0.1243, triCheia:0.1987, triPonta:0.2834,
+  /* Custo estimado mensal consumidor médio 250kWh/mês */
+  custoMedSimples:53.35, custoMedBi:48.20, custoMedTri:46.80,
+};
 /* Tarifas Gás Natural ERSE 2025-2026 (€/kWh c/ redes, s/ IVA)
    Fonte: ERSE Deliberação Tarifária Outubro 2025
    Comercializador de último recurso (CUR) - EDP Comercial / Galp */
@@ -1222,31 +1233,316 @@ var GAS_TARIFAS={
 async function loadElec(force=false){
   $("elec-body").innerHTML=ld();
   try{
-    const ck="elec_ree";let cached=force?null:lsGet(ck);
+    const T=ELEC_TARIFAS;
+    const today=new Date(), hh=today.getHours();
+    const todayStr=today.toISOString().slice(0,10);
+    const yesterStr=new Date(today-864e5).toISOString().slice(0,10);
+    const ck="elec_v2";
+    let cached=force?null:lsGet(ck);
+
     if(!cached){
-      const dates=[0,1].map(d=>{const dt=new Date();dt.setDate(dt.getDate()-d);return dt.toISOString().slice(0,10);});
-      let vals=null,usedDate=null;
-      for(const date of dates){
-        const r=await fetch(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?start_date=${date}T00:00&end_date=${date}T23:59&time_trunc=hour`,{headers:{"Accept":"application/json"}});
-        if(!r.ok)continue;
-        const j=await r.json();
+      /* Buscar hoje + ontem + amanhã em paralelo */
+      const dates=[todayStr, yesterStr,
+        new Date(today.getTime()+864e5).toISOString().slice(0,10)];
+      const fetches=dates.map(d=>
+        fetch(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real`+
+          `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`,
+          {headers:{"Accept":"application/json"}})
+        .then(r=>r.ok?r.json():null).catch(()=>null)
+      );
+      /* Mix energético em tempo real */
+      const mixFetch=fetch(
+        `https://apidatos.ree.es/en/datos/generacion/estructura-generacion`+
+        `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`,
+        {headers:{"Accept":"application/json"}}
+      ).then(r=>r.ok?r.json():null).catch(()=>null);
+
+      const [todayData, yesterData, tomorrowData, mixData]=
+        await Promise.all([...fetches, mixFetch]);
+
+      const parseVals=j=>{
+        if(!j) return null;
         const inc=j.included||[];
         const spot=inc.find(s=>(s.attributes?.title||"").toLowerCase().includes("spot"))||inc[0];
-        const v=spot?.attributes?.values||[];
-        if(v.length>=20){vals=v;usedDate=date;break;}
+        return spot?.attributes?.values||null;
+      };
+
+      const todayVals=parseVals(todayData);
+      const yesterVals=parseVals(yesterData);
+      const tomorrowVals=parseVals(tomorrowData);
+
+      /* Parsear mix energético */
+      let mix=null;
+      if(mixData?.included){
+        mix={};
+        mixData.included.forEach(src=>{
+          const title=(src.attributes?.title||"").toLowerCase();
+          const vals=src.attributes?.values||[];
+          const cur=vals[Math.min(hh,vals.length-1)];
+          if(!cur) return;
+          const mw=parseFloat(cur.value)||0;
+          if(title.includes("hidráulic")||title.includes("hydraulic")) mix.hidro=(mix.hidro||0)+mw;
+          else if(title.includes("eólica")||title.includes("wind")) mix.eolica=(mix.eolica||0)+mw;
+          else if(title.includes("solar fotovoltaica")||title.includes("photovoltaic")) mix.solar=(mix.solar||0)+mw;
+          else if(title.includes("ciclo combinado")||title.includes("combined")) mix.gas=(mix.gas||0)+mw;
+          else if(title.includes("nuclear")) mix.nuclear=(mix.nuclear||0)+mw;
+          else if(title.includes("carbón")||title.includes("coal")) mix.carvao=(mix.carvao||0)+mw;
+          else if(title.includes("otras renovables")||title.includes("other renew")) mix.outras=(mix.outras||0)+mw;
+        });
       }
-      if(!vals)throw new Error("Sem dados REE");
-      cached={vals,date:usedDate};lsSet(ck,cached);
+
+      cached={todayVals,yesterVals,tomorrowVals,mix,date:todayStr};
+      lsSet(ck,cached);
     }
-    const prices=cached.vals.map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
-    const avg=prices.reduce((a,b)=>a+b)/prices.length,min=Math.min(...prices),max=Math.max(...prices);
-    const hh=new Date().getHours(),now=prices[Math.min(hh,prices.length-1)]??avg;
-    const col=now>avg*1.25?"var(--red)":now<avg*0.75?"var(--green)":"var(--blue)";
-    const bars=prices.map((v,i)=>`<div title="${i}h: ${v.toFixed(1)}€/MWh" style="flex:1;height:${Math.round((v/max)*95)}%;background:${i===hh?"var(--accent)":v>avg*1.25?"var(--red)":v<avg*0.75?"var(--green)":"var(--blue)"};border-radius:1px 1px 0 0;opacity:${i===hh?1:.7}"></div>`).join("");
-    const dl=new Date(cached.date+"T12:00:00").toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
-    $("elec-body").innerHTML=`<div class="elec-top"><div class="ekpi"><div class="ekpi-lbl">Spot MIBEL · ${dl}</div><div class="ekpi-val" style="color:${col}">${now.toFixed(1)}</div><div class="ekpi-unit">€/MWh · hora ${hh}h</div><div class="ekpi-chg" style="color:var(--t2)">méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}</div></div><div class="ekpi"><div class="ekpi-lbl">Tarifa Simples ERSE 2026</div><div class="ekpi-val" style="color:var(--green)">${ELEC_TARIFAS.simples.toFixed(4)}</div><div class="ekpi-unit">€/kWh</div></div></div><div style="display:flex;align-items:flex-end;gap:1.5px;height:44px;margin:10px 0 3px">${bars}</div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:9px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div><div class="bar-lbl">Bi-horária · ERSE 2026</div>${[{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--blue)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}`;
-  }catch(e){$("elec-body").innerHTML=`${er(e.message)}<div style="margin-top:8px"><div class="bar-lbl">Tarifas ERSE 2026</div>${[{l:"Simples",v:ELEC_TARIFAS.simples,c:"var(--blue)"},{l:"Vazio",v:ELEC_TARIFAS.vazio,c:"var(--green)"},{l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,c:"var(--orange)"}].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div><span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}</div>`;}
+
+    const prices=(cached.todayVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+    const yesterPrices=(cached.yesterVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+    const tomPrices=(cached.tomorrowVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+
+    if(!prices.length) throw new Error("Sem dados MIBEL");
+
+    const avg=prices.reduce((a,b)=>a+b)/prices.length;
+    const min=Math.min(...prices), max=Math.max(...prices);
+    const now=prices[Math.min(hh,prices.length-1)]??avg;
+    const yesterAvg=yesterPrices.length?yesterPrices.reduce((a,b)=>a+b)/yesterPrices.length:null;
+    const yoyChg=yesterAvg?((avg-yesterAvg)/yesterAvg*100):null;
+
+    /* Contexto caro/barato */
+    const pct=(now-min)/(max-min||1);
+    const ctx=pct>0.75?{lbl:"CARO",col:"#EF4444",bg:"#EF444418",ico:"🔴"}:
+              pct>0.4 ?{lbl:"MÉDIO",col:"#F59E0B",bg:"#F59E0B18",ico:"🟡"}:
+                       {lbl:"BARATO",col:"#10B981",bg:"#10B98118",ico:"🟢"};
+
+    /* Melhor janela do dia — 3 horas consecutivas mais baratas */
+    let bestStart=0, bestSum=Infinity;
+    for(let i=0;i<=prices.length-3;i++){
+      const s=prices[i]+prices[i+1]+prices[i+2];
+      if(s<bestSum){bestSum=s;bestStart=i;}
+    }
+    const bestAvg=(bestSum/3).toFixed(1);
+    const bestEnd=bestStart+2;
+
+    /* Tri-horária: determinar período actual */
+    const dow=today.getDay(); // 0=dom,6=sab
+    const isWeekend=dow===0||dow===6;
+    const triPeriod=()=>{
+      if(isWeekend) return hh>=0&&hh<7?"Vazio":hh>=22?"Vazio":"Cheia";
+      if(hh>=0&&hh<7) return "Vazio";
+      if((hh>=9&&hh<12)||(hh>=18&&hh<21)) return "Ponta";
+      return "Cheia";
+    };
+    const triCur=triPeriod();
+    const triCol={Vazio:"#10B981",Cheia:"#F59E0B",Ponta:"#EF4444"};
+
+    /* Bi-horária: vazio = 22h-8h */
+    const biPeriod=hh>=22||hh<8?"Vazio":"Fora Vazio";
+    const biCol=biPeriod==="Vazio"?"#10B981":"#F59E0B";
+
+    /* Intensidade carbónica estimada (gCO₂/kWh) */
+    /* Factores: gas=490, carvao=820, hidro=4, eolica=11, solar=45, nuclear=12 */
+    let co2=null;
+    if(cached.mix){
+      const m=cached.mix;
+      const total=(m.hidro||0)+(m.eolica||0)+(m.solar||0)+(m.gas||0)+
+                  (m.nuclear||0)+(m.carvao||0)+(m.outras||0);
+      if(total>0){
+        co2=Math.round(
+          ((m.hidro||0)*4+(m.eolica||0)*11+(m.solar||0)*45+
+           (m.gas||0)*490+(m.nuclear||0)*12+(m.carvao||0)*820+(m.outras||0)*30)/total
+        );
+      }
+    }
+
+    /* Barras horárias — amanhã se disponível, senão hoje */
+    const chartPrices=tomPrices.length>=20?tomPrices:prices;
+    const chartLabel=tomPrices.length>=20?"amanhã (D+1)":"hoje";
+    const cMax=Math.max(...chartPrices)||1;
+    const bars=chartPrices.map((v,i)=>{
+      const cp=(v-Math.min(...chartPrices))/(cMax-Math.min(...chartPrices)||1);
+      const barCol=cp>0.75?"#EF4444":cp>0.4?"#F59E0B":"#10B981";
+      const isNow=i===hh&&chartLabel==="hoje";
+      const isBest=i>=bestStart&&i<=bestEnd&&chartLabel==="hoje";
+      return `<div title="${i}h: ${v.toFixed(1)}€/MWh"
+        style="flex:1;height:${Math.round((v/cMax)*95)+2}%;
+        background:${isNow?"var(--accent)":isBest?"#10B98188":barCol};
+        border-radius:1px 1px 0 0;
+        ${isNow?"outline:1px solid var(--accent);":""}
+        opacity:${isNow?1:0.75}"></div>`;
+    }).join("");
+
+    /* Mix energético */
+    const mixHtml=()=>{
+      if(!cached.mix) return "";
+      const m=cached.mix;
+      const total=(m.hidro||0)+(m.eolica||0)+(m.solar||0)+(m.gas||0)+
+                  (m.nuclear||0)+(m.carvao||0)+(m.outras||0);
+      if(!total) return "";
+      const srcs=[
+        {k:"hidro",  lbl:"Hídrica",  ico:"💧",col:"#3B82F6"},
+        {k:"eolica", lbl:"Eólica",   ico:"💨",col:"#10B981"},
+        {k:"solar",  lbl:"Solar",    ico:"☀️",col:"#F59E0B"},
+        {k:"gas",    lbl:"Gás CC",   ico:"🔥",col:"#F97316"},
+        {k:"nuclear",lbl:"Nuclear",  ico:"⚛️",col:"#8B5CF6"},
+        {k:"carvao", lbl:"Carvão",   ico:"🪨",col:"#6B7280"},
+        {k:"outras", lbl:"Outras REN",ico:"🌿",col:"#84CC16"},
+      ].filter(s=>m[s.k]>0);
+      const renPct=Math.round(((m.hidro||0)+(m.eolica||0)+(m.solar||0)+(m.outras||0))/total*100);
+      const segments=srcs.map(s=>`<div title="${s.lbl}: ${Math.round(m[s.k]/total*100)}%"
+        style="flex:${m[s.k]};background:${s.col};height:100%"></div>`).join("");
+      const labels=srcs.map(s=>{
+        const p=Math.round(m[s.k]/total*100);
+        if(p<5) return "";
+        return `<div style="text-align:center;flex:${m[s.k]}">
+          <div style="font-size:.55rem;color:${s.col}">${s.ico}</div>
+          <div style="font-size:.52rem;color:var(--t3)">${p}%</div>
+        </div>`;
+      }).join("");
+      return `
+      <div style="margin:10px 0 8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="font-size:.63rem;font-weight:700;color:var(--t2)">⚡ Mix energético · hora ${hh}h</div>
+          <div style="font-size:.63rem;color:#10B981;font-weight:600">${renPct}% renovável
+            ${co2!==null?`<span style="color:var(--t3);font-weight:400"> · ${co2} gCO₂/kWh</span>`:""}
+          </div>
+        </div>
+        <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:1px">${segments}</div>
+        <div style="display:flex;margin-top:3px">${labels}</div>
+      </div>`;
+    };
+
+    /* Dl da data */
+    const dl=new Date((cached.date||todayStr)+"T12:00:00")
+      .toLocaleDateString("pt-PT",{day:"numeric",month:"short"});
+
+    $("elec-body").innerHTML=`
+    <!-- Top: Spot + contexto -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <!-- Spot actual -->
+      <div style="background:${ctx.bg};border:1px solid ${ctx.col}33;
+           border-radius:10px;padding:10px 12px">
+        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+             letter-spacing:.5px;margin-bottom:2px">Spot MIBEL · ${dl}</div>
+        <div style="display:flex;align-items:flex-end;gap:5px">
+          <div style="font-size:2rem;font-weight:900;color:${ctx.col};
+               line-height:1">${now.toFixed(1)}</div>
+          <div style="font-size:.68rem;color:var(--t3);margin-bottom:3px">€/MWh · ${hh}h</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span style="font-size:.72rem;font-weight:700;color:${ctx.col};
+                background:${ctx.bg};border:1px solid ${ctx.col}44;
+                border-radius:4px;padding:1px 6px">${ctx.ico} ${ctx.lbl}</span>
+          ${yoyChg!==null?`<span style="font-size:.65rem;color:${yoyChg>0?"#EF4444":"#10B981"};
+            font-weight:600">${yoyChg>0?"▲":"▼"}${Math.abs(yoyChg).toFixed(1)}% vs ontem</span>`:""}
+        </div>
+        <div style="font-size:.6rem;color:var(--t3);margin-top:3px">
+          méd ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)}
+        </div>
+      </div>
+      <!-- Melhor janela + tarifa -->
+      <div style="background:var(--b2);border-radius:10px;padding:10px 12px">
+        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+             letter-spacing:.5px;margin-bottom:4px">💡 Melhor janela ${chartLabel}</div>
+        <div style="font-size:1.1rem;font-weight:800;color:#10B981">
+          ${bestStart}h – ${bestEnd+1}h</div>
+        <div style="font-size:.63rem;color:#10B981;margin-top:1px">
+          média ${bestAvg} €/MWh
+        </div>
+        <div style="font-size:.58rem;color:var(--t3);margin-top:4px;line-height:1.4">
+          Ideal para: máquina lavar,<br>dishwasher, carregar EV
+        </div>
+        <div style="margin-top:6px;font-size:.6rem;color:var(--t3)">Período actual:</div>
+        <div style="display:flex;gap:4px;margin-top:2px">
+          <span style="font-size:.65rem;font-weight:700;color:${biCol};
+                background:${biCol}18;border-radius:4px;padding:2px 6px">
+            Bi: ${biPeriod}</span>
+          <span style="font-size:.65rem;font-weight:700;color:${triCol[triCur]};
+                background:${triCol[triCur]}18;border-radius:4px;padding:2px 6px">
+            Tri: ${triCur}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de barras -->
+    <div style="display:flex;align-items:flex-end;gap:1px;height:46px;margin:10px 0 2px">
+      ${bars}
+    </div>
+    <div style="display:flex;justify-content:space-between;
+         font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:2px">
+      <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
+    </div>
+    <div style="font-size:.57rem;color:var(--t3);margin-bottom:4px">
+      Preços ${chartLabel} · 
+      <span style="color:#10B981">▬</span> barato · 
+      <span style="color:#F59E0B">▬</span> médio · 
+      <span style="color:#EF4444">▬</span> caro · 
+      <span style="color:var(--accent)">▬</span> hora actual
+      ${chartLabel==="hoje"?`· <span style="color:#10B98188">▬</span> melhor janela`:""}
+    </div>
+
+    ${mixHtml()}
+
+    <!-- Tarifas ERSE 2026 -->
+    <div>
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+        Tarifas ERSE 2025-2026
+        <span style="font-size:.57rem;font-weight:400;color:var(--t3)"> · custo est. 250 kWh/mês</span>
+      </div>
+      ${[
+        {lbl:"Simples",   v:T.simples,  est:T.custoMedSimples, desc:"Sem gestão horária",
+         sub:"",          col:"#3B82F6", active:false},
+        {lbl:"Bi-horária",v:T.fvazio,   est:T.custoMedBi,     desc:"Vazio 22h-8h",
+         sub:`V:${T.vazio.toFixed(4)} FV:${T.fvazio.toFixed(4)}`,col:"#10B981",active:biPeriod==="Vazio"},
+        {lbl:"Tri-horária",v:T.triPonta,est:T.custoMedTri,    desc:"Ponta 9-12h 18-21h",
+         sub:`V:${T.triVazio.toFixed(3)} C:${T.triCheia.toFixed(3)} P:${T.triPonta.toFixed(3)}`,
+         col:"#F59E0B",  active:triCur!=="Ponta"},
+      ].map(t=>`
+        <div style="background:var(--b2);border-radius:7px;padding:7px 10px;
+             margin-bottom:5px;${t.active?"border:1px solid "+t.col+"44;":"border:1px solid transparent;"}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <span style="font-size:.7rem;font-weight:700;color:${t.col}">${t.lbl}</span>
+              <span style="font-size:.6rem;color:var(--t3);margin-left:5px">${t.desc}</span>
+              ${t.sub?`<div style="font-size:.57rem;color:var(--t3);margin-top:1px;
+                   font-family:var(--mono)">${t.sub} €/kWh</div>`:""}
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:.78rem;font-weight:700;color:${t.col}">
+                ~${t.est.toFixed(0)}€<span style="font-size:.55rem;font-weight:400;
+                color:var(--t3)">/mês</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:4px;background:var(--b);border-radius:3px;height:4px;overflow:hidden">
+            <div style="width:${Math.min((t.est/60)*100,100)}%;height:100%;
+                 background:${t.col};border-radius:3px"></div>
+          </div>
+        </div>`).join("")}
+      <div style="font-size:.58rem;color:var(--t3);margin-top:2px">
+        💡 Tri-horária mais económica para consumo concentrado fora de ponta · 
+        Bi-horária ideal para uso nocturno · 
+        Período actual destacado <span style="color:#10B981">●</span>
+      </div>
+    </div>`;
+
+  }catch(e){
+    $("elec-body").innerHTML=`${er(e.message)}
+    <div style="margin-top:8px">
+      <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:5px">Tarifas ERSE 2025-2026</div>
+      ${[
+        {l:"Simples",   v:ELEC_TARIFAS.simples, c:"#3B82F6"},
+        {l:"Vazio",     v:ELEC_TARIFAS.vazio,   c:"#10B981"},
+        {l:"Fora Vazio",v:ELEC_TARIFAS.fvazio,  c:"#F59E0B"},
+        {l:"Tri Vazio", v:ELEC_TARIFAS.triVazio,c:"#10B981"},
+        {l:"Tri Cheia", v:ELEC_TARIFAS.triCheia,c:"#F59E0B"},
+        {l:"Tri Ponta", v:ELEC_TARIFAS.triPonta,c:"#EF4444"},
+      ].map(r=>`<div class="bar-row"><span class="bar-rl">${r.l}</span>
+        <div class="bar-bg"><div class="bar-fill"
+          style="width:${Math.min((r.v/.30)*100,100)}%;background:${r.c}"></div></div>
+        <span class="bar-rv">${r.v.toFixed(4)} €/kWh</span></div>`).join("")}
+    </div>`;
+  }
 }
+
 
 /* ── Feriados ── */
 async function loadHolidays(force=false){
