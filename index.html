@@ -2427,7 +2427,7 @@ function renderDiv(){
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="air_v6";
+  const ck="air_v7";
   let d=force?null:lsGet(ck);
   if(!d){
     const URLS=[
@@ -2437,7 +2437,7 @@ async function loadAir(force=false){
     ];
     for(const url of URLS){
       try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(10000)});
+        const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
         if(!r.ok)continue;
         const j=await r.json();
         if(j.states?.length){d={ts:Date.now(),states:j.states,live:true};lsSet(ck,d);break;}
@@ -2453,140 +2453,297 @@ async function loadAir(force=false){
     const avgAlt=alts.length?Math.round(alts.reduce((a,b)=>a+b,0)/alts.length):0;
     const vels=flying.filter(s=>s[9]>0).map(s=>s[9]*3.6);
     const avgVel=vels.length?Math.round(vels.reduce((a,b)=>a+b,0)/vels.length):0;
+    const maxVel=vels.length?Math.round(Math.max(...vels)):0;
 
+    /* Bandas de altitude */
     const altBands=[
-      {label:"Solo",    col:"#6E7A96", count:ground.length},
-      {label:"<FL100",  col:"#8B5CF6", count:flying.filter(s=>s[7]>0&&s[7]<3048).length},
-      {label:"FL100-200",col:"#3B82F6",count:flying.filter(s=>s[7]>=3048&&s[7]<6096).length},
-      {label:"FL200-300",col:"#06B6D4",count:flying.filter(s=>s[7]>=6096&&s[7]<9144).length},
-      {label:">FL300",  col:"#10B981", count:flying.filter(s=>s[7]>=9144).length},
+      {label:"Solo",     col:"#6E7A96", count:ground.length},
+      {label:"<FL100",   col:"#8B5CF6", count:flying.filter(s=>s[7]>0&&s[7]<3048).length},
+      {label:"FL100-200",col:"#3B82F6", count:flying.filter(s=>s[7]>=3048&&s[7]<6096).length},
+      {label:"FL200-300",col:"#06B6D4", count:flying.filter(s=>s[7]>=6096&&s[7]<9144).length},
+      {label:">FL300",   col:"#10B981", count:flying.filter(s=>s[7]>=9144).length},
     ];
 
+    /* Top países */
     const byCtry={};
     states.forEach(s=>{const c=s[2]||"?";byCtry[c]=(byCtry[c]||0)+1;});
-    const topCtry=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const topCtry=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-    const flights=flying
-      .filter(s=>s[1]&&s[1].trim()&&s[7]>500)
-      .sort((a,b)=>(b[7]||0)-(a[7]||0))
-      .slice(0,8);
+    /* Top voos por altitude */
+    const flights=flying.filter(s=>s[1]&&s[1].trim()&&s[7]>500)
+      .sort((a,b)=>(b[7]||0)-(a[7]||0)).slice(0,9);
+
+    /* Prefixos de companhia (ICAO→nome curto) */
+    const AIRLINES={
+      TAP:"TAP",RYR:"Ryanair",EZY:"easyJet",IBE:"Iberia",VLG:"Vueling",
+      BAW:"British",AFR:"Air France",DLH:"Lufthansa",KLM:"KLM",
+      UAE:"Emirates",ETH:"Ethiopian",THY:"Turkish",AAL:"American",
+      UAL:"United",DAL:"Delta",TRA:"Transavia",AZA:"Alitalia",
+      SWR:"Swiss",AUA:"Austrian",SAS:"SAS",AEE:"Aegean",
+    };
+    function airline(cs){ return AIRLINES[cs?.slice(0,3).toUpperCase()]||""; }
+
+    /* Taxa de subida/descida geral */
+    const climbing=flying.filter(s=>s[11]>2).length;
+    const descending=flying.filter(s=>s[11]<-2).length;
+    const level=flying.length-climbing-descending;
 
     const age=Math.round((Date.now()-d.ts)/60000);
 
     el.innerHTML=`
-      <!-- KPIs -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
-        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.4rem;font-weight:800;color:#3B82F6">${flying.length}</div>
-          <div style="font-size:.6rem;color:var(--t2)">Em voo</div>
+    <!-- KPIs linha 1 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px">
+      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#3B82F6;line-height:1">${flying.length}</div>
+        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Em voo</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#6E7A96;line-height:1">${ground.length}</div>
+        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Em terra</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#06B6D4;line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Alt. média m</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#8B5CF6;line-height:1">${avgVel||"—"}</div>
+        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">km/h média</div>
+      </div>
+    </div>
+    <!-- KPIs linha 2: subida/descida/nível + vel máx -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
+      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:700;color:#10B981">▲ ${climbing}</div>
+        <div style="font-size:.58rem;color:var(--t3)">A subir</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:700;color:#EF4444">▼ ${descending}</div>
+        <div style="font-size:.58rem;color:var(--t3)">A descer</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:700;color:#6E7A96">→ ${level}</div>
+        <div style="font-size:.58rem;color:var(--t3)">Em cruzeiro</div>
+      </div>
+      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:700;color:#F59E0B">${maxVel||"—"}</div>
+        <div style="font-size:.58rem;color:var(--t3)">km/h máx</div>
+      </div>
+    </div>
+
+    <!-- Corpo principal: mapa + lista -->
+    <div style="display:flex;gap:12px;align-items:flex-start">
+
+      <!-- MAPA CANVAS -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:5px">
+        <div id="air-map-wrap" style="position:relative;width:220px;height:160px;
+             border-radius:7px;overflow:hidden;border:1px solid var(--b);background:#0a1020">
+          <canvas id="air-map-canvas" width="220" height="160"
+                  style="width:100%;height:100%;display:block"></canvas>
+          <div id="air-map-tip" style="position:absolute;background:#1E2340cc;
+               border:1px solid #3D4560;padding:5px 9px;border-radius:5px;
+               font-size:.64rem;color:#DDE3F0;pointer-events:none;opacity:0;
+               transition:opacity .15s;z-index:10;max-width:170px;line-height:1.5;
+               white-space:nowrap"></div>
         </div>
-        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.4rem;font-weight:800;color:#6E7A96">${ground.length}</div>
-          <div style="font-size:.6rem;color:var(--t2)">Em terra</div>
+        <!-- Legenda altitude -->
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+            <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
+            <span>${b.label} <b style="color:var(--t2)">${b.count}</b></span>
+          </div>`).join("")}
         </div>
-        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.4rem;font-weight:800;color:#06B6D4">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
-          <div style="font-size:.6rem;color:var(--t2)">Alt.média m</div>
-        </div>
-        <div style="background:var(--b2);border-radius:7px;padding:7px;text-align:center">
-          <div style="font-size:1.4rem;font-weight:800;color:#8B5CF6">${avgVel||"—"}</div>
-          <div style="font-size:.6rem;color:var(--t2)">km/h média</div>
+        <!-- Barra de distribuição altitude -->
+        <div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden">
+          ${altBands.map(b=>{
+            const total=states.length||1;
+            const pct=(b.count/total*100).toFixed(1);
+            return `<div style="flex:${b.count||0.1};background:${b.col};opacity:0.8" title="${b.label}: ${pct}%"></div>`;
+          }).join("")}
         </div>
       </div>
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <!-- Mapa Canvas TopoJSON -->
-        <div style="flex-shrink:0;position:relative">
-          <div style="position:relative;width:190px;height:130px;border-radius:6px;overflow:hidden;border:1px solid var(--b)">
-            <canvas id="air-map-canvas" width="190" height="130" style="width:100%;height:100%;display:block"></canvas>
-            <div id="air-map-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;
-                 padding:5px 8px;border-radius:5px;font-size:.65rem;color:#DDE3F0;
-                 pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;
-                 max-width:160px;line-height:1.4"></div>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
-            ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
-              <div style="width:6px;height:6px;border-radius:50%;background:${b.col}"></div>
-              ${b.label} <span style="color:var(--t2);margin-left:1px">${b.count}</span>
-            </div>`).join("")}
-          </div>
-        </div>
-        <!-- Lista e países -->
-        <div style="flex:1;min-width:0">
-          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:4px">Voos activos (altitude):</div>
-          ${flights.map(s=>{
-            const cs=(s[1]||"???").trim();
-            const alt=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
-            const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"—";
-            const vr=s[11];
-            const vrStr=vr>2?"▲":vr<-2?"▼":"→";
-            const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
-            const col=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
-            return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--b)">
-              <div style="font-size:.7rem;font-weight:700;color:var(--text);width:58px;white-space:nowrap;overflow:hidden">${cs}</div>
-              <div style="font-size:.64rem;color:${col};font-weight:600;width:36px">${alt}</div>
-              <div style="font-size:.62rem;color:var(--t2);width:50px">${vel}</div>
-              <div style="font-size:.7rem;color:${vrCol}">${vrStr}</div>
-              <div style="font-size:.6rem;color:var(--t3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s[2]||""}</div>
-            </div>`;
-          }).join("")}
-          <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:7px 0 4px">Por país de registo:</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px">
-            ${topCtry.map(([c,n])=>`<div style="background:var(--b2);border-radius:4px;padding:2px 7px;font-size:.64rem">
-              <span style="color:var(--t2)">${c}</span><span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
-            </div>`).join("")}
-          </div>
-          <div style="font-size:.6rem;color:var(--t3);margin-top:6px">🟢 Live · ${age}min · lon[-12,-5] lat[36,44]</div>
-        </div>
-      </div>`;
 
-    /* Mapa TopoJSON com posições das aeronaves */
-    const airMapDots=states
-      .filter(s=>s[5]!=null&&s[6]!=null)
-      .map(s=>{
-        const onGnd=s[8];
-        const alt=s[7]||0;
-        const col=onGnd?"#6E7A96":alt>9000?"#10B981":alt>6000?"#06B6D4":alt>3000?"#3B82F6":"#8B5CF6";
-        const r=onGnd?2:3;
-        const cs=(s[1]||"").trim()||s[0];
-        const altStr=alt?`FL${Math.round(alt/30.48/10)*10}`:"Solo";
-        const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"";
-        return {
-          lat:s[6], lon:s[5], col, r,
-          label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${altStr} ${vel}<br>${s[2]||""}`
-        };
+      <!-- Lista e países -->
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:5px">
+          Voos activos <span style="color:var(--t3);font-weight:400">(por altitude)</span>
+        </div>
+        ${flights.map(s=>{
+          const cs=(s[1]||"???").trim();
+          const fl=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
+          const vel=s[9]?Math.round(s[9]*3.6)+"":"-";
+          const vr=s[11];
+          const vrIcon=vr>2?"▲":vr<-2?"▼":"→";
+          const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
+          const altCol=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
+          const al=airline(cs);
+          return `<div style="display:grid;grid-template-columns:62px 40px 46px 14px 1fr;
+                       align-items:center;gap:4px;padding:3px 0;
+                       border-bottom:1px solid var(--b)">
+            <div style="font-size:.7rem;font-weight:700;color:var(--text);
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cs}</div>
+            <div style="font-size:.65rem;color:${altCol};font-weight:600">${fl}</div>
+            <div style="font-size:.6rem;color:var(--t2)">${vel}<span style="font-size:.55rem">km/h</span></div>
+            <div style="font-size:.65rem;color:${vrCol};text-align:center">${vrIcon}</div>
+            <div style="font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;
+                 text-overflow:ellipsis">${al||s[2]||""}</div>
+          </div>`;
+        }).join("")}
+
+        <!-- Top países -->
+        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:8px 0 4px">
+          Por país de registo:
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${topCtry.map(([c,n])=>`<div style="background:var(--b2);border-radius:4px;
+               padding:2px 8px;font-size:.64rem">
+            <span style="color:var(--t3)">${c}</span>
+            <span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
+          </div>`).join("")}
+        </div>
+        <div style="font-size:.6rem;color:var(--t3);margin-top:7px">
+          🟢 Live · ${age}min · lon[-12,-5] lat[36,44]
+        </div>
+      </div>
+    </div>`;
+
+    /* ── MAPA TopoJSON ── */
+    const airDots=states.filter(s=>s[5]!=null&&s[6]!=null).map(s=>{
+      const onGnd=s[8], alt=s[7]||0;
+      const col=onGnd?"#6E7A96":alt>9000?"#10B981":alt>6000?"#06B6D4":alt>3000?"#3B82F6":"#8B5CF6";
+      const cs=(s[1]||"").trim()||s[0];
+      const fl=alt?`FL${Math.round(alt/30.48/10)*10}`:"Solo";
+      const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"";
+      const hdg=s[10]||0;
+      return {lat:s[6],lon:s[5],col,r:onGnd?2:3,hdg,
+              label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${fl} ${vel}<br>${s[2]||""}`};
+    });
+
+    /* Usar buildConflictMap approach: chamar directamente quando geo disponível */
+    function paintAirMap(){
+      const canvas=document.getElementById("air-map-canvas");
+      if(!canvas) return;
+      const geo=window._topoCache;
+      if(!geo||!geo.features) return;
+
+      canvas.width=220; canvas.height=160;
+      const ctx=canvas.getContext("2d");
+      const bbox={minLon:-13,maxLon:-4,minLat:35,maxLat:44};
+
+      function proj(lat,lon){
+        const padLon=(bbox.maxLon-bbox.minLon)*0.05;
+        const padLat=(bbox.maxLat-bbox.minLat)*0.05;
+        const x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
+        const y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
+        return [x,y];
+      }
+
+      /* Fundo */
+      ctx.fillStyle="#0a1020"; ctx.fillRect(0,0,220,160);
+
+      /* Oceano grid */
+      ctx.strokeStyle="rgba(255,255,255,0.04)"; ctx.lineWidth=0.5;
+      for(let lon=-12;lon<=-4;lon+=2){const[x]=proj(39,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,160);ctx.stroke();}
+      for(let lat=36;lat<=44;lat+=2){const[,y]=proj(lat,-8);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(220,y);ctx.stroke();}
+
+      /* Países */
+      geo.features.forEach(f=>{
+        if(!f?.geometry) return;
+        const polys=f.geometry.type==="Polygon"?[f.geometry.coordinates]:f.geometry.coordinates;
+        polys.forEach(poly=>{
+          const ring0=poly[0]; if(!ring0?.length) return;
+          /* Filtrar para bbox */
+          const inView=ring0.some((c,i)=>i%4===0&&c[0]>=-18&&c[0]<=1&&c[1]>=30&&c[1]<=50);
+          if(!inView) return;
+          poly.forEach(ring=>{
+            ctx.beginPath();
+            ring.forEach((c,i)=>{
+              const[x,y]=proj(c[1],c[0]);
+              i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+            });
+            ctx.closePath();
+            ctx.fillStyle="#1A2B45"; ctx.fill();
+            ctx.strokeStyle="#263d5e"; ctx.lineWidth=0.8; ctx.stroke();
+          });
+        });
       });
-    function _drawAirMap(){
-      const c=document.getElementById("air-map-canvas");
-      if(!c||c.dataset.drawn) return;
-      c.dataset.drawn="1";
-      drawRegionalMap(
-        "air-map-canvas","air-map-tip",
-        {minLon:-13,maxLon:-4,minLat:35,maxLat:44},
-        airMapDots,
-        {bg:"#0a1020",landFill:"#1E2B4A",landStroke:"#2A3660",
-         labels:[{lat:38.7,lon:-9.1,text:"LIS"},{lat:41.2,lon:-8.7,text:"OPO"}]},
-        190, 130
-      );
+
+      /* Aeronaves como triângulos direccionais */
+      airDots.forEach(d=>{
+        const[x,y]=proj(d.lat,d.lon);
+        if(x<-5||x>225||y<-5||y>165) return;
+        const rad=(d.hdg||0)*Math.PI/180;
+        const size=d.r===2?3:4;
+        /* Glow */
+        const grd=ctx.createRadialGradient(x,y,0,x,y,size*3);
+        grd.addColorStop(0,d.col+"66"); grd.addColorStop(1,d.col+"00");
+        ctx.beginPath(); ctx.arc(x,y,size*3,0,Math.PI*2);
+        ctx.fillStyle=grd; ctx.fill();
+        /* Triângulo */
+        ctx.save(); ctx.translate(x,y); ctx.rotate(rad);
+        ctx.beginPath();
+        ctx.moveTo(0,-size*1.8);
+        ctx.lineTo(-size,size);
+        ctx.lineTo(size,size);
+        ctx.closePath();
+        ctx.fillStyle=d.col; ctx.globalAlpha=0.9; ctx.fill();
+        ctx.globalAlpha=1; ctx.restore();
+      });
+
+      /* Labels cidades */
+      [{lat:38.72,lon:-9.14,txt:"LIS"},{lat:41.15,lon:-8.67,txt:"OPO"},
+       {lat:37.02,lon:-7.93,txt:"FAO"},{lat:40.42,lon:-3.70,txt:"MAD"}].forEach(l=>{
+        const[x,y]=proj(l.lat,l.lon);
+        if(x<0||x>220||y<0||y>160) return;
+        ctx.fillStyle="#4A90B8"; ctx.font="bold 8px monospace";
+        ctx.fillText(l.txt,x+3,y-2);
+        ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
+        ctx.fillStyle="#4A90B8aa"; ctx.fill();
+      });
+
+      /* Tooltip hover */
+      const tip=document.getElementById("air-map-tip");
+      if(tip){
+        canvas.onmousemove=function(e){
+          const rect=canvas.getBoundingClientRect();
+          const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
+          const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
+          let hit=null, minD=Infinity;
+          airDots.forEach(d=>{
+            const[px,py]=proj(d.lat,d.lon);
+            const dist=Math.hypot(px-mx,py-my);
+            if(dist<18&&dist<minD){minD=dist;hit=d;}
+          });
+          if(hit){
+            tip.style.opacity="1";
+            tip.style.left=Math.min(e.offsetX+12,rect.width-180)+"px";
+            tip.style.top=Math.max(e.offsetY-35,4)+"px";
+            tip.innerHTML=hit.label;
+          } else { tip.style.opacity="0"; }
+        };
+        canvas.onmouseleave=()=>tip.style.opacity="0";
+      }
     }
-    requestAnimationFrame(()=>requestAnimationFrame(_drawAirMap));
-    setTimeout(_drawAirMap, 1000);
+
+    /* Chamar imediatamente se geo já disponível, senão aguardar */
+    if(window._topoCache) paintAirMap();
+    else loadTopoData(()=>paintAirMap());
     return;
   }
 
-  /* Fallback ANA 2024 */
+  /* ── Fallback ANA 2024 ── */
   const ANA=[
-    {label:"Movimentos 2024",  val:"175.200",sub:"+4,2% vs 2023",col:"#3B82F6"},
-    {label:"Passageiros 2024", val:"33,2M",  sub:"+6,1% vs 2023",col:"#06B6D4"},
-    {label:"Carga (ton) 2024", val:"158.400",sub:"+2,8% vs 2023",col:"#8B5CF6"},
-    {label:"Pontualidade",     val:"81,3%",  sub:"voos na hora ±15min",col:"#10B981"},
+    {label:"Movimentos 2024",val:"175.200",sub:"+4,2% vs 2023",col:"#3B82F6"},
+    {label:"Passageiros 2024",val:"33,2M",sub:"+6,1% vs 2023",col:"#06B6D4"},
+    {label:"Carga (ton) 2024",val:"158.400",sub:"+2,8% vs 2023",col:"#8B5CF6"},
+    {label:"Pontualidade",val:"81,3%",sub:"voos na hora ±15min",col:"#10B981"},
   ];
   const ROTAS=[
-    {dest:"Londres",   cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
-    {dest:"Paris",     cod:"CDG/ORY",freq:"~14/dia",col:"#EF4444"},
-    {dest:"Frankfurt", cod:"FRA",    freq:"~10/dia",col:"#F59E0B"},
-    {dest:"Madrid",    cod:"MAD",    freq:"~12/dia",col:"#10B981"},
-    {dest:"Amesterdão",cod:"AMS",    freq:"~8/dia", col:"#8B5CF6"},
-    {dest:"São Paulo", cod:"GRU",    freq:"~5/dia", col:"#F97316"},
+    {dest:"Londres",cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
+    {dest:"Paris",cod:"CDG/ORY",freq:"~14/dia",col:"#EF4444"},
+    {dest:"Frankfurt",cod:"FRA",freq:"~10/dia",col:"#F59E0B"},
+    {dest:"Madrid",cod:"MAD",freq:"~12/dia",col:"#10B981"},
+    {dest:"Amesterdão",cod:"AMS",freq:"~8/dia",col:"#8B5CF6"},
+    {dest:"São Paulo",cod:"GRU",freq:"~5/dia",col:"#F97316"},
   ];
   el.innerHTML=`
     <div style="font-size:.65rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
@@ -2597,14 +2754,15 @@ async function loadAir(force=false){
         <div style="font-size:.58rem;color:var(--t3)">${x.sub}</div>
       </div>`).join("")}
     </div>
-    <div style="font-size:.68rem;color:var(--t2);margin-bottom:5px;font-weight:600">Top rotas Lisboa 2024</div>
-    ${ROTAS.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--b)">
+    <div style="font-size:.68rem;font-weight:600;color:var(--t2);margin-bottom:5px">Top rotas Lisboa 2024</div>
+    ${ROTAS.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;
+         padding:4px 0;border-bottom:1px solid var(--b)">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="width:6px;height:6px;border-radius:50%;background:${r.col}"></div>
-        <div style="font-size:.68rem;color:var(--text)">${r.dest}</div>
-        <div style="font-size:.62rem;color:var(--t3)">${r.cod}</div>
+        <span style="font-size:.68rem;color:var(--text)">${r.dest}</span>
+        <span style="font-size:.62rem;color:var(--t3)">${r.cod}</span>
       </div>
-      <div style="font-size:.67rem;color:var(--t2);font-weight:600">${r.freq}</div>
+      <span style="font-size:.67rem;color:var(--t2);font-weight:600">${r.freq}</span>
     </div>`).join("")}`;
 }
 
