@@ -556,7 +556,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadTTF(true)">↺</button></div>
     </div>
     <div id="ttf-body"></div>
-    <div class="src">✦ ICIS · Montel · GIE AGSI · dados ref. Março 2026</div>
+    <div class="src">✦ ICIS · GIE AGSI+ · Trading Economics · ref. 11 Mar 2026</div>
   </div>
 
   <!-- Gás Natural · Portugal -->
@@ -568,7 +568,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadGasPT(true)">↺</button></div>
     </div>
     <div id="gaspt-body"></div>
-    <div class="src">✦ MIBGAS · ERSE Tarifas 2025-2026 · ref. Março 2026</div>
+    <div class="src">✦ MIBGAS · ERSE Tarifas 2025-2026 · ref. 11 Mar 2026</div>
   </div>
 
 
@@ -1206,14 +1206,14 @@ var GAS_TARIFAS={
   /* Termo fixo mensal (capacidade) */
   termoFixo:3.42,   /* €/mês */
   /* Ref MIBGAS spot Mar 2026 */
-  mibgasSpot:50.89,
-  mibgasPrev:52.30,
-  mibgas7d:[49.2,51.4,53.1,52.8,51.9,50.4,50.89],
+  mibgasSpot:57.30,
+  mibgasPrev:46.20,
+  mibgas7d:[36.8,38.2,46.1,54.8,58.2,56.4,57.30],
   /* TTF Day-ahead ref Mar 2026 */
-  ttfSpot:38.5,
-  ttfPrev:40.2,
+  ttfSpot:48.20,
+  ttfPrev:40.20,
   /* Spread MIBGAS-TTF */
-  spread:50.89-38.5,
+  spread:57.30-48.20,
 };
 async function loadElec(force=false){
   $("elec-body").innerHTML=ld();
@@ -2698,46 +2698,49 @@ async function loadTTF(force=false){
   /* Hubs europeus — preços spot ref. Mar 2026 (€/MWh)
      Fontes: ICIS, Montel, EEX, GIE AGSI+
      Actualizar mensalmente */
+  /* Preços ref. 11 Mar 2026 — choque QatarEnergy (ataques Mar 2026)
+     TTF subiu ~76% em 1 semana; actualmente a estabilizar 47-50 €/MWh */
   const HUBS=[
     {
       id:"ttf",  name:"TTF",    country:"🇳🇱", full:"Title Transfer Facility",
-      price:38.5, prev:40.2,   unit:"€/MWh",
+      price:48.20, prev:40.20,  unit:"€/MWh",
       desc:"Hub de referência europeu (Holanda). Benchmark para contratos LNG e spot.",
       col:"#3B82F6"
     },
     {
       id:"nbp",  name:"NBP",    country:"🇬🇧", full:"National Balancing Point",
-      price:36.8, prev:38.1,   unit:"€/MWh",
+      price:46.80, prev:38.10,  unit:"€/MWh",
       desc:"Hub britânico. Spread vs TTF reflecte isolamento pós-Brexit.",
       col:"#8B5CF6"
     },
     {
       id:"mibgas",name:"MIBGAS",country:"🇪🇸🇵🇹", full:"Mercado Ibérico do Gás",
-      price:37.9, prev:39.5,   unit:"€/MWh",
+      price:57.30, prev:46.20,  unit:"€/MWh",
       desc:"Hub ibérico (PT+ES). Inclui terminais GNL de Sines, Huelva, Bilbau.",
       col:"#10B981"
     },
     {
       id:"peg",  name:"PEG",    country:"🇫🇷", full:"Point d'Échange de Gaz",
-      price:38.2, prev:40.0,   unit:"€/MWh",
+      price:48.50, prev:40.00,  unit:"€/MWh",
       desc:"Hub francês (GRTgaz). Muito próximo do TTF pelo interligador.",
       col:"#F59E0B"
     },
     {
       id:"gaspool",name:"THE",  country:"🇩🇪", full:"Trading Hub Europe",
-      price:38.7, prev:40.5,   unit:"€/MWh",
+      price:48.80, prev:40.50,  unit:"€/MWh",
       desc:"Hub alemão (fusão Gaspool+NCG). Grande liquidez, próximo TTF.",
       col:"#EF4444"
     },
     {
       id:"vtp",  name:"VTP",    country:"🇦🇹", full:"Virtual Trading Point",
-      price:39.1, prev:41.2,   unit:"€/MWh",
-      desc:"Hub austríaco. Ponto de entrada do gás russo/azeri via Turquia.",
+      price:49.20, prev:41.20,  unit:"€/MWh",
+      desc:"Hub austríaco. Ponto de entrada do gás canalizado via Turquia.",
       col:"#F97316"
     },
   ];
 
   /* Histórico TTF mensal Jan 2024 → Mar 2026 */
+  /* TTF histórico mensal — Investing.com / Trading Economics */
   const TTF_HIST=[
     ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
     ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
@@ -2745,20 +2748,22 @@ async function loadTTF(force=false){
     ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
     ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
     ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
-    ["Jan 26",42.8],["Fev 26",40.2],["Mar 26",38.5]
+    ["Jan 26",42.8],["Fev 26",32.3],["Mar 26",48.2]
   ];
 
   /* Reservas EU por país (GIE AGSI+, % capacidade, Mar 2026) */
+  /* GIE AGSI+ Mar 2026 — reservas muito baixas vs histórico
+     Inverno prolongado + choque Qatar drenaram reservas EU */
   const STORAGE=[
-    {c:"🇩🇪",n:"Alemanha", pct:44.2, cap:246},
-    {c:"🇮🇹",n:"Itália",   pct:48.1, cap:203},
-    {c:"🇫🇷",n:"França",   pct:42.8, cap:137},
-    {c:"🇳🇱",n:"Holanda",  pct:38.6, cap:141},
-    {c:"🇦🇹",n:"Áustria",  pct:46.3, cap:92},
-    {c:"🇪🇸",n:"Espanha",  pct:72.4, cap:31},
-    {c:"🇵🇹",n:"Portugal", pct:81.2, cap:3.6},
+    {c:"🇩🇪",n:"Alemanha", pct:30.2, cap:246},
+    {c:"🇫🇷",n:"França",   pct:29.0, cap:137},
+    {c:"🇳🇱",n:"Holanda",  pct:23.5, cap:141},
+    {c:"🇮🇹",n:"Itália",   pct:38.4, cap:203},
+    {c:"🇦🇹",n:"Áustria",  pct:34.8, cap:92},
+    {c:"🇪🇸",n:"Espanha",  pct:55.1, cap:31},
+    {c:"🇵🇹",n:"Portugal", pct:68.3, cap:3.6},
   ];
-  const euAvg=44.0, euAvg5y=36.0;
+  const euAvg=35.0, euAvg5y=52.0; /* euAvg5y = média mesma época ano anterior */
 
   /* Sparkline TTF */
   const vals=TTF_HIST.map(x=>x[1]);
@@ -2857,8 +2862,11 @@ async function loadTTF(force=false){
     <b style="color:#3B82F6">TTF é o benchmark europeu</b> — todos os outros hubs 
     convergem para o seu preço via arbitragem. Portugal e Espanha têm 
     <b>terminais GNL próprios</b> (Sines, Huelva, Bilbau), o que os torna menos 
-    dependentes do gás canalizado russo. Reservas EU acima da média histórica — 
-    pressão de baixa nos preços para o Inverno 2026-27.
+    dependentes do gás canalizado russo e do LNG do Qatar. 
+    ⚠️ <b style="color:#EF4444">Choque Mar 2026</b>: ataques a instalações QatarEnergy
+    (maior exportador mundial GNL) dispararam o TTF +76% em 1 semana.
+    Reservas EU a <b style="color:#EF4444">~35%</b> — muito abaixo dos 52% na mesma época em 2025.
+    Injecção de Verão 2026 terá de ser intensa para atingir a meta de 90% até Nov.
   </div>`;
 }
 
