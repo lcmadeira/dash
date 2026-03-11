@@ -505,10 +505,28 @@ textarea.nta::placeholder{color:var(--t3)}
 <div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
   <div class="card">
     <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🌡️</div>
-      <span class="ch-lbl">Meteorologia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadWeather(true)">↺</button></div></div>
-    <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:var(--ad)">🌡️</div>
+      <span class="ch-lbl">Météo & Feriados · PT</span>
+      <div class="ch-r">
+        <button class="rbtn" id="wxhol-refresh" onclick="wxholRefresh()">↺</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px;margin:5px 0 8px">
+      <button class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Météo</button>
+      <button class="rbtn"    id="wxhol-tab-res" onclick="switchWxHol('resumo',this)">📊 Resumo</button>
+      <button class="rbtn"    id="wxhol-tab-hol" onclick="switchWxHol('feriados',this)">🗓 Feriados</button>
+    </div>
+    <div id="wxhol-wx">
+      <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div id="wxhol-resumo" style="display:none">
+      <div id="hol-body"><div class="ld"><div class="spin"></div></div></div>
+    </div>
+    <div id="wxhol-feriados" style="display:none">
+      <div id="hol-list-body"></div>
+    </div>
+    <div class="src">✦ IPMA · date.nager.at · Municípios: Lisboa · Porto · Braga · Évora · Aveiro · Coimbra · Viseu · Setúbal · Faro</div>
   </div>
 
 
@@ -581,14 +599,7 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 
-  <div class="card">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🗓️</div>
-      <span class="ch-lbl">Feriados &amp; Dias Úteis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadHolidays(true)">↺</button></div></div>
-    <div id="hol-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ date.nager.at · Feriados nacionais PT · Municípios: Lisboa · Porto · Braga · Aveiro · Coimbra</div>
-  </div>
+  
 
 
   <!-- Euribor estático EMMI -->
@@ -1545,11 +1556,78 @@ async function loadElec(force=false){
 
 
 /* ── Feriados ── */
-function switchHolTab(tab,btn){
-  document.querySelectorAll("#hol-tab-res,#hol-tab-hol").forEach(b=>b.classList.remove("on"));
+function switchWxHol(tab,btn){
+  document.querySelectorAll("#wxhol-tab-wx,#wxhol-tab-res,#wxhol-tab-hol")
+    .forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
-  document.getElementById("hol-resumo").style.display=tab==="resumo"?"":"none";
-  document.getElementById("hol-feriados").style.display=tab==="feriados"?"":"none";
+  document.getElementById("wxhol-wx").style.display=      tab==="wx"?"":"none";
+  document.getElementById("wxhol-resumo").style.display=  tab==="resumo"?"":"none";
+  document.getElementById("wxhol-feriados").style.display=tab==="feriados"?"":"none";
+  /* Lazy load: só carrega a tab quando é aberta pela 1ª vez */
+  if(tab==="resumo"&&!window._holLoaded){window._holLoaded=true;loadHolidays();}
+  if(tab==="feriados"&&!window._holListLoaded){window._holListLoaded=true;renderHolList();}
+}
+function wxholRefresh(){
+  const active=document.querySelector("#wxhol-tab-wx.on")?"wx":
+                document.querySelector("#wxhol-tab-res.on")?"resumo":"feriados";
+  if(active==="wx") loadWeather(true);
+  else if(active==="resumo"){window._holLoaded=false;loadHolidays(true);}
+  else {window._holListLoaded=false;renderHolList();}
+}
+
+function renderHolList(){
+  const el=document.getElementById("hol-list-body");
+  if(!el) return;
+  if(!window._holData){
+    el.innerHTML='<div style="padding:12px;text-align:center;font-size:.72rem;color:var(--t3)">A carregar...</div>';
+    loadHolidays().then(()=>{ window._holListLoaded=true; renderHolList(); });
+    return;
+  }
+  const {allHols,ptDow,ptMon,ptDowFull,today,todayStr,next,bridges,year}=window._holData;
+  const rows=allHols.map(h=>{
+    const hd=new Date(h.date+"T00:00:00");
+    const isPast=h.date<todayStr;
+    const isNext=h.date===next?.date&&h.type==="nacional";
+    const dow=ptDow[hd.getDay()];
+    const dowFull=ptDowFull[hd.getDay()];
+    const isBridge=bridges.some(b=>b.holDate===h.date);
+    const isMunic=h.type==="municipal";
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;
+          border-radius:6px;margin-bottom:2px;
+          ${isNext?"background:var(--accent)18;border:1px solid var(--accent)44;":
+            isPast?"opacity:.4;":"border:1px solid transparent;"}">
+      <div style="min-width:38px;text-align:right">
+        <div style="font-size:.7rem;font-weight:${isPast?400:600};
+             color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
+             ${isPast?"text-decoration:line-through;":""}">${hd.getDate()} ${ptMon[hd.getMonth()]}</div>
+      </div>
+      <div style="min-width:28px;background:${hd.getDay()===0||hd.getDay()===6?"#EF444422":"var(--b2)"};
+           border-radius:4px;padding:1px 4px;text-align:center">
+        <span style="font-size:.58rem;color:${hd.getDay()===0||hd.getDay()===6?"#EF4444":"var(--t2)"}">${dow}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.68rem;font-weight:${isNext?700:isPast?400:500};
+             color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
+             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+             ${isPast?"text-decoration:line-through;":""}">
+          ${isMunic?`<span style="font-size:.55rem;background:#8B5CF622;color:#8B5CF6;
+            border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${h.city}</span>`:""}
+          ${h.localName}
+          ${isBridge&&!isPast?`<span style="font-size:.55rem;background:#F59E0B22;
+            color:#F59E0B;border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
+        </div>
+        <div style="font-size:.57rem;color:var(--t3)">${dowFull}</div>
+      </div>
+      ${!isPast?`<span style="font-size:.6rem;color:var(--t3);white-space:nowrap">
+        +${Math.round((hd-today)/864e5)}d</span>`
+      :`<span style="font-size:.6rem;color:var(--t3)">✓</span>`}
+    </div>`;
+  }).join("");
+  el.innerHTML=`
+    <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:6px">
+      📋 Feriados · ${year}
+    </div>
+    <div>${rows}</div>`;
 }
 async function loadHolidays(force=false){
   $("hol-body").innerHTML=ld();
@@ -1567,13 +1645,18 @@ async function loadHolidays(force=false){
     const todayStr=today.toISOString().slice(0,10);
 
     /* Feriados municipais fixos */
+    /* Feriados municipais — fontes: CM respectivas */
     const MUNIC=[
-      {date:`${year}-06-13`,name:"S. António",     city:"Lisboa",   flag:"🏛️"},
-      {date:`${year}-06-24`,name:"S. João",        city:"Porto",    flag:"🎆"},
-      {date:`${year}-06-24`,name:"S. João",        city:"Braga",    flag:"⛪"},
-      {date:`${year}-08-22`,name:"Feriado Municipal",city:"Braga",  flag:"⛪"},
-      {date:`${year}-09-07`,name:"Feriado Municipal",city:"Aveiro", flag:"🌊"},
-      {date:`${year}-11-27`,name:"Feriado Municipal",city:"Coimbra",flag:"🎓"},
+      {date:`${year}-06-13`,name:"S. António",          city:"Lisboa",  flag:"🏛️"},
+      {date:`${year}-06-24`,name:"S. João",             city:"Porto",   flag:"🎆"},
+      {date:`${year}-06-24`,name:"S. João",             city:"Braga",   flag:"⛪"},
+      {date:`${year}-06-29`,name:"Dia da Cidade",       city:"Évora",   flag:"🏛️"},
+      {date:`${year}-08-22`,name:"Feriado Municipal",   city:"Braga",   flag:"⛪"},
+      {date:`${year}-09-04`,name:"Feira de S. Mateus",  city:"Viseu",   flag:"🎪"},
+      {date:`${year}-09-07`,name:"Feriado Municipal",   city:"Aveiro",  flag:"🌊"},
+      {date:`${year}-11-27`,name:"Feriado Municipal",   city:"Coimbra", flag:"🎓"},
+      {date:`${year}-07-22`,name:"Dia da Cidade",       city:"Setúbal", flag:"⚓"},
+      {date:`${year}-08-01`,name:"Feriado Municipal",   city:"Faro",    flag:"🌊"},
     ];
 
     /* Juntar feriados nacionais + municipais */
@@ -1693,6 +1776,9 @@ async function loadHolidays(force=false){
       ...MUNIC.map(h=>({date:h.date,localName:h.name,
         name:h.name,type:"municipal",city:h.city,flag:h.flag}))
     ].sort((a,b)=>a.date.localeCompare(b.date));
+    /* Guardar para renderHolList */
+    window._holData={allHols,ptDow,ptMon,ptDowFull,ptMonFull,today,todayStr,next,bridges,year};
+
 
     /* ── Render ─────────────────────────────────────────── */
     $("hol-body").innerHTML=`
@@ -1789,54 +1875,15 @@ async function loadHolidays(force=false){
     </div>
     <!-- Tab Feriados -->
     <div id="hol-feriados" style="display:none">
-    <!-- Lista de feriados -->
-    <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-      📋 Feriados nacionais · ${year}
+
+    <!-- Botão para ver feriados completos -->
+    <div style="margin-top:6px">
+      <button class="rbtn" style="width:100%;justify-content:center"
+        onclick="switchWxHol('feriados',document.getElementById('wxhol-tab-hol'))">
+        🗓 Ver lista completa de feriados →
+      </button>
     </div>
-    <div>
-      ${allHols.map(h=>{
-        const hd=new Date(h.date+"T00:00:00");
-        const isPast=h.date<todayStr;
-        const isNext=h.date===next?.date&&h.type==="nacional";
-        const dow=ptDow[hd.getDay()];
-        const dowFull=ptDowFull[hd.getDay()];
-        const isBridge=bridges.some(b=>b.holDate===h.date);
-        const isMunic=h.type==="municipal";
-        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;
-              border-radius:6px;margin-bottom:2px;
-              ${isNext?"background:var(--accent)18;border:1px solid var(--accent)44;":
-                isPast?"opacity:.4;":"border:1px solid transparent;"}">
-          <div style="min-width:38px;text-align:right">
-            <div style="font-size:.7rem;font-weight:${isPast?400:600};
-                 color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
-                 ${isPast?"text-decoration:line-through;":""}">${hd.getDate()} ${ptMon[hd.getMonth()]}</div>
-          </div>
-          <div style="min-width:28px;background:${isPast?"var(--b2)":
-               hd.getDay()===0||hd.getDay()===6?"#EF444422":"var(--b2)"};
-               border-radius:4px;padding:1px 4px;text-align:center">
-            <span style="font-size:.58rem;color:${isPast?"var(--t3)":
-                  hd.getDay()===0||hd.getDay()===6?"#EF4444":"var(--t2)"}">${dow}</span>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:.68rem;font-weight:${isNext?700:isPast?400:500};
-                 color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
-                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-                 ${isPast?"text-decoration:line-through;":""}">
-              ${isMunic?`<span style="font-size:.55rem;background:#8B5CF622;color:#8B5CF6;
-                border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${h.city}</span>`:""}
-              ${h.localName}
-              ${isBridge&&!isPast?`<span style="font-size:.55rem;background:#F59E0B22;
-                color:#F59E0B;border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
-            </div>
-            <div style="font-size:.57rem;color:var(--t3)">${dowFull}</div>
-          </div>
-          ${!isPast?`<span style="font-size:.6rem;color:var(--t3);white-space:nowrap">
-            +${Math.round((hd-today)/(864e5))}d
-          </span>`:`<span style="font-size:.6rem;color:var(--t3)">✓</span>`}
-        </div>`;
-      }).join("")}
-    </div>
-    </div>
+
 `;
 
   }catch(e){
