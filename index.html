@@ -770,7 +770,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadSMN(true)">↺</button></div>
     </div>
     <div id="smn-body"></div>
-    <div class="src">✦ DGERT · INE · Eurostat · DGO · ref. 2025</div>
+    <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026</div>
   </div>
 
   <!-- Transportes PT -->
@@ -2251,37 +2251,39 @@ function loadSMN(force){
   const SMN_HIST=[
     {y:2017,v:557},{y:2018,v:580},{y:2019,v:600},{y:2020,v:635},
     {y:2021,v:665},{y:2022,v:705},{y:2023,v:760},{y:2024,v:820},
-    {y:2025,v:870},
+    {y:2025,v:870},{y:2026,v:920},
   ];
 
+  /* SMN EU — fonte: Eurostat / fontes nacionais Jan 2026 */
   const SMN_EU=[
-    {c:"🇱🇺",n:"Luxemburgo", v:2571,col:"#10B981"},
-    {c:"🇳🇱",n:"Holanda",    v:2069,col:"#10B981"},
-    {c:"🇧🇪",n:"Bélgica",    v:2029,col:"#10B981"},
-    {c:"🇩🇪",n:"Alemanha",   v:1981,col:"#10B981"},
-    {c:"🇫🇷",n:"França",     v:1767,col:"#3B82F6"},
-    {c:"🇪🇸",n:"Espanha",    v:1323,col:"#3B82F6"},
-    {c:"🇵🇹",n:"Portugal",   v:870, col:"#F59E0B"},
-    {c:"🇬🇷",n:"Grécia",     v:830, col:"#F59E0B"},
-    {c:"🇵🇱",n:"Polónia",    v:800, col:"#F97316"},
-    {c:"🇷🇴",n:"Roménia",    v:663, col:"#EF4444"},
-    {c:"🇧🇬",n:"Bulgária",   v:477, col:"#EF4444"},
+    {c:"🇱🇺",n:"Luxemburgo", v:2637,col:"#10B981"},
+    {c:"🇳🇱",n:"Holanda",    v:2191,col:"#10B981"},
+    {c:"🇩🇪",n:"Alemanha",   v:2096,col:"#10B981"},
+    {c:"🇧🇪",n:"Bélgica",    v:2070,col:"#10B981"},
+    {c:"🇫🇷",n:"França",     v:1802,col:"#3B82F6"},
+    {c:"🇪🇸",n:"Espanha",    v:1381,col:"#3B82F6"},
+    {c:"🇬🇷",n:"Grécia",     v:968, col:"#F59E0B"},
+    {c:"🇵🇹",n:"Portugal",   v:920, col:"#F59E0B"},
+    {c:"🇵🇱",n:"Polónia",    v:887, col:"#F97316"},
+    {c:"🇷🇴",n:"Roménia",    v:704, col:"#EF4444"},
+    {c:"🇧🇬",n:"Bulgária",   v:534, col:"#EF4444"},
   ];
 
+  /* IPC PT — INE Dez 2025 (variação homóloga 12m) */
   const IPC=[
-    {cat:"Habitação",        var12m:+3.8, ico:"🏠", col:"#EF4444"},
-    {cat:"Alimentação",      var12m:+2.1, ico:"🛒", col:"#F97316"},
-    {cat:"Transportes",      var12m:+4.2, ico:"🚗", col:"#F59E0B"},
-    {cat:"Saúde",            var12m:+5.1, ico:"🏥", col:"#8B5CF6"},
-    {cat:"Restauração",      var12m:+4.6, ico:"🍽️",col:"#06B6D4"},
-    {cat:"Educação",         var12m:+3.3, ico:"📚", col:"#3B82F6"},
-    {cat:"Electricidade/Gás",var12m:-1.2, ico:"⚡", col:"#10B981"},
-    {cat:"Comunicações",     var12m:-0.8, ico:"📱", col:"#10B981"},
+    {cat:"Habitação",        var12m:+4.2, ico:"🏠", col:"#EF4444"},
+    {cat:"Saúde",            var12m:+4.8, ico:"🏥", col:"#8B5CF6"},
+    {cat:"Restauração",      var12m:+4.1, ico:"🍽️",col:"#06B6D4"},
+    {cat:"Transportes",      var12m:+3.6, ico:"🚗", col:"#F59E0B"},
+    {cat:"Educação",         var12m:+3.1, ico:"📚", col:"#3B82F6"},
+    {cat:"Alimentação",      var12m:+2.4, ico:"🛒", col:"#F97316"},
+    {cat:"Electricidade/Gás",var12m:-0.8, ico:"⚡", col:"#10B981"},
+    {cat:"Comunicações",     var12m:-0.5, ico:"📱", col:"#10B981"},
   ];
 
-  const smn=870, smn24=820;
+  const smn=920, smn24=870;
   const yoy=((smn-smn24)/smn24*100).toFixed(1);
-  const custoLx=1650, custoResto=1150;
+  const custoLx=1750, custoResto=1220; /* estimativa 2026 */
   const rLx=(smn/custoLx*100).toFixed(0);
   const rResto=(smn/custoResto*100).toFixed(0);
 
@@ -2311,9 +2313,9 @@ function loadSMN(force){
           <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="1.8"/>
           <circle cx="${px(vals.length-1)}" cy="${py(smn)}" r="3" fill="#10B981"/>
           <text x="1" y="${H+9}" font-size="7" fill="#4A526A">2017: 557€</text>
-          <text x="${W}" y="${H+9}" font-size="7" fill="#10B981" text-anchor="end">2025: ${smn}€</text>
+          <text x="${W}" y="${H+9}" font-size="7" fill="#10B981" text-anchor="end">2026: ${smn}€</text>
         </svg>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:1px">+56% em 8 anos</div>
+        <div style="font-size:.57rem;color:var(--t3);margin-top:1px">+65% em 9 anos</div>
       </div>
 
       <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">Comparação EU 2025:</div>
@@ -2370,7 +2372,7 @@ function loadSMN(force){
           </span>
         </div>`;
       }).join("")}
-      <div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral Jan 2025: <b style="color:var(--text)">+2.7%</b> homólogo</div>
+      <div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral Dez 2025: <b style="color:var(--text)">+2.4%</b> homólogo · SMN 2026: 920€</div>
     </div>
   </div>`;
 }
