@@ -651,7 +651,7 @@ textarea.nta::placeholder{color:var(--t3)}
      ════════════════════════════════════════════════════════════ -->
 <div class="sec"><div class="sec-bar" style="background:#10B981"></div>
   <span style="color:#10B981">Economia Real</span>
-  <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Sentimento · Commodities · Portugal</span>
+  <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Sentimento · Commodities · Trabalho · Portugal</span>
 </div>
 
 <!-- ROW 1: Fear & Greed (s2) + Indicador Recessão (s2) -->
@@ -757,6 +757,35 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 </div><!-- /grid row4 -->
+
+<!-- ROW 5: Salário Mínimo & Custo de Vida (s2) + Transportes PT (s2) -->
+<div class="grid subgrid" style="margin-top:12px">
+
+  <!-- Salário Mínimo & Custo de Vida -->
+  <div class="card s2" id="smn-card">
+    <div class="stripe" style="background:linear-gradient(180deg,#10B981,#3B82F6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#10B98120">💼</div>
+      <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadSMN(true)">↺</button></div>
+    </div>
+    <div id="smn-body"></div>
+    <div class="src">✦ DGERT · INE · Eurostat · DGO · ref. 2025</div>
+  </div>
+
+  <!-- Transportes PT -->
+  <div class="card s2" id="transp-card">
+    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F97316)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#EF444420">🚆</div>
+      <span class="ch-lbl">Transportes · Portugal</span>
+      <div class="ch-r"><button class="rbtn" onclick="loadTransp(true)">↺</button></div>
+    </div>
+    <div id="transp-body"></div>
+    <div class="src">✦ CP · Carris Metropolitana · Metro Lisboa/Porto · STCP</div>
+  </div>
+
+</div><!-- /grid row5 -->
 
 <div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
@@ -1465,6 +1494,8 @@ setTimeout(()=>loadAir(),        1500);
 setTimeout(()=>loadCO2(),         900);
 setTimeout(()=>loadTTF(),          300);
 setTimeout(()=>loadGasPT(),        350);
+setTimeout(()=>loadSMN(),           450);
+setTimeout(()=>loadTransp(),        500);
 setTimeout(()=>loadPress(),        400);
 
 setInterval(()=>{
@@ -2209,6 +2240,293 @@ setTimeout(renderImob,300);
 /* ══════════════════════════════════════════════════════════════
    FEAR & GREED INDEX — Alternative.me (CORS livre)
    ══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════
+   SALÁRIO MÍNIMO & CUSTO DE VIDA · PT
+   ══════════════════════════════════════════════════════ */
+function loadSMN(force){
+  const el=document.getElementById("smn-body");
+  if(!el) return;
+
+  const SMN_HIST=[
+    {y:2017,v:557},{y:2018,v:580},{y:2019,v:600},{y:2020,v:635},
+    {y:2021,v:665},{y:2022,v:705},{y:2023,v:760},{y:2024,v:820},
+    {y:2025,v:870},
+  ];
+
+  const SMN_EU=[
+    {c:"🇱🇺",n:"Luxemburgo", v:2571,col:"#10B981"},
+    {c:"🇳🇱",n:"Holanda",    v:2069,col:"#10B981"},
+    {c:"🇧🇪",n:"Bélgica",    v:2029,col:"#10B981"},
+    {c:"🇩🇪",n:"Alemanha",   v:1981,col:"#10B981"},
+    {c:"🇫🇷",n:"França",     v:1767,col:"#3B82F6"},
+    {c:"🇪🇸",n:"Espanha",    v:1323,col:"#3B82F6"},
+    {c:"🇵🇹",n:"Portugal",   v:870, col:"#F59E0B"},
+    {c:"🇬🇷",n:"Grécia",     v:830, col:"#F59E0B"},
+    {c:"🇵🇱",n:"Polónia",    v:800, col:"#F97316"},
+    {c:"🇷🇴",n:"Roménia",    v:663, col:"#EF4444"},
+    {c:"🇧🇬",n:"Bulgária",   v:477, col:"#EF4444"},
+  ];
+
+  const IPC=[
+    {cat:"Habitação",        var12m:+3.8, ico:"🏠", col:"#EF4444"},
+    {cat:"Alimentação",      var12m:+2.1, ico:"🛒", col:"#F97316"},
+    {cat:"Transportes",      var12m:+4.2, ico:"🚗", col:"#F59E0B"},
+    {cat:"Saúde",            var12m:+5.1, ico:"🏥", col:"#8B5CF6"},
+    {cat:"Restauração",      var12m:+4.6, ico:"🍽️",col:"#06B6D4"},
+    {cat:"Educação",         var12m:+3.3, ico:"📚", col:"#3B82F6"},
+    {cat:"Electricidade/Gás",var12m:-1.2, ico:"⚡", col:"#10B981"},
+    {cat:"Comunicações",     var12m:-0.8, ico:"📱", col:"#10B981"},
+  ];
+
+  const smn=870, smn24=820;
+  const yoy=((smn-smn24)/smn24*100).toFixed(1);
+  const custoLx=1650, custoResto=1150;
+  const rLx=(smn/custoLx*100).toFixed(0);
+  const rResto=(smn/custoResto*100).toFixed(0);
+
+  const vals=SMN_HIST.map(x=>x.v);
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
+  const W=180,H=40;
+  const px=i=>Math.round(i/(vals.length-1)*W);
+  const py=v=>Math.round(H-(v-mn)/rng*H);
+  const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
+  const fill=pts+` ${W},${H+1} 0,${H+1}`;
+
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+    <!-- ESQ: SMN + EU -->
+    <div>
+      <div style="background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+             letter-spacing:.5px;margin-bottom:2px">SMN Portugal 2025</div>
+        <div style="display:flex;align-items:flex-end;gap:5px">
+          <div style="font-size:2.2rem;font-weight:900;color:#10B981;line-height:1">${smn}</div>
+          <div style="font-size:.72rem;color:var(--t3);margin-bottom:3px">€/mês</div>
+        </div>
+        <div style="font-size:.68rem;color:#10B981;font-weight:600;margin-top:1px">▲ ${yoy}% vs 2024 (820€)</div>
+        <svg viewBox="0 0 ${W} ${H+10}" style="width:100%;height:${H+10}px;margin-top:5px">
+          <polygon points="${fill}" fill="#10B98118"/>
+          <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="1.8"/>
+          <circle cx="${px(vals.length-1)}" cy="${py(smn)}" r="3" fill="#10B981"/>
+          <text x="1" y="${H+9}" font-size="7" fill="#4A526A">2017: 557€</text>
+          <text x="${W}" y="${H+9}" font-size="7" fill="#10B981" text-anchor="end">2025: ${smn}€</text>
+        </svg>
+        <div style="font-size:.57rem;color:var(--t3);margin-top:1px">+56% em 8 anos</div>
+      </div>
+
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">Comparação EU 2025:</div>
+      ${SMN_EU.map(r=>{
+        const bw=Math.round((r.v/2571)*100);
+        const ispt=r.n==="Portugal";
+        return `<div style="display:grid;grid-template-columns:16px 66px 1fr 38px;
+                     align-items:center;gap:3px;padding:2px ${ispt?"4px":"0"};
+                     ${ispt?"background:"+r.col+"15;border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)"}">
+          <span style="font-size:.76rem">${r.c}</span>
+          <span style="font-size:.59rem;font-weight:${ispt?700:400};
+                color:${ispt?"#fff":"var(--t2)"}">${r.n}</span>
+          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
+            <div style="width:${bw}%;height:100%;background:${r.col}"></div>
+          </div>
+          <span style="font-size:.61rem;color:${r.col};font-weight:600;text-align:right">${r.v}€</span>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <!-- DIR: Poder de compra + IPC -->
+    <div>
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">💰 SMN vs custo de vida estimado</div>
+      ${[{l:"Lisboa",v:custoLx,r:rLx},{l:"Resto do país",v:custoResto,r:rResto}].map(x=>{
+        const col=x.r<70?"#EF4444":x.r<85?"#F59E0B":"#10B981";
+        return `<div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:.62rem;color:var(--t2);font-weight:600">${x.l}</span>
+            <span style="font-size:.59rem;color:var(--t3)">est. ${x.v}€/mês</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:.7rem;font-weight:700;color:${col}">SMN cobre ${x.r}%</span>
+            <span style="font-size:.65rem;color:var(--t3)">défice ~${Math.max(0,x.v-smn)}€</span>
+          </div>
+          <div style="background:var(--b);border-radius:3px;height:6px;overflow:hidden">
+            <div style="width:${Math.min(x.r,100)}%;height:100%;background:${col};border-radius:3px"></div>
+          </div>
+        </div>`;
+      }).join("")}
+
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:6px 0 4px">📊 IPC por categoria · var. 12m (Jan 2025)</div>
+      ${IPC.map(c=>{
+        const abs=Math.abs(c.var12m);
+        const bw=Math.round((abs/6)*100);
+        return `<div style="display:grid;grid-template-columns:16px 86px 1fr 34px;
+                     align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--b)">
+          <span style="font-size:.7rem">${c.ico}</span>
+          <span style="font-size:.59rem;color:var(--t2)">${c.cat}</span>
+          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
+            <div style="width:${bw}%;height:100%;background:${c.col};opacity:.85"></div>
+          </div>
+          <span style="font-size:.62rem;font-weight:700;color:${c.col};text-align:right">
+            ${c.var12m>=0?"▲":"▼"}${abs.toFixed(1)}%
+          </span>
+        </div>`;
+      }).join("")}
+      <div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral Jan 2025: <b style="color:var(--text)">+2.7%</b> homólogo</div>
+    </div>
+  </div>`;
+}
+
+
+/* ══════════════════════════════════════════════════════
+   TRANSPORTES PT
+   ══════════════════════════════════════════════════════ */
+function loadTransp(force){
+  const el=document.getElementById("transp-body");
+  if(!el) return;
+
+  /* Passes Navegante 2025 — AML / AMP */
+  const PASSES=[
+    {nome:"Navegante Metropolitano",preco:40,zona:"Toda AML",ico:"🔵",
+     desc:"Metro+CP+Carris+STCP · ilimitado"},
+    {nome:"Navegante Municipal LX", preco:30,zona:"Lisboa",  ico:"🟢",
+     desc:"Todos os operadores dentro de Lisboa"},
+    {nome:"Navegante Municipal Porto",preco:30,zona:"Porto", ico:"🟣",
+     desc:"Metro+STCP+CP dentro do Porto"},
+    {nome:"Intermodal Porto (AMP)",  preco:40,zona:"AMP",    ico:"🟠",
+     desc:"Área Metropolitana do Porto"},
+  ];
+
+  /* Bilhetes individuais — tarifa com cartão 2025 */
+  const BILHETES=[
+    {op:"Metro Lisboa",   single:1.61,day:6.90, card:"Viva Viagem", col:"#F59E0B"},
+    {op:"Metro Porto",    single:1.25,day:null,  card:"Andante",     col:"#8B5CF6"},
+    {op:"CP Urbanos LX",  single:1.61,day:null,  card:"Navegante",   col:"#3B82F6"},
+    {op:"CP Urbanos Porto",single:1.25,day:null, card:"Andante",     col:"#10B981"},
+    {op:"Carris (LX)",    single:1.61,day:6.90,  card:"Viva Viagem", col:"#EF4444"},
+    {op:"STCP (Porto)",   single:1.25,day:null,  card:"Andante",     col:"#F97316"},
+  ];
+
+  /* Estado das linhas — actualizar manualmente */
+  const ESTADO=[
+    {op:"CP Urbanos Lisboa",    ico:"✅",col:"#10B981",msg:"Circulação normal"},
+    {op:"CP Urbanos Porto",     ico:"✅",col:"#10B981",msg:"Circulação normal"},
+    {op:"CP Longa Distância",   ico:"✅",col:"#10B981",msg:"Circulação normal"},
+    {op:"Metro Lisboa",         ico:"✅",col:"#10B981",msg:"Todas as linhas OK"},
+    {op:"Metro Porto",          ico:"✅",col:"#10B981",msg:"Todas as linhas OK"},
+    {op:"Carris Metropolitana", ico:"✅",col:"#10B981",msg:"Circulação normal"},
+  ];
+
+  /* Greves previstas — preencher quando houver */
+  const GREVES=[
+    /* {op:"CP",data:"15 Abr",tipo:"Greve parcial",desc:"Serviços mínimos 30%"} */
+  ];
+
+  /* Ligações CP de referência */
+  const LIGACOES=[
+    {orig:"Lisboa Or.",dest:"Porto Camp.",  dur:"2h55",tipo:"Alfa",preco:25.30,col:"#3B82F6"},
+    {orig:"Lisboa Or.",dest:"Faro",         dur:"2h45",tipo:"IC",  preco:22.60,col:"#10B981"},
+    {orig:"Lisboa Or.",dest:"Coimbra B",    dur:"1h30",tipo:"Alfa",preco:17.80,col:"#3B82F6"},
+    {orig:"Porto Camp.",dest:"Vigo",        dur:"1h10",tipo:"Int.",preco:15.00,col:"#8B5CF6"},
+    {orig:"Lisboa S.Ap.",dest:"Cascais",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
+    {orig:"Lisboa Rossio",dest:"Sintra",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
+  ];
+
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+    <!-- ESQ: Passes + Estado -->
+    <div>
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎫 Passe Navegante 2025</div>
+      ${PASSES.map(p=>`
+        <div style="background:var(--b2);border-radius:7px;padding:7px 9px;
+             margin-bottom:4px;border:1px solid var(--b)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.63rem;font-weight:700;color:var(--text);
+                   white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.ico} ${p.nome}</div>
+              <div style="font-size:.56rem;color:var(--t3);margin-top:1px;
+                   white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.desc}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <span style="font-size:1.15rem;font-weight:900;color:#10B981">${p.preco}</span>
+              <span style="font-size:.52rem;color:var(--t3)">€/mês</span>
+            </div>
+          </div>
+        </div>`).join("")}
+
+      <!-- Estado -->
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:8px 0 4px">
+        🚦 Estado das linhas
+        <span style="font-size:.54rem;font-weight:400;color:var(--t3)"> · actualizar manualmente</span>
+      </div>
+      ${ESTADO.map(e=>`
+        <div style="display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid var(--b)">
+          <span style="font-size:.72rem">${e.ico}</span>
+          <div style="flex:1">
+            <span style="font-size:.61rem;color:var(--text);font-weight:600">${e.op}</span>
+            <span style="font-size:.57rem;color:var(--t3)"> · ${e.msg}</span>
+          </div>
+        </div>`).join("")}
+
+      ${GREVES.length?`
+        <div style="font-size:.63rem;font-weight:700;color:#EF4444;margin:7px 0 3px">⚠️ Greves / Perturbações</div>
+        ${GREVES.map(g=>`
+          <div style="background:#EF444415;border:1px solid #EF444440;border-radius:6px;
+               padding:6px 9px;margin-bottom:3px">
+            <div style="font-size:.63rem;font-weight:700;color:#EF4444">${g.op} · ${g.data}</div>
+            <div style="font-size:.59rem;color:var(--t2)">${g.tipo}: ${g.desc}</div>
+          </div>`).join("")}`
+      :`<div style="background:#10B98112;border:1px solid #10B98130;border-radius:6px;
+            padding:5px 9px;margin-top:6px;font-size:.61rem;color:#10B981">
+          ✓ Sem greves anunciadas
+        </div>`}
+    </div>
+
+    <!-- DIR: Bilhetes + Ligações CP -->
+    <div>
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">🎟️ Bilhetes c/ cartão 2025</div>
+      <div style="display:grid;grid-template-columns:78px 1fr 1fr;gap:2px;
+           background:var(--b2);border-radius:7px;padding:4px 6px;margin-bottom:8px">
+        <div style="font-size:.55rem;color:var(--t3);padding:1px 0">Operador</div>
+        <div style="font-size:.55rem;color:var(--t3);text-align:center">Simples</div>
+        <div style="font-size:.55rem;color:var(--t3);text-align:center">Diário</div>
+        ${BILHETES.map(b=>`
+          <span style="font-size:.59rem;color:var(--t2);padding:2px 0;
+                border-top:1px solid var(--b)">${b.op}</span>
+          <div style="text-align:center;border-top:1px solid var(--b);padding:2px 0">
+            <span style="font-size:.75rem;font-weight:700;color:${b.col}">${b.single.toFixed(2)}€</span>
+          </div>
+          <div style="text-align:center;border-top:1px solid var(--b);padding:2px 0">
+            ${b.day?`<span style="font-size:.75rem;font-weight:700;color:var(--t2)">${b.day.toFixed(2)}€</span>`
+            :`<span style="font-size:.65rem;color:var(--t3)">—</span>`}
+          </div>`).join("")}
+      </div>
+
+      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">🚆 Ligações CP · referência</div>
+      ${LIGACOES.map(l=>`
+        <div style="background:var(--b2);border-radius:6px;padding:5px 8px;
+             margin-bottom:4px;border-left:3px solid ${l.col}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:4px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.61rem;color:var(--text);white-space:nowrap;
+                   overflow:hidden;text-overflow:ellipsis">${l.orig} → ${l.dest}</div>
+              <div style="font-size:.55rem;color:var(--t3)">${l.tipo} · ⏱ ${l.dur}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:.8rem;font-weight:800;color:${l.col}">${l.preco.toFixed(2)}€</div>
+              <div style="font-size:.5rem;color:var(--t3)">desde</div>
+            </div>
+          </div>
+        </div>`).join("")}
+
+      <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:4px;
+           font-size:.61rem;color:var(--t2);line-height:1.5">
+        💡 Passe Metropolitano (40€/mês) = <b style="color:#10B981">~25 viagens</b>.
+        Compensa a partir do 13.º dia útil com ida+volta.
+      </div>
+    </div>
+  </div>`;
+}
+
 
 /* ── GÁS NATURAL · PORTUGAL ── */
 async function loadGasPT(force=false){
