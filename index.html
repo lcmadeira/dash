@@ -2436,6 +2436,8 @@ function loadTransp(force){
      desc:"Metro+STCP+CP dentro do Porto"},
     {nome:"Intermodal Porto (AMP)",  preco:40,zona:"AMP",    ico:"🟠",
      desc:"Área Metropolitana do Porto"},
+    {nome:"Passe Alentejo",          preco:30,zona:"Alentejo",ico:"🟡",
+     desc:"CP Évora + RVTEJO + operadores regionais Alentejo"},
   ];
 
   /* Bilhetes individuais — tarifa com cartão 2025 */
@@ -2452,10 +2454,11 @@ function loadTransp(force){
   const ESTADO=[
     {op:"CP Urbanos Lisboa",    ico:"✅",col:"#10B981",msg:"Circulação normal"},
     {op:"CP Urbanos Porto",     ico:"✅",col:"#10B981",msg:"Circulação normal"},
-    {op:"CP Longa Distância",   ico:"✅",col:"#10B981",msg:"Circulação normal"},
+    {op:"CP Longa Distância",   ico:"✅",col:"#10B981",msg:"Circulação normal · incl. Lisboa↔Évora"},
     {op:"Metro Lisboa",         ico:"✅",col:"#10B981",msg:"Todas as linhas OK"},
     {op:"Metro Porto",          ico:"✅",col:"#10B981",msg:"Todas as linhas OK"},
     {op:"Carris Metropolitana", ico:"✅",col:"#10B981",msg:"Circulação normal"},
+    {op:"RVTEJO (Alentejo)",    ico:"✅",col:"#10B981",msg:"Serviço regional normal"},
   ];
 
   /* Greves previstas — preencher quando houver */
@@ -2471,6 +2474,11 @@ function loadTransp(force){
     {orig:"Porto Camp.",dest:"Vigo",        dur:"1h10",tipo:"Int.",preco:15.00,col:"#8B5CF6"},
     {orig:"Lisboa S.Ap.",dest:"Cascais",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
     {orig:"Lisboa Rossio",dest:"Sintra",    dur:"0h40",tipo:"Urb.",preco:1.61, col:"#F59E0B"},
+    /* Évora */
+    {orig:"Lisboa Or.",dest:"Évora",        dur:"1h37",tipo:"IC",  preco:14.30,col:"#F59E0B"},
+    {orig:"Évora",dest:"Lisboa Or.",        dur:"1h37",tipo:"IC",  preco:14.30,col:"#F59E0B"},
+    {orig:"Évora",dest:"Faro",             dur:"3h20",tipo:"IR",  preco:18.50,col:"#10B981"},
+    {orig:"Évora",dest:"Porto Camp.",      dur:"4h30",tipo:"IC",  preco:28.40,col:"#3B82F6"},
   ];
 
   el.innerHTML=`
@@ -2561,7 +2569,23 @@ function loadTransp(force){
           </div>
         </div>`).join("")}
 
-      <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:4px;
+      <!-- Nota Évora -->
+      <div style="background:#F59E0B11;border:1px solid #F59E0B30;border-radius:7px;
+           padding:8px 10px;margin-top:6px">
+        <div style="font-size:.63rem;font-weight:700;color:#F59E0B;margin-bottom:4px">
+          🏛️ Évora · Transportes
+        </div>
+        <div style="font-size:.6rem;color:var(--t2);line-height:1.7">
+          <b style="color:var(--text)">CP Lisboa↔Évora:</b> ~6 comboios/dia · 1h37 · desde 14.30€<br>
+          <b style="color:var(--text)">Passe Alentejo:</b> 30€/mês · CP + RVTEJO regionais<br>
+          <b style="color:var(--text)">RVTEJO:</b> autocarros regionais Évora↔Estremoz, Évora↔Beja,
+          Évora↔Portalegre · <span style="color:var(--t3)">rvtejo.pt</span><br>
+          <b style="color:var(--text)">Táxi/TVDE:</b> Bolt e Uber disponíveis em Évora cidade<br>
+          <b style="color:var(--text)">Nota:</b> sem Metro ou BRT — a CP é o transporte estrutural
+          para Lisboa
+        </div>
+      </div>
+      <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:5px;
            font-size:.61rem;color:var(--t2);line-height:1.5">
         💡 Passe Metropolitano (40€/mês) = <b style="color:#10B981">~25 viagens</b>.
         Compensa a partir do 13.º dia útil com ida+volta.
