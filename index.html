@@ -1900,14 +1900,233 @@ async function loadHolidays(force=false){
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
 /* ── EURIBOR estático (EMMI · emmi-benchmarks.eu) ── */
-const EURIBOR_DATA={updated:"06 Mar 2026",
-  rates:[{term:"3M",val:2.503,prev:2.548,color:"var(--cyan)"},{term:"6M",val:2.415,prev:2.463,color:"var(--blue)"},{term:"12M",val:2.350,prev:2.402,color:"var(--accent)"}],
-  hist:[["Mar 2026",2.503,2.415,2.350],["Fev 2026",2.548,2.463,2.402],["Jan 2026",2.612,2.534,2.478],["Dez 2025",2.721,2.648,2.589],["Nov 2025",2.869,2.784,2.718],["Out 2025",3.054,2.954,2.871]],
-  bce:2.40,peak:{val:4.160,date:"Out 2023"}};
+/* ── DADOS EURIBOR ── actualizar mensalmente via emmi-benchmarks.eu
+   Última actualização: 10 Mar 2026 · Fonte: EMMI / euriborrates.com */
+var EURIBOR_DATA={
+  updated:"10 Mar 2026",
+  /* 5 maturidades · valores médios mensais Mar 2026 (até 10 Mar) */
+  rates:[
+    {term:"1S",  termFull:"1 Semana", val:1.888,prev:2.012,color:"#06B6D4", hipot:false,
+     desc:"Ref. overnight e swaps curtos"},
+    {term:"1M",  termFull:"1 Mês",    val:1.951,prev:2.089,color:"#22D3EE", hipot:false,
+     desc:"Ref. produtos curtos, tesouraria"},
+    {term:"3M",  termFull:"3 Meses",  val:2.138,prev:2.503,color:"#3B82F6", hipot:true,
+     desc:"Crédito habitação revisão trimestral"},
+    {term:"6M",  termFull:"6 Meses",  val:2.295,prev:2.415,color:"#8B5CF6", hipot:true,
+     desc:"Crédito habitação revisão semestral"},
+    {term:"12M", termFull:"12 Meses", val:2.552,prev:2.350,color:"#A855F7", hipot:true,
+     desc:"Crédito habitação revisão anual"},
+  ],
+  /* Histórico mensal (últimas 8 entradas) [mês, 3M, 6M, 12M] para gráfico */
+  hist:[
+    ["Mar 26",2.138,2.295,2.552],
+    ["Fev 26",2.503,2.415,2.350],
+    ["Jan 26",2.612,2.534,2.478],
+    ["Dez 25",2.721,2.648,2.589],
+    ["Nov 25",2.869,2.784,2.718],
+    ["Out 25",3.054,2.954,2.871],
+    ["Set 25",3.124,3.018,2.936],
+    ["Ago 25",3.201,3.089,2.998],
+  ],
+  /* BCE */
+  bce:{dep:2.00,refin:2.15,margLend:2.40},
+  peak:{val:4.160,date:"Out 2023"},
+  /* Próxima reunião BCE */
+  bceNext:{
+    date:"17 Abr 2026",
+    expectativa:"Pausa",          /* Corte | Pausa | Subida */
+    probCorte:38,                 /* % probabilidade corte 25bp */
+    probPausa:58,
+    probSubida:4,
+    nota:"Mercados divididos. BCE aguarda dados inflação Mar/Abr antes de decidir."
+  },
+  /* Spread bancário típico PT (Euribor + spread = TAN) */
+  spreadBancario:{
+    min:0.70, max:1.50, tipico:1.10,
+    nota:"Spread médio do mercado PT em crédito habitação variável"
+  }
+};
+
 function renderEuribor(){
-  const d=EURIBOR_DATA,maxV=Math.max(...d.hist.flatMap(r=>r.slice(1)))*1.05;
-  $("euri-body").innerHTML=`<div class="euri-grid">${d.rates.map(r=>{const diff=r.val-r.prev;return`<div class="euri-item" style="border-top:2px solid ${r.color}"><div class="euri-term">Euribor ${r.term}</div><div class="euri-val" style="color:${r.color}">${r.val.toFixed(3)}<span style="font-size:.7rem">%</span></div><div class="euri-sub">${d.updated}</div><div class="euri-chg">${diff<0?`<span class="dn">▼ ${Math.abs(diff).toFixed(3)}pp</span>`:`<span class="up">▲ +${diff.toFixed(3)}pp</span>`}</div></div>`;}).join("")}</div><div class="euri-hist">${d.hist.map(([mes,...vals])=>`<div class="euri-hist-row"><div class="euri-hist-date">${mes}</div>${vals.map((v,i)=>`<div class="euri-hist-bar-wrap"><div class="euri-hist-bar" style="width:${Math.round((v/maxV)*100)}%;background:${d.rates[i].color}"></div></div><div class="euri-hist-val" style="color:${d.rates[i].color}">${v.toFixed(3)}%</div>`).join("")}</div>`).join("")}</div><div style="display:flex;gap:0;margin-top:10px;border-radius:var(--rs);border:1px solid var(--b);overflow:hidden"><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Taxa BCE</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue);margin-top:2px">${d.bce.toFixed(2)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Pico ${d.peak.date}</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red);margin-top:2px">${d.peak.val.toFixed(3)}%</div></div><div style="width:1px;background:var(--b)"></div><div style="flex:1;text-align:center;padding:8px;background:var(--surface)"><div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);text-transform:uppercase">Tendência</div><div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--green);margin-top:2px">▼ Descida</div></div></div>`;
+  const d=EURIBOR_DATA;
+  const el=document.getElementById("euri-body");
+  if(!el) return;
+
+  /* ── Gráfico SVG linhas (3M, 6M, 12M) ── */
+  const W=320, H=80, PAD={t:8,r:8,b:20,l:32};
+  const cw=W-PAD.l-PAD.r, ch=H-PAD.t-PAD.b;
+  const histRev=[...d.hist].reverse(); /* mais antigo → mais recente */
+  const allVals=histRev.flatMap(r=>r.slice(1));
+  const vmin=Math.floor(Math.min(...allVals)*10)/10-0.1;
+  const vmax=Math.ceil(Math.max(...allVals)*10)/10+0.1;
+  const vr=vmax-vmin;
+  const sx=i=>PAD.l+Math.round(i/(histRev.length-1)*cw);
+  const sy=v=>PAD.t+Math.round((1-(v-vmin)/vr)*ch);
+
+  /* Linhas para 3M(idx0), 6M(idx1), 12M(idx2) */
+  const lineColors=["#3B82F6","#8B5CF6","#A855F7"];
+  const lineLabels=["3M","6M","12M"];
+  const lines=lineColors.map((_,ci)=>
+    histRev.map((row,i)=>`${sx(i)},${sy(row[ci+1])}`).join(" ")
+  );
+
+  /* Ticks Y */
+  const yticks=[];
+  let yt=Math.ceil(vmin*10)/10;
+  while(yt<=vmax+0.01){ yticks.push(yt); yt=Math.round((yt+0.5)*10)/10; }
+
+  const svgChart=`<svg width="${W}" height="${H}" style="width:100%;display:block;overflow:visible">
+    <!-- Grid H -->
+    ${yticks.map(v=>`<line x1="${PAD.l}" y1="${sy(v)}" x2="${W-PAD.r}" y2="${sy(v)}"
+      stroke="var(--b)" stroke-width="1"/>`).join("")}
+    <!-- Ticks Y -->
+    ${yticks.map(v=>`<text x="${PAD.l-3}" y="${sy(v)+4}" text-anchor="end"
+      font-size="7" fill="var(--t3)">${v.toFixed(1)}</text>`).join("")}
+    <!-- Ticks X -->
+    ${histRev.filter((_,i)=>i%2===0).map((row,_,arr)=>{
+      const origIdx=histRev.indexOf(row);
+      return `<text x="${sx(origIdx)}" y="${H-2}" text-anchor="middle"
+        font-size="7" fill="var(--t3)">${row[0]}</text>`;
+    }).join("")}
+    <!-- Linhas -->
+    ${lines.map((pts,ci)=>`<polyline points="${pts}" fill="none"
+      stroke="${lineColors[ci]}" stroke-width="1.8" stroke-linejoin="round"/>`).join("")}
+    <!-- Pontos finais -->
+    ${lines.map((pts,ci)=>{
+      const last=pts.split(" ").pop().split(",");
+      return `<circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${lineColors[ci]}"/>`;
+    }).join("")}
+  </svg>`;
+
+  /* ── Calcular variação desde pico ── */
+  const peakVal=d.peak.val;
+  const r12=d.rates.find(r=>r.term==="12M");
+  const quedaPico=((peakVal-r12.val)/peakVal*100).toFixed(1);
+  const quedaPP=(peakVal-r12.val).toFixed(3);
+
+  /* ── TAN efectiva (Euribor + spread típico) ── */
+  const sp=d.spreadBancario;
+
+  /* ── Próxima reunião BCE ── */
+  const bce=d.bceNext;
+  const expColor=bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
+
+  el.innerHTML=`
+  <!-- 5 Pills de taxa -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px">
+    ${d.rates.map(r=>{
+      const diff=r.val-r.prev;
+      const dCol=diff<0?"#10B981":"#EF4444";
+      return `<div style="background:var(--b2);border-radius:6px;padding:5px 4px;
+           border-top:2px solid ${r.color};text-align:center">
+        <div style="font-size:.56rem;color:var(--t3);font-weight:600">${r.term}</div>
+        <div style="font-family:var(--mono);font-size:.85rem;font-weight:700;
+             color:${r.color};line-height:1.1;margin:2px 0">${r.val.toFixed(3)}<span style="font-size:.5rem">%</span></div>
+        <div style="font-size:.5rem;color:${dCol}">${diff<0?"▼":"▲"}${Math.abs(diff).toFixed(3)}pp</div>
+        ${r.hipot?`<div style="font-size:.44rem;color:var(--t3);margin-top:1px">🏠 hipot.</div>`:""}
+      </div>`;
+    }).join("")}
+  </div>
+
+  <!-- Gráfico SVG -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:.6rem;color:var(--t3)">Evolução mensal · Ago 2025 → Mar 2026</div>
+      <div style="display:flex;gap:8px">
+        ${lineColors.map((c,i)=>`<span style="font-size:.55rem;color:${c}">● ${lineLabels[i]}</span>`).join("")}
+      </div>
+    </div>
+    ${svgChart}
+  </div>
+
+  <!-- Linha KPI: BCE + Pico + Tendência -->
+  <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;
+       background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Depósito</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#3B82F6">${d.bce.dep.toFixed(2)}%</div>
+      <div style="font-size:.52rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
+    </div>
+    <div style="background:var(--b)"></div>
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#EF4444">${d.peak.val.toFixed(3)}%</div>
+      <div style="font-size:.52rem;color:#10B981">▼ ${quedaPP}pp (${quedaPico}%)</div>
+    </div>
+    <div style="background:var(--b)"></div>
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tendência</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#10B981">▼ Descida</div>
+      <div style="font-size:.52rem;color:var(--t3)">desde Out 2023</div>
+    </div>
+  </div>
+
+  <!-- Próxima reunião BCE -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px;
+       border-left:3px solid ${expColor}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:.6rem;font-weight:700;color:var(--t2)">
+          🏦 Próxima reunião BCE · ${bce.date}
+        </div>
+        <div style="font-size:.57rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
+      </div>
+      <div style="text-align:right;min-width:60px">
+        <div style="font-size:.62rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
+        <div style="font-size:.52rem;color:var(--t3)">consenso</div>
+      </div>
+    </div>
+    <!-- Barras de probabilidade -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
+      ${[
+        {label:"Corte −25bp",prob:bce.probCorte,col:"#10B981"},
+        {label:"Pausa",      prob:bce.probPausa, col:"#F59E0B"},
+        {label:"Subida",     prob:bce.probSubida,col:"#EF4444"},
+      ].map(b=>`<div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:.52rem;color:var(--t3)">${b.label}</span>
+          <span style="font-size:.54rem;font-weight:600;color:${b.col}">${b.prob}%</span>
+        </div>
+        <div style="background:var(--b);border-radius:3px;height:5px">
+          <div style="width:${b.prob}%;height:100%;background:${b.col};border-radius:3px"></div>
+        </div>
+      </div>`).join("")}
+    </div>
+  </div>
+
+  <!-- Spread bancário / TAN efectiva -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
+    <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+      🏠 Spread bancário PT · crédito habitação variável
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:5px">
+      ${[
+        {label:"Spread mín.",val:sp.min,suf:"%",col:"#10B981"},
+        {label:"Spread típico",val:sp.tipico,suf:"%",col:"#F59E0B"},
+        {label:"Spread máx.",val:sp.max,suf:"%",col:"#EF4444"},
+      ].map(s=>`<div style="text-align:center">
+        <div style="font-size:.65rem;font-weight:700;color:${s.col}">${s.val.toFixed(2)}${s.suf}</div>
+        <div style="font-size:.52rem;color:var(--t3)">${s.label}</div>
+      </div>`).join("")}
+    </div>
+    <!-- TAN efectiva para Euribor hipotecário -->
+    <div style="font-size:.57rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread típico ${sp.tipico.toFixed(2)}%):</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+      ${d.rates.filter(r=>r.hipot).map(r=>`
+        <div style="background:var(--surface);border-radius:5px;padding:4px 6px;text-align:center;
+             border:1px solid ${r.color}33">
+          <div style="font-size:.52rem;color:var(--t3)">Euribor ${r.termFull}</div>
+          <div style="font-size:.75rem;font-weight:700;color:${r.color}">
+            ${(r.val+sp.tipico).toFixed(3)}%</div>
+          <div style="font-size:.5rem;color:var(--t3)">TAN est.</div>
+        </div>`).join("")}
+    </div>
+    <div style="font-size:.52rem;color:var(--t3);margin-top:4px">
+      Fonte: EMMI · emmi-benchmarks.eu · Spread: média de mercado PT. Não constitui proposta comercial.
+    </div>
+  </div>`;
 }
+
 
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
 const FX_PAIRS=[
