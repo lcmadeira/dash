@@ -817,6 +817,22 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 
+
+  <!-- Bolsa de Lisboa · PSI 20 -->
+  <div class="card s4" style="grid-column:span 4">
+    <div class="stripe" style="background:linear-gradient(90deg,#10B981,#3B82F6)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#10B98120">🇵🇹</div>
+      <span class="ch-lbl">Bolsa de Lisboa · PSI 20</span>
+      <div class="ch-r">
+        <span class="badge" style="color:#10B981;border-color:#10B98144;background:#10B98111">● Live</span>
+        <button class="rbtn" onclick="loadPSI20(true)">↺</button>
+      </div>
+    </div>
+    <div id="psi20-body"></div>
+    <div class="src">✦ Yahoo Finance · Euronext Lisboa · .LS tickers · Dados em tempo real</div>
+  </div>
+
   <!-- Mapa de Calor S&P 500 / Crypto / ETFs -->
   <div class="card s2">
     <div class="stripe" style="background:linear-gradient(90deg,var(--green),var(--red))"></div>
@@ -2354,6 +2370,7 @@ loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),         400);
 setTimeout(()=>loadMarketStats(), 800);
+setTimeout(()=>loadPSI20(),        550);
 setTimeout(()=>loadCrypto(),      600);
 setTimeout(()=>loadFng(),         500);
 setTimeout(()=>loadAgri(),       1000);
@@ -2366,6 +2383,7 @@ setTimeout(()=>loadGasPT(),        350);
 setTimeout(()=>loadSMN(),           450);
 setTimeout(()=>loadTransp(),        500);
 setTimeout(()=>loadPress(),        400);
+setTimeout(()=>loadPSI20(),        550);
 
 setInterval(()=>{
   loadWeather();
@@ -2374,6 +2392,7 @@ setInterval(()=>{
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
   loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);
   setTimeout(()=>loadMarketStats(true),800);
+  setTimeout(()=>loadPSI20(true),1000);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS v2 ═══ */
@@ -3366,6 +3385,204 @@ function loadGasPT(force=false){
   </div>
   <div style="font-size:.56rem;color:var(--t3);margin-top:4px">
     Termo fixo: ${G.termoFixo.toFixed(2)} €/mês · IVA 6% incluído · Fonte: ERSE Deliberação Oct 2025
+  </div>`;
+}
+
+/* ── PSI20 · Constituintes (fallback Mar 2026) ── */
+const PSI20_CONST=[
+  {sym:"EDP.LS",    label:"EDP",             ico:"⚡",sector:"Energia",      col:"#3B82F6", fallback:4.12, fChg:-0.9},
+  {sym:"GALP.LS",   label:"Galp Energia",    ico:"🛢️",sector:"Energia",      col:"#F59E0B", fallback:11.34,fChg:0.4},
+  {sym:"JMT.LS",    label:"Jerónimo Martins",ico:"🛒",sector:"Distribuição", col:"#10B981", fallback:16.80,fChg:-1.2},
+  {sym:"BCP.LS",    label:"Millennium BCP",  ico:"🏦",sector:"Banca",        col:"#8B5CF6", fallback:0.338,fChg:1.8},
+  {sym:"NOS.LS",    label:"NOS",             ico:"📡",sector:"Telecom",      col:"#06B6D4", fallback:3.72, fChg:0.2},
+  {sym:"SON.LS",    label:"Sonae",           ico:"🏪",sector:"Distribuição", col:"#F97316", fallback:0.845,fChg:-0.5},
+  {sym:"RENE.LS",   label:"REN",             ico:"🔌",sector:"Energia",      col:"#22D3EE", fallback:2.49, fChg:0.0},
+  {sym:"CTT.LS",    label:"CTT Correios",    ico:"📬",sector:"Serviços",     col:"#A855F7", fallback:5.84, fChg:1.1},
+];
+/* Bolsas europeias */
+const EU_INDICES=[
+  {sym:"PSI20.LS",  label:"PSI 20",  flag:"🇵🇹",col:"#10B981",  fallback:9178, fChg:0.6},
+  {sym:"^GDAXI",    label:"DAX",     flag:"🇩🇪",col:"#3B82F6",  fallback:22890,fChg:0.3},
+  {sym:"^FCHI",     label:"CAC 40",  flag:"🇫🇷",col:"#8B5CF6",  fallback:8142, fChg:-0.2},
+  {sym:"^IBEX",     label:"IBEX 35", flag:"🇪🇸",col:"#F59E0B",  fallback:13120,fChg:0.5},
+  {sym:"^FTSE",     label:"FTSE 100",flag:"🇬🇧",col:"#06B6D4",  fallback:8540, fChg:0.1},
+  {sym:"^STOXX50E", label:"EURO STOXX 50",flag:"🇪🇺",col:"#A855F7",fallback:5480,fChg:0.2},
+];
+
+async function loadPSI20(force=false){
+  const el=document.getElementById("psi20-body");
+  if(!el) return;
+  el.innerHTML=`<div style="padding:16px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;
+
+  const CK="psi20_v1";
+  let cache=force?null:lsGet(CK);
+
+  if(!cache){
+    const YF ="https://query1.finance.yahoo.com/v8/finance/chart/";
+    const YF2="https://query2.finance.yahoo.com/v8/finance/chart/";
+
+    /* Fetch com sparkline (range=30d interval=1d) para PSI20 e com range=5d para os outros */
+    async function fetchSym(sym, withSpark=false){
+      const range=withSpark?"30d":"5d";
+      const URLS=[
+        "https://api.allorigins.win/raw?url="+encodeURIComponent(YF +sym+"?range="+range+"&interval=1d"),
+        "https://corsproxy.io/?url="        +encodeURIComponent(YF +sym+"?range="+range+"&interval=1d"),
+        "https://api.allorigins.win/raw?url="+encodeURIComponent(YF2+sym+"?range="+range+"&interval=1d"),
+      ];
+      for(const url of URLS){
+        try{
+          const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+          if(!r.ok) continue;
+          const j=await r.json();
+          const res=j?.chart?.result?.[0];
+          const meta=res?.meta;
+          if(!meta?.regularMarketPrice) continue;
+          const price=meta.regularMarketPrice;
+          const prev=meta.previousClose||meta.chartPreviousClose||price;
+          const hi=meta.regularMarketDayHigh||price;
+          const lo=meta.regularMarketDayLow||price;
+          const spark=withSpark?(res?.indicators?.quote?.[0]?.close||[]):[];
+          return {price,prev,hi,lo,chg:prev?((price-prev)/prev*100):0,spark};
+        }catch{}
+      }
+      return null;
+    }
+
+    /* Fetch paralelo — PSI20 com sparkline, resto sem */
+    const allSyms=[...EU_INDICES,...PSI20_CONST];
+    const results=await Promise.allSettled(
+      allSyms.map((s,i)=>fetchSym(s.sym, i===0)) /* só PSI20 (idx 0) quer spark */
+    );
+    cache={
+      indices: EU_INDICES.map((s,i)=>{
+        const v=results[i]?.value;
+        return v||{price:s.fallback,prev:s.fallback/(1+s.fChg/100),
+                   hi:s.fallback*1.005,lo:s.fallback*0.995,
+                   chg:s.fChg,spark:[]};
+      }),
+      stocks: PSI20_CONST.map((s,i)=>{
+        const v=results[EU_INDICES.length+i]?.value;
+        return v||{price:s.fallback,prev:s.fallback/(1+s.fChg/100),
+                   chg:s.fChg,hi:s.fallback,lo:s.fallback,spark:[]};
+      }),
+      ts: Date.now()
+    };
+    /* Guardar se tiver pelo menos o PSI20 */
+    if(cache.indices[0].price>0) lsSet(CK,cache);
+  }
+
+  /* ── Render ── */
+  const psi=cache.indices[0];
+  const psiChg=psi.chg||0;
+  const psiCol=psiChg>=0?"#10B981":"#EF4444";
+
+  /* Sparkline SVG do PSI20 (30 dias) */
+  function makeSpark(data, col, W=160, H=40){
+    const vals=data.filter(v=>v!=null&&v>0);
+    if(vals.length<2) return `<div style="width:${W}px;height:${H}px;display:flex;align-items:center;
+      justify-content:center;color:var(--t3);font-size:.6rem">sem dados</div>`;
+    const vmin=Math.min(...vals), vmax=Math.max(...vals), vr=vmax-vmin||1;
+    const sx=i=>Math.round(i/(vals.length-1)*W);
+    const sy=v=>Math.round(H-4-(v-vmin)/vr*(H-8)+4);
+    const pts=vals.map((v,i)=>`${sx(i)},${sy(v)}`).join(" ");
+    const fill=pts+` ${W},${H} 0,${H}`;
+    const up=vals[vals.length-1]>=vals[0];
+    const c=up?"#10B981":"#EF4444";
+    return `<svg width="${W}" height="${H}" style="display:block">
+      <defs><linearGradient id="spg${W}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${c}" stop-opacity=".2"/>
+        <stop offset="100%" stop-color="${c}" stop-opacity="0"/>
+      </linearGradient></defs>
+      <polygon points="${fill}" fill="url(#spg${W})"/>
+      <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/>
+      <circle cx="${sx(vals.length-1)}" cy="${sy(vals[vals.length-1])}" r="3" fill="${c}"/>
+    </svg>`;
+  }
+
+  el.innerHTML=`
+  <!-- Hero PSI20 -->
+  <div style="background:var(--b2);border-radius:10px;padding:10px 14px;
+       margin-bottom:8px;border-left:4px solid #10B981">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-size:.57rem;color:var(--t3);text-transform:uppercase;
+             letter-spacing:.6px;margin-bottom:3px">PSI 20 · Euronext Lisboa</div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <div style="font-size:2rem;font-weight:900;color:#10B981;
+               line-height:1;letter-spacing:-1px">${psi.price.toFixed(0)}</div>
+          <div style="margin-bottom:3px">
+            <div style="font-size:.75rem;font-weight:700;color:${psiCol}">
+              ${psiChg>=0?"▲":"▼"} ${Math.abs(psiChg).toFixed(2)}%</div>
+            <div style="font-size:.56rem;color:var(--t3)">vs fecho anterior</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:3px;font-size:.57rem;color:var(--t3)">
+          <span>H <b style="color:var(--t2)">${psi.hi.toFixed(0)}</b></span>
+          <span>L <b style="color:var(--t2)">${psi.lo.toFixed(0)}</b></span>
+          <span>Prev <b style="color:var(--t2)">${psi.prev.toFixed(0)}</b></span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.55rem;color:var(--t3);margin-bottom:3px">30 dias</div>
+        ${makeSpark(psi.spark,"#10B981",160,48)}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bolsas europeias -->
+  <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    🌍 Bolsas europeias
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:10px">
+    ${EU_INDICES.map((idx,i)=>{
+      const q=cache.indices[i];
+      const c=q.chg>=0?"#10B981":"#EF4444";
+      const isPSI=i===0;
+      return `<div style="background:var(--b2);border-radius:7px;padding:6px 7px;
+           ${isPSI?"border:1px solid #10B98144;":""}">
+        <div style="display:flex;align-items:center;gap:3px;margin-bottom:2px">
+          <span style="font-size:.85rem">${idx.flag}</span>
+          <span style="font-size:.6rem;font-weight:700;color:${idx.col}">${idx.label}</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--text)">
+          ${q.price>1000?q.price.toFixed(0):q.price.toFixed(2)}</div>
+        <div style="font-size:.58rem;font-weight:600;color:${c}">
+          ${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
+      </div>`;
+    }).join("")}
+  </div>
+
+  <!-- Constituintes PSI20 -->
+  <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    🏢 Constituintes PSI 20 · maiores empresas
+  </div>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    ${PSI20_CONST.map((s,i)=>{
+      const q=cache.stocks[i];
+      const c=q.chg>=0?"#10B981":"#EF4444";
+      const bgC=q.chg>=0?"#10B98110":"#EF444410";
+      return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;
+           background:${bgC};border-radius:6px;border:1px solid ${c}22">
+        <span style="font-size:.9rem;min-width:18px">${s.ico}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.65rem;font-weight:700;color:var(--text)">${s.label}</div>
+          <div style="font-size:.52rem;color:var(--t3)">${s.sector}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-size:.72rem;font-weight:700;color:${s.col}">
+            ${q.price<10?q.price.toFixed(3):q.price.toFixed(2)} €</div>
+          <div style="font-size:.58rem;font-weight:600;color:${c}">
+            ${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
+        </div>
+        <div style="width:60px">
+          ${makeSpark(q.spark||[],c,60,24)}
+        </div>
+      </div>`;
+    }).join("")}
+  </div>
+  <div style="font-size:.52rem;color:var(--t3);margin-top:5px;line-height:1.4">
+    ✦ Yahoo Finance · query1.finance.yahoo.com · Tickers: .LS (Euronext Lisboa) · 
+    Fallback: dados referência Mar 2026 caso API indisponível
   </div>`;
 }
 
