@@ -70,6 +70,181 @@ button{font-family:var(--font);cursor:pointer}
 .sec{grid-column:span 4;font-family:var(--mono);font-size:.56rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:10px 0 5px;border-bottom:1px solid var(--b);margin-bottom:-4px;display:flex;align-items:center;gap:8px}
 .sec-bar{width:3px;height:13px;border-radius:2px;flex-shrink:0}
 
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVIDADE MOBILE
+   ══════════════════════════════════════════════════════════════ */
+
+/* Tablet: 768px - 1199px */
+@media (max-width: 1199px) {
+  .wrap{padding:16px 12px 40px}
+  
+  /* Grid de 4 → 2 colunas */
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .s2,.s3,.s4,.subgrid{grid-column:span 2}
+  
+  /* Header ajustado */
+  .hdr{grid-template-columns:1fr;gap:12px;text-align:center}
+  .brand{order:1}
+  .clk-time{order:2;font-size:1.8rem}
+  .pills{order:3;justify-content:center}
+  
+  /* Tamanhos de fonte reduzidos */
+  html{font-size:14px}
+  .wx-temp{font-size:2.5rem}
+  .wx-ico{font-size:3rem}
+}
+
+/* Mobile: < 768px */
+@media (max-width: 767px) {
+  .wrap{padding:12px 10px 32px}
+  
+  /* Grid 1 coluna */
+  .grid{grid-template-columns:1fr;gap:10px}
+  .s2,.s3,.s4,.subgrid,.r2{grid-column:span 1;grid-row:span 1}
+  
+  /* Header mobile */
+  .hdr{
+    grid-template-columns:1fr;
+    gap:10px;
+    padding-bottom:12px;
+    margin-bottom:14px;
+  }
+  .brand{font-size:1.3rem}
+  .brand-sub{font-size:.55rem;margin-top:3px}
+  .clk-time{font-size:1.5rem;letter-spacing:1px}
+  .clk-date{font-size:.65rem}
+  .pills{flex-wrap:wrap;justify-content:center;gap:4px}
+  .pill{font-size:.55rem;padding:2px 6px}
+  
+  /* Cards compactos */
+  .card{padding:12px 14px}
+  .ch{margin-bottom:10px;gap:6px}
+  .ch-ico{width:22px;height:22px;font-size:11px}
+  .ch-lbl{font-size:.68rem}
+  .badge{font-size:.58rem;padding:2px 6px}
+  .rbtn{font-size:.58rem;padding:2px 7px}
+  
+  /* Seções */
+  .sec{font-size:.54rem;padding:8px 0 4px}
+  .sec-bar{width:2px;height:11px}
+  
+  /* Weather mobile */
+  .wx-top{flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:10px}
+  .wx-ico{font-size:2.5rem}
+  .wx-temp{font-size:2.2rem}
+  .wx-unit{font-size:1.1rem}
+  .wx-desc{font-size:.8rem}
+  .wx-loc{font-size:.58rem;margin-top:3px}
+  .wx-grid{gap:5px}
+  .wx-s{padding:7px 8px}
+  .wx-sl{font-size:.58rem}
+  .wx-sv{font-size:.82rem}
+  
+  /* Forecast strip mobile */
+  .fc-strip{gap:5px;margin-top:10px}
+  .fc-item{min-width:48px;padding:6px 5px}
+  .fc-day{font-size:.56rem}
+  .fc-ico{font-size:1.1rem}
+  .fc-t{font-size:.72rem}
+  .fc-td{font-size:.65rem}
+  
+  /* News mobile */
+  .news-wrap{max-height:250px}
+  .ni{padding:8px 0}
+  .ni-meta{flex-wrap:wrap;gap:4px}
+  .ni-src{max-width:80px;font-size:.58rem}
+  .ni-tag{font-size:.52rem;padding:1px 4px}
+  .ni-time{font-size:.58rem}
+  .ni-title{font-size:.78rem;line-height:1.4}
+  
+  /* Finance mobile */
+  .fin-tabs{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+  .ftab{padding:8px 9px}
+  .ft-ticker{font-size:.58rem}
+  .ft-name{font-size:.65rem;margin-bottom:5px}
+  .ft-price{font-size:1rem}
+  .ft-chg{font-size:.58rem}
+  
+  .chart-box{height:240px;padding:12px}
+  .chart-top{flex-direction:column;gap:6px;margin-bottom:10px}
+  .ch-name{font-size:.82rem}
+  .ch-price{font-size:1.3rem}
+  .ch-pct{font-size:.6rem}
+  .periods{gap:3px}
+  .pbtn{padding:2px 6px;font-size:.58rem}
+  
+  /* Market Stats mobile */
+  .mstat-grid{gap:6px}
+  .mstat{padding:8px 10px}
+  .mstat-lbl{font-size:.56rem;margin-bottom:4px}
+  .mstat-val{font-size:1.15rem}
+  .mstat-sub{font-size:.65rem}
+  .mstat-chg{font-size:.58rem}
+  
+  /* Crypto mobile */
+  .crypto-list{gap:6px}
+  .ci{padding:8px 10px;gap:8px}
+  .ci-sym{font-size:.58rem;width:38px}
+  .ci-name{font-size:.72rem}
+  .ci-price{font-size:.85rem}
+  .ci-chg{font-size:.58rem;min-width:48px}
+  
+  /* Fuel mobile */
+  .fuel-grid{gap:6px}
+  .fi{padding:8px 10px}
+  .fi-price{font-size:1.3rem}
+  
+  /* Electricity mobile */
+  .elec-top{gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .ekpi{padding:8px 9px}
+  .ekpi-lbl{font-size:.58rem;margin-bottom:3px}
+  .ekpi-val{font-size:1.2rem}
+  .ekpi-unit{font-size:.58rem}
+  .ekpi-chg{font-size:.58rem}
+  .bar-lbl{font-size:.56rem;margin-bottom:6px}
+  .bar-row{gap:6px;margin-bottom:4px}
+  .bar-rl{font-size:.65rem;width:52px}
+  .bar-rv{font-size:.58rem;width:58px}
+  .ebadges{gap:6px;margin-top:8px}
+  .ebadge{padding:7px}
+  .ebadge-val{font-size:1.1rem}
+  .ebadge-lbl{font-size:.58rem}
+  
+  /* Events mobile */
+  .ev-list{gap:5px}
+  .ev{padding:8px 9px;gap:8px}
+  .ev-dot{width:7px;height:7px;margin-top:3px}
+  .ev-title{font-size:.76rem}
+  
+  /* Tides mobile */
+  .tide-grid{gap:4px}
+  .tide-item{padding:6px 8px}
+  
+  /* Transport mobile */
+  .tl{gap:6px}
+  .tl-item{padding:8px 10px}
+  
+  /* Touch targets mínimos 44x44px */
+  button,a,.ni,.ftab,.ci,.fi,.ev{min-height:44px}
+  
+  /* Ajustes de scrollbar para mobile */
+  ::-webkit-scrollbar{width:2px;height:2px}
+}
+
+/* Mobile Small: < 375px */
+@media (max-width: 374px) {
+  html{font-size:13px}
+  .wrap{padding:10px 8px 28px}
+  .brand{font-size:1.2rem}
+  .clk-time{font-size:1.3rem}
+  .wx-temp{font-size:2rem}
+  .wx-ico{font-size:2.2rem}
+  .card{padding:10px 12px}
+  .fin-tabs{grid-template-columns:1fr}
+  .mstat-grid{grid-template-columns:1fr}
+  .fuel-grid{grid-template-columns:1fr}
+}
+
 /* Card */
 .card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
 .card:hover{border-color:var(--b2);background:var(--card-h)}
