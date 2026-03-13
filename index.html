@@ -743,6 +743,444 @@ button{font-family:var(--font);cursor:pointer}
   display: none !important;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE NOTIFICAÇÕES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Botão de notificações no header */
+.notif-btn {
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--t3);
+  cursor: pointer;
+  transition: all .25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-btn:hover {
+  background: var(--surface);
+  border-color: var(--b);
+  color: var(--accent);
+  transform: scale(1.05);
+}
+.notif-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: transform .25s;
+}
+.notif-btn:hover .notif-icon {
+  animation: bellRing 0.5s ease;
+}
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(-10deg); }
+  20%, 40% { transform: rotate(10deg); }
+}
+
+/* Badge de contagem */
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--red);
+  color: white;
+  font-family: var(--mono);
+  font-size: .55rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
+  animation: badgePulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(239, 87, 87, 0.6);
+}
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.notif-badge.zero {
+  display: none;
+}
+
+/* Painel de notificações (dropdown) */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 380px;
+  max-height: 520px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: none;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideDown 0.25s ease;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.notif-panel.show {
+  display: flex;
+}
+
+/* Header do painel */
+.notif-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.notif-title {
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+.notif-actions {
+  display: flex;
+  gap: 8px;
+}
+.notif-action-btn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--mono);
+  font-size: .6rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all .15s;
+}
+.notif-action-btn:hover {
+  color: var(--accent);
+  background: var(--ad);
+}
+
+/* Tabs de filtro */
+.notif-tabs {
+  display: flex;
+  padding: 0 16px;
+  gap: 4px;
+  border-bottom: 1px solid var(--b);
+  background: var(--surface);
+}
+.notif-tab {
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: .6rem;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+  position: relative;
+}
+.notif-tab:hover {
+  color: var(--t2);
+}
+.notif-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.notif-tab-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--red);
+  color: white;
+  font-size: .5rem;
+  padding: 1px 4px;
+  border-radius: 8px;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* Lista de notificações */
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.notif-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--t3);
+  font-size: .75rem;
+  line-height: 1.6;
+}
+.notif-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  opacity: 0.4;
+}
+
+/* Item de notificação */
+.notif-item {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+}
+.notif-item:hover {
+  border-color: var(--b2);
+  background: var(--card-h);
+}
+.notif-item.unread {
+  border-left: 3px solid var(--accent);
+  background: var(--ad);
+}
+.notif-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.notif-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.notif-item-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.notif-item-content {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item-type {
+  font-family: var(--mono);
+  font-size: .55rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 3px;
+}
+.notif-item-type.sismos { color: var(--red); }
+.notif-item-type.news { color: var(--blue); }
+.notif-item-type.energy { color: var(--orange); }
+
+.notif-item-title {
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.notif-item-desc {
+  font-size: .68rem;
+  color: var(--t3);
+  line-height: 1.4;
+}
+.notif-item-time {
+  font-family: var(--mono);
+  font-size: .58rem;
+  color: var(--t3);
+  margin-top: 6px;
+}
+
+.notif-item-dismiss {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: .9rem;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0;
+  transition: all .15s;
+}
+.notif-item:hover .notif-item-dismiss {
+  opacity: 1;
+}
+.notif-item-dismiss:hover {
+  color: var(--red);
+}
+
+/* Footer */
+.notif-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--b);
+  text-align: center;
+}
+.notif-footer-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: .65rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all .15s;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.notif-footer-btn:hover {
+  background: var(--ad);
+}
+
+/* Configurações de notificações */
+.notif-settings {
+  padding: 12px 16px;
+}
+.notif-setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--b);
+}
+.notif-setting-item:last-child {
+  border-bottom: none;
+}
+.notif-setting-label {
+  font-size: .72rem;
+  color: var(--t2);
+}
+.notif-setting-desc {
+  font-size: .62rem;
+  color: var(--t3);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+/* Toast notification (popup temporário) */
+.notif-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: toastSlideIn 0.3s ease;
+  cursor: pointer;
+}
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.notif-toast.hide {
+  animation: toastSlideOut 0.3s ease forwards;
+}
+@keyframes toastSlideOut {
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+.notif-toast-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.notif-toast-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.notif-toast-type {
+  font-family: var(--mono);
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.notif-toast-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: color .15s;
+}
+.notif-toast-close:hover {
+  color: var(--red);
+}
+.notif-toast-title {
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.notif-toast-desc {
+  font-size: .7rem;
+  color: var(--t3);
+  line-height: 1.4;
+}
+
+/* Severity colors */
+.notif-item.severity-high,
+.notif-toast.severity-high {
+  border-left-color: var(--red);
+}
+.notif-item.severity-medium,
+.notif-toast.severity-medium {
+  border-left-color: var(--orange);
+}
+.notif-item.severity-low,
+.notif-toast.severity-low {
+  border-left-color: var(--green);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .notif-panel {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100vh - 80px);
+  }
+  .notif-toast {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+  .notif-icon {
+    font-size: 1.1rem;
+  }
+}
+
 /* Mobile adjustments */
 @media (max-width: 767px) {
   .settings-panel {
@@ -1205,6 +1643,51 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
   <div class="hdr-right">
     <div class="pills" id="pills"></div>
+    <div style="position:relative">
+      <button class="notif-btn" onclick="toggleNotifications()" title="Notificações">
+        <span class="notif-icon">🔔</span>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      
+      <!-- Painel de notificações -->
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-header">
+          <div class="notif-title">Notificações</div>
+          <div class="notif-actions">
+            <button class="notif-action-btn" onclick="markAllAsRead()">Marcar lidas</button>
+            <button class="notif-action-btn" onclick="clearAllNotifications()">Limpar</button>
+          </div>
+        </div>
+        
+        <div class="notif-tabs">
+          <button class="notif-tab active" onclick="filterNotifications('all')">
+            Todas<span class="notif-tab-badge" id="notifAllCount">0</span>
+          </button>
+          <button class="notif-tab" onclick="filterNotifications('sismos')">
+            Sismos<span class="notif-tab-badge" id="notifSismosCount">0</span>
+          </button>
+          <button class="notif-tab" onclick="filterNotifications('news')">
+            Notícias<span class="notif-tab-badge" id="notifNewsCount">0</span>
+          </button>
+          <button class="notif-tab" onclick="filterNotifications('energy')">
+            Energia<span class="notif-tab-badge" id="notifEnergyCount">0</span>
+          </button>
+        </div>
+        
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty">
+            <div class="notif-empty-icon">🔕</div>
+            <div>Nenhuma notificação</div>
+          </div>
+        </div>
+        
+        <div class="notif-footer">
+          <button class="notif-footer-btn" onclick="openNotificationSettings()">
+            Configurar notificações
+          </button>
+        </div>
+      </div>
+    </div>
     <button class="settings-icon-btn" onclick="openSettings()" title="Configurações">
       <span class="settings-icon">⚙️</span>
     </button>
@@ -6393,6 +6876,445 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Adicionar data-card-id aos cards principais (precisa ser feito manualmente no HTML
   // ou dinamicamente aqui se soubermos os seletores)
+});
+
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE NOTIFICAÇÕES
+   ══════════════════════════════════════════════════════════════ */
+
+// Estado das notificações
+let notifications = [];
+let notificationSettings = {
+  sismos: { enabled: true, minMagnitude: 3.0, sound: true },
+  news: { enabled: true, keywords: ['portugal', 'breaking'], sound: true },
+  energy: { enabled: true, threshold: 20, sound: true } // % acima da média
+};
+
+// Carregar do localStorage
+function loadNotifications() {
+  const saved = localStorage.getItem('notifications');
+  if (saved) {
+    notifications = JSON.parse(saved);
+  }
+  
+  const savedSettings = localStorage.getItem('notificationSettings');
+  if (savedSettings) {
+    notificationSettings = JSON.parse(savedSettings);
+  }
+  
+  updateNotificationUI();
+}
+
+// Salvar no localStorage
+function saveNotifications() {
+  localStorage.setItem('notifications', JSON.stringify(notifications));
+  localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+}
+
+// Adicionar notificação
+function addNotification(type, title, description, severity = 'medium', data = {}) {
+  const notif = {
+    id: Date.now(),
+    type,
+    title,
+    description,
+    severity,
+    timestamp: new Date().toISOString(),
+    read: false,
+    data
+  };
+  
+  notifications.unshift(notif);
+  
+  // Limitar a 50 notificações
+  if (notifications.length > 50) {
+    notifications = notifications.slice(0, 50);
+  }
+  
+  saveNotifications();
+  updateNotificationUI();
+  
+  // Mostrar toast
+  showToast(notif);
+  
+  // Tocar som se ativado
+  if (notificationSettings[type]?.sound) {
+    playNotificationSound();
+  }
+  
+  return notif;
+}
+
+// UI: Atualizar interface
+function updateNotificationUI() {
+  const badge = document.getElementById('notifBadge');
+  const list = document.getElementById('notifList');
+  
+  // Contar não lidas
+  const unreadCount = notifications.filter(n => !n.read).length;
+  
+  // Atualizar badge
+  if (badge) {
+    badge.textContent = unreadCount;
+    badge.className = unreadCount === 0 ? 'notif-badge zero' : 'notif-badge';
+  }
+  
+  // Atualizar contadores por tipo
+  updateTabCounts();
+  
+  // Renderizar lista
+  if (list) {
+    renderNotificationList();
+  }
+}
+
+// Atualizar contadores dos tabs
+function updateTabCounts() {
+  const all = notifications.filter(n => !n.read).length;
+  const sismos = notifications.filter(n => n.type === 'sismos' && !n.read).length;
+  const news = notifications.filter(n => n.type === 'news' && !n.read).length;
+  const energy = notifications.filter(n => n.type === 'energy' && !n.read).length;
+  
+  const updateCount = (id, count) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = count;
+      el.style.display = count === 0 ? 'none' : 'block';
+    }
+  };
+  
+  updateCount('notifAllCount', all);
+  updateCount('notifSismosCount', sismos);
+  updateCount('notifNewsCount', news);
+  updateCount('notifEnergyCount', energy);
+}
+
+// Renderizar lista de notificações
+let currentFilter = 'all';
+
+function renderNotificationList() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  
+  let filtered = notifications;
+  if (currentFilter !== 'all') {
+    filtered = notifications.filter(n => n.type === currentFilter);
+  }
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="notif-empty">
+        <div class="notif-empty-icon">🔕</div>
+        <div>Nenhuma notificação${currentFilter !== 'all' ? ' nesta categoria' : ''}</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Ícones por tipo
+  const icons = {
+    sismos: '🌍',
+    news: '📰',
+    energy: '⚡'
+  };
+  
+  list.innerHTML = filtered.map(n => {
+    const time = formatTimeAgo(new Date(n.timestamp));
+    const unreadClass = n.read ? '' : 'unread';
+    const severityClass = `severity-${n.severity}`;
+    
+    return `
+      <div class="notif-item ${unreadClass} ${severityClass}" onclick="markAsRead('${n.id}')">
+        <div class="notif-item-header">
+          <div class="notif-item-icon">${icons[n.type] || '📌'}</div>
+          <div class="notif-item-content">
+            <div class="notif-item-type ${n.type}">${n.type.toUpperCase()}</div>
+            <div class="notif-item-title">${n.title}</div>
+            <div class="notif-item-desc">${n.description}</div>
+            <div class="notif-item-time">${time}</div>
+          </div>
+          <button class="notif-item-dismiss" onclick="dismissNotification(event, '${n.id}')">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Toggle painel de notificações
+function toggleNotifications() {
+  const panel = document.getElementById('notifPanel');
+  if (panel) {
+    panel.classList.toggle('show');
+  }
+}
+
+// Fechar ao clicar fora
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  const btn = document.querySelector('.notif-btn');
+  
+  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('show');
+  }
+});
+
+// Filtrar notificações
+function filterNotifications(type) {
+  currentFilter = type;
+  
+  // Atualizar tabs ativos
+  document.querySelectorAll('.notif-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  renderNotificationList();
+}
+
+// Marcar como lida
+function markAsRead(id) {
+  const notif = notifications.find(n => n.id == id);
+  if (notif) {
+    notif.read = true;
+    saveNotifications();
+    updateNotificationUI();
+  }
+}
+
+// Marcar todas como lidas
+function markAllAsRead() {
+  notifications.forEach(n => n.read = true);
+  saveNotifications();
+  updateNotificationUI();
+}
+
+// Dispensar notificação
+function dismissNotification(event, id) {
+  event.stopPropagation();
+  notifications = notifications.filter(n => n.id != id);
+  saveNotifications();
+  updateNotificationUI();
+}
+
+// Limpar todas
+function clearAllNotifications() {
+  if (confirm('Limpar todas as notificações?')) {
+    notifications = [];
+    saveNotifications();
+    updateNotificationUI();
+  }
+}
+
+// Toast (popup temporário)
+function showToast(notif) {
+  const icons = { sismos: '🌍', news: '📰', energy: '⚡' };
+  
+  const toast = document.createElement('div');
+  toast.className = `notif-toast severity-${notif.severity}`;
+  toast.innerHTML = `
+    <div class="notif-toast-header">
+      <div class="notif-toast-icon">${icons[notif.type] || '📌'}</div>
+      <div class="notif-toast-type">${notif.type}</div>
+      <button class="notif-toast-close" onclick="this.parentElement.parentElement.remove()">✕</button>
+    </div>
+    <div class="notif-toast-title">${notif.title}</div>
+    <div class="notif-toast-desc">${notif.description}</div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Auto-remover após 5 segundos
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+  
+  // Clicar para dispensar
+  toast.onclick = () => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  };
+}
+
+// Som de notificação (beep simples)
+function playNotificationSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.2);
+  } catch (e) {
+    // Falha silenciosa se não suportar Web Audio API
+  }
+}
+
+// Formatar tempo relativo
+function formatTimeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  
+  if (seconds < 60) return 'agora mesmo';
+  if (seconds < 3600) return `há ${Math.floor(seconds / 60)} min`;
+  if (seconds < 86400) return `há ${Math.floor(seconds / 3600)} h`;
+  if (seconds < 604800) return `há ${Math.floor(seconds / 86400)} d`;
+  
+  return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
+}
+
+// Abrir configurações de notificações
+function openNotificationSettings() {
+  // Mudar para tab de notificações no painel de configurações
+  openSettings();
+  
+  // TODO: Criar tab de notificações no painel de settings
+  alert('Configurações de notificações em desenvolvimento!\n\nPor agora, todas as notificações estão ativas:\n• Sismos > 3.0\n• Notícias importantes\n• Picos de energia > 20%');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MONITORIZAÇÃO AUTOMÁTICA
+// ══════════════════════════════════════════════════════════════
+
+// Verificar sismos
+let lastSeismicCheck = null;
+
+function checkSeismicActivity(data) {
+  if (!notificationSettings.sismos.enabled) return;
+  
+  // Aqui integraria com os dados reais de sismos
+  // Por agora, exemplo de como seria usado:
+  /*
+  data.forEach(sismo => {
+    if (sismo.magnitude >= notificationSettings.sismos.minMagnitude) {
+      const key = `sismo-${sismo.id}`;
+      if (!lastSeismicCheck || !lastSeismicCheck.includes(key)) {
+        addNotification(
+          'sismos',
+          `Sismo de magnitude ${sismo.magnitude}`,
+          `${sismo.location} • Profundidade: ${sismo.depth}km`,
+          sismo.magnitude >= 4.0 ? 'high' : 'medium',
+          sismo
+        );
+      }
+    }
+  });
+  */
+}
+
+// Verificar notícias importantes
+function checkBreakingNews(articles) {
+  if (!notificationSettings.news.enabled) return;
+  
+  // Detectar breaking news por keywords
+  const keywords = ['urgente', 'breaking', 'última hora', 'agora'];
+  
+  articles.forEach(article => {
+    const hasKeyword = keywords.some(kw => 
+      article.title?.toLowerCase().includes(kw) ||
+      article.description?.toLowerCase().includes(kw)
+    );
+    
+    if (hasKeyword) {
+      // Verificar se já notificámos
+      const exists = notifications.find(n => 
+        n.type === 'news' && n.data?.url === article.url
+      );
+      
+      if (!exists) {
+        addNotification(
+          'news',
+          article.title || 'Notícia importante',
+          article.source || 'Última hora',
+          'high',
+          article
+        );
+      }
+    }
+  });
+}
+
+// Verificar preços de energia
+let lastEnergyPrice = null;
+
+function checkEnergyPrices(currentPrice, averagePrice) {
+  if (!notificationSettings.energy.enabled) return;
+  
+  const percentAbove = ((currentPrice - averagePrice) / averagePrice) * 100;
+  
+  if (percentAbove >= notificationSettings.energy.threshold) {
+    // Só notificar uma vez por pico
+    if (!lastEnergyPrice || lastEnergyPrice < averagePrice) {
+      addNotification(
+        'energy',
+        `Preço de energia ${percentAbove.toFixed(0)}% acima da média`,
+        `Atual: ${currentPrice.toFixed(2)} €/MWh • Média: ${averagePrice.toFixed(2)} €/MWh`,
+        percentAbove >= 40 ? 'high' : 'medium',
+        { current: currentPrice, average: averagePrice }
+      );
+    }
+  }
+  
+  lastEnergyPrice = currentPrice;
+}
+
+// Exemplos de notificações (para demonstração)
+function generateDemoNotifications() {
+  if (notifications.length > 0) return; // Só gerar se vazio
+  
+  // Exemplo: Sismo
+  addNotification(
+    'sismos',
+    'Sismo de magnitude 3.4 registado',
+    'Região de Évora • Profundidade: 12km • Sem danos reportados',
+    'medium',
+    { magnitude: 3.4, location: 'Évora', depth: 12 }
+  );
+  
+  // Exemplo: Notícia
+  addNotification(
+    'news',
+    'Portugal lidera produção de energia renovável na UE',
+    'País atinge 85% de renováveis no primeiro trimestre de 2026',
+    'low',
+    { source: 'Público', category: 'Ambiente' }
+  );
+  
+  // Exemplo: Energia
+  addNotification(
+    'energy',
+    'Preço de eletricidade 25% acima da média',
+    'Pico registado às 19h • 145 €/MWh vs média de 116 €/MWh',
+    'medium',
+    { current: 145, average: 116 }
+  );
+}
+
+// Inicializar sistema de notificações
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotifications();
+  
+  // Gerar notificações demo (remover em produção)
+  setTimeout(() => {
+    generateDemoNotifications();
+  }, 2000);
+  
+  // Verificar novas notificações a cada 5 minutos
+  setInterval(() => {
+    // Aqui chamarías as funções de verificação com dados reais
+    // checkSeismicActivity(dadosSismos);
+    // checkBreakingNews(dadosNoticias);
+    // checkEnergyPrices(precoAtual, precoMedio);
+  }, 5 * 60 * 1000);
 });
 
 
