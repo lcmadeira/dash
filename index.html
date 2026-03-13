@@ -84,9 +84,9 @@ button{font-family:var(--font);cursor:pointer}
   
   /* Header ajustado */
   .hdr{grid-template-columns:1fr;gap:12px;text-align:center}
-  .brand{order:1}
-  .clk-time{order:2;font-size:1.8rem}
-  .pills{order:3;justify-content:center}
+  .hdr-left{order:1;align-items:center}
+  .hdr-center{order:2}
+  .hdr-right{order:3;justify-content:center}
   
   /* Tamanhos de fonte reduzidos */
   html{font-size:14px}
@@ -109,6 +109,9 @@ button{font-family:var(--font);cursor:pointer}
     padding-bottom:12px;
     margin-bottom:14px;
   }
+  .hdr-left{align-items:center}
+  .hdr-center{align-items:center}
+  .hdr-right{justify-content:center}
   .brand{font-size:1.3rem}
   .brand-sub{font-size:.55rem;margin-top:3px}
   .clk-time{font-size:1.5rem;letter-spacing:1px}
@@ -249,34 +252,78 @@ button{font-family:var(--font);cursor:pointer}
    PAINEL DE CONFIGURAÇÕES (PERSONALIZAÇÃO)
    ══════════════════════════════════════════════════════════════ */
 
-/* Botão de configurações no header */
-.settings-btn {
-  background: var(--surface);
-  border: 1px solid var(--b);
-  border-radius: var(--rs);
-  padding: 6px 12px;
-  color: var(--t2);
-  font-family: var(--mono);
-  font-size: .65rem;
+/* Header ajustado */
+.hdr-left, .hdr-center, .hdr-right {
+  display: flex;
+  flex-direction: column;
+}
+.hdr-right {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Botão de configurações - versão ícone discreto */
+.settings-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--t3);
+  cursor: pointer;
+  transition: all .25s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: all .2s;
-  cursor: pointer;
+  justify-content: center;
+  position: relative;
 }
-.settings-btn:hover {
-  border-color: var(--accent);
+.settings-icon-btn:hover {
+  background: var(--surface);
+  border-color: var(--b);
   color: var(--accent);
-  background: var(--ad);
+  transform: scale(1.05);
 }
-.settings-btn .ico {
-  font-size: 1rem;
-  animation: rotate 8s linear infinite;
+.settings-icon-btn:active {
+  transform: scale(0.95);
 }
-@keyframes rotate {
-  0%, 90% { transform: rotate(0deg); }
-  95% { transform: rotate(180deg); }
-  100% { transform: rotate(360deg); }
+.settings-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  filter: grayscale(0.3);
+  transition: filter .25s;
+}
+.settings-icon-btn:hover .settings-icon {
+  filter: grayscale(0);
+  animation: rotateHover 0.6s ease;
+}
+@keyframes rotateHover {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+/* Tooltip on hover */
+.settings-icon-btn::after {
+  content: 'Configurações';
+  position: absolute;
+  bottom: -32px;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--t2);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 10;
+}
+.settings-icon-btn:hover::after {
+  opacity: 1;
 }
 
 /* Modal overlay */
@@ -729,6 +776,20 @@ button{font-family:var(--font);cursor:pointer}
   .ticker-suggestions {
     grid-template-columns: repeat(3, 1fr);
   }
+  
+  /* Header mobile */
+  .hdr-right {
+    gap: 8px;
+  }
+  .settings-icon-btn {
+    padding: 6px;
+  }
+  .settings-icon {
+    font-size: 1.1rem;
+  }
+  .settings-icon-btn::after {
+    display: none; /* Esconder tooltip em mobile */
+  }
 }
 
 /* Card */
@@ -1134,20 +1195,19 @@ textarea.nta::placeholder{color:var(--t3)}
 
 <!-- ═══════════════════ HEADER ═══════════════════ -->
 <header class="hdr">
-  <div>
+  <div class="hdr-left">
     <div class="brand">Painel Pessoal</div>
     <div class="brand-sub">Dashboard · Portugal</div>
   </div>
-  <div>
+  <div class="hdr-center">
     <div class="clk-time" id="clk"></div>
     <div class="clk-date" id="clkd"></div>
   </div>
-  <div class="pills">
-    <button class="settings-btn" onclick="openSettings()">
-      <span class="ico">⚙️</span>
-      <span>Configurações</span>
+  <div class="hdr-right">
+    <div class="pills" id="pills"></div>
+    <button class="settings-icon-btn" onclick="openSettings()" title="Configurações">
+      <span class="settings-icon">⚙️</span>
     </button>
-    <div id="pills"></div>
   </div>
 </header>
 
