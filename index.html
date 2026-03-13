@@ -245,6 +245,492 @@ button{font-family:var(--font);cursor:pointer}
   .fuel-grid{grid-template-columns:1fr}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   PAINEL DE CONFIGURAÇÕES (PERSONALIZAÇÃO)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Botão de configurações no header */
+.settings-btn {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 6px 12px;
+  color: var(--t2);
+  font-family: var(--mono);
+  font-size: .65rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+  cursor: pointer;
+}
+.settings-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--ad);
+}
+.settings-btn .ico {
+  font-size: 1rem;
+  animation: rotate 8s linear infinite;
+}
+@keyframes rotate {
+  0%, 90% { transform: rotate(0deg); }
+  95% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Modal overlay */
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(7, 9, 14, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: none;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.settings-overlay.show {
+  display: flex;
+  opacity: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Panel principal */
+.settings-panel {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp .3s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header do painel */
+.settings-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-close {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--t3);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1;
+}
+.settings-close:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--rd);
+}
+
+/* Tabs de navegação */
+.settings-tabs {
+  display: flex;
+  padding: 0 24px;
+  gap: 4px;
+  border-bottom: 1px solid var(--b);
+  background: var(--surface);
+}
+.settings-tab {
+  padding: 12px 20px;
+  font-family: var(--mono);
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  font-weight: 600;
+}
+.settings-tab:hover {
+  color: var(--t2);
+  background: var(--card);
+}
+.settings-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--card);
+}
+
+/* Conteúdo scrollável */
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Seção dentro do painel */
+.settings-section {
+  display: none;
+}
+.settings-section.active {
+  display: block;
+}
+.settings-section-title {
+  font-size: .7rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grid de cards toggle */
+.card-toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.card-toggle-item {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all .2s;
+  cursor: grab;
+}
+.card-toggle-item:active {
+  cursor: grabbing;
+}
+.card-toggle-item.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+.card-toggle-item:hover {
+  border-color: var(--b2);
+  background: var(--card);
+}
+.drag-handle {
+  color: var(--t3);
+  font-size: 1.1rem;
+  cursor: grab;
+  line-height: 1;
+}
+.card-toggle-item:active .drag-handle {
+  cursor: grabbing;
+}
+.card-toggle-info {
+  flex: 1;
+  min-width: 0;
+}
+.card-toggle-name {
+  font-size: .8rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.card-toggle-desc {
+  font-size: .65rem;
+  color: var(--t3);
+  font-family: var(--mono);
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--b);
+  border: 1px solid var(--b2);
+  transition: .3s;
+  border-radius: 11px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--t3);
+  transition: .3s;
+  border-radius: 50%;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background: white;
+}
+
+/* Location selector */
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.location-item {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+}
+.location-item:hover {
+  border-color: var(--b2);
+  background: var(--card);
+}
+.location-item.selected {
+  border-color: var(--accent);
+  background: var(--ad);
+}
+.location-name {
+  font-size: .75rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.location-region {
+  font-size: .6rem;
+  color: var(--t3);
+  font-family: var(--mono);
+}
+
+/* Tickers favoritos */
+.ticker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.ticker-item {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ticker-symbol {
+  font-family: var(--mono);
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--accent);
+  width: 60px;
+  flex-shrink: 0;
+}
+.ticker-name {
+  font-size: .75rem;
+  flex: 1;
+  color: var(--t2);
+}
+.ticker-remove {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: color .15s;
+}
+.ticker-remove:hover {
+  color: var(--red);
+}
+
+/* Add ticker form */
+.add-ticker-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ticker-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .75rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.ticker-input:focus {
+  border-color: var(--accent);
+}
+.ticker-input::placeholder {
+  color: var(--t3);
+}
+.ticker-add-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--rs);
+  padding: 8px 16px;
+  color: #07090E;
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.ticker-add-btn:hover {
+  opacity: .85;
+}
+.ticker-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+.ticker-suggestion {
+  background: var(--b);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+}
+.ticker-suggestion:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--ad);
+}
+
+/* Footer de ações */
+.settings-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--b);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: var(--surface);
+}
+.settings-btn-action {
+  padding: 8px 18px;
+  border-radius: var(--rs);
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.settings-btn-reset {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  color: var(--t3);
+}
+.settings-btn-reset:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: var(--rd);
+}
+.settings-btn-save {
+  background: var(--accent);
+  border: none;
+  color: #07090E;
+}
+.settings-btn-save:hover {
+  opacity: .85;
+}
+
+/* Card hidden state */
+.card.hidden {
+  display: none !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .settings-panel {
+    max-height: 95vh;
+    margin: 10px;
+  }
+  .settings-header {
+    padding: 16px 18px;
+  }
+  .settings-title {
+    font-size: 1.1rem;
+  }
+  .settings-tabs {
+    overflow-x: auto;
+    padding: 0 18px;
+  }
+  .settings-tab {
+    padding: 10px 14px;
+    font-size: .6rem;
+    white-space: nowrap;
+  }
+  .settings-body {
+    padding: 18px;
+  }
+  .card-toggles {
+    grid-template-columns: 1fr;
+  }
+  .location-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ticker-suggestions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 /* Card */
 .card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;animation:fadeUp .35s ease both}
 .card:hover{border-color:var(--b2);background:var(--card-h)}
@@ -656,7 +1142,13 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="clk-time" id="clk"></div>
     <div class="clk-date" id="clkd"></div>
   </div>
-  <div class="pills" id="pills"></div>
+  <div class="pills">
+    <button class="settings-btn" onclick="openSettings()">
+      <span class="ico">⚙️</span>
+      <span>Configurações</span>
+    </button>
+    <div id="pills"></div>
+  </div>
 </header>
 
 <!-- TradingView Ticker Tape -->
@@ -666,6 +1158,95 @@ textarea.nta::placeholder{color:var(--t3)}
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
     {"symbols":[{"description":"EUR/USD","proName":"FX_IDC:EURUSD"},{"description":"EUR/GBP","proName":"FX_IDC:EURGBP"},{"description":"EUR/JPY","proName":"FX_IDC:EURJPY"},{"description":"EUR/CHF","proName":"FX_IDC:EURCHF"},{"description":"EUR/BRL","proName":"FX_IDC:EURBRL"},{"description":"EUR/CNY","proName":"FX_IDC:EURCNY"},{"description":"S&P 500","proName":"FOREXCOM:SPXUSD"},{"description":"Nasdaq","proName":"FOREXCOM:NSXUSD"},{"description":"DAX","proName":"XETR:DAX"},{"description":"FTSE 100","proName":"FOREXCOM:UKXGBP"},{"description":"Ouro","proName":"FOREXCOM:XAUUSD"},{"description":"Prata","proName":"FOREXCOM:XAGUSD"},{"description":"Brent","proName":"OANDA:BCOUSD"},{"description":"WTI","proName":"OANDA:WTICOUSD"},{"description":"Gás Nat.","proName":"CAPITALCOM:NATURALGAS"},{"description":"BTC/USD","proName":"BITSTAMP:BTCUSD"},{"description":"ETH/USD","proName":"BITSTAMP:ETHUSD"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"pt"}
     </script>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAINEL DE CONFIGURAÇÕES ═══════════════════ -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <div class="settings-title">
+        <span>⚙️</span>
+        <span>Personalizar Painel</span>
+      </div>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-tabs">
+      <button class="settings-tab active" onclick="switchSettingsTab('cards')">Cards</button>
+      <button class="settings-tab" onclick="switchSettingsTab('location')">Localização</button>
+      <button class="settings-tab" onclick="switchSettingsTab('tickers')">Tickers</button>
+    </div>
+
+    <div class="settings-body">
+      <!-- TAB: Cards -->
+      <div id="settings-cards" class="settings-section active">
+        <div class="settings-section-title">
+          <span>📊</span>
+          <span>Escolher e Ordenar Cards</span>
+        </div>
+        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+          Arraste os cards para reordenar. Use os toggles para mostrar/ocultar.
+        </p>
+        <div class="card-toggles" id="cardToggles"></div>
+      </div>
+
+      <!-- TAB: Localização -->
+      <div id="settings-location" class="settings-section">
+        <div class="settings-section-title">
+          <span>📍</span>
+          <span>Localização Preferida</span>
+        </div>
+        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+          Escolha a cidade para meteorologia e informações locais.
+        </p>
+        <div class="location-grid" id="locationGrid"></div>
+      </div>
+
+      <!-- TAB: Tickers -->
+      <div id="settings-tickers" class="settings-section">
+        <div class="settings-section-title">
+          <span>📈</span>
+          <span>Tickers Favoritos</span>
+        </div>
+        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+          Adicione ações portuguesas para acompanhar no painel de finanças.
+        </p>
+        
+        <div class="add-ticker-form">
+          <input 
+            type="text" 
+            class="ticker-input" 
+            id="tickerInput" 
+            placeholder="Ticker (ex: BCP, EDP, GALP...)"
+            maxlength="10"
+          />
+          <button class="ticker-add-btn" onclick="addTicker()">Adicionar</button>
+        </div>
+
+        <div class="ticker-suggestions">
+          <button class="ticker-suggestion" onclick="quickAddTicker('BCP')">BCP</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('EDP')">EDP</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('GALP')">GALP</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('JMT')">J.MARTINS</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('NOS')">NOS</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('REN')">REN</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('CTT')">CTT</button>
+          <button class="ticker-suggestion" onclick="quickAddTicker('SONAE')">SONAE</button>
+        </div>
+
+        <div class="ticker-list" id="tickerList"></div>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="settings-btn-action settings-btn-reset" onclick="resetSettings()">
+        Restaurar Padrão
+      </button>
+      <button class="settings-btn-action settings-btn-save" onclick="saveSettings()">
+        Guardar Alterações
+      </button>
+    </div>
   </div>
 </div>
 
@@ -5386,6 +5967,373 @@ async function loadCO2(force=false){
       <div style="font-size:.65rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:48px;text-align:right">${x.v} g</div>
     </div>`).join("")}`;
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE PERSONALIZAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+
+// Configurações padrão
+const DEFAULT_CONFIG = {
+  cards: [
+    { id: 'weather', name: 'Meteorologia & Feriados', desc: 'Clima e feriados PT', visible: true, icon: '🌡️' },
+    { id: 'fuel', name: 'Combustíveis', desc: 'Preços gasolina/gasóleo', visible: true, icon: '⛽' },
+    { id: 'oil', name: 'Petróleo', desc: 'Brent & WTI', visible: true, icon: '🛢️' },
+    { id: 'gas-eu', name: 'Gás Natural EU', desc: 'Hubs europeus', visible: true, icon: '🔥' },
+    { id: 'gas-pt', name: 'Gás Natural PT', desc: 'Portugal', visible: true, icon: '🇵🇹' },
+    { id: 'elec', name: 'Eletricidade', desc: 'Preços e mix PT', visible: true, icon: '⚡' },
+    { id: 'euribor', name: 'Euribor', desc: 'Taxas referência', visible: true, icon: '📐' },
+    { id: 'imob', name: 'Imobiliário', desc: 'Mercado PT', visible: true, icon: '🏠' },
+    { id: 'news-pt', name: 'Notícias Portugal', desc: 'Últimas notícias PT', visible: true, icon: '📰' },
+    { id: 'news-world', name: 'Notícias Mundo', desc: 'Internacional', visible: true, icon: '🌍' },
+    { id: 'finance', name: 'Finanças PT', desc: 'Bolsa portuguesa', visible: true, icon: '📈' },
+    { id: 'crypto', name: 'Criptomoedas', desc: 'BTC, ETH, etc', visible: true, icon: '₿' },
+    { id: 'sismos', name: 'Sismos', desc: 'Atividade sísmica', visible: true, icon: '🌍' },
+    { id: 'co2', name: 'Emissões CO₂', desc: 'Mix energético', visible: true, icon: '🌱' }
+  ],
+  location: 'evora',
+  tickers: ['BCP', 'EDP', 'GALP', 'JMT']
+};
+
+// Localizações disponíveis
+const LOCATIONS = [
+  { id: 'lisboa', name: 'Lisboa', region: 'Região de Lisboa', lat: 38.7223, lon: -9.1393 },
+  { id: 'porto', name: 'Porto', region: 'Região do Porto', lat: 41.1579, lon: -8.6291 },
+  { id: 'coimbra', name: 'Coimbra', region: 'Centro', lat: 40.2033, lon: -8.4103 },
+  { id: 'braga', name: 'Braga', region: 'Norte', lat: 41.5454, lon: -8.4265 },
+  { id: 'faro', name: 'Faro', region: 'Algarve', lat: 37.0194, lon: -7.9322 },
+  { id: 'evora', name: 'Évora', region: 'Alentejo', lat: 38.5665, lon: -7.9073 },
+  { id: 'setubal', name: 'Setúbal', region: 'Península Setúbal', lat: 38.5244, lon: -8.8882 },
+  { id: 'aveiro', name: 'Aveiro', region: 'Centro Litoral', lat: 40.6443, lon: -8.6455 },
+  { id: 'viseu', name: 'Viseu', region: 'Centro Interior', lat: 40.6566, lon: -7.9122 },
+  { id: 'funchal', name: 'Funchal', region: 'Madeira', lat: 32.6669, lon: -16.9241 },
+  { id: 'ponta-delgada', name: 'Ponta Delgada', region: 'Açores', lat: 37.7412, lon: -25.6756 }
+];
+
+// Estado atual (carregado do localStorage)
+let currentConfig = JSON.parse(localStorage.getItem('dashboardConfig')) || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+// Drag & Drop state
+let draggedElement = null;
+
+// ──────────────────────────────────────────────────────────────
+// FUNÇÕES DE UI
+// ──────────────────────────────────────────────────────────────
+
+function openSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  
+  // Renderizar conteúdo
+  renderCardToggles();
+  renderLocationGrid();
+  renderTickerList();
+}
+
+function closeSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// Fechar ao clicar fora
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('settingsOverlay');
+  if (e.target === overlay) {
+    closeSettings();
+  }
+});
+
+// ESC para fechar
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeSettings();
+  }
+});
+
+function switchSettingsTab(tabName) {
+  // Desativar todos os tabs
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.settings-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  
+  // Ativar tab clicado
+  event.target.classList.add('active');
+  document.getElementById(`settings-${tabName}`).classList.add('active');
+}
+
+// ──────────────────────────────────────────────────────────────
+// CARDS TOGGLE & DRAG/DROP
+// ──────────────────────────────────────────────────────────────
+
+function renderCardToggles() {
+  const container = document.getElementById('cardToggles');
+  container.innerHTML = '';
+  
+  currentConfig.cards.forEach((card, index) => {
+    const div = document.createElement('div');
+    div.className = 'card-toggle-item';
+    div.draggable = true;
+    div.dataset.index = index;
+    
+    div.innerHTML = `
+      <div class="drag-handle">⋮⋮</div>
+      <div class="card-toggle-info">
+        <div class="card-toggle-name">${card.icon} ${card.name}</div>
+        <div class="card-toggle-desc">${card.desc}</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" ${card.visible ? 'checked' : ''} 
+               onchange="toggleCardVisibility(${index})">
+        <span class="toggle-slider"></span>
+      </label>
+    `;
+    
+    // Drag events
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragend', handleDragEnd);
+    div.addEventListener('dragover', handleDragOver);
+    div.addEventListener('drop', handleDrop);
+    
+    container.appendChild(div);
+  });
+}
+
+function handleDragStart(e) {
+  draggedElement = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.card-toggle-item').forEach(item => {
+    item.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+  
+  if (draggedElement !== this) {
+    const fromIndex = parseInt(draggedElement.dataset.index);
+    const toIndex = parseInt(this.dataset.index);
+    
+    // Reordenar array
+    const item = currentConfig.cards.splice(fromIndex, 1)[0];
+    currentConfig.cards.splice(toIndex, 0, item);
+    
+    // Re-renderizar
+    renderCardToggles();
+  }
+  
+  return false;
+}
+
+function toggleCardVisibility(index) {
+  currentConfig.cards[index].visible = !currentConfig.cards[index].visible;
+}
+
+// ──────────────────────────────────────────────────────────────
+// LOCALIZAÇÃO
+// ──────────────────────────────────────────────────────────────
+
+function renderLocationGrid() {
+  const container = document.getElementById('locationGrid');
+  container.innerHTML = '';
+  
+  LOCATIONS.forEach(loc => {
+    const div = document.createElement('div');
+    div.className = `location-item ${currentConfig.location === loc.id ? 'selected' : ''}`;
+    div.onclick = () => selectLocation(loc.id);
+    div.innerHTML = `
+      <div class="location-name">${loc.name}</div>
+      <div class="location-region">${loc.region}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function selectLocation(locationId) {
+  currentConfig.location = locationId;
+  renderLocationGrid();
+}
+
+// ──────────────────────────────────────────────────────────────
+// TICKERS
+// ──────────────────────────────────────────────────────────────
+
+function renderTickerList() {
+  const container = document.getElementById('tickerList');
+  container.innerHTML = '';
+  
+  if (currentConfig.tickers.length === 0) {
+    container.innerHTML = '<p style="font-size:.7rem;color:var(--t3);text-align:center;padding:20px">Nenhum ticker adicionado. Use as sugestões acima.</p>';
+    return;
+  }
+  
+  // Nomes das empresas (mapeamento simples)
+  const tickerNames = {
+    'BCP': 'Banco Comercial Português',
+    'EDP': 'Energias de Portugal',
+    'GALP': 'Galp Energia',
+    'JMT': 'Jerónimo Martins',
+    'NOS': 'NOS SGPS',
+    'REN': 'REN - Redes Energéticas',
+    'CTT': 'CTT Correios',
+    'SONAE': 'Sonae SGPS'
+  };
+  
+  currentConfig.tickers.forEach((ticker, index) => {
+    const div = document.createElement('div');
+    div.className = 'ticker-item';
+    div.innerHTML = `
+      <div class="ticker-symbol">${ticker}</div>
+      <div class="ticker-name">${tickerNames[ticker] || 'Empresa'}</div>
+      <button class="ticker-remove" onclick="removeTicker(${index})">✕</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addTicker() {
+  const input = document.getElementById('tickerInput');
+  const ticker = input.value.trim().toUpperCase();
+  
+  if (!ticker) return;
+  
+  if (currentConfig.tickers.includes(ticker)) {
+    alert('Este ticker já está na lista!');
+    return;
+  }
+  
+  if (currentConfig.tickers.length >= 10) {
+    alert('Máximo de 10 tickers permitidos.');
+    return;
+  }
+  
+  currentConfig.tickers.push(ticker);
+  input.value = '';
+  renderTickerList();
+}
+
+function quickAddTicker(ticker) {
+  if (currentConfig.tickers.includes(ticker)) {
+    alert('Este ticker já está na lista!');
+    return;
+  }
+  
+  if (currentConfig.tickers.length >= 10) {
+    alert('Máximo de 10 tickers permitidos.');
+    return;
+  }
+  
+  currentConfig.tickers.push(ticker);
+  renderTickerList();
+}
+
+function removeTicker(index) {
+  currentConfig.tickers.splice(index, 1);
+  renderTickerList();
+}
+
+// Enter para adicionar ticker
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('tickerInput');
+  if (input) {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addTicker();
+      }
+    });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// SALVAR & RESETAR
+// ──────────────────────────────────────────────────────────────
+
+function saveSettings() {
+  localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
+  
+  // Aplicar mudanças visualmente
+  applySettings();
+  
+  // Feedback visual
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = '✓ Guardado!';
+  btn.style.background = 'var(--green)';
+  
+  setTimeout(() => {
+    btn.textContent = originalText;
+    btn.style.background = '';
+    closeSettings();
+    
+    // Reload para aplicar mudanças completas (localização, tickers)
+    if (confirm('Recarregar página para aplicar todas as alterações?')) {
+      window.location.reload();
+    }
+  }, 1000);
+}
+
+function resetSettings() {
+  if (!confirm('Restaurar configurações padrão? Esta ação não pode ser desfeita.')) {
+    return;
+  }
+  
+  currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
+  
+  // Re-renderizar
+  renderCardToggles();
+  renderLocationGrid();
+  renderTickerList();
+  
+  // Feedback
+  alert('Configurações restauradas! Recarregue a página para ver as alterações.');
+}
+
+function applySettings() {
+  // Aplicar visibilidade dos cards
+  currentConfig.cards.forEach(card => {
+    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+    if (cardElement) {
+      if (card.visible) {
+        cardElement.classList.remove('hidden');
+      } else {
+        cardElement.classList.add('hidden');
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// INICIALIZAÇÃO
+// ──────────────────────────────────────────────────────────────
+
+// Aplicar configurações ao carregar página
+document.addEventListener('DOMContentLoaded', () => {
+  applySettings();
+  
+  // Adicionar data-card-id aos cards principais (precisa ser feito manualmente no HTML
+  // ou dinamicamente aqui se soubermos os seletores)
+});
 
 
 </script>
