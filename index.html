@@ -6809,10 +6809,72 @@ function removeTicker(index) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// AUTO-IDENTIFICAÇÃO DE CARDS
+// ──────────────────────────────────────────────────────────────
+
+function autoIdentifyCards() {
+  console.log('Auto-identificando cards...');
+  
+  // Mapeamento de texto → ID
+  const cardMappings = [
+    { text: 'Meteorologia', id: 'weather' },
+    { text: 'Combustíveis', id: 'fuel' },
+    { text: 'Petróleo', id: 'oil' },
+    { text: 'Gás Natural · Hubs Europeus', id: 'gas-eu' },
+    { text: 'Gás Natural · Portugal', id: 'gas-pt' },
+    { text: 'Eletricidade', id: 'elec' },
+    { text: 'Euribor', id: 'euribor' },
+    { text: 'Imobiliário', id: 'imob' },
+    { text: 'Notícias · Portugal', id: 'news-pt' },
+    { text: 'Notícias · Mundo', id: 'news-world' },
+    { text: 'Finanças', id: 'finance' },
+    { text: 'Crypto', id: 'crypto' },
+    { text: 'Bitcoin', id: 'crypto' },
+    { text: 'Sismos', id: 'sismos' },
+    { text: 'CO₂', id: 'co2' },
+    { text: 'Emissões', id: 'co2' }
+  ];
+  
+  // Pegar todos os cards
+  const cards = document.querySelectorAll('.card');
+  console.log(`Encontrados ${cards.length} cards`);
+  
+  let identified = 0;
+  
+  cards.forEach(card => {
+    // Já tem ID? Skip
+    if (card.dataset.cardId) return;
+    
+    // Procurar pelo texto do label
+    const label = card.querySelector('.ch-lbl');
+    if (!label) return;
+    
+    const labelText = label.textContent.trim();
+    
+    // Encontrar mapeamento
+    const mapping = cardMappings.find(m => labelText.includes(m.text));
+    
+    if (mapping) {
+      card.dataset.cardId = mapping.id;
+      identified++;
+      console.log(`✓ Card identificado: "${labelText}" → ${mapping.id}`);
+    } else {
+      console.warn(`✗ Card não mapeado: "${labelText}"`);
+    }
+  });
+  
+  console.log(`${identified} cards identificados de ${cards.length}`);
+  return identified;
+}
+
+// ──────────────────────────────────────────────────────────────
 // INICIALIZAÇÃO
 // ──────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Auto-identificar cards
+  autoIdentifyCards();
+  
   // Enter para adicionar ticker
   const input = document.getElementById('tickerInput');
   if (input) {
@@ -6895,33 +6957,37 @@ function resetSettings() {
 function applySettings() {
   console.log('Aplicando configurações:', currentConfig);
   
+  // Garantir que os cards têm IDs primeiro
+  const totalCards = document.querySelectorAll('.card').length;
+  const cardsWithId = document.querySelectorAll('.card[data-card-id]').length;
+  
+  console.log(`Cards total: ${totalCards}, com ID: ${cardsWithId}`);
+  
+  if (cardsWithId === 0 && totalCards > 0) {
+    console.warn('Nenhum card tem data-card-id! Executando auto-identificação...');
+    autoIdentifyCards();
+  }
+  
+  let applied = 0;
+  
   // Aplicar visibilidade dos cards
   currentConfig.cards.forEach(card => {
-    // Tentar encontrar o card pelo ID
-    const selectors = [
-      `[data-card-id="${card.id}"]`,
-      `#${card.id}`,
-      `#${card.id}-card`,
-      `.card[data-id="${card.id}"]`
-    ];
-    
-    let cardElement = null;
-    for (const selector of selectors) {
-      cardElement = document.querySelector(selector);
-      if (cardElement) break;
-    }
+    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
     
     if (cardElement) {
-      console.log(`Card encontrado: ${card.id}`, cardElement);
       if (card.visible) {
         cardElement.classList.remove('hidden');
       } else {
         cardElement.classList.add('hidden');
       }
+      applied++;
+      console.log(`✓ Card ${card.id}: ${card.visible ? 'visível' : 'oculto'}`);
     } else {
-      console.warn(`Card não encontrado: ${card.id}`);
+      console.warn(`✗ Card não encontrado: ${card.id}`);
     }
   });
+  
+  console.log(`${applied} configurações aplicadas de ${currentConfig.cards.length}`);
 }
 
 
