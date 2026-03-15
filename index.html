@@ -2381,10 +2381,118 @@ const DAY_NAMES=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 const DAY_NAMES_LONG=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const MONTH_NAMES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
-/* Cache 15min */
-const CACHE_TTL=15*60*1000,PFX="dash_v15_";
-function lsGet(k){try{const r=localStorage.getItem(PFX+k);if(!r)return null;const{d,ts}=JSON.parse(r);return(Date.now()-ts)<CACHE_TTL?d:null;}catch{return null;}}
-function lsSet(k,d){try{localStorage.setItem(PFX+k,JSON.stringify({d,ts:Date.now()}));}catch{}}
+/* Cache com TTL dinâmico baseado no tipo de dados */
+const CACHE_TTL = 15*60*1000; // Fallback padrão: 15min
+const PFX = "dash_v15_";
+
+// TTL específico por tipo de dado (em ms)
+const CACHE_TTL_MAP = {
+  weather: 15 * 60 * 1000,      // 15 min
+  ipma: 15 * 60 * 1000,
+  rss: 10 * 60 * 1000,          // 10 min (notícias)
+  news: 10 * 60 * 1000,
+  finance: 5 * 60 * 1000,       // 5 min (bolsa)
+  psi: 5 * 60 * 1000,
+  crypto: 2 * 60 * 1000,        // 2 min (cripto)
+  btc: 2 * 60 * 1000,
+  fx: 5 * 60 * 1000,            // 5 min (câmbios)
+  euribor: 24 * 60 * 60 * 1000, // 24h (taxas)
+  fuel: 24 * 60 * 60 * 1000,    // 24h (combustíveis)
+  co2: 60 * 60 * 1000,          // 1h (emissões)
+  static: 7 * 24 * 60 * 60 * 1000  // 7 dias (dados estáticos)
+};
+
+/**
+ * Determina TTL baseado na chave
+ */
+function getTTL(key) {
+  for (const [prefix, ttl] of Object.entries(CACHE_TTL_MAP)) {
+    if (key.toLowerCase().includes(prefix)) {
+      return ttl;
+    }
+  }
+  return CACHE_TTL; // Fallback
+}
+
+/**
+ * Get do localStorage com TTL dinâmico e compressão
+ */
+function lsGet(k) {
+  try {
+    const r = localStorage.getItem(PFX + k);
+    if (!r) return null;
+    
+    const {d, ts} = JSON.parse(r);
+    const ttl = getTTL(k);
+    const age = Date.now() - ts;
+    
+    // Cache expirado?
+    if (age >= ttl) {
+      localStorage.removeItem(PFX + k); // Limpar
+      return null;
+    }
+    
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Set do localStorage com gestão de quota
+ */
+function lsSet(k, d) {
+  try {
+    const payload = JSON.stringify({d, ts: Date.now()});
+    localStorage.setItem(PFX + k, payload);
+    return true;
+  } catch (e) {
+    // Quota excedida - limpar cache antigo
+    console.warn('LocalStorage cheio, limpando cache antigo...');
+    cleanOldCacheSync();
+    
+    // Tentar novamente
+    try {
+      localStorage.setItem(PFX + k, payload);
+      return true;
+    } catch {
+      console.error('Não foi possível salvar no cache');
+      return false;
+    }
+  }
+}
+
+/**
+ * Limpa cache antigo (versão síncrona)
+ */
+function cleanOldCacheSync() {
+  const keys = Object.keys(localStorage);
+  const now = Date.now();
+  let removed = 0;
+  
+  keys.forEach(key => {
+    if (!key.startsWith(PFX)) return;
+    
+    try {
+      const data = JSON.parse(localStorage.getItem(key));
+      if (data && data.ts) {
+        const ttl = getTTL(key);
+        if (now - data.ts > ttl) {
+          localStorage.removeItem(key);
+          removed++;
+        }
+      }
+    } catch {
+      // Dados corrompidos, remover
+      localStorage.removeItem(key);
+      removed++;
+    }
+  });
+  
+  if (removed > 0) {
+    console.log(`🧹 ${removed} itens de cache removidos`);
+  }
+}
 
 /* ── Oil tabs ── */
 function switchOil(type,btn){
@@ -6512,6 +6620,333 @@ async function loadCO2(force=false){
 }
 
 
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE OTIMIZAÇÃO DE PERFORMANCE
+   ══════════════════════════════════════════════════════════════ */
+
+// ──────────────────────────────────────────────────────────────
+// DEBOUNCE & THROTTLE
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Debounce - Executa função após delay sem novas chamadas
+ * Ideal para: resize, input, scroll (quando só importa o valor final)
+ */
+function debounce(func, wait = 300) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+/**
+ * Throttle - Limita execuções a uma por intervalo
+ * Ideal para: scroll events, mousemove (executa periodicamente)
+ */
+function throttle(func, limit = 300) {
+  let inThrottle;
+  return function executedFunction(...args) {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+// ──────────────────────────────────────────────────────────────
+// LAZY LOADING COM INTERSECTION OBSERVER
+// ──────────────────────────────────────────────────────────────
+
+const lazyLoadQueue = new Map();
+let lazyObserver = null;
+
+/**
+ * Inicializa Intersection Observer para lazy loading
+ */
+function initLazyLoading() {
+  if (!('IntersectionObserver' in window)) {
+    console.warn('IntersectionObserver não suportado. Carregando tudo imediatamente.');
+    return false;
+  }
+
+  const options = {
+    root: null,
+    rootMargin: '50px', // Carregar 50px antes de entrar na viewport
+    threshold: 0.01
+  };
+
+  lazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const element = entry.target;
+        const loadFunc = lazyLoadQueue.get(element);
+        
+        if (loadFunc) {
+          console.log('🚀 Lazy loading:', element.dataset.lazyId || element.id);
+          loadFunc();
+          lazyLoadQueue.delete(element);
+          lazyObserver.unobserve(element);
+        }
+      }
+    });
+  }, options);
+
+  console.log('✅ Lazy Loading ativado');
+  return true;
+}
+
+/**
+ * Registra elemento para lazy loading
+ * @param {HTMLElement} element - Elemento a observar
+ * @param {Function} loadFunc - Função a executar quando visível
+ */
+function registerLazyLoad(element, loadFunc) {
+  if (!lazyObserver) return false;
+  
+  lazyLoadQueue.set(element, loadFunc);
+  lazyObserver.observe(element);
+  return true;
+}
+
+// ──────────────────────────────────────────────────────────────
+// CACHE INTELIGENTE
+// ──────────────────────────────────────────────────────────────
+
+const cacheConfig = {
+  weather: 15 * 60 * 1000,      // 15 minutos
+  news: 10 * 60 * 1000,         // 10 minutos
+  finance: 5 * 60 * 1000,       // 5 minutos
+  crypto: 2 * 60 * 1000,        // 2 minutos
+  static: 24 * 60 * 60 * 1000   // 24 horas
+};
+
+/**
+ * Verifica se cache é válido
+ */
+function isCacheValid(key) {
+  const cached = localStorage.getItem(key);
+  if (!cached) return false;
+  
+  try {
+    const data = JSON.parse(cached);
+    const now = Date.now();
+    const age = now - (data.timestamp || 0);
+    
+    // Determinar TTL baseado na chave
+    let ttl = cacheConfig.static;
+    for (const [prefix, time] of Object.entries(cacheConfig)) {
+      if (key.includes(prefix)) {
+        ttl = time;
+        break;
+      }
+    }
+    
+    return age < ttl;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Salva dados no cache com timestamp
+ */
+function setCacheData(key, data) {
+  const cacheObj = {
+    data: data,
+    timestamp: Date.now()
+  };
+  
+  try {
+    localStorage.setItem(key, JSON.stringify(cacheObj));
+    return true;
+  } catch (e) {
+    console.warn('Cache overflow:', e);
+    cleanOldCache();
+    return false;
+  }
+}
+
+/**
+ * Recupera dados do cache
+ */
+function getCacheData(key) {
+  if (!isCacheValid(key)) return null;
+  
+  try {
+    const cached = JSON.parse(localStorage.getItem(key));
+    return cached.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Limpa cache antigo
+ */
+function cleanOldCache() {
+  const keys = Object.keys(localStorage);
+  const now = Date.now();
+  
+  keys.forEach(key => {
+    try {
+      const data = JSON.parse(localStorage.getItem(key));
+      if (data.timestamp && (now - data.timestamp) > 7 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(key);
+      }
+    } catch {}
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// REQUEST ANIMATION FRAME PARA ANIMAÇÕES
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Executa callback na próxima frame (60fps)
+ */
+function nextFrame(callback) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(callback);
+  });
+}
+
+/**
+ * Batch de updates para evitar reflows múltiplos
+ */
+let updateQueue = [];
+let isUpdating = false;
+
+function batchUpdate(updateFunc) {
+  updateQueue.push(updateFunc);
+  
+  if (!isUpdating) {
+    isUpdating = true;
+    requestAnimationFrame(() => {
+      const batch = [...updateQueue];
+      updateQueue = [];
+      batch.forEach(fn => fn());
+      isUpdating = false;
+    });
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// OTIMIZAÇÃO DE EVENTOS
+// ──────────────────────────────────────────────────────────────
+
+// Debounced resize
+const optimizedResize = debounce(() => {
+  window.dispatchEvent(new Event('optimizedResize'));
+}, 250);
+
+window.addEventListener('resize', optimizedResize);
+
+// Throttled scroll
+const optimizedScroll = throttle(() => {
+  window.dispatchEvent(new Event('optimizedScroll'));
+}, 100);
+
+window.addEventListener('scroll', optimizedScroll, { passive: true });
+
+// ──────────────────────────────────────────────────────────────
+// BUNDLE DE CARREGAMENTOS
+// ──────────────────────────────────────────────────────────────
+
+const loadQueue = {
+  immediate: [],    // 0-100ms
+  fast: [],         // 100-500ms
+  normal: [],       // 500-1000ms
+  slow: [],         // 1000-2000ms
+  lazy: []          // quando visível
+};
+
+/**
+ * Agenda carregamento de dados
+ * @param {Function} func - Função a executar
+ * @param {String} priority - 'immediate', 'fast', 'normal', 'slow', 'lazy'
+ */
+function scheduleLoad(func, priority = 'normal') {
+  loadQueue[priority].push(func);
+}
+
+/**
+ * Executa fila de carregamentos de forma otimizada
+ */
+function executeLoadQueue() {
+  // Immediate
+  loadQueue.immediate.forEach(fn => fn());
+  loadQueue.immediate = [];
+  
+  // Fast
+  setTimeout(() => {
+    loadQueue.fast.forEach(fn => fn());
+    loadQueue.fast = [];
+  }, 100);
+  
+  // Normal
+  setTimeout(() => {
+    loadQueue.normal.forEach(fn => fn());
+    loadQueue.normal = [];
+  }, 500);
+  
+  // Slow
+  setTimeout(() => {
+    loadQueue.slow.forEach(fn => fn());
+    loadQueue.slow = [];
+  }, 1000);
+  
+  // Lazy é executado pelo IntersectionObserver
+}
+
+// ──────────────────────────────────────────────────────────────
+// PERFORMANCE MONITOR
+// ──────────────────────────────────────────────────────────────
+
+const perfMonitor = {
+  marks: {},
+  measures: {}
+};
+
+function perfMark(name) {
+  perfMonitor.marks[name] = performance.now();
+}
+
+function perfMeasure(name, startMark) {
+  if (!perfMonitor.marks[startMark]) return;
+  
+  const duration = performance.now() - perfMonitor.marks[startMark];
+  perfMonitor.measures[name] = duration;
+  
+  if (duration > 100) {
+    console.warn(`⚠️ Operação lenta: ${name} levou ${duration.toFixed(2)}ms`);
+  }
+  
+  return duration;
+}
+
+function perfReport() {
+  console.group('📊 Performance Report');
+  Object.entries(perfMonitor.measures).forEach(([name, duration]) => {
+    const status = duration < 50 ? '✅' : duration < 100 ? '⚠️' : '❌';
+    console.log(`${status} ${name}: ${duration.toFixed(2)}ms`);
+  });
+  console.groupEnd();
+}
+
+// ──────────────────────────────────────────────────────────────
+// INICIALIZAÇÃO DO SISTEMA DE PERFORMANCE
+// ──────────────────────────────────────────────────────────────
+
+console.log('⚡ Sistema de Performance carregado!');
+
+
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE PERSONALIZAÇÃO
    ══════════════════════════════════════════════════════════════ */
@@ -6872,8 +7307,20 @@ function autoIdentifyCards() {
 // ──────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+  perfMark('init-start');
+  
+  // Inicializar lazy loading
+  const lazyEnabled = initLazyLoading();
+  
   // Auto-identificar cards
+  perfMark('auto-identify-start');
   autoIdentifyCards();
+  perfMeasure('Auto-identificação de cards', 'auto-identify-start');
+  
+  // Aplicar configurações salvas
+  perfMark('apply-settings-start');
+  applySettings();
+  perfMeasure('Aplicar configurações', 'apply-settings-start');
   
   // Enter para adicionar ticker
   const input = document.getElementById('tickerInput');
@@ -6909,6 +7356,49 @@ document.addEventListener('DOMContentLoaded', () => {
   applySettings();
   
   console.log('Sistema de personalização carregado!');
+  
+  // ──────────────────────────────────────────────────────────────
+  // SETUP DE LAZY LOADING PARA CARDS
+  // ──────────────────────────────────────────────────────────────
+  
+  if (lazyEnabled) {
+    // Registrar cards para lazy loading
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+      // Cards visíveis no início (primeiros 6) carregam imediatamente
+      if (index < 6) return;
+      
+      const cardId = card.dataset.cardId;
+      if (!cardId) return;
+      
+      // Encontrar função de carregamento associada
+      const loadFuncName = `load${cardId.charAt(0).toUpperCase() + cardId.slice(1)}`;
+      
+      if (typeof window[loadFuncName] === 'function') {
+        card.dataset.lazyId = cardId;
+        registerLazyLoad(card, () => {
+          window[loadFuncName]();
+        });
+      }
+    });
+  }
+  
+  // ──────────────────────────────────────────────────────────────
+  // LIMPAR CACHE ANTIGO
+  // ──────────────────────────────────────────────────────────────
+  
+  cleanOldCache();
+  
+  // ──────────────────────────────────────────────────────────────
+  // PERFORMANCE REPORT
+  // ──────────────────────────────────────────────────────────────
+  
+  perfMeasure('Inicialização total', 'init-start');
+  
+  // Report após 2 segundos (quando tudo estiver carregado)
+  setTimeout(() => {
+    perfReport();
+  }, 2000);
 });
 
 function saveSettings() {
