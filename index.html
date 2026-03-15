@@ -748,6 +748,478 @@ button{font-family:var(--font);cursor:pointer}
    ══════════════════════════════════════════════════════════════ */
 
 /* Botão de notificações no header */
+.notifications-btn {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 6px 12px;
+  color: var(--t2);
+  font-family: var(--mono);
+  font-size: .65rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+  cursor: pointer;
+}
+.notifications-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--bd);
+}
+.notifications-btn .ico {
+  font-size: 1rem;
+}
+
+/* Badge de contador */
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--red);
+  color: white;
+  font-family: var(--mono);
+  font-size: .55rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 10px var(--red);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Panel de notificações */
+.notifications-panel {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: var(--card);
+  border-left: 1px solid var(--b2);
+  box-shadow: -4px 0 20px rgba(0,0,0,.3);
+  transition: right .3s ease;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+}
+.notifications-panel.open {
+  right: 0;
+}
+
+/* Header do painel */
+.notif-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+}
+.notif-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notif-close {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--t3);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1;
+}
+.notif-close:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--rd);
+}
+
+/* Tabs de filtros */
+.notif-filters {
+  display: flex;
+  padding: 12px 20px;
+  gap: 6px;
+  border-bottom: 1px solid var(--b);
+  background: var(--surface);
+  overflow-x: auto;
+}
+.notif-filter {
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: var(--card);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  color: var(--t3);
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.notif-filter:hover {
+  border-color: var(--b2);
+  color: var(--t2);
+}
+.notif-filter.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--ad);
+  font-weight: 600;
+}
+.notif-filter-count {
+  background: var(--b2);
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-size: .58rem;
+}
+
+/* Lista de notificações */
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+.notif-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--t3);
+}
+.notif-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+.notif-empty-text {
+  font-size: .8rem;
+  font-family: var(--mono);
+}
+
+/* Item de notificação */
+.notif-item {
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.notif-item:hover {
+  border-color: var(--b2);
+  background: var(--card-h);
+}
+.notif-item.unread {
+  border-left: 3px solid var(--blue);
+  background: var(--bd);
+}
+.notif-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--blue);
+}
+
+/* Tipo de notificação (cor da barra lateral) */
+.notif-item.type-sismo {
+  border-left-color: var(--red);
+}
+.notif-item.type-sismo.unread {
+  background: var(--rd);
+}
+.notif-item.type-news {
+  border-left-color: var(--accent);
+}
+.notif-item.type-news.unread {
+  background: var(--ad);
+}
+.notif-item.type-energy {
+  border-left-color: var(--green);
+}
+.notif-item.type-energy.unread {
+  background: var(--gd);
+}
+
+/* Conteúdo da notificação */
+.notif-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.notif-item-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.notif-item-content {
+  flex: 1;
+  min-width: 0;
+}
+.notif-item-title {
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 3px;
+}
+.notif-item-desc {
+  font-size: .7rem;
+  color: var(--t2);
+  line-height: 1.4;
+}
+.notif-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--t3);
+}
+.notif-item-time {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.notif-item-type {
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.type-tag-sismo {
+  background: var(--rd);
+  color: var(--red);
+}
+.type-tag-news {
+  background: var(--ad);
+  color: var(--accent);
+}
+.type-tag-energy {
+  background: var(--gd);
+  color: var(--green);
+}
+
+/* Ações do item */
+.notif-item-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--b);
+}
+.notif-item-btn {
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: .6rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid var(--b);
+  background: var(--card);
+  color: var(--t2);
+}
+.notif-item-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--ad);
+}
+
+/* Footer do painel */
+.notif-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--b);
+  background: var(--surface);
+  display: flex;
+  gap: 8px;
+}
+.notif-footer-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--rs);
+  font-family: var(--mono);
+  font-size: .65rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  border: 1px solid var(--b);
+  background: var(--card);
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.notif-footer-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.notif-footer-btn.danger:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: var(--rd);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS (Popup)
+   ══════════════════════════════════════════════════════════════ */
+
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+}
+
+.toast {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideInRight .3s ease;
+  position: relative;
+  overflow: hidden;
+}
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.toast.hiding {
+  animation: slideOutRight .3s ease forwards;
+}
+@keyframes slideOutRight {
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Barra de progresso */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  animation: progress 5s linear;
+}
+@keyframes progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.toast-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.toast-content {
+  flex: 1;
+  min-width: 0;
+}
+.toast-title {
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+.toast-message {
+  font-size: .72rem;
+  color: var(--t2);
+  line-height: 1.4;
+}
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color .15s;
+  flex-shrink: 0;
+}
+.toast-close:hover {
+  color: var(--text);
+}
+
+/* Tipos de toast */
+.toast.type-sismo {
+  border-left: 4px solid var(--red);
+  background: linear-gradient(90deg, var(--rd) 0%, var(--card) 40%);
+}
+.toast.type-news {
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(90deg, var(--ad) 0%, var(--card) 40%);
+}
+.toast.type-energy {
+  border-left: 4px solid var(--green);
+  background: linear-gradient(90deg, var(--gd) 0%, var(--card) 40%);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .notifications-panel {
+    width: 100%;
+    right: -100%;
+  }
+  
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+  
+  .toast {
+    padding: 12px 14px;
+  }
+  
+  .notif-filters {
+    padding: 10px 12px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE NOTIFICAÇÕES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Botão de notificações no header */
 .notif-btn {
   position: relative;
   background: transparent;
@@ -1629,6 +2101,9 @@ textarea.nta::placeholder{color:var(--t3)}
 </style>
 </head>
 <body>
+<!-- Container de Toast Notifications -->
+<div class="toast-container" id="toastContainer"></div>
+
 <div class="wrap">
 
 <!-- ═══════════════════ HEADER ═══════════════════ -->
@@ -7358,6 +7833,20 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Sistema de personalização carregado!');
   
   // ──────────────────────────────────────────────────────────────
+  // INICIALIZAR SISTEMA DE NOTIFICAÇÕES
+  // ──────────────────────────────────────────────────────────────
+  
+  loadNotifications();
+  console.log('🔔 Sistema de notificações ativado!');
+  
+  // Gerar notificações demo (apenas se vazio)
+  if (notifications.length === 0) {
+    setTimeout(() => {
+      generateDemoNotifications();
+    }, 2000);
+  }
+  
+  // ──────────────────────────────────────────────────────────────
   // SETUP DE LAZY LOADING PARA CARDS
   // ──────────────────────────────────────────────────────────────
   
@@ -7711,32 +8200,43 @@ function clearAllNotifications() {
 
 // Toast (popup temporário)
 function showToast(notif) {
-  const icons = { sismos: '🌍', news: '📰', energy: '⚡' };
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  
+  const icons = { 
+    sismos: '🌍', 
+    news: '📰', 
+    energy: '⚡' 
+  };
   
   const toast = document.createElement('div');
-  toast.className = `notif-toast severity-${notif.severity}`;
+  toast.className = `toast type-${notif.type}`;
   toast.innerHTML = `
-    <div class="notif-toast-header">
-      <div class="notif-toast-icon">${icons[notif.type] || '📌'}</div>
-      <div class="notif-toast-type">${notif.type}</div>
-      <button class="notif-toast-close" onclick="this.parentElement.parentElement.remove()">✕</button>
+    <div class="toast-progress"></div>
+    <div class="toast-icon">${icons[notif.type] || '📌'}</div>
+    <div class="toast-content">
+      <div class="toast-title">${notif.title}</div>
+      <div class="toast-message">${notif.description}</div>
     </div>
-    <div class="notif-toast-title">${notif.title}</div>
-    <div class="notif-toast-desc">${notif.description}</div>
+    <button class="toast-close" onclick="this.parentElement.classList.add('hiding'); setTimeout(() => this.parentElement.remove(), 300)">✕</button>
   `;
   
-  document.body.appendChild(toast);
+  container.appendChild(toast);
   
   // Auto-remover após 5 segundos
   setTimeout(() => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 300);
+    if (toast.parentElement) {
+      toast.classList.add('hiding');
+      setTimeout(() => toast.remove(), 300);
+    }
   }, 5000);
   
-  // Clicar para dispensar
-  toast.onclick = () => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 300);
+  // Clicar no toast para abrir painel de notificações
+  toast.onclick = (e) => {
+    if (!e.target.classList.contains('toast-close')) {
+      toggleNotifications();
+      markAsRead(notif.id);
+    }
   };
 }
 
@@ -7902,23 +8402,22 @@ function generateDemoNotifications() {
   );
 }
 
-// Inicializar sistema de notificações
-document.addEventListener('DOMContentLoaded', () => {
-  loadNotifications();
-  
-  // Gerar notificações demo (remover em produção)
-  setTimeout(() => {
-    generateDemoNotifications();
-  }, 2000);
-  
-  // Verificar novas notificações a cada 5 minutos
+// ══════════════════════════════════════════════════════════════
+// MONITORIZAÇÃO PERIÓDICA
+// ══════════════════════════════════════════════════════════════
+
+// Verificar novas notificações a cada 5 minutos
+function startNotificationMonitoring() {
   setInterval(() => {
     // Aqui chamarías as funções de verificação com dados reais
-    // checkSeismicActivity(dadosSismos);
-    // checkBreakingNews(dadosNoticias);
-    // checkEnergyPrices(precoAtual, precoMedio);
-  }, 5 * 60 * 1000);
-});
+    // Exemplo de integração:
+    // if (window.latestSeismicData) checkSeismicActivity(window.latestSeismicData);
+    // if (window.latestNews) checkBreakingNews(window.latestNews);
+    // if (window.currentEnergyPrice) checkEnergyPrices(window.currentEnergyPrice, window.averageEnergyPrice);
+    
+    console.log('🔍 Verificando novas notificações...');
+  }, 5 * 60 * 1000); // 5 minutos
+}
 
 
 </script>
