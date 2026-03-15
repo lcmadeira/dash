@@ -1716,9 +1716,9 @@ textarea.nta::placeholder{color:var(--t3)}
     </div>
 
     <div class="settings-tabs">
-      <button class="settings-tab active" onclick="switchSettingsTab('cards')">Cards</button>
-      <button class="settings-tab" onclick="switchSettingsTab('location')">Localização</button>
-      <button class="settings-tab" onclick="switchSettingsTab('tickers')">Tickers</button>
+      <button class="settings-tab active" onclick="switchSettingsTab('cards', this)">Cards</button>
+      <button class="settings-tab" onclick="switchSettingsTab('location', this)">Localização</button>
+      <button class="settings-tab" onclick="switchSettingsTab('tickers', this)">Tickers</button>
     </div>
 
     <div class="settings-body">
@@ -6564,14 +6564,24 @@ let draggedElement = null;
 // ──────────────────────────────────────────────────────────────
 
 function openSettings() {
+  console.log('openSettings chamado!');
   const overlay = document.getElementById('settingsOverlay');
+  
+  if (!overlay) {
+    console.error('Overlay não encontrado!');
+    return;
+  }
+  
+  console.log('Overlay encontrado, abrindo...');
   overlay.classList.add('show');
   document.body.style.overflow = 'hidden';
   
   // Renderizar conteúdo
+  console.log('Renderizando conteúdo...');
   renderCardToggles();
   renderLocationGrid();
   renderTickerList();
+  console.log('Conteúdo renderizado!');
 }
 
 function closeSettings() {
@@ -6580,22 +6590,7 @@ function closeSettings() {
   document.body.style.overflow = '';
 }
 
-// Fechar ao clicar fora
-document.addEventListener('click', (e) => {
-  const overlay = document.getElementById('settingsOverlay');
-  if (e.target === overlay) {
-    closeSettings();
-  }
-});
-
-// ESC para fechar
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeSettings();
-  }
-});
-
-function switchSettingsTab(tabName) {
+function switchSettingsTab(tabName, element) {
   // Desativar todos os tabs
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.classList.remove('active');
@@ -6605,7 +6600,17 @@ function switchSettingsTab(tabName) {
   });
   
   // Ativar tab clicado
-  event.target.classList.add('active');
+  if (element) {
+    element.classList.add('active');
+  } else {
+    // Fallback: ativar o tab pelo nome
+    const tabs = document.querySelectorAll('.settings-tab');
+    tabs.forEach(tab => {
+      if (tab.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+        tab.classList.add('active');
+      }
+    });
+  }
   document.getElementById(`settings-${tabName}`).classList.add('active');
 }
 
@@ -6614,8 +6619,16 @@ function switchSettingsTab(tabName) {
 // ──────────────────────────────────────────────────────────────
 
 function renderCardToggles() {
+  console.log('renderCardToggles chamado');
   const container = document.getElementById('cardToggles');
+  
+  if (!container) {
+    console.error('Container cardToggles não encontrado!');
+    return;
+  }
+  
   container.innerHTML = '';
+  console.log('Renderizando', currentConfig.cards.length, 'cards');
   
   currentConfig.cards.forEach((card, index) => {
     const div = document.createElement('div');
@@ -6795,8 +6808,12 @@ function removeTicker(index) {
   renderTickerList();
 }
 
-// Enter para adicionar ticker
+// ──────────────────────────────────────────────────────────────
+// INICIALIZAÇÃO
+// ──────────────────────────────────────────────────────────────
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Enter para adicionar ticker
   const input = document.getElementById('tickerInput');
   if (input) {
     input.addEventListener('keypress', (e) => {
@@ -6805,11 +6822,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  
+  // Event listener para fechar ao clicar fora
+  const overlay = document.getElementById('settingsOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeSettings();
+      }
+    });
+  }
+  
+  // ESC para fechar
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const overlayEl = document.getElementById('settingsOverlay');
+      if (overlayEl && overlayEl.classList.contains('show')) {
+        closeSettings();
+      }
+    }
+  });
+  
+  // Aplicar configurações salvas
+  applySettings();
+  
+  console.log('Sistema de personalização carregado!');
 });
-
-// ──────────────────────────────────────────────────────────────
-// SALVAR & RESETAR
-// ──────────────────────────────────────────────────────────────
 
 function saveSettings() {
   localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
@@ -6818,21 +6856,23 @@ function saveSettings() {
   applySettings();
   
   // Feedback visual
-  const btn = event.target;
-  const originalText = btn.textContent;
-  btn.textContent = '✓ Guardado!';
-  btn.style.background = 'var(--green)';
-  
-  setTimeout(() => {
-    btn.textContent = originalText;
-    btn.style.background = '';
-    closeSettings();
+  const saveBtn = document.querySelector('.settings-btn-save');
+  if (saveBtn) {
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = '✓ Guardado!';
+    saveBtn.style.background = 'var(--green)';
     
-    // Reload para aplicar mudanças completas (localização, tickers)
-    if (confirm('Recarregar página para aplicar todas as alterações?')) {
-      window.location.reload();
-    }
-  }, 1000);
+    setTimeout(() => {
+      saveBtn.textContent = originalText;
+      saveBtn.style.background = '';
+      closeSettings();
+      
+      // Reload para aplicar mudanças completas (localização, tickers)
+      if (confirm('Recarregar página para aplicar todas as alterações?')) {
+        window.location.reload();
+      }
+    }, 1000);
+  }
 }
 
 function resetSettings() {
@@ -6853,30 +6893,37 @@ function resetSettings() {
 }
 
 function applySettings() {
+  console.log('Aplicando configurações:', currentConfig);
+  
   // Aplicar visibilidade dos cards
   currentConfig.cards.forEach(card => {
-    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+    // Tentar encontrar o card pelo ID
+    const selectors = [
+      `[data-card-id="${card.id}"]`,
+      `#${card.id}`,
+      `#${card.id}-card`,
+      `.card[data-id="${card.id}"]`
+    ];
+    
+    let cardElement = null;
+    for (const selector of selectors) {
+      cardElement = document.querySelector(selector);
+      if (cardElement) break;
+    }
+    
     if (cardElement) {
+      console.log(`Card encontrado: ${card.id}`, cardElement);
       if (card.visible) {
         cardElement.classList.remove('hidden');
       } else {
         cardElement.classList.add('hidden');
       }
+    } else {
+      console.warn(`Card não encontrado: ${card.id}`);
     }
   });
 }
 
-// ──────────────────────────────────────────────────────────────
-// INICIALIZAÇÃO
-// ──────────────────────────────────────────────────────────────
-
-// Aplicar configurações ao carregar página
-document.addEventListener('DOMContentLoaded', () => {
-  applySettings();
-  
-  // Adicionar data-card-id aos cards principais (precisa ser feito manualmente no HTML
-  // ou dinamicamente aqui se soubermos os seletores)
-});
 
 
 /* ══════════════════════════════════════════════════════════════
