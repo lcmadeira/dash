@@ -8962,6 +8962,9 @@ function openExportModal() {
   const modal = document.getElementById('exportModal');
   if (!modal) return;
   
+  // Verificar permissões
+  checkDownloadPermissions();
+  
   // Resetar estado
   exportState.selectedCards = [];
   
@@ -9305,12 +9308,29 @@ async function exportAsCSV() {
   // Converter para CSV
   const csv = data.map(row => row.join(',')).join('\n');
   
+  console.log('CSV gerado:', csv.substring(0, 200) + '...');
+  console.log('Linhas:', data.length);
+  
   // Download
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const filename = `painel-dados-${Date.now()}.csv`;
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `painel-dados-${Date.now()}.csv`;
-  link.click();
+  link.style.display = 'none';
+  link.href = url;
+  link.download = filename;
+  link.setAttribute('download', filename);
+  
+  document.body.appendChild(link);
+  
+  setTimeout(() => {
+    link.click();
+    console.log('✅ CSV download iniciado');
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }, 100);
   
   updateProgress(100, 'Concluído!');
 }
@@ -9377,20 +9397,44 @@ async function exportAsJSON() {
   const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `painel-dados-${Date.now()}.json`;
+  const filename = `painel-dados-${Date.now()}.json`;
   
-  console.log('Criando link de download:', link.download);
+  console.log('Criando link de download:', filename);
   console.log('Blob size:', blob.size, 'bytes');
+  console.log('Blob URL:', url);
   
-  // Adicionar ao DOM temporariamente (necessário em alguns browsers)
+  // Criar link e forçar download
+  const link = document.createElement('a');
+  link.style.display = 'none';
+  link.href = url;
+  link.download = filename;
+  link.setAttribute('download', filename); // Garantir atributo
+  
+  // Adicionar ao DOM (necessário em alguns browsers)
   document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
   
-  // Cleanup
-  setTimeout(() => URL.revokeObjectURL(url), 100);
+  // Click com delay para garantir que DOM está pronto
+  setTimeout(() => {
+    try {
+      link.click();
+      console.log('✅ Click executado no link');
+    } catch (e) {
+      console.error('❌ Erro ao clicar:', e);
+      // Fallback: abrir em nova janela
+      window.open(url, '_blank');
+    }
+    
+    // Cleanup após delay maior
+    setTimeout(() => {
+      try {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log('🧹 Cleanup concluído');
+      } catch (e) {
+        console.warn('Aviso no cleanup:', e);
+      }
+    }, 1000);
+  }, 100);
   
   updateProgress(100, 'Concluído!');
   console.log('✅ JSON exportado com sucesso!');
@@ -9431,6 +9475,30 @@ function showExportSuccess(message) {
     setTimeout(() => {
       toast.classList.remove('show');
     }, 3000);
+  }
+}
+
+// Verificar permissões de download
+async function checkDownloadPermissions() {
+  // Verificar se é Chrome/Edge
+  if (navigator.userAgent.includes('Chrome')) {
+    console.log('ℹ️ Browser: Chrome/Edge detectado');
+    console.log('💡 Se downloads não iniciarem:');
+    console.log('   1. Verifica se downloads estão bloqueados (ícone à direita da barra de endereços)');
+    console.log('   2. Settings → Privacy → Site Settings → Downloads');
+    console.log('   3. Permite downloads automáticos para este site');
+  }
+  
+  // Teste simples
+  try {
+    const testBlob = new Blob(['test'], { type: 'text/plain' });
+    const testUrl = URL.createObjectURL(testBlob);
+    URL.revokeObjectURL(testUrl);
+    console.log('✅ Blob URLs funcionam corretamente');
+    return true;
+  } catch (e) {
+    console.error('❌ Problema com Blob URLs:', e);
+    return false;
   }
 }
 
