@@ -9115,6 +9115,7 @@ async function executeExport() {
   }
   
   console.log(`🚀 Iniciando exportação (${exportState.format})...`);
+  console.log('Cards selecionados:', exportState.selectedCards);
   
   // Mostrar progress
   const progress = document.getElementById('exportProgress');
@@ -9125,19 +9126,24 @@ async function executeExport() {
   try {
     switch (exportState.format) {
       case 'png':
+        console.log('📸 Executando exportAsPNG...');
         await exportAsPNG();
         break;
       case 'pdf':
+        console.log('📄 Executando exportAsPDF...');
         await exportAsPDF();
         break;
       case 'csv':
+        console.log('📊 Executando exportAsCSV...');
         await exportAsCSV();
         break;
       case 'json':
+        console.log('💾 Executando exportAsJSON...');
         await exportAsJSON();
         break;
     }
     
+    console.log('✅ Exportação concluída com sucesso!');
     showExportSuccess(`Exportação ${exportState.format.toUpperCase()} concluída!`);
     
     setTimeout(() => {
@@ -9145,8 +9151,9 @@ async function executeExport() {
     }, 1000);
     
   } catch (error) {
-    console.error('Erro na exportação:', error);
-    alert('Erro ao exportar dados. Veja o console para detalhes.');
+    console.error('❌ Erro na exportação:', error);
+    console.error('Stack trace:', error.stack);
+    alert('Erro ao exportar dados. Veja o console para detalhes.\n\n' + error.message);
   } finally {
     if (progress) {
       progress.classList.remove('active');
@@ -9313,6 +9320,7 @@ async function exportAsCSV() {
 // ──────────────────────────────────────────────────────────────
 
 async function exportAsJSON() {
+  console.log('💾 Iniciando exportAsJSON...');
   updateProgress(20, 'Coletando dados...');
   
   const exportData = {
@@ -9325,9 +9333,16 @@ async function exportAsJSON() {
     cards: []
   };
   
+  console.log(`Processando ${exportState.selectedCards.length} cards...`);
+  
   exportState.selectedCards.forEach((cardId, index) => {
+    console.log(`  Card ${index + 1}/${exportState.selectedCards.length}: ${cardId}`);
+    
     const card = exportState.allCards.find(c => c.id === cardId);
-    if (!card) return;
+    if (!card) {
+      console.warn(`  ⚠️ Card ${cardId} não encontrado!`);
+      return;
+    }
     
     updateProgress(20 + (index / exportState.selectedCards.length) * 70, `Extraindo ${cardId}...`);
     
@@ -9337,11 +9352,14 @@ async function exportAsJSON() {
       id: cardId,
       name: card.name,
       type: cardId.split('-')[0],
-      data: {}
+      data: {},
+      html: element.innerHTML.substring(0, 500) // Preview
     };
     
     // Extrair dados estruturados
     const values = element.querySelectorAll('[class*="val"], [class*="price"], [class*="temp"], [class*="kpi"]');
+    
+    console.log(`    Encontrados ${values.length} valores`);
     
     values.forEach((val, i) => {
       const key = val.className.split(' ')[0] || `value_${i}`;
@@ -9353,15 +9371,29 @@ async function exportAsJSON() {
   
   updateProgress(90, 'Gerando JSON...');
   
+  console.log('Dados coletados:', exportData);
+  
   // Download
   const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
+  link.href = url;
   link.download = `painel-dados-${Date.now()}.json`;
+  
+  console.log('Criando link de download:', link.download);
+  console.log('Blob size:', blob.size, 'bytes');
+  
+  // Adicionar ao DOM temporariamente (necessário em alguns browsers)
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
+  
+  // Cleanup
+  setTimeout(() => URL.revokeObjectURL(url), 100);
   
   updateProgress(100, 'Concluído!');
+  console.log('✅ JSON exportado com sucesso!');
 }
 
 // ──────────────────────────────────────────────────────────────
