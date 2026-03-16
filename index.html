@@ -3974,6 +3974,29 @@ async function fetchRSS(url){
   const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
   if(!r.ok)throw new Error(`HTTP ${r.status}`);return parseRSS(await r.text());
 }
+
+/* ── Fetch com Proxy CORS ── */
+async function fetchWithCORS(url, options = {}) {
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`
+  ];
+  
+  for (const proxyUrl of proxies) {
+    try {
+      const r = await fetch(proxyUrl, { 
+        ...options,
+        signal: AbortSignal.timeout(12000) 
+      });
+      if (r.ok) return r;
+    } catch (e) {
+      continue;
+    }
+  }
+  
+  throw new Error('CORS: Todos os proxies falharam');
+}
+
 function parseRSS(xml){
   const doc=new DOMParser().parseFromString(xml,"text/xml");
   const items=[...doc.querySelectorAll("item")];if(!items.length)throw new Error("RSS vazio");
@@ -4132,17 +4155,15 @@ async function loadElec(force=false){
       const dates=[todayStr, yesterStr,
         new Date(today.getTime()+864e5).toISOString().slice(0,10)];
       const fetches=dates.map(d=>
-        fetch(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real`+
-          `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`,
-          {headers:{"Accept":"application/json"}})
-        .then(r=>r.ok?r.json():null).catch(()=>null)
+        fetchWithCORS(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real`+
+          `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`)
+        .then(r=>r.json()).catch(()=>null)
       );
       /* Mix energético em tempo real */
-      const mixFetch=fetch(
+      const mixFetch=fetchWithCORS(
         `https://apidatos.ree.es/en/datos/generacion/estructura-generacion`+
-        `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`,
-        {headers:{"Accept":"application/json"}}
-      ).then(r=>r.ok?r.json():null).catch(()=>null);
+        `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`)
+      .then(r=>r.json()).catch(()=>null);
 
       const [todayData, yesterData, tomorrowData, mixData]=
         await Promise.all([...fetches, mixFetch]);
@@ -7830,7 +7851,7 @@ async function loadSeis(force=false){
       const url=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson`
         +`&starttime=${start}&minlatitude=27&maxlatitude=45`
         +`&minlongitude=-32&maxlongitude=4&minmagnitude=0.5&orderby=time&limit=200`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
+      const r=await fetchWithCORS(url);
       if(!r.ok)throw new Error("HTTP "+r.status);
       const j=await r.json();
       d=j.features||[];
