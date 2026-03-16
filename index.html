@@ -4018,47 +4018,48 @@ async function loadNews(scope,force=false){
         ?"https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT:pt"
         :"https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
       arts=(await fetchRSS(url)).slice(0,8);if(arts.length)lsSet(cKey,arts);
-      
-      // ──────────────────────────────────────────────────────────
-      // VERIFICAR NOTIFICAÇÕES DE BREAKING NEWS
-      // ──────────────────────────────────────────────────────────
-      if (notificationSettings.news.enabled && isPT && arts.length > 0) {
-        // Keywords para breaking news
-        const breakingKeywords = [
-          'urgente', 'breaking', 'última hora', 'agora', 
-          'alerta', 'atenção', 'emergência', 'rápido'
-        ];
-        
-        arts.forEach(article => {
-          const title = (article.title || '').toLowerCase();
-          
-          // Verificar se tem keywords de breaking news
-          const isBreaking = breakingKeywords.some(kw => title.includes(kw));
-          
-          if (isBreaking) {
-            // Verificar se já notificámos
-            const notifId = `news-${article.link}`;
-            const exists = notifications.find(n => n.data?.notifId === notifId);
-            
-            if (!exists) {
-              addNotification(
-                'news',
-                article.title || 'Notícia importante',
-                article.source || 'Última hora',
-                'high',
-                { 
-                  notifId,
-                  url: article.link,
-                  source: article.source 
-                }
-              );
-              
-              console.log(`📰 Nova notificação: ${article.title.substring(0, 50)}...`);
-            }
-          }
-        });
-      }
     }
+    
+    // ──────────────────────────────────────────────────────────
+    // VERIFICAR NOTIFICAÇÕES DE BREAKING NEWS (só se temos dados)
+    // ──────────────────────────────────────────────────────────
+    if (notificationSettings.news.enabled && isPT && arts && arts.length > 0) {
+      // Keywords para breaking news
+      const breakingKeywords = [
+        'urgente', 'breaking', 'última hora', 'agora', 
+        'alerta', 'atenção', 'emergência', 'rápido'
+      ];
+      
+      arts.forEach(article => {
+        const title = (article.title || '').toLowerCase();
+        
+        // Verificar se tem keywords de breaking news
+        const isBreaking = breakingKeywords.some(kw => title.includes(kw));
+        
+        if (isBreaking) {
+          // Verificar se já notificámos
+          const notifId = `news-${article.link}`;
+          const exists = notifications.find(n => n.data?.notifId === notifId);
+          
+          if (!exists) {
+            addNotification(
+              'news',
+              article.title || 'Notícia importante',
+              article.source || 'Última hora',
+              'high',
+              { 
+                notifId,
+                url: article.link,
+                source: article.source 
+              }
+            );
+            
+            console.log(`📰 Nova notificação: ${article.title.substring(0, 50)}...`);
+          }
+        }
+      });
+    }
+    
     if(!arts.length)throw new Error("Sem artigos");
     el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
       <div class="ni" onclick="window.open('${a.link.replace(/'/g,"\\'")}','_blank')">
@@ -7856,51 +7857,51 @@ async function loadSeis(force=false){
       const j=await r.json();
       d=j.features||[];
       if(d.length)lsSet(ck,d);
-      
-      // ──────────────────────────────────────────────────────────
-      // VERIFICAR NOTIFICAÇÕES DE SISMOS
-      // ──────────────────────────────────────────────────────────
-      if (notificationSettings.sismos.enabled && d.length > 0) {
-        // Verificar sismos recentes (últimas 24h)
-        const recent24h = d.filter(x => (Date.now() - x.properties.time) < 24 * 60 * 60 * 1000);
-        
-        recent24h.forEach(sismo => {
-          const mag = sismo.properties.mag;
-          const place = sismo.properties.place || 'Localização desconhecida';
-          const time = sismo.properties.time;
-          const depth = sismo.geometry?.coordinates?.[2] || 0;
-          
-          // Notificar se magnitude >= minMagnitude (3.0 padrão)
-          if (mag >= notificationSettings.sismos.minMagnitude) {
-            // Verificar se já notificámos este sismo
-            const notifId = `sismo-${time}`;
-            const exists = notifications.find(n => n.data?.notifId === notifId);
-            
-            if (!exists) {
-              const severity = mag >= 4.5 ? 'high' : mag >= 4.0 ? 'medium' : 'low';
-              
-              addNotification(
-                'sismos',
-                `Sismo de magnitude ${mag.toFixed(1)} registado`,
-                `${place} • Profundidade: ${depth.toFixed(0)}km`,
-                severity,
-                { 
-                  notifId,
-                  magnitude: mag, 
-                  location: place, 
-                  depth,
-                  timestamp: time 
-                }
-              );
-              
-              console.log(`🌍 Nova notificação: Sismo M${mag.toFixed(1)} - ${place}`);
-            }
-          }
-        });
-      }
-      
     }catch(e){el.innerHTML=er(e.message);return;}
   }
+  
+  // ──────────────────────────────────────────────────────────────
+  // VERIFICAR NOTIFICAÇÕES DE SISMOS (só se temos dados)
+  // ──────────────────────────────────────────────────────────────
+  if (notificationSettings.sismos.enabled && d && d.length > 0) {
+    // Verificar sismos recentes (últimas 24h)
+    const recent24h = d.filter(x => (Date.now() - x.properties.time) < 24 * 60 * 60 * 1000);
+    
+    recent24h.forEach(sismo => {
+      const mag = sismo.properties.mag;
+      const place = sismo.properties.place || 'Localização desconhecida';
+      const time = sismo.properties.time;
+      const depth = sismo.geometry?.coordinates?.[2] || 0;
+      
+      // Notificar se magnitude >= minMagnitude (3.0 padrão)
+      if (mag >= notificationSettings.sismos.minMagnitude) {
+        // Verificar se já notificámos este sismo
+        const notifId = `sismo-${time}`;
+        const exists = notifications.find(n => n.data?.notifId === notifId);
+        
+        if (!exists) {
+          const severity = mag >= 4.5 ? 'high' : mag >= 4.0 ? 'medium' : 'low';
+          
+          addNotification(
+            'sismos',
+            `Sismo de magnitude ${mag.toFixed(1)} registado`,
+            `${place} • Profundidade: ${depth.toFixed(0)}km`,
+            severity,
+            { 
+              notifId,
+              magnitude: mag, 
+              location: place, 
+              depth,
+              timestamp: time 
+            }
+          );
+          
+          console.log(`🌍 Nova notificação: Sismo M${mag.toFixed(1)} - ${place}`);
+        }
+      }
+    });
+  }
+  
   if(!d.length){
     el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos registados</div>`;
     return;
@@ -8948,8 +8949,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   console.log('🔔 Sistema de notificações ativado!');
   
-  // Iniciar monitoramento periódico
-  startNotificationMonitoring();
+  // ⚠️ MONITORAMENTO AUTOMÁTICO TEMPORARIAMENTE DESATIVADO
+  // Razão: CORS issues com proxies públicos
+  // As notificações serão verificadas quando o utilizador forçar refresh manual (botão ↺)
+  // TODO: Reativar quando tiver backend próprio ou proxy dedicado
+  
+  // startNotificationMonitoring(); // Desativado temporariamente
+  console.log('ℹ️ Notificações verificam ao carregar dados manualmente (botão ↺)');
   
   // ⚠️ DESENVOLVIMENTO: Gerar notificações demo
   // TODO: Remover em produção ou controlar via flag
