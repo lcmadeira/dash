@@ -3288,7 +3288,10 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📐</div>
       <span class="ch-lbl">Euribor · Taxas de Referência</span>
-      <div class="ch-r"><span class="badge" id="euriborRefDate">...</span></div>
+      <div class="ch-r">
+        <button class="rbtn" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" title="Ver tendência">📊</button>
+        <span class="badge" id="euriborRefDate">...</span>
+      </div>
     </div>
     <div id="euri-body"></div>
     <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
@@ -4484,6 +4487,153 @@ async function loadElec(force=false){
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   SISTEMA DE HISTÓRICO DE DADOS
+   ══════════════════════════════════════════════════════════════ */
+
+// Armazena snapshots de dados ao longo do tempo
+const HISTORY_PREFIX = 'hist_';
+const MAX_HISTORY_DAYS = 30; // Manter 30 dias de histórico
+
+/**
+ * Adiciona entrada ao histórico
+ */
+function addToHistory(key, value) {
+  const histKey = HISTORY_PREFIX + key;
+  let history = [];
+  
+  try {
+    const stored = localStorage.getItem(histKey);
+    if (stored) history = JSON.parse(stored);
+  } catch {}
+  
+  const entry = {
+    timestamp: Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    value: value
+  };
+  
+  history.push(entry);
+  
+  // Limpar antigas
+  const cutoff = Date.now() - (MAX_HISTORY_DAYS * 24 * 60 * 60 * 1000);
+  history = history.filter(h => h.timestamp > cutoff);
+  
+  // Remover duplicados do mesmo dia
+  const byDate = {};
+  history.forEach(h => {
+    if (!byDate[h.date] || h.timestamp > byDate[h.date].timestamp) {
+      byDate[h.date] = h;
+    }
+  });
+  history = Object.values(byDate).sort((a, b) => a.timestamp - b.timestamp);
+  
+  try {
+    localStorage.setItem(histKey, JSON.stringify(history));
+  } catch {}
+  
+  return history;
+}
+
+/**
+ * Obter histórico
+ */
+function getHistory(key, days = 30) {
+  const histKey = HISTORY_PREFIX + key;
+  let history = [];
+  
+  try {
+    const stored = localStorage.getItem(histKey);
+    if (stored) history = JSON.parse(stored);
+  } catch {}
+  
+  if (days < MAX_HISTORY_DAYS) {
+    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    history = history.filter(h => h.timestamp > cutoff);
+  }
+  
+  return history;
+}
+
+/**
+ * Gerar gráfico de tendência com Chart.js
+ */
+function renderTrendChart(canvas, history, options = {}) {
+  const defaults = {
+    label: 'Valor',
+    borderColor: '#E9A520',
+    backgroundColor: 'rgba(233, 165, 32, 0.1)',
+    unit: '',
+    decimals: 2
+  };
+  
+  const cfg = { ...defaults, ...options };
+  
+  // Preparar dados
+  const labels = history.map(h => {
+    const d = new Date(h.date);
+    return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+  });
+  
+  const data = history.map(h => {
+    return typeof h.value === 'object' ? (h.value.price || h.value.value || 0) : h.value;
+  });
+  
+  // Criar gráfico
+  if (canvas._chart) {
+    canvas._chart.destroy();
+  }
+  
+  const ctx = canvas.getContext('2d');
+  canvas._chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: cfg.label,
+        data: data,
+        borderColor: cfg.borderColor,
+        backgroundColor: cfg.backgroundColor,
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${cfg.label}: ${ctx.parsed.y.toFixed(cfg.decimals)}${cfg.unit}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          ticks: {
+            callback: (val) => val.toFixed(cfg.decimals) + cfg.unit,
+            color: '#7A85A0',
+            font: { size: 10 }
+          },
+          grid: { color: '#1E2340' }
+        },
+        x: {
+          ticks: {
+            color: '#7A85A0',
+            font: { size: 9 }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
 
 /* ── Feriados ── */
 function switchWxHol(tab,btn){
@@ -4882,6 +5032,11 @@ function renderEuribor(){
   const d=EURIBOR_DATA;
   const el=document.getElementById("euri-body");
   if(!el) return;
+  
+  // Salvar histórico das taxas principais
+  d.rates.forEach(r => {
+    addToHistory(`euribor_${r.term.toLowerCase()}`, r.val);
+  });
 
   /* ── Gráfico SVG linhas (3M, 6M, 12M) ── */
   const W=320, H=80, PAD={t:8,r:8,b:20,l:32};
@@ -10291,6 +10446,82 @@ function skeletonCards(count = 3) {
       `).join('')}
     </div>
   `;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL DE TENDÊNCIA/HISTÓRICO
+   ══════════════════════════════════════════════════════════════ */
+
+let trendModal = null;
+
+function showTrendModal(title, historyKey, options = {}) {
+  const history = getHistory(historyKey, options.days || 30);
+  
+  if (history.length < 2) {
+    alert('Histórico insuficiente. Aguarda alguns dias para ver tendências.');
+    return;
+  }
+  
+  if (!trendModal) {
+    const modal = document.createElement('div');
+    modal.id = 'trend-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px';
+    
+    modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--b2);border-radius:12px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--b)">
+        <h3 id="trend-modal-title" style="margin:0;font-size:1.1rem;color:var(--text)"></h3>
+        <button onclick="closeTrendModal()" style="background:none;border:none;color:var(--t2);font-size:1.5rem;cursor:pointer;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px">×</button>
+      </div>
+      <div style="padding:24px">
+        <div style="background:var(--surface);border:1px solid var(--b);border-radius:8px;padding:16px;margin-bottom:16px">
+          <canvas id="trend-chart" width="600" height="300"></canvas>
+        </div>
+        <div id="trend-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px"></div>
+        <div style="font-size:0.7rem;color:var(--t3);text-align:center" id="trend-footer"></div>
+      </div>
+    </div>`;
+    
+    document.body.appendChild(modal);
+    trendModal = modal;
+    modal.addEventListener('click', e => { if(e.target === modal) closeTrendModal(); });
+  }
+  
+  document.getElementById('trend-modal-title').textContent = title;
+  const canvas = document.getElementById('trend-chart');
+  renderTrendChart(canvas, history, options);
+  
+  const values = history.map(h => typeof h.value === 'object' ? (h.value.price || h.value.value || 0) : h.value);
+  const current = values[values.length - 1], first = values[0];
+  const min = Math.min(...values), max = Math.max(...values);
+  const change = ((current - first) / first * 100);
+  const dec = options.decimals || 2, unit = options.unit || '';
+  
+  document.getElementById('trend-stats').innerHTML = `
+    <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Atual</div>
+      <div style="font-size:1.3rem;font-weight:700;color:${options.borderColor || '#E9A520'}">${current.toFixed(dec)}${unit}</div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Variação</div>
+      <div style="font-size:1.3rem;font-weight:700;color:${change >= 0 ? '#EF4444' : '#10B981'}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Mínimo</div>
+      <div style="font-size:1.1rem;font-weight:600;color:#10B981">${min.toFixed(dec)}${unit}</div>
+    </div>
+    <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
+      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Máximo</div>
+      <div style="font-size:1.1rem;font-weight:600;color:#EF4444">${max.toFixed(dec)}${unit}</div>
+    </div>
+  `;
+  
+  document.getElementById('trend-footer').textContent = `Dados guardados localmente • ${history.length} pontos nos últimos ${options.days || 30} dias`;
+  trendModal.style.display = 'flex';
+}
+
+function closeTrendModal() {
+  if (trendModal) trendModal.style.display = 'none';
 }
 
 
