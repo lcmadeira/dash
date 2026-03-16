@@ -2577,6 +2577,341 @@ textarea.nta::placeholder{color:var(--t3)}
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   SKELETON SCREENS - LOADING STATES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Container do skeleton */
+.skeleton-container {
+  padding: 12px 0;
+  min-height: 120px;
+}
+
+/* Elemento base do skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--b) 0%,
+    var(--b2) 20%,
+    var(--b) 40%,
+    var(--b) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Tipos de skeleton */
+.skeleton-text {
+  height: 12px;
+  margin-bottom: 8px;
+  border-radius: 3px;
+}
+
+.skeleton-text.large {
+  height: 18px;
+  width: 70%;
+}
+
+.skeleton-text.medium {
+  height: 14px;
+  width: 50%;
+}
+
+.skeleton-text.small {
+  height: 10px;
+  width: 40%;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-rect {
+  height: 80px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.skeleton-card {
+  height: 120px;
+  margin-bottom: 12px;
+  border-radius: var(--rs);
+}
+
+/* Skeleton específico para Weather */
+.skeleton-weather {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.skeleton-weather-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.skeleton-weather-info {
+  flex: 1;
+}
+
+.skeleton-weather-temp {
+  height: 48px;
+  width: 120px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.skeleton-weather-desc {
+  height: 14px;
+  width: 150px;
+  margin-bottom: 4px;
+  border-radius: 3px;
+}
+
+.skeleton-weather-loc {
+  height: 10px;
+  width: 100px;
+  border-radius: 3px;
+}
+
+/* Skeleton Grid (para KPIs) */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.skeleton-kpi {
+  background: rgba(233,165,32,.07);
+  border: 1px solid rgba(233,165,32,.12);
+  border-radius: var(--rs);
+  padding: 12px;
+  min-height: 80px;
+}
+
+.skeleton-kpi-label {
+  height: 10px;
+  width: 70%;
+  margin-bottom: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,.05) 0%,
+    rgba(255,255,255,.1) 20%,
+    rgba(255,255,255,.05) 40%,
+    rgba(255,255,255,.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 3px;
+}
+
+.skeleton-kpi-value {
+  height: 20px;
+  width: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(233,165,32,.2) 0%,
+    rgba(233,165,32,.4) 20%,
+    rgba(233,165,32,.2) 40%,
+    rgba(233,165,32,.2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Skeleton para Tabela */
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-table-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--b);
+}
+
+.skeleton-table-cell {
+  height: 12px;
+  border-radius: 3px;
+}
+
+.skeleton-table-cell:nth-child(1) {
+  width: 30%;
+}
+
+.skeleton-table-cell:nth-child(2) {
+  width: 40%;
+  flex: 1;
+}
+
+.skeleton-table-cell:nth-child(3) {
+  width: 20%;
+}
+
+/* Skeleton para Chart */
+.skeleton-chart {
+  height: 200px;
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--card) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+  border-radius: var(--rs);
+  border: 1px solid var(--b);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-chart::before {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  left: 10%;
+  right: 10%;
+  height: 60%;
+  background: linear-gradient(to top, var(--b2) 0%, transparent 100%);
+  opacity: 0.3;
+  border-radius: 4px 4px 0 0;
+}
+
+/* Skeleton para News/Lista */
+.skeleton-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-news-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: var(--surface);
+  border-radius: var(--rs);
+  border: 1px solid var(--b);
+}
+
+.skeleton-news-title {
+  height: 14px;
+  width: 90%;
+  border-radius: 3px;
+}
+
+.skeleton-news-desc {
+  height: 10px;
+  width: 70%;
+  border-radius: 3px;
+}
+
+.skeleton-news-meta {
+  height: 8px;
+  width: 40%;
+  border-radius: 3px;
+}
+
+/* Skeleton para Forecast Strip */
+.skeleton-forecast {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.skeleton-forecast-item {
+  flex-shrink: 0;
+  width: 70px;
+  background: var(--surface);
+  border: 1px solid var(--b);
+  border-radius: var(--rs);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.skeleton-forecast-day {
+  height: 10px;
+  width: 50px;
+  border-radius: 3px;
+}
+
+.skeleton-forecast-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.skeleton-forecast-temp {
+  height: 12px;
+  width: 40px;
+  border-radius: 3px;
+}
+
+/* Pulse variant (alternativo ao shimmer) */
+.skeleton-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .skeleton-weather {
+    flex-direction: column;
+  }
+  
+  .skeleton-weather-icon {
+    width: 48px;
+    height: 48px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3602,7 +3937,7 @@ const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅",
 const IPMA_WIND=["","Fraco","Fraco a mod.","Moderado","Forte","Muito forte"];
 const wxIPMA=id=>IPMA_WX[id]||["🌤️","—"];
 async function loadWeather(force=false){
-  $("wx-body").innerHTML=ld();
+  $("wx-body").innerHTML=skeletonWeather();
   try{
     const id=CFG.IPMA_CITY_ID,key=`ipma_${id}`;
     let data=force?null:lsGet(key);
@@ -3652,7 +3987,7 @@ function parseRSS(xml){
 function agoRSS(s){if(!s)return"";try{const m=Math.floor((Date.now()-new Date(s))/60000);if(m<1)return"agora";if(m<60)return`há ${m}m`;const h=Math.floor(m/60);return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;}catch{return"";}}
 async function loadNews(scope,force=false){
   const isPT=scope==="pt",el=$(isPT?"news-pt":"news-world");
-  el.innerHTML=ld();const cKey=`rss_${scope}`;
+  el.innerHTML=skeletonNews(8);const cKey=`rss_${scope}`;
   try{
     let arts=force?null:lsGet(cKey);
     if(!arts){
@@ -3683,7 +4018,7 @@ const FUEL_SLUGS=[
   {slug:"diesel_plus",   label:"Gasóleo Especial",color:"var(--orange)"},
 ];
 async function renderFuel(force=false){
-  $("fuel-body").innerHTML=ld();
+  $("fuel-body").innerHTML=skeletonTable(8);
   try{
     let data=force?null:lsGet("fuel");
     if(!data){const r=await fetch("https://api.apiaberta.pt/v1/fuel/prices");if(!r.ok)throw new Error(`HTTP ${r.status}`);const j=await r.json();data=j.data||j;lsSet("fuel",data);}
@@ -3743,7 +4078,7 @@ var GAS_TARIFAS={
   spread:57.30-48.20,
 };
 async function loadElec(force=false){
-  $("elec-body").innerHTML=ld();
+  $("elec-body").innerHTML=skeletonKPIs(4);
   try{
     const T=ELEC_TARIFAS;
     const today=new Date(), hh=today.getHours();
@@ -4131,7 +4466,7 @@ function renderHolList(){
     <div>${rows}</div>`;
 }
 async function loadHolidays(force=false){
-  $("hol-body").innerHTML=ld();
+  $("hol-body").innerHTML=skeletonGeneric(5);
   try{
     const year=new Date().getFullYear(), ck=`hols_${year}`;
     let hols=force?null:lsGet(ck);
@@ -4643,7 +4978,7 @@ const FX_PAIRS=[
 ];
 let fxRates={};
 async function loadFX(force=false){
-  $("fx-body").innerHTML=ld();
+  $("fx-body").innerHTML=skeletonKPIs(6);
   try{
     let data=force?null:lsGet("fx");
     if(!data){
@@ -4748,7 +5083,7 @@ const CRYPTO_IDS=[
   {id:"binancecoin",name:"BNB",      sym:"BNB",color:"#F59E0B"},
 ];
 async function loadCrypto(force=false){
-  $("crypto-body").innerHTML=ld();
+  $("crypto-body").innerHTML=skeletonKPIs(6);
   try{
     let data=force?null:lsGet("cg");
     if(!data){
@@ -5437,7 +5772,7 @@ var GEO_FEEDS=[
 ];
 
 async function loadGeo(force){
- $("geo-body").innerHTML=ld();
+ $("geo-body").innerHTML=skeletonGeneric(6);
  try{
   var ck="geo_v10",cached=force?null:lsGet(ck);
   if(!cached){
@@ -5516,7 +5851,7 @@ loadGeo();
 
 /* ── Twelve Data — loadMarketStats ── */
 async function loadMarketStats(force=false){
-  $("mstats-body").innerHTML=ld();
+  $("mstats-body").innerHTML=skeletonKPIs(4);
   try{
     const res={};
     for(const m of MSTATS){
@@ -9617,6 +9952,149 @@ async function checkDownloadPermissions() {
     console.error('❌ Problema com Blob URLs:', e);
     return false;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SKELETON SCREENS - GERADORES
+   ══════════════════════════════════════════════════════════════ */
+
+/**
+ * Skeleton para Weather Card
+ */
+function skeletonWeather() {
+  return `
+    <div class="skeleton-container">
+      <div class="skeleton-weather">
+        <div class="skeleton skeleton-weather-icon"></div>
+        <div class="skeleton-weather-info">
+          <div class="skeleton skeleton-weather-temp"></div>
+          <div class="skeleton skeleton-weather-desc"></div>
+          <div class="skeleton skeleton-weather-loc"></div>
+        </div>
+      </div>
+      <div class="skeleton-grid">
+        <div class="skeleton-kpi">
+          <div class="skeleton-kpi-label"></div>
+          <div class="skeleton-kpi-value"></div>
+        </div>
+        <div class="skeleton-kpi">
+          <div class="skeleton-kpi-label"></div>
+          <div class="skeleton-kpi-value"></div>
+        </div>
+        <div class="skeleton-kpi">
+          <div class="skeleton-kpi-label"></div>
+          <div class="skeleton-kpi-value"></div>
+        </div>
+        <div class="skeleton-kpi">
+          <div class="skeleton-kpi-label"></div>
+          <div class="skeleton-kpi-value"></div>
+        </div>
+      </div>
+      <div class="skeleton-forecast">
+        ${Array(5).fill(0).map(() => `
+          <div class="skeleton-forecast-item">
+            <div class="skeleton skeleton-forecast-day"></div>
+            <div class="skeleton skeleton-forecast-icon"></div>
+            <div class="skeleton skeleton-forecast-temp"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Skeleton para News/Lista
+ */
+function skeletonNews(count = 5) {
+  return `
+    <div class="skeleton-container">
+      <div class="skeleton-news-list">
+        ${Array(count).fill(0).map(() => `
+          <div class="skeleton-news-item">
+            <div class="skeleton skeleton-news-title"></div>
+            <div class="skeleton skeleton-news-desc"></div>
+            <div class="skeleton skeleton-news-meta"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Skeleton para Tabela/Lista simples
+ */
+function skeletonTable(rows = 6) {
+  return `
+    <div class="skeleton-container">
+      <div class="skeleton-table">
+        ${Array(rows).fill(0).map(() => `
+          <div class="skeleton-table-row">
+            <div class="skeleton skeleton-table-cell"></div>
+            <div class="skeleton skeleton-table-cell"></div>
+            <div class="skeleton skeleton-table-cell"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Skeleton para Gráfico/Chart
+ */
+function skeletonChart() {
+  return `
+    <div class="skeleton-container">
+      <div class="skeleton skeleton-chart"></div>
+    </div>
+  `;
+}
+
+/**
+ * Skeleton para KPIs Grid
+ */
+function skeletonKPIs(count = 4) {
+  return `
+    <div class="skeleton-container">
+      <div class="skeleton-grid">
+        ${Array(count).fill(0).map(() => `
+          <div class="skeleton-kpi">
+            <div class="skeleton-kpi-label"></div>
+            <div class="skeleton-kpi-value"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Skeleton genérico (linhas de texto)
+ */
+function skeletonGeneric(lines = 4) {
+  return `
+    <div class="skeleton-container">
+      ${Array(lines).fill(0).map((_, i) => {
+        const widths = ['90%', '75%', '85%', '60%'];
+        return `<div class="skeleton skeleton-text" style="width:${widths[i % 4]}"></div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+/**
+ * Skeleton para Cards (retângulos)
+ */
+function skeletonCards(count = 3) {
+  return `
+    <div class="skeleton-container">
+      ${Array(count).fill(0).map(() => `
+        <div class="skeleton skeleton-card"></div>
+      `).join('')}
+    </div>
+  `;
 }
 
 
