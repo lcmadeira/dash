@@ -3995,6 +3995,46 @@ async function loadNews(scope,force=false){
         ?"https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT:pt"
         :"https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
       arts=(await fetchRSS(url)).slice(0,8);if(arts.length)lsSet(cKey,arts);
+      
+      // ──────────────────────────────────────────────────────────
+      // VERIFICAR NOTIFICAÇÕES DE BREAKING NEWS
+      // ──────────────────────────────────────────────────────────
+      if (notificationSettings.news.enabled && isPT && arts.length > 0) {
+        // Keywords para breaking news
+        const breakingKeywords = [
+          'urgente', 'breaking', 'última hora', 'agora', 
+          'alerta', 'atenção', 'emergência', 'rápido'
+        ];
+        
+        arts.forEach(article => {
+          const title = (article.title || '').toLowerCase();
+          
+          // Verificar se tem keywords de breaking news
+          const isBreaking = breakingKeywords.some(kw => title.includes(kw));
+          
+          if (isBreaking) {
+            // Verificar se já notificámos
+            const notifId = `news-${article.link}`;
+            const exists = notifications.find(n => n.data?.notifId === notifId);
+            
+            if (!exists) {
+              addNotification(
+                'news',
+                article.title || 'Notícia importante',
+                article.source || 'Última hora',
+                'high',
+                { 
+                  notifId,
+                  url: article.link,
+                  source: article.source 
+                }
+              );
+              
+              console.log(`📰 Nova notificação: ${article.title.substring(0, 50)}...`);
+            }
+          }
+        });
+      }
     }
     if(!arts.length)throw new Error("Sem artigos");
     el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
@@ -4140,6 +4180,38 @@ async function loadElec(force=false){
 
       cached={todayVals,yesterVals,tomorrowVals,mix,date:todayStr};
       lsSet(ck,cached);
+      
+      // ──────────────────────────────────────────────────────────
+      // VERIFICAR NOTIFICAÇÕES DE PREÇOS DE ENERGIA
+      // ──────────────────────────────────────────────────────────
+      if (notificationSettings.energy.enabled && cached.todayVals) {
+        const prices = (cached.todayVals || []).map(v => parseFloat(v.value)).filter(v => !isNaN(v) && v >= 0);
+        if (prices.length > 0) {
+          const avg = prices.reduce((a,b) => a+b) / prices.length;
+          const now = prices[Math.min(hh, prices.length - 1)] ?? avg;
+          const percentAbove = ((now - avg) / avg) * 100;
+          
+          // Notificar se preço atual está X% acima da média
+          if (percentAbove >= notificationSettings.energy.threshold) {
+            const notifId = `energy-peak-${todayStr}`;
+            const exists = notifications.find(n => n.data?.notifId === notifId);
+            
+            if (!exists) {
+              const severity = percentAbove >= 40 ? 'high' : percentAbove >= 30 ? 'medium' : 'low';
+              
+              addNotification(
+                'energy',
+                `Energia ${percentAbove.toFixed(0)}% acima da média hoje`,
+                `Agora: ${now.toFixed(2)} €/MWh • Média: ${avg.toFixed(2)} €/MWh`,
+                severity,
+                { notifId, current: now, average: avg, percentAbove }
+              );
+              
+              console.log(`⚡ Notificação: Energia ${percentAbove.toFixed(0)}% acima da média`);
+            }
+          }
+        }
+      }
     }
 
     const prices=(cached.todayVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
@@ -7763,6 +7835,49 @@ async function loadSeis(force=false){
       const j=await r.json();
       d=j.features||[];
       if(d.length)lsSet(ck,d);
+      
+      // ──────────────────────────────────────────────────────────
+      // VERIFICAR NOTIFICAÇÕES DE SISMOS
+      // ──────────────────────────────────────────────────────────
+      if (notificationSettings.sismos.enabled && d.length > 0) {
+        // Verificar sismos recentes (últimas 24h)
+        const recent24h = d.filter(x => (Date.now() - x.properties.time) < 24 * 60 * 60 * 1000);
+        
+        recent24h.forEach(sismo => {
+          const mag = sismo.properties.mag;
+          const place = sismo.properties.place || 'Localização desconhecida';
+          const time = sismo.properties.time;
+          const depth = sismo.geometry?.coordinates?.[2] || 0;
+          
+          // Notificar se magnitude >= minMagnitude (3.0 padrão)
+          if (mag >= notificationSettings.sismos.minMagnitude) {
+            // Verificar se já notificámos este sismo
+            const notifId = `sismo-${time}`;
+            const exists = notifications.find(n => n.data?.notifId === notifId);
+            
+            if (!exists) {
+              const severity = mag >= 4.5 ? 'high' : mag >= 4.0 ? 'medium' : 'low';
+              
+              addNotification(
+                'sismos',
+                `Sismo de magnitude ${mag.toFixed(1)} registado`,
+                `${place} • Profundidade: ${depth.toFixed(0)}km`,
+                severity,
+                { 
+                  notifId,
+                  magnitude: mag, 
+                  location: place, 
+                  depth,
+                  timestamp: time 
+                }
+              );
+              
+              console.log(`🌍 Nova notificação: Sismo M${mag.toFixed(1)} - ${place}`);
+            }
+          }
+        });
+      }
+      
     }catch(e){el.innerHTML=er(e.message);return;}
   }
   if(!d.length){
@@ -8812,6 +8927,9 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   console.log('🔔 Sistema de notificações ativado!');
   
+  // Iniciar monitoramento periódico
+  startNotificationMonitoring();
+  
   // ⚠️ DESENVOLVIMENTO: Gerar notificações demo
   // TODO: Remover em produção ou controlar via flag
   const ENABLE_DEMO_NOTIFICATIONS = false; // Mudar para true apenas em dev
@@ -9385,15 +9503,33 @@ function generateDemoNotifications() {
 
 // Verificar novas notificações a cada 5 minutos
 function startNotificationMonitoring() {
+  console.log('🔍 Monitoramento de notificações iniciado (verifica a cada 5min)');
+  
   setInterval(() => {
-    // Aqui chamarías as funções de verificação com dados reais
-    // Exemplo de integração:
-    // if (window.latestSeismicData) checkSeismicActivity(window.latestSeismicData);
-    // if (window.latestNews) checkBreakingNews(window.latestNews);
-    // if (window.currentEnergyPrice) checkEnergyPrices(window.currentEnergyPrice, window.averageEnergyPrice);
+    console.log('🔍 Verificando novos dados para notificações...');
     
-    console.log('🔍 Verificando novas notificações...');
+    // Recarregar dados (force=true) para verificar novidades
+    if (typeof loadSeis === 'function') {
+      loadSeis(true).catch(e => console.warn('Erro ao verificar sismos:', e));
+    }
+    
+    if (typeof loadNews === 'function') {
+      loadNews('pt', true).catch(e => console.warn('Erro ao verificar notícias:', e));
+    }
+    
+    if (typeof loadElec === 'function') {
+      loadElec(true).catch(e => console.warn('Erro ao verificar energia:', e));
+    }
+    
   }, 5 * 60 * 1000); // 5 minutos
+  
+  // Primeira verificação após 30 segundos
+  setTimeout(() => {
+    console.log('🔍 Primeira verificação de notificações...');
+    if (typeof loadSeis === 'function') loadSeis(true).catch(() => {});
+    if (typeof loadNews === 'function') loadNews('pt', true).catch(() => {});
+    if (typeof loadElec === 'function') loadElec(true).catch(() => {});
+  }, 30 * 1000);
 }
 
 /* ══════════════════════════════════════════════════════════════
