@@ -5946,6 +5946,25 @@ loadGeo();
 /* ── Twelve Data — loadMarketStats ── */
 async function loadMarketStats(force=false){
   $("mstats-body").innerHTML=skeletonKPIs(4);
+  
+  // Verificar se API key está configurada
+  if (!CFG.TD_KEY) {
+    $("mstats-body").innerHTML = `
+      <div style="padding:20px;text-align:center">
+        <div style="font-size:2rem;margin-bottom:8px">🔑</div>
+        <div style="font-size:.75rem;color:var(--t2);line-height:1.6">
+          API key Twelve Data não configurada.<br>
+          Indicadores de mercado desativados.
+        </div>
+        <div style="font-size:.6rem;color:var(--t3);margin-top:8px;font-family:var(--mono)">
+          Ver README para configurar
+        </div>
+      </div>
+    `;
+    console.warn('⚠️ Market Stats: API key não configurada');
+    return;
+  }
+  
   try{
     const res={};
     for(const m of MSTATS){
@@ -7857,7 +7876,21 @@ async function loadSeis(force=false){
       const j=await r.json();
       d=j.features||[];
       if(d.length)lsSet(ck,d);
-    }catch(e){el.innerHTML=er(e.message);return;}
+    }catch(e){
+      // Mensagem mais amigável para erros CORS
+      const isCORS = e.message.includes('CORS') || e.message.includes('proxies');
+      const msg = isCORS 
+        ? `⚠️ Erro de rede (CORS). Dados em cache podem estar disponíveis.` 
+        : e.message;
+      el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:20px 0;text-align:center">
+        ${msg}
+        <div style="margin-top:8px;font-size:.65rem;color:var(--t3)">
+          Tenta novamente mais tarde ou verifica a consola.
+        </div>
+      </div>`;
+      console.warn('Sismos:', e.message);
+      return;
+    }
   }
   
   // ──────────────────────────────────────────────────────────────
