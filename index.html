@@ -1194,26 +1194,7 @@ button{font-family:var(--font);cursor:pointer}
 }
 
 /* Mobile adjustments */
-@media (max-width: 767px) {
-  .notifications-panel {
-    width: 100%;
-    right: -100%;
-  }
-  
-  .toast-container {
-    left: 10px;
-    right: 10px;
-    max-width: none;
-  }
-  
-  .toast {
-    padding: 12px 14px;
-  }
-  
-  .notif-filters {
-    padding: 10px 12px;
-  }
-}
+/* Será consolidado no bloco mobile unificado no final */
 
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE EXPORTAÇÃO DE DADOS
@@ -1631,22 +1612,7 @@ button{font-family:var(--font);cursor:pointer}
 }
 
 /* Mobile */
-@media (max-width: 767px) {
-  .export-modal-content {
-    max-height: 95vh;
-    margin: 10px;
-  }
-  
-  .export-option-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .export-toast {
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-  }
-}
+/* Será consolidado no bloco mobile unificado no final */
 
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE NOTIFICAÇÕES
@@ -2065,26 +2031,7 @@ button{font-family:var(--font);cursor:pointer}
 }
 
 /* Mobile adjustments */
-@media (max-width: 767px) {
-  .notif-panel {
-    position: fixed;
-    top: 60px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-height: calc(100vh - 80px);
-  }
-  .notif-toast {
-    top: 70px;
-    right: 10px;
-    left: 10px;
-    min-width: auto;
-    max-width: none;
-  }
-  .notif-icon {
-    font-size: 1.1rem;
-  }
-}
+/* Será consolidado no bloco mobile unificado no final */
 
 /* Mobile adjustments */
 @media (max-width: 767px) {
@@ -2531,6 +2478,105 @@ textarea.nta::placeholder{color:var(--t3)}
   }
   .grid.s4,.subgrid { grid-column:span 1!important }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MEDIA QUERIES - MOBILE CONSOLIDADO (< 768px)
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* Notificações */
+  .notifications-panel {
+    width: 100%;
+    right: -100%;
+  }
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+  .toast {
+    padding: 12px 14px;
+  }
+  .notif-filters {
+    padding: 10px 12px;
+  }
+  .notif-panel {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100vh - 80px);
+  }
+  .notif-toast {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+  .notif-icon {
+    font-size: 1.1rem;
+  }
+  
+  /* Exportação */
+  .export-modal-content {
+    max-height: 95vh;
+    margin: 10px;
+  }
+  .export-option-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .export-toast {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+  
+  /* Configurações */
+  .settings-panel {
+    max-height: 95vh;
+    margin: 10px;
+  }
+  .settings-header {
+    padding: 16px 18px;
+  }
+  .settings-title {
+    font-size: 1.1rem;
+  }
+  .settings-tabs {
+    overflow-x: auto;
+    padding: 0 18px;
+  }
+  .settings-tab {
+    font-size: .65rem;
+    padding: 8px 14px;
+  }
+  .card-toggles {
+    grid-template-columns: 1fr;
+  }
+  .location-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ticker-suggestions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Header */
+  .hdr-right {
+    gap: 8px;
+  }
+  .settings-icon-btn {
+    padding: 6px;
+  }
+  .settings-icon {
+    font-size: 1.1rem;
+  }
+  .settings-icon-btn::after {
+    display: none;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2907,7 +2953,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📐</div>
       <span class="ch-lbl">Euribor · Taxas de Referência</span>
-      <div class="ch-r"><span class="badge">Mar 2026</span></div>
+      <div class="ch-r"><span class="badge" id="euriborRefDate">...</span></div>
     </div>
     <div id="euri-body"></div>
     <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
@@ -2919,14 +2965,14 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#10b98120">🏠</div>
       <span class="ch-lbl">Mercado Imobiliário · Portugal</span>
-      <div class="ch-r"><span style="font-family:var(--mono);font-size:.48rem;color:var(--t3)">INE · Q3 2025</span></div>
+      <div class="ch-r"><span style="font-family:var(--mono);font-size:.48rem;color:var(--t3)" id="imobRefQuarter">...</span></div>
     </div>
     <div class="imob-grid">
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Preço mediano nacional</div>
         <div class="imob-kpi-val">2 111 <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span></div>
         <div class="imob-kpi-chg" style="color:#10b981">▲ +17,7% homólogo</div>
-        <div class="imob-kpi-sub">Q3 2025 · famílias</div>
+        <div class="imob-kpi-sub" id="imobSub1">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Transações no trimestre</div>
@@ -2937,12 +2983,12 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações novas</div>
         <div class="imob-kpi-val" style="color:#0ea5e9">+14,1%</div>
-        <div class="imob-kpi-sub">variação homóloga Q3 2025</div>
+        <div class="imob-kpi-sub" id="imobSub2">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações existentes</div>
         <div class="imob-kpi-val" style="color:#f59e0b">+19,1%</div>
-        <div class="imob-kpi-sub">variação homóloga Q3 2025</div>
+        <div class="imob-kpi-sub" id="imobSub3">...</div>
       </div>
     </div>
     <div class="imob-tabs">
@@ -2951,7 +2997,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="imob-tab"    onclick="switchImob('municipios',this)">Municípios</button>
     </div>
     <div id="imob-body"></div>
-    <div class="src">✦ INE · Estatísticas Preços Habitação · Q3 2025 · actualizar: Mai 2026</div>
+    <div class="src" id="imobRefSrc">...</div>
   </div>
 
 
@@ -3355,7 +3401,39 @@ function tickMarkets(){
 }
 
 /* CONFIG */
-const CFG={TD_KEY:"ac8049c9d6c34e40bf50b758be66c056",IPMA_CITY_ID:1060300};
+// ⚠️ SEGURANÇA: Nunca commitar API keys ao repositório
+// Para usar a API Twelve Data, adiciona a tua chave aqui:
+// const CFG = { TD_KEY: "TUA_CHAVE_AQUI", IPMA_CITY_ID: 1060300 };
+// Ou melhor ainda: usa variáveis de ambiente ou ficheiro .env não versionado
+
+const CFG = { 
+  TD_KEY: null, // API key removida por segurança - adiciona a tua em config local
+  IPMA_CITY_ID: 1060300 
+};
+
+/* DATA DE REFERÊNCIA AUTOMÁTICA */
+// Gera automaticamente a data atual para substituir hardcoded "Mar 2026"
+const REF_DATE = {
+  // Mês atual em português (abreviado)
+  monthShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][new Date().getMonth()],
+  // Ano atual
+  year: new Date().getFullYear(),
+  // String formatada "Mar 2026"
+  get full() { return `${this.monthShort} ${this.year}` },
+  // Trimestre atual (Q1-Q4)
+  get quarter() { 
+    const q = Math.floor(new Date().getMonth() / 3) + 1;
+    return `Q${q} ${this.year}`;
+  },
+  // Trimestre anterior
+  get prevQuarter() {
+    const currentQ = Math.floor(new Date().getMonth() / 3) + 1;
+    if (currentQ === 1) return `Q4 ${this.year - 1}`;
+    return `Q${currentQ - 1} ${this.year}`;
+  }
+};
+
+console.log(`📅 Data de referência: ${REF_DATE.full} / ${REF_DATE.quarter}`);
 
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -4695,6 +4773,12 @@ async function loadCrypto(force=false){
 /* ── Twelve Data — Indicadores ── */
 const TD_BASE="https://api.twelvedata.com";
 async function tdGet(ep,params,force=false){
+  // Verificar se API key está configurada
+  if (!CFG.TD_KEY) {
+    console.warn('⚠️ Twelve Data API key não configurada. Indicadores de mercado desativados.');
+    throw new Error('API key não configurada');
+  }
+  
   const ck=ep+"?"+new URLSearchParams(params);
   if(!force){const h=lsGet(ck);if(h)return h;}
   const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
@@ -8358,14 +8442,47 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Sistema de personalização carregado!');
   
   // ──────────────────────────────────────────────────────────────
+  // INICIALIZAR DATAS DE REFERÊNCIA
+  // ──────────────────────────────────────────────────────────────
+  
+  // Euribor
+  const euriborRef = document.getElementById('euriborRefDate');
+  if (euriborRef) euriborRef.textContent = REF_DATE.full;
+  
+  // Imobiliário
+  const imobRef = document.getElementById('imobRefQuarter');
+  const imobSub1 = document.getElementById('imobSub1');
+  const imobSub2 = document.getElementById('imobSub2');
+  const imobSub3 = document.getElementById('imobSub3');
+  const imobSrc = document.getElementById('imobRefSrc');
+  
+  if (imobRef) imobRef.textContent = `INE · ${REF_DATE.prevQuarter}`;
+  if (imobSub1) imobSub1.textContent = `${REF_DATE.prevQuarter} · famílias`;
+  if (imobSub2) imobSub2.textContent = `variação homóloga ${REF_DATE.prevQuarter}`;
+  if (imobSub3) imobSub3.textContent = `variação homóloga ${REF_DATE.prevQuarter}`;
+  if (imobSrc) {
+    // Calcular próxima atualização (INE publica dados com 2 meses de atraso)
+    const nextUpdate = new Date();
+    nextUpdate.setMonth(nextUpdate.getMonth() + 2);
+    const nextMonth = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][nextUpdate.getMonth()];
+    imobSrc.textContent = `✦ INE · Estatísticas Preços Habitação · ${REF_DATE.prevQuarter} · actualizar: ${nextMonth} ${nextUpdate.getFullYear()}`;
+  }
+  
+  console.log('📅 Datas de referência atualizadas automaticamente');
+  
+  // ──────────────────────────────────────────────────────────────
   // INICIALIZAR SISTEMA DE NOTIFICAÇÕES
   // ──────────────────────────────────────────────────────────────
   
   loadNotifications();
   console.log('🔔 Sistema de notificações ativado!');
   
-  // Gerar notificações demo (apenas se vazio)
-  if (notifications.length === 0) {
+  // ⚠️ DESENVOLVIMENTO: Gerar notificações demo
+  // TODO: Remover em produção ou controlar via flag
+  const ENABLE_DEMO_NOTIFICATIONS = false; // Mudar para true apenas em dev
+  
+  if (ENABLE_DEMO_NOTIFICATIONS && notifications.length === 0) {
+    console.log('⚠️ Modo DEV: Gerando notificações demo...');
     setTimeout(() => {
       generateDemoNotifications();
     }, 2000);
