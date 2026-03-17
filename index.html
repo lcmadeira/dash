@@ -3294,7 +3294,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="euri-body"></div>
-    <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
+    <div class="src">✦ BCE · data-api.ecb.europa.eu · CORS nativo · Auto-actualiza diariamente</div>
   </div>
 
     <!-- Imobiliário PT -->
@@ -3420,7 +3420,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="div-body"></div>
-    <div class="src">✦ Eurostat · General Government Debt · 2024 · % do PIB</div>
+    <div class="src">✦ Eurostat · gov_10dd_edpt1 · CORS nativo · Auto-actualiza anualmente</div>
   </div>
 
 </div><!-- /grid row3 -->
@@ -3464,7 +3464,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadSMN(true)">↺</button></div>
     </div>
     <div id="smn-body"></div>
-    <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026</div>
+    <div class="src">✦ Eurostat earn_mw_cur · INE pingo.jsp · CORS nativo · Auto-actualiza</div>
   </div>
 
   <!-- Transportes PT -->
@@ -3585,7 +3585,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="renderInflation()">↺</button></div>
     </div>
     <div id="inf-body"></div>
-    <div class="src">✦ INE Portugal · Eurostat · Referência mensal</div>
+    <div class="src">✦ Eurostat · prc_hicp_manr · CORS nativo · Auto-actualiza mensalmente</div>
   </div>
 
 
@@ -4980,238 +4980,7 @@ async function loadHolidays(force=false){
    Endpoint: /service/data/{flow}/{key}?format=jsondata&lastNObservations=6
    CORS: nativo (cabeçalho Access-Control-Allow-Origin: *)
 ─────────────────────────────────────────────────── */
-/* ── EURIBOR estático (EMMI · emmi-benchmarks.eu) ── */
-/* ── DADOS EURIBOR ── actualizar mensalmente via emmi-benchmarks.eu
-   Última actualização: 10 Mar 2026 · Fonte: EMMI / euriborrates.com */
-var EURIBOR_DATA={
-  updated:"10 Mar 2026",
-  /* 5 maturidades · valores médios mensais Mar 2026 (até 10 Mar) */
-  rates:[
-    {term:"1S",  termFull:"1 Semana", val:1.888,prev:2.012,color:"#06B6D4", hipot:false,
-     desc:"Ref. overnight e swaps curtos"},
-    {term:"1M",  termFull:"1 Mês",    val:1.951,prev:2.089,color:"#22D3EE", hipot:false,
-     desc:"Ref. produtos curtos, tesouraria"},
-    {term:"3M",  termFull:"3 Meses",  val:2.138,prev:2.503,color:"#3B82F6", hipot:true,
-     desc:"Crédito habitação revisão trimestral"},
-    {term:"6M",  termFull:"6 Meses",  val:2.295,prev:2.415,color:"#8B5CF6", hipot:true,
-     desc:"Crédito habitação revisão semestral"},
-    {term:"12M", termFull:"12 Meses", val:2.552,prev:2.350,color:"#A855F7", hipot:true,
-     desc:"Crédito habitação revisão anual"},
-  ],
-  /* Histórico mensal (últimas 8 entradas) [mês, 3M, 6M, 12M] para gráfico */
-  hist:[
-    ["Mar 26",2.138,2.295,2.552],
-    ["Fev 26",2.503,2.415,2.350],
-    ["Jan 26",2.612,2.534,2.478],
-    ["Dez 25",2.721,2.648,2.589],
-    ["Nov 25",2.869,2.784,2.718],
-    ["Out 25",3.054,2.954,2.871],
-    ["Set 25",3.124,3.018,2.936],
-    ["Ago 25",3.201,3.089,2.998],
-  ],
-  /* BCE */
-  bce:{dep:2.00,refin:2.15,margLend:2.40},
-  peak:{val:4.160,date:"Out 2023"},
-  /* Próxima reunião BCE */
-  bceNext:{
-    date:"17 Abr 2026",
-    expectativa:"Pausa",          /* Corte | Pausa | Subida */
-    probCorte:38,                 /* % probabilidade corte 25bp */
-    probPausa:58,
-    probSubida:4,
-    nota:"Mercados divididos. BCE aguarda dados inflação Mar/Abr antes de decidir."
-  },
-  /* Spread bancário típico PT (Euribor + spread = TAN) */
-  spreadBancario:{
-    min:0.70, max:1.50, tipico:1.10,
-    nota:"Spread médio do mercado PT em crédito habitação variável"
-  }
-};
 
-function renderEuribor(){
-  const d=EURIBOR_DATA;
-  const el=document.getElementById("euri-body");
-  if(!el) return;
-  
-  // Salvar histórico das taxas principais
-  d.rates.forEach(r => {
-    addToHistory(`euribor_${r.term.toLowerCase()}`, r.val);
-  });
-
-  /* ── Gráfico SVG linhas (3M, 6M, 12M) ── */
-  const W=320, H=80, PAD={t:8,r:8,b:20,l:32};
-  const cw=W-PAD.l-PAD.r, ch=H-PAD.t-PAD.b;
-  const histRev=[...d.hist].reverse(); /* mais antigo → mais recente */
-  const allVals=histRev.flatMap(r=>r.slice(1));
-  const vmin=Math.floor(Math.min(...allVals)*10)/10-0.1;
-  const vmax=Math.ceil(Math.max(...allVals)*10)/10+0.1;
-  const vr=vmax-vmin;
-  const sx=i=>PAD.l+Math.round(i/(histRev.length-1)*cw);
-  const sy=v=>PAD.t+Math.round((1-(v-vmin)/vr)*ch);
-
-  /* Linhas para 3M(idx0), 6M(idx1), 12M(idx2) */
-  const lineColors=["#3B82F6","#8B5CF6","#A855F7"];
-  const lineLabels=["3M","6M","12M"];
-  const lines=lineColors.map((_,ci)=>
-    histRev.map((row,i)=>`${sx(i)},${sy(row[ci+1])}`).join(" ")
-  );
-
-  /* Ticks Y */
-  const yticks=[];
-  let yt=Math.ceil(vmin*10)/10;
-  while(yt<=vmax+0.01){ yticks.push(yt); yt=Math.round((yt+0.5)*10)/10; }
-
-  const svgChart=`<svg width="${W}" height="${H}" style="width:100%;display:block;overflow:visible">
-    <!-- Grid H -->
-    ${yticks.map(v=>`<line x1="${PAD.l}" y1="${sy(v)}" x2="${W-PAD.r}" y2="${sy(v)}"
-      stroke="var(--b)" stroke-width="1"/>`).join("")}
-    <!-- Ticks Y -->
-    ${yticks.map(v=>`<text x="${PAD.l-3}" y="${sy(v)+4}" text-anchor="end"
-      font-size="7" fill="var(--t3)">${v.toFixed(1)}</text>`).join("")}
-    <!-- Ticks X -->
-    ${histRev.filter((_,i)=>i%2===0).map((row,_,arr)=>{
-      const origIdx=histRev.indexOf(row);
-      return `<text x="${sx(origIdx)}" y="${H-2}" text-anchor="middle"
-        font-size="7" fill="var(--t3)">${row[0]}</text>`;
-    }).join("")}
-    <!-- Linhas -->
-    ${lines.map((pts,ci)=>`<polyline points="${pts}" fill="none"
-      stroke="${lineColors[ci]}" stroke-width="1.8" stroke-linejoin="round"/>`).join("")}
-    <!-- Pontos finais -->
-    ${lines.map((pts,ci)=>{
-      const last=pts.split(" ").pop().split(",");
-      return `<circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${lineColors[ci]}"/>`;
-    }).join("")}
-  </svg>`;
-
-  /* ── Calcular variação desde pico ── */
-  const peakVal=d.peak.val;
-  const r12=d.rates.find(r=>r.term==="12M");
-  const quedaPico=((peakVal-r12.val)/peakVal*100).toFixed(1);
-  const quedaPP=(peakVal-r12.val).toFixed(3);
-
-  /* ── TAN efectiva (Euribor + spread típico) ── */
-  const sp=d.spreadBancario;
-
-  /* ── Próxima reunião BCE ── */
-  const bce=d.bceNext;
-  const expColor=bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
-
-  el.innerHTML=`
-  <!-- 5 Pills de taxa -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px">
-    ${d.rates.map(r=>{
-      const diff=r.val-r.prev;
-      const dCol=diff<0?"#10B981":"#EF4444";
-      return `<div style="background:var(--b2);border-radius:6px;padding:5px 4px;
-           border-top:2px solid ${r.color};text-align:center">
-        <div style="font-size:.56rem;color:var(--t3);font-weight:600">${r.term}</div>
-        <div style="font-family:var(--mono);font-size:.85rem;font-weight:700;
-             color:${r.color};line-height:1.1;margin:2px 0">${r.val.toFixed(3)}<span style="font-size:.5rem">%</span></div>
-        <div style="font-size:.5rem;color:${dCol}">${diff<0?"▼":"▲"}${Math.abs(diff).toFixed(3)}pp</div>
-        ${r.hipot?`<div style="font-size:.44rem;color:var(--t3);margin-top:1px">🏠 hipot.</div>`:""}
-      </div>`;
-    }).join("")}
-  </div>
-
-  <!-- Gráfico SVG -->
-  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="font-size:.6rem;color:var(--t3)">Evolução mensal · Ago 2025 → Mar 2026</div>
-      <div style="display:flex;gap:8px">
-        ${lineColors.map((c,i)=>`<span style="font-size:.55rem;color:${c}">● ${lineLabels[i]}</span>`).join("")}
-      </div>
-    </div>
-    ${svgChart}
-  </div>
-
-  <!-- Linha KPI: BCE + Pico + Tendência -->
-  <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;
-       background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
-    <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Depósito</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#3B82F6">${d.bce.dep.toFixed(2)}%</div>
-      <div style="font-size:.52rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
-    </div>
-    <div style="background:var(--b)"></div>
-    <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#EF4444">${d.peak.val.toFixed(3)}%</div>
-      <div style="font-size:.52rem;color:#10B981">▼ ${quedaPP}pp (${quedaPico}%)</div>
-    </div>
-    <div style="background:var(--b)"></div>
-    <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tendência</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#10B981">▼ Descida</div>
-      <div style="font-size:.52rem;color:var(--t3)">desde Out 2023</div>
-    </div>
-  </div>
-
-  <!-- Próxima reunião BCE -->
-  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px;
-       border-left:3px solid ${expColor}">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div>
-        <div style="font-size:.6rem;font-weight:700;color:var(--t2)">
-          🏦 Próxima reunião BCE · ${bce.date}
-        </div>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
-      </div>
-      <div style="text-align:right;min-width:60px">
-        <div style="font-size:.62rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
-        <div style="font-size:.52rem;color:var(--t3)">consenso</div>
-      </div>
-    </div>
-    <!-- Barras de probabilidade -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
-      ${[
-        {label:"Corte −25bp",prob:bce.probCorte,col:"#10B981"},
-        {label:"Pausa",      prob:bce.probPausa, col:"#F59E0B"},
-        {label:"Subida",     prob:bce.probSubida,col:"#EF4444"},
-      ].map(b=>`<div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:.52rem;color:var(--t3)">${b.label}</span>
-          <span style="font-size:.54rem;font-weight:600;color:${b.col}">${b.prob}%</span>
-        </div>
-        <div style="background:var(--b);border-radius:3px;height:5px">
-          <div style="width:${b.prob}%;height:100%;background:${b.col};border-radius:3px"></div>
-        </div>
-      </div>`).join("")}
-    </div>
-  </div>
-
-  <!-- Spread bancário / TAN efectiva -->
-  <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
-    <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-      🏠 Spread bancário PT · crédito habitação variável
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:5px">
-      ${[
-        {label:"Spread mín.",val:sp.min,suf:"%",col:"#10B981"},
-        {label:"Spread típico",val:sp.tipico,suf:"%",col:"#F59E0B"},
-        {label:"Spread máx.",val:sp.max,suf:"%",col:"#EF4444"},
-      ].map(s=>`<div style="text-align:center">
-        <div style="font-size:.65rem;font-weight:700;color:${s.col}">${s.val.toFixed(2)}${s.suf}</div>
-        <div style="font-size:.52rem;color:var(--t3)">${s.label}</div>
-      </div>`).join("")}
-    </div>
-    <!-- TAN efectiva para Euribor hipotecário -->
-    <div style="font-size:.57rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread típico ${sp.tipico.toFixed(2)}%):</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
-      ${d.rates.filter(r=>r.hipot).map(r=>`
-        <div style="background:var(--surface);border-radius:5px;padding:4px 6px;text-align:center;
-             border:1px solid ${r.color}33">
-          <div style="font-size:.52rem;color:var(--t3)">Euribor ${r.termFull}</div>
-          <div style="font-size:.75rem;font-weight:700;color:${r.color}">
-            ${(r.val+sp.tipico).toFixed(3)}%</div>
-          <div style="font-size:.5rem;color:var(--t3)">TAN est.</div>
-        </div>`).join("")}
-    </div>
-    <div style="font-size:.52rem;color:var(--t3);margin-top:4px">
-      Fonte: EMMI · emmi-benchmarks.eu · Spread: média de mercado PT. Não constitui proposta comercial.
-    </div>
-  </div>`;
-}
 
 
 /* ── Câmbio EUR — Frankfurter API (BCE) ── */
@@ -5269,58 +5038,7 @@ function renderFX(date){
   <div class="src" style="margin-top:8px">✦ BCE · ${date||""} · Frankfurter API · Taxa oficial de referência</div>`;
 }
 
-/* ── Inflação PT vs Zona Euro ── */
-const INFLATION=[
-  {m:"Fev 2026",pt:2.4,eu:2.3},
-  {m:"Jan 2026",pt:2.6,eu:2.5},
-  {m:"Dez 2025",pt:2.2,eu:2.4},
-  {m:"Nov 2025",pt:1.9,eu:2.3},
-  {m:"Out 2025",pt:1.8,eu:2.3},
-  {m:"Set 2025",pt:1.2,eu:1.7},
-];
-function renderInflation(){
-  const l=INFLATION[0],maxV=Math.max(...INFLATION.map(d=>Math.max(d.pt,d.eu)))*1.1;
-  const ptC="var(--accent)",euC="var(--blue)";
-  $("inf-body").innerHTML=`
-    <div class="inf-hero">
-      <div class="inf-block">
-        <div class="inf-flag">🇵🇹</div>
-        <div class="inf-val" style="color:${ptC}">${l.pt.toFixed(1)}<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl">Portugal · IPC</div>
-        <div class="inf-lbl">${l.m}</div>
-      </div>
-      <div class="inf-sep"></div>
-      <div class="inf-block">
-        <div class="inf-flag">🇪🇺</div>
-        <div class="inf-val" style="color:${euC}">${l.eu.toFixed(1)}<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl">Zona Euro · IHPC</div>
-        <div class="inf-lbl">${l.m}</div>
-      </div>
-      <div class="inf-sep"></div>
-      <div class="inf-block">
-        <div class="inf-flag" style="font-size:.75rem;margin-bottom:5px">Meta BCE</div>
-        <div class="inf-val" style="color:var(--green);font-size:1.35rem">2.0<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl" style="color:${l.eu<=2.2?"var(--green)":"var(--red)"}">${l.eu<=2.2?"✓ próximo":"▲ acima"} da meta</div>
-        <div class="inf-lbl">&nbsp;</div>
-      </div>
-    </div>
-    <div class="inf-hist">${INFLATION.map(d=>{
-      const bp=Math.round((d.pt/maxV)*100),be=Math.round((d.eu/maxV)*100);
-      return`<div class="inf-row">
-        <div class="inf-row-lbl">${d.m}</div>
-        <div class="inf-bar-wrap">
-          <div class="inf-bar-pt" style="width:${bp}%;background:${ptC}"></div>
-          <div class="inf-bar-eu" style="width:${be}%;background:${euC}"></div>
-        </div>
-        <div class="inf-row-pt" style="color:${ptC}">${d.pt.toFixed(1)}%</div>
-        <div class="inf-row-eu" style="color:${euC}">${d.eu.toFixed(1)}%</div>
-      </div>`;}).join("")}
-    </div>
-    <div style="display:flex;gap:14px;margin-top:8px">
-      <span style="font-family:var(--mono);font-size:.56rem;color:${ptC}">▬ Portugal</span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${euC}">▬ Zona Euro</span>
-    </div>`;
-}
+
 
 /* ── CoinGecko Crypto ── */
 const CRYPTO_IDS=[
@@ -5439,14 +5157,15 @@ loadNews("world",true);
 renderFuel();
 renderCalendar();
 loadHolidays();
-renderInflation();
-renderEuribor();
-setTimeout(()=>{renderExp();renderDiv();},50);
+loadInflation();
+loadEuribor();
+setTimeout(()=>{renderExp();loadDividaPT();},50);
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),         400);
 setTimeout(()=>loadMarketStats(), 800);
 setTimeout(()=>loadPSI20(),        550);
+setTimeout(()=>loadImobKPIs(),     600);
 setTimeout(()=>loadCrypto(),      600);
 setTimeout(()=>loadFng(),         500);
 setTimeout(()=>loadAgri(),       1000);
@@ -5466,6 +5185,7 @@ setInterval(()=>{
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);
+  loadInflation(true);loadImobKPIs(true);
   loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);
   setTimeout(()=>loadMarketStats(true),800);
   setTimeout(()=>loadPSI20(true),1000);
@@ -6660,138 +6380,7 @@ async function loadPSI20(force=false){
 }
 
 
-function loadSMN(force){
-  const el=document.getElementById("smn-body");
-  if(!el) return;
 
-  const SMN_HIST=[
-    {y:2017,v:557},{y:2018,v:580},{y:2019,v:600},{y:2020,v:635},
-    {y:2021,v:665},{y:2022,v:705},{y:2023,v:760},{y:2024,v:820},
-    {y:2025,v:870},{y:2026,v:920},
-  ];
-
-  /* SMN EU — fonte: Eurostat / fontes nacionais Jan 2026 */
-  const SMN_EU=[
-    {c:"🇱🇺",n:"Luxemburgo", v:2637,col:"#10B981"},
-    {c:"🇳🇱",n:"Holanda",    v:2191,col:"#10B981"},
-    {c:"🇩🇪",n:"Alemanha",   v:2096,col:"#10B981"},
-    {c:"🇧🇪",n:"Bélgica",    v:2070,col:"#10B981"},
-    {c:"🇫🇷",n:"França",     v:1802,col:"#3B82F6"},
-    {c:"🇪🇸",n:"Espanha",    v:1381,col:"#3B82F6"},
-    {c:"🇬🇷",n:"Grécia",     v:968, col:"#F59E0B"},
-    {c:"🇵🇹",n:"Portugal",   v:920, col:"#F59E0B"},
-    {c:"🇵🇱",n:"Polónia",    v:887, col:"#F97316"},
-    {c:"🇷🇴",n:"Roménia",    v:704, col:"#EF4444"},
-    {c:"🇧🇬",n:"Bulgária",   v:534, col:"#EF4444"},
-  ];
-
-  /* IPC PT — INE Dez 2025 (variação homóloga 12m) */
-  const IPC=[
-    {cat:"Habitação",        var12m:+4.2, ico:"🏠", col:"#EF4444"},
-    {cat:"Saúde",            var12m:+4.8, ico:"🏥", col:"#8B5CF6"},
-    {cat:"Restauração",      var12m:+4.1, ico:"🍽️",col:"#06B6D4"},
-    {cat:"Transportes",      var12m:+3.6, ico:"🚗", col:"#F59E0B"},
-    {cat:"Educação",         var12m:+3.1, ico:"📚", col:"#3B82F6"},
-    {cat:"Alimentação",      var12m:+2.4, ico:"🛒", col:"#F97316"},
-    {cat:"Electricidade/Gás",var12m:-0.8, ico:"⚡", col:"#10B981"},
-    {cat:"Comunicações",     var12m:-0.5, ico:"📱", col:"#10B981"},
-  ];
-
-  const smn=920, smn24=870;
-  const yoy=((smn-smn24)/smn24*100).toFixed(1);
-  const custoLx=1750, custoResto=1220; /* estimativa 2026 */
-  const rLx=(smn/custoLx*100).toFixed(0);
-  const rResto=(smn/custoResto*100).toFixed(0);
-
-  const vals=SMN_HIST.map(x=>x.v);
-  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
-  const W=180,H=40;
-  const px=i=>Math.round(i/(vals.length-1)*W);
-  const py=v=>Math.round(H-(v-mn)/rng*H);
-  const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
-  const fill=pts+` ${W},${H+1} 0,${H+1}`;
-
-  el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-
-    <!-- ESQ: SMN + EU -->
-    <div>
-      <div style="background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:8px">
-        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-             letter-spacing:.5px;margin-bottom:2px">SMN Portugal 2025</div>
-        <div style="display:flex;align-items:flex-end;gap:5px">
-          <div style="font-size:2.2rem;font-weight:900;color:#10B981;line-height:1">${smn}</div>
-          <div style="font-size:.72rem;color:var(--t3);margin-bottom:3px">€/mês</div>
-        </div>
-        <div style="font-size:.68rem;color:#10B981;font-weight:600;margin-top:1px">▲ ${yoy}% vs 2024 (820€)</div>
-        <svg viewBox="0 0 ${W} ${H+10}" style="width:100%;height:${H+10}px;margin-top:5px">
-          <polygon points="${fill}" fill="#10B98118"/>
-          <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="1.8"/>
-          <circle cx="${px(vals.length-1)}" cy="${py(smn)}" r="3" fill="#10B981"/>
-          <text x="1" y="${H+9}" font-size="7" fill="#4A526A">2017: 557€</text>
-          <text x="${W}" y="${H+9}" font-size="7" fill="#10B981" text-anchor="end">2026: ${smn}€</text>
-        </svg>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:1px">+65% em 9 anos</div>
-      </div>
-
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">Comparação EU 2025:</div>
-      ${SMN_EU.map(r=>{
-        const bw=Math.round((r.v/2571)*100);
-        const ispt=r.n==="Portugal";
-        return `<div style="display:grid;grid-template-columns:16px 66px 1fr 38px;
-                     align-items:center;gap:3px;padding:2px ${ispt?"4px":"0"};
-                     ${ispt?"background:"+r.col+"15;border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)"}">
-          <span style="font-size:.76rem">${r.c}</span>
-          <span style="font-size:.59rem;font-weight:${ispt?700:400};
-                color:${ispt?"#fff":"var(--t2)"}">${r.n}</span>
-          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
-            <div style="width:${bw}%;height:100%;background:${r.col}"></div>
-          </div>
-          <span style="font-size:.61rem;color:${r.col};font-weight:600;text-align:right">${r.v}€</span>
-        </div>`;
-      }).join("")}
-    </div>
-
-    <!-- DIR: Poder de compra + IPC -->
-    <div>
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">💰 SMN vs custo de vida estimado</div>
-      ${[{l:"Lisboa",v:custoLx,r:rLx},{l:"Resto do país",v:custoResto,r:rResto}].map(x=>{
-        const col=x.r<70?"#EF4444":x.r<85?"#F59E0B":"#10B981";
-        return `<div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:6px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:.62rem;color:var(--t2);font-weight:600">${x.l}</span>
-            <span style="font-size:.59rem;color:var(--t3)">est. ${x.v}€/mês</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:.7rem;font-weight:700;color:${col}">SMN cobre ${x.r}%</span>
-            <span style="font-size:.65rem;color:var(--t3)">défice ~${Math.max(0,x.v-smn)}€</span>
-          </div>
-          <div style="background:var(--b);border-radius:3px;height:6px;overflow:hidden">
-            <div style="width:${Math.min(x.r,100)}%;height:100%;background:${col};border-radius:3px"></div>
-          </div>
-        </div>`;
-      }).join("")}
-
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:6px 0 4px">📊 IPC por categoria · var. 12m (Jan 2025)</div>
-      ${IPC.map(c=>{
-        const abs=Math.abs(c.var12m);
-        const bw=Math.round((abs/6)*100);
-        return `<div style="display:grid;grid-template-columns:16px 86px 1fr 34px;
-                     align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--b)">
-          <span style="font-size:.7rem">${c.ico}</span>
-          <span style="font-size:.59rem;color:var(--t2)">${c.cat}</span>
-          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
-            <div style="width:${bw}%;height:100%;background:${c.col};opacity:.85"></div>
-          </div>
-          <span style="font-size:.62rem;font-weight:700;color:${c.col};text-align:right">
-            ${c.var12m>=0?"▲":"▼"}${abs.toFixed(1)}%
-          </span>
-        </div>`;
-      }).join("")}
-      <div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral Dez 2025: <b style="color:var(--text)">+2.4%</b> homólogo · SMN 2026: 920€</div>
-    </div>
-  </div>`;
-}
 
 
 /* ══════════════════════════════════════════════════════
@@ -7630,25 +7219,6 @@ function renderExp(){
 /* ══════════════════════════════════════════════════════════════
    DÍVIDA PÚBLICA — Eurostat 2023
    ══════════════════════════════════════════════════════════════ */
-var /* Dívida Pública — Eurostat EDP, dados anuais 2024 (publicados Out 2025)
-   Fonte: ec.europa.eu/eurostat/web/products-euro-indicators */
-DIV_PAISES=[
-  {n:"Grécia",  v:154.2,c:"#EF4444"},
-  {n:"Itália",  v:134.9,c:"#F97316"},
-  {n:"França",  v:113.2,c:"#EAB308"},
-  {n:"Bélgica", v:103.9,c:"#F59E0B"},
-  {n:"Espanha", v:101.6,c:"#F59E0B"},
-  {n:"Portugal",v:94.6, c:"#84CC16",hl:true},
-  {n:"Zona Euro",v:87.1,c:"#8B5CF6"},
-  {n:"Alemanha",v:62.4, c:"#3B82F6"},
-  {n:"Holanda", v:43.8, c:"#06B6D4"},
-];
-var DIV_TREND=[
-  {y:"14",v:130.6},{y:"15",v:128.8},{y:"16",v:129.2},{y:"17",v:124.8},
-  {y:"18",v:121.5},{y:"19",v:116.8},{y:"20",v:134.9},{y:"21",v:124.5},
-  {y:"22",v:113.9},{y:"23",v:97.9},{y:"24",v:94.6},
-];
-var DIV_MODE="bar";
 function switchDiv(mode,btn){
   DIV_MODE=mode;
   document.querySelectorAll("#div-card .rbtn").forEach(b=>b.classList.remove("on"));
@@ -10524,6 +10094,1031 @@ function closeTrendModal() {
   if (trendModal) trendModal.style.display = 'none';
 }
 
+
+
+/* ════════════════════════════════════════════════════════
+   PATCH v1.1.1 — APIs live BCE/Eurostat/INE
+   Euribor: BCE SDMX | Inflação: Eurostat HICP
+   Dívida: Eurostat EDP | Imobiliário: INE pingo.jsp
+   SMN: Eurostat earn_mw_cur | IPC: Eurostat COICOP
+   Manutenção: index.html#admin
+   Aplicado: 2026-03-17 21:58
+   ════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   PATCH v1.1.1 — Dados live via APIs públicas (sem chave, CORS nativo)
+   
+   Substitui dados hardcoded por:
+   1. Euribor → BCE data-api.ecb.europa.eu (diário)
+   2. Inflação → Eurostat prc_hicp_manr (mensal)
+   3. Dívida Pública → Eurostat gov_10dd_edpt1 (anual)
+   
+   Todas as funções têm fallback automático para dados estáticos.
+   Cache TTL: Euribor=24h | Inflação=12h | Dívida=7 dias
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   1. EURIBOR — API BCE (data-api.ecb.europa.eu) CORS nativo
+   ══════════════════════════════════════════════════════════════ */
+
+/* Fallback estático (activado se API falhar) */
+var EURIBOR_FALLBACK = {
+  updated: "Fallback — BCE indisponível",
+  rates: [
+    {term:"1S",  termFull:"1 Semana", val:1.888,prev:2.012,color:"#06B6D4", hipot:false, desc:"Ref. overnight e swaps curtos"},
+    {term:"1M",  termFull:"1 Mês",    val:1.951,prev:2.089,color:"#22D3EE", hipot:false, desc:"Ref. produtos curtos, tesouraria"},
+    {term:"3M",  termFull:"3 Meses",  val:2.138,prev:2.503,color:"#3B82F6", hipot:true,  desc:"Crédito habitação revisão trimestral"},
+    {term:"6M",  termFull:"6 Meses",  val:2.295,prev:2.415,color:"#8B5CF6", hipot:true,  desc:"Crédito habitação revisão semestral"},
+    {term:"12M", termFull:"12 Meses", val:2.552,prev:2.350,color:"#A855F7", hipot:true,  desc:"Crédito habitação revisão anual"},
+  ],
+  hist: [
+    ["Mar 26",2.138,2.295,2.552],["Fev 26",2.503,2.415,2.350],["Jan 26",2.612,2.534,2.478],
+    ["Dez 25",2.721,2.648,2.589],["Nov 25",2.869,2.784,2.718],["Out 25",3.054,2.954,2.871],
+    ["Set 25",3.124,3.018,2.936],["Ago 25",3.201,3.089,2.998],
+  ],
+  bce:{dep:2.00,refin:2.15,margLend:2.40},
+  peak:{val:4.160,date:"Out 2023"},
+  bceNext:{
+    date:"17 Abr 2026",
+    expectativa:"Pausa",
+    probCorte:38,
+    probPausa:58,
+    probSubida:4,
+    nota:"Mercados divididos. BCE aguarda dados inflação Mar/Abr antes de decidir."
+  },
+  spreadBancario:{min:0.70,max:1.50,tipico:1.10,nota:"Spread médio do mercado PT"}
+};
+
+/* Configuração das séries BCE SDMX */
+var BCE_EURIBOR_SERIES = [
+  {term:"1S",  termFull:"1 Semana", key:"FM.M.U2.EUR.RT0.MM.EURIBOR1WD_.HSTA", color:"#06B6D4", hipot:false, desc:"Ref. overnight e swaps curtos"},
+  {term:"1M",  termFull:"1 Mês",    key:"FM.M.U2.EUR.RT0.MM.EURIBOR1MD_.HSTA", color:"#22D3EE", hipot:false, desc:"Ref. produtos curtos, tesouraria"},
+  {term:"3M",  termFull:"3 Meses",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"#3B82F6", hipot:true,  desc:"Crédito habitação revisão trimestral"},
+  {term:"6M",  termFull:"6 Meses",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"#8B5CF6", hipot:true,  desc:"Crédito habitação revisão semestral"},
+  {term:"12M", termFull:"12 Meses", key:"FM.M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"#A855F7", hipot:true,  desc:"Crédito habitação revisão anual"},
+];
+
+/**
+ * Parsear resposta SDMX-JSON da API BCE
+ * @returns [{date:"YYYY-MM", value:X.XXX}] ordenado cronologicamente
+ */
+function parseBCESeries(json) {
+  var series = json.dataSets && json.dataSets[0] && json.dataSets[0].series;
+  if (!series) throw new Error("Sem series no JSON BCE");
+  var seriesKey = Object.keys(series)[0];
+  var obs = series[seriesKey].observations;
+  var dims = json.structure.dimensions.observation[0].values;
+  var result = [];
+  Object.keys(obs).forEach(function(idx) {
+    var val = obs[idx][0];
+    if (val !== null && val !== undefined && !isNaN(val)) {
+      result.push({ date: dims[parseInt(idx)].id, value: parseFloat(val) });
+    }
+  });
+  result.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  return result;
+}
+
+/**
+ * Formatar "YYYY-MM" → "Mmm YY" (ex: "2026-03" → "Mar 26")
+ */
+function fmtBCEDate(yyyymm) {
+  var months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  var parts = (yyyymm || "").split("-");
+  if (parts.length < 2) return yyyymm;
+  return months[parseInt(parts[1]) - 1] + " " + parts[0].slice(2);
+}
+
+/**
+ * Carregar Euribor via API BCE + fallback automático
+ * Cache TTL: 24h (dados publicados 1x/dia útil)
+ */
+async function loadEuribor(force) {
+  var el = document.getElementById("euri-body");
+  if (!el) return;
+
+  var badge = document.getElementById("euriborRefDate");
+  if (badge) badge.textContent = "A carregar...";
+
+  var cacheKey = "euribor_bce_v3";
+  var cached = force ? null : lsGet(cacheKey);
+  if (cached) { renderEuriborData(cached); return; }
+
+  el.innerHTML = skeletonKPIs(5);
+
+  try {
+    /* Fetch paralelo das 5 séries — 10 observações cada */
+    var results = await Promise.allSettled(
+      BCE_EURIBOR_SERIES.map(function(s) {
+        var series = s.key.replace(/^FM\./, "");
+        var url = "https://data-api.ecb.europa.eu/service/data/FM/" + series
+          + "?format=jsondata&lastNObservations=10";
+        return fetch(url, {
+          signal: AbortSignal.timeout(12000),
+          headers: { "Accept": "application/json" }
+        }).then(function(r) {
+          if (!r.ok) throw new Error("BCE HTTP " + r.status);
+          return r.json().then(parseBCESeries);
+        });
+      })
+    );
+
+    var successes = results.filter(function(r) { return r.status === "fulfilled" && r.value.length > 0; });
+    if (successes.length < 3) throw new Error("Menos de 3 séries BCE disponíveis (" + successes.length + "/5)");
+
+    /* Construir rates */
+    var rates = BCE_EURIBOR_SERIES.map(function(s, i) {
+      var res = results[i];
+      if (res.status !== "fulfilled" || !res.value.length) {
+        return Object.assign({}, EURIBOR_FALLBACK.rates[i], {_fallback: true});
+      }
+      var data = res.value;
+      var latest = data[data.length - 1];
+      var prev = data.length > 1 ? data[data.length - 2].value : latest.value;
+      return {
+        term: s.term, termFull: s.termFull,
+        val: latest.value, prev: prev,
+        color: s.color, hipot: s.hipot, desc: s.desc,
+        date: latest.date
+      };
+    });
+
+    /* Construir histórico para gráfico SVG (3M=idx2, 6M=idx3, 12M=idx4) */
+    var s3 = results[2].status === "fulfilled" ? results[2].value : [];
+    var s6 = results[3].status === "fulfilled" ? results[3].value : [];
+    var s12= results[4].status === "fulfilled" ? results[4].value : [];
+    var refSeries = s3.length ? s3 : s6.length ? s6 : s12;
+    var lastN = refSeries.slice(-8);
+
+    var hist = lastN.map(function(obs) {
+      var label = fmtBCEDate(obs.date);
+      var v6  = s6.find(function(x){return x.date===obs.date;});
+      var v12 = s12.find(function(x){return x.date===obs.date;});
+      return [label, obs.value, v6?v6.value:null, v12?v12.value:null];
+    });
+
+    var latestDate = rates.find(function(r){return r.date;});
+    var updatedLabel = latestDate ? fmtBCEDate(latestDate.date) + " · BCE" : "BCE";
+
+    var data = {
+      updated: updatedLabel,
+      rates: rates,
+      hist: hist,
+      bce: EURIBOR_FALLBACK.bce,
+      peak: EURIBOR_FALLBACK.peak,
+      bceNext: EURIBOR_FALLBACK.bceNext,
+      spreadBancario: EURIBOR_FALLBACK.spreadBancario,
+      live: true
+    };
+
+    lsSet(cacheKey, data);
+    renderEuriborData(data);
+
+  } catch (e) {
+    console.warn("BCE Euribor API falhou:", e.message, "— usando fallback");
+    renderEuriborData(Object.assign({}, EURIBOR_FALLBACK, {
+      live: false,
+      updated: "Fallback (BCE indisponível)"
+    }));
+  }
+}
+
+/**
+ * Renderizar dados Euribor (live ou fallback) — idêntico ao anterior mas aceita dados dinâmicos
+ */
+function renderEuriborData(d) {
+  var el = document.getElementById("euri-body");
+  if (!el) return;
+
+  /* Badge */
+  var badge = document.getElementById("euriborRefDate");
+  var liveTag = d.live
+    ? '<span style="color:#10B981;font-size:.5rem;margin-left:3px">● BCE live</span>'
+    : '<span style="color:#F59E0B;font-size:.5rem;margin-left:3px">⚠ fallback</span>';
+  if (badge) badge.innerHTML = (d.updated || "") + liveTag;
+
+  /* Guardar histórico das taxas principais */
+  if (d.rates) {
+    d.rates.forEach(function(r) { addToHistory("euribor_" + r.term.toLowerCase(), r.val); });
+  }
+
+  /* ── Gráfico SVG ── */
+  var W=320, H=80, PAD={t:8,r:8,b:20,l:32};
+  var cw=W-PAD.l-PAD.r, ch=H-PAD.t-PAD.b;
+  var histRev = d.hist ? [...d.hist].reverse() : [];
+  var allVals = histRev.flatMap(function(r){return r.slice(1).filter(function(v){return v!==null&&!isNaN(v);});});
+  if (!allVals.length) { el.innerHTML = er("Sem dados históricos Euribor"); return; }
+
+  var vmin=Math.floor(Math.min(...allVals)*10)/10-0.1;
+  var vmax=Math.ceil(Math.max(...allVals)*10)/10+0.1;
+  var vr=vmax-vmin||1;
+  var sx=function(i){return PAD.l+Math.round(i/(histRev.length-1||1)*cw);};
+  var sy=function(v){return PAD.t+Math.round((1-(v-vmin)/vr)*ch);};
+
+  var lineColors=["#3B82F6","#8B5CF6","#A855F7"];
+  var lineLabels=["3M","6M","12M"];
+
+  /* Construir polylines para cada série */
+  var lines = lineColors.map(function(_, ci) {
+    var pts = histRev
+      .map(function(row, i) {
+        var v = row[ci+1];
+        return (v !== null && !isNaN(v)) ? sx(i)+","+sy(v) : null;
+      })
+      .filter(Boolean);
+    return pts.join(" ");
+  });
+
+  /* Ticks Y */
+  var yticks=[], yt=Math.ceil(vmin*10)/10;
+  while(yt<=vmax+0.01){yticks.push(yt);yt=Math.round((yt+0.5)*10)/10;}
+
+  var svgChart='<svg width="'+W+'" height="'+H+'" style="width:100%;display:block;overflow:visible">'
+    +yticks.map(function(v){return '<line x1="'+PAD.l+'" y1="'+sy(v)+'" x2="'+(W-PAD.r)+'" y2="'+sy(v)+'" stroke="var(--b)" stroke-width="1"/>';}).join("")
+    +yticks.map(function(v){return '<text x="'+(PAD.l-3)+'" y="'+(sy(v)+4)+'" text-anchor="end" font-size="7" fill="var(--t3)">'+v.toFixed(1)+'</text>';}).join("")
+    +histRev.filter(function(_,i){return i%2===0;}).map(function(row,_,arr){
+      var origIdx=histRev.indexOf(row);
+      return '<text x="'+sx(origIdx)+'" y="'+H+'" text-anchor="middle" font-size="7" fill="var(--t3)">'+row[0]+'</text>';
+    }).join("")
+    +lines.map(function(pts,ci){
+      if(!pts||!pts.trim()) return "";
+      return '<polyline points="'+pts+'" fill="none" stroke="'+lineColors[ci]+'" stroke-width="1.8" stroke-linejoin="round"/>';
+    }).join("")
+    +lines.map(function(pts,ci){
+      if(!pts||!pts.trim()) return "";
+      var lastPt = pts.trim().split(" ").pop().split(",");
+      if(lastPt.length < 2) return "";
+      return '<circle cx="'+lastPt[0]+'" cy="'+lastPt[1]+'" r="3" fill="'+lineColors[ci]+'"/>';
+    }).join("")
+    +'</svg>';
+
+  var peakVal = d.peak ? d.peak.val : 4.160;
+  var r12 = d.rates ? d.rates.find(function(r){return r.term==="12M";}) : null;
+  var quedaPico = r12 ? ((peakVal-r12.val)/peakVal*100).toFixed(1) : "—";
+  var quedaPP   = r12 ? (peakVal-r12.val).toFixed(3) : "—";
+  var sp  = d.spreadBancario || {min:0.70,max:1.50,tipico:1.10};
+  var bce = d.bceNext || {date:"—",expectativa:"—",probCorte:0,probPausa:0,probSubida:0,nota:""};
+  var expColor = bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
+
+  el.innerHTML = `
+  <!-- 5 Pills de taxa -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px">
+    ${(d.rates||[]).map(function(r){
+      var diff=r.val-r.prev;
+      var dCol=diff<0?"#10B981":"#EF4444";
+      return '<div style="background:var(--b2);border-radius:6px;padding:5px 4px;border-top:2px solid '+r.color+';text-align:center">'
+        +'<div style="font-size:.56rem;color:var(--t3);font-weight:600">'+r.term+'</div>'
+        +'<div style="font-family:var(--mono);font-size:.85rem;font-weight:700;color:'+r.color+';line-height:1.1;margin:2px 0">'+r.val.toFixed(3)+'<span style="font-size:.5rem">%</span></div>'
+        +'<div style="font-size:.5rem;color:'+dCol+'">'+(diff<0?"▼":"▲")+Math.abs(diff).toFixed(3)+'pp</div>'
+        +(r.hipot?'<div style="font-size:.44rem;color:var(--t3);margin-top:1px">🏠 hipot.</div>':"")+
+        '</div>';
+    }).join("")}
+  </div>
+
+  <!-- Gráfico SVG -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:.6rem;color:var(--t3)">Evolução mensal · últimas observações</div>
+      <div style="display:flex;gap:8px">${lineColors.map(function(c,i){return '<span style="font-size:.55rem;color:'+c+'">● '+lineLabels[i]+'</span>';}).join("")}</div>
+    </div>
+    ${svgChart}
+  </div>
+
+  <!-- Linha KPI: BCE + Pico + Tendência -->
+  <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Depósito</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#3B82F6">${(d.bce||{dep:"—"}).dep}%</div>
+      <div style="font-size:.52rem;color:var(--t3)">refin. ${(d.bce||{refin:"—"}).refin}%</div>
+    </div>
+    <div style="background:var(--b)"></div>
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak?d.peak.date:""}</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#EF4444">${peakVal.toFixed(3)}%</div>
+      <div style="font-size:.52rem;color:#10B981">▼ ${quedaPP}pp (${quedaPico}%)</div>
+    </div>
+    <div style="background:var(--b)"></div>
+    <div style="padding:7px 10px;text-align:center">
+      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tendência</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#10B981">▼ Descida</div>
+      <div style="font-size:.52rem;color:var(--t3)">desde Out 2023</div>
+    </div>
+  </div>
+
+  <!-- Próxima reunião BCE -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px;border-left:3px solid ${expColor}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:.6rem;font-weight:700;color:var(--t2)">🏦 Próxima reunião BCE · ${bce.date}</div>
+        <div style="font-size:.57rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
+      </div>
+      <div style="text-align:right;min-width:60px">
+        <div style="font-size:.62rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
+        <div style="font-size:.52rem;color:var(--t3)">consenso</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
+      ${[{label:"Corte −25bp",prob:bce.probCorte,col:"#10B981"},{label:"Pausa",prob:bce.probPausa,col:"#F59E0B"},{label:"Subida",prob:bce.probSubida,col:"#EF4444"}].map(function(b){
+        return '<div><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:.52rem;color:var(--t3)">'+b.label+'</span><span style="font-size:.54rem;font-weight:600;color:'+b.col+'">'+b.prob+'%</span></div><div style="background:var(--b);border-radius:3px;height:5px"><div style="width:'+b.prob+'%;height:100%;background:'+b.col+';border-radius:3px"></div></div></div>';
+      }).join("")}
+    </div>
+  </div>
+
+  <!-- Spread bancário / TAN efectiva -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
+    <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">🏠 Spread bancário PT · crédito habitação variável</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:5px">
+      ${[{label:"Spread mín.",val:sp.min,col:"#10B981"},{label:"Spread típico",val:sp.tipico,col:"#F59E0B"},{label:"Spread máx.",val:sp.max,col:"#EF4444"}].map(function(s){
+        return '<div style="text-align:center"><div style="font-size:.65rem;font-weight:700;color:'+s.col+'">'+s.val.toFixed(2)+'%</div><div style="font-size:.52rem;color:var(--t3)">'+s.label+'</div></div>';
+      }).join("")}
+    </div>
+    <div style="font-size:.57rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread típico ${sp.tipico.toFixed(2)}%):</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+      ${(d.rates||[]).filter(function(r){return r.hipot;}).map(function(r){
+        return '<div style="background:var(--surface);border-radius:5px;padding:4px 6px;text-align:center;border:1px solid '+r.color+'33"><div style="font-size:.52rem;color:var(--t3)">Euribor '+r.termFull+'</div><div style="font-size:.75rem;font-weight:700;color:'+r.color+'">'+(r.val+sp.tipico).toFixed(3)+'%</div><div style="font-size:.5rem;color:var(--t3)">TAN est.</div></div>';
+      }).join("")}
+    </div>
+    <div style="font-size:.52rem;color:var(--t3);margin-top:4px">Fonte: BCE · data-api.ecb.europa.eu · CORS nativo · Spread: média mercado PT. Não constitui proposta comercial.</div>
+  </div>`;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   2. INFLAÇÃO — API Eurostat (prc_hicp_manr) CORS nativo
+   ══════════════════════════════════════════════════════════════ */
+
+/* Fallback estático */
+var INFLATION_FALLBACK = [
+  {m:"Fev 2026",pt:2.4,eu:2.3},{m:"Jan 2026",pt:2.6,eu:2.5},
+  {m:"Dez 2025",pt:2.2,eu:2.4},{m:"Nov 2025",pt:1.9,eu:2.3},
+  {m:"Out 2025",pt:1.8,eu:2.3},{m:"Set 2025",pt:1.2,eu:1.7},
+];
+
+/**
+ * Parsear resposta JSON do Eurostat
+ * @returns {PT:[{date,value}], EA:[{date,value}]}
+ */
+function parseEurostatJSON(json) {
+  var vals = json.value || {};
+  var timeDim = json.dimension && json.dimension.time;
+  var geoDim  = json.dimension && json.dimension.geo;
+  if (!timeDim || !geoDim) throw new Error("Estrutura Eurostat inesperada");
+
+  var timeIndex = timeDim.category.index;
+  var geoIndex  = geoDim.category.index;
+  var nGeo = Object.keys(geoIndex).length;
+
+  var result = {};
+  Object.keys(geoIndex).forEach(function(geo) {
+    var geoPos = geoIndex[geo];
+    result[geo] = [];
+    Object.keys(timeIndex).forEach(function(date) {
+      var timePos = timeIndex[date];
+      var flatIdx = timePos * nGeo + geoPos;
+      var val = vals[flatIdx.toString()];
+      if (val !== undefined && val !== null) {
+        result[geo].push({ date: date, value: parseFloat(val) });
+      }
+    });
+    result[geo].sort(function(a, b) { return a.date.localeCompare(b.date); });
+  });
+  return result;
+}
+
+/**
+ * Carregar Inflação via Eurostat + fallback
+ * Cache TTL: 12h
+ */
+async function loadInflation(force) {
+  var el = document.getElementById("inf-body");
+  if (!el) return;
+
+  var cacheKey = "eurostat_infl_v3";
+  var cached = force ? null : lsGet(cacheKey);
+  if (cached) { renderInflationData(cached); return; }
+
+  try {
+    var url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr"
+      + "?geo=PT&geo=EA&unit=RCH_A&coicop=CP00&lastTimePeriod=12&format=JSON&lang=PT";
+
+    var r = await fetch(url, {
+      signal: AbortSignal.timeout(14000),
+      headers: { "Accept": "application/json" }
+    });
+    if (!r.ok) throw new Error("Eurostat HICP HTTP " + r.status);
+
+    var json = await r.json();
+    var parsed = parseEurostatJSON(json);
+
+    var ptSeries = (parsed.PT || parsed.pt || []).slice(-8);
+    var eaSeries = (parsed.EA || parsed.ea || []).slice(-8);
+    if (!ptSeries.length) throw new Error("Sem dados PT no Eurostat");
+
+    var MONTHS_PT = ["janeiro","fevereiro","março","abril","maio","junho",
+                     "julho","agosto","setembro","outubro","novembro","dezembro"];
+
+    var data = ptSeries.map(function(ptObs) {
+      var eaObs = eaSeries.find(function(x){ return x.date === ptObs.date; });
+      var parts = ptObs.date.split("-");
+      var year  = parseInt(parts[0]);
+      var mIdx  = parseInt(parts[1]) - 1;
+      var mName = MONTHS_PT[mIdx];
+      return {
+        m: mName.charAt(0).toUpperCase() + mName.slice(1) + " " + year,
+        date: ptObs.date,
+        pt: ptObs.value,
+        eu: eaObs ? eaObs.value : null
+      };
+    }).reverse(); // mais recente primeiro
+
+    var live_data = {
+      data: data,
+      live: true,
+      updated: data[0].m + " · Eurostat"
+    };
+    lsSet(cacheKey, live_data);
+    renderInflationData(live_data);
+
+  } catch (e) {
+    console.warn("Eurostat Inflação falhou:", e.message, "— fallback");
+    renderInflationData({
+      data: INFLATION_FALLBACK,
+      live: false,
+      updated: "Fallback estático"
+    });
+  }
+}
+
+/**
+ * Renderizar dados de inflação (live ou fallback)
+ */
+function renderInflationData(wrapper) {
+  var el = document.getElementById("inf-body");
+  if (!el) return;
+
+  var INFLATION = wrapper.data || INFLATION_FALLBACK;
+  var l = INFLATION[0];
+  var isLive = wrapper.live !== false;
+  var maxV = Math.max(...INFLATION.map(function(d){ return Math.max(d.pt||0, d.eu||0); })) * 1.1 || 5;
+  var ptC = "var(--accent)", euC = "var(--blue)";
+
+  var liveTag = isLive
+    ? '<span style="font-size:.5rem;color:#10B981;margin-left:3px">● live</span>'
+    : '<span style="font-size:.5rem;color:#F59E0B;margin-left:3px">⚠ fallback</span>';
+
+  el.innerHTML = `
+    <div class="inf-hero">
+      <div class="inf-block">
+        <div class="inf-flag">🇵🇹</div>
+        <div class="inf-val" style="color:${ptC}">${l.pt.toFixed(1)}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl">Portugal · IPC</div>
+        <div class="inf-lbl">${l.m||""}${liveTag}</div>
+      </div>
+      <div class="inf-sep"></div>
+      <div class="inf-block">
+        <div class="inf-flag">🇪🇺</div>
+        <div class="inf-val" style="color:${euC}">${l.eu!=null?l.eu.toFixed(1):"—"}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl">Zona Euro · IHPC</div>
+        <div class="inf-lbl">${l.m||""}${liveTag}</div>
+      </div>
+      <div class="inf-sep"></div>
+      <div class="inf-block">
+        <div class="inf-flag" style="font-size:.75rem;margin-bottom:5px">Meta BCE</div>
+        <div class="inf-val" style="color:var(--green);font-size:1.35rem">2.0<span style="font-size:.8rem">%</span></div>
+        <div class="inf-lbl" style="color:${l.eu&&l.eu<=2.2?"var(--green)":"var(--red)"}">${l.eu&&l.eu<=2.2?"✓ próximo":"▲ acima"} da meta</div>
+        <div class="inf-lbl">&nbsp;</div>
+      </div>
+    </div>
+    <div class="inf-hist">${INFLATION.map(function(d){
+      var bp=d.pt?Math.round((d.pt/maxV)*100):0;
+      var be=d.eu?Math.round((d.eu/maxV)*100):0;
+      return '<div class="inf-row"><div class="inf-row-lbl">'+d.m+'</div>'
+        +'<div class="inf-bar-wrap"><div class="inf-bar-pt" style="width:'+bp+'%;background:'+ptC+'"></div>'
+        +'<div class="inf-bar-eu" style="width:'+be+'%;background:'+euC+'"></div></div>'
+        +'<div class="inf-row-pt" style="color:'+ptC+'">'+d.pt.toFixed(1)+'%</div>'
+        +'<div class="inf-row-eu" style="color:'+euC+'">'+(d.eu!=null?d.eu.toFixed(1):"—")+'%</div></div>';
+    }).join("")}</div>
+    <div style="display:flex;gap:14px;margin-top:8px">
+      <span style="font-family:var(--mono);font-size:.56rem;color:${ptC}">▬ Portugal</span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${euC}">▬ Zona Euro</span>
+    </div>`;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   3. DÍVIDA PÚBLICA — API Eurostat (gov_10dd_edpt1) CORS nativo
+   ══════════════════════════════════════════════════════════════ */
+
+/* Mapeamento ISO2 → display */
+var DIV_GEO_CONFIG = {
+  GR:  {n:"Grécia",    c:"#EF4444"},
+  IT:  {n:"Itália",    c:"#F97316"},
+  FR:  {n:"França",    c:"#EAB308"},
+  BE:  {n:"Bélgica",   c:"#F59E0B"},
+  ES:  {n:"Espanha",   c:"#F59E0B"},
+  PT:  {n:"Portugal",  c:"#84CC16", hl:true},
+  EA20:{n:"Zona Euro", c:"#8B5CF6"},
+  EA:  {n:"Zona Euro", c:"#8B5CF6"},
+  DE:  {n:"Alemanha",  c:"#3B82F6"},
+  NL:  {n:"Holanda",   c:"#06B6D4"},
+};
+
+/* Fallback */
+var DIV_PAISES_FALLBACK = [
+  {n:"Grécia",  v:154.2,c:"#EF4444"},
+  {n:"Itália",  v:134.9,c:"#F97316"},
+  {n:"França",  v:113.2,c:"#EAB308"},
+  {n:"Bélgica", v:103.9,c:"#F59E0B"},
+  {n:"Espanha", v:101.6,c:"#F59E0B"},
+  {n:"Portugal",v:94.6, c:"#84CC16",hl:true},
+  {n:"Zona Euro",v:87.1,c:"#8B5CF6"},
+  {n:"Alemanha",v:62.4, c:"#3B82F6"},
+  {n:"Holanda", v:43.8, c:"#06B6D4"},
+];
+var DIV_TREND_FALLBACK = [
+  {y:"14",v:130.6},{y:"15",v:128.8},{y:"16",v:129.2},{y:"17",v:124.8},
+  {y:"18",v:121.5},{y:"19",v:116.8},{y:"20",v:134.9},{y:"21",v:124.5},
+  {y:"22",v:113.9},{y:"23",v:97.9},{y:"24",v:94.6},
+];
+
+/* Estado do modo de visualização — mantido aqui porque o bloco estático original que o continha é removido */
+var DIV_MODE = "bar";
+
+/**
+ * Carregar Dívida Pública via Eurostat + fallback
+ * Cache TTL: 7 dias (dados anuais)
+ */
+async function loadDividaPT(force) {
+  var cacheKey = "eurostat_debt_v3";
+  var cached = force ? null : lsGet(cacheKey);
+
+  if (cached) {
+    DIV_PAISES = cached.paises || DIV_PAISES_FALLBACK;
+    DIV_TREND  = cached.trend  || DIV_TREND_FALLBACK;
+    renderDiv();
+    /* Actualizar source label */
+    var srcEl = document.querySelector("#div-card .src");
+    if (srcEl && cached.year) {
+      srcEl.innerHTML = "✦ Eurostat · gov_10dd_edpt1 · " + cached.year
+        + " · % do PIB"
+        + (cached.live ? ' · <span style="color:#10B981">● live</span>' : ' · <span style="color:#F59E0B">⚠ fallback</span>');
+    }
+    return;
+  }
+
+  try {
+    var geos = "GR,IT,FR,BE,ES,PT,EA20,DE,NL".split(",").map(function(g){return "geo="+g;}).join("&");
+    var url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10dd_edpt1"
+      + "?" + geos + "&na_item=GD&sector=S13&unit=PC_GDP&sinceTimePeriod=2014&format=JSON&lang=PT";
+
+    var r = await fetch(url, {
+      signal: AbortSignal.timeout(15000),
+      headers: { "Accept": "application/json" }
+    });
+    if (!r.ok) throw new Error("Eurostat Debt HTTP " + r.status);
+
+    var json = await r.json();
+    var vals = json.value || {};
+    var timeIndex = json.dimension.time.category.index;
+    var geoIndex  = json.dimension.geo.category.index;
+    var nGeo = Object.keys(geoIndex).length;
+    var years = Object.keys(timeIndex).sort();
+    var latestYear = years[years.length - 1];
+
+    /* Países — último ano */
+    var paises = [];
+    Object.keys(geoIndex).forEach(function(geo) {
+      var geoPos  = geoIndex[geo];
+      var timePos = timeIndex[latestYear];
+      if (timePos === undefined) return;
+      var val = vals[(timePos * nGeo + geoPos).toString()];
+      if (val === undefined || val === null) return;
+      var cfg = DIV_GEO_CONFIG[geo] || {n:geo, c:"#6E7A96"};
+      paises.push({ n: cfg.n, v: parseFloat(val), c: cfg.c, hl: cfg.hl });
+    });
+    paises.sort(function(a, b) { return b.v - a.v; });
+
+    /* Trend Portugal */
+    var ptPos = geoIndex["PT"];
+    var trendPT = [];
+    years.forEach(function(year) {
+      var timePos = timeIndex[year];
+      if (timePos === undefined) return;
+      var val = vals[(timePos * nGeo + ptPos).toString()];
+      if (val !== undefined && val !== null) {
+        trendPT.push({ y: year.slice(2), v: parseFloat(val) });
+      }
+    });
+
+    var cacheData = { paises: paises, trend: trendPT, year: latestYear, live: true };
+    lsSet(cacheKey, cacheData);
+
+    DIV_PAISES = paises;
+    DIV_TREND  = trendPT;
+    renderDiv();
+
+    var srcEl = document.querySelector("#div-card .src");
+    if (srcEl) {
+      srcEl.innerHTML = "✦ Eurostat · gov_10dd_edpt1 · " + latestYear
+        + " · % do PIB · <span style='color:#10B981'>● live</span>";
+    }
+
+  } catch (e) {
+    console.warn("Eurostat Debt falhou:", e.message, "— fallback");
+    DIV_PAISES = DIV_PAISES_FALLBACK;
+    DIV_TREND  = DIV_TREND_FALLBACK;
+    renderDiv();
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   4. AVISO VISUAL DE DADOS DESACTUALIZADOS
+   Mostra banner nos cards com dados estáticos que precisam
+   de actualização manual (TTF, MIBGAS, Horários CP, etc.)
+   ══════════════════════════════════════════════════════════════ */
+
+/**
+ * Configuração dos cards com dados estáticos + data de referência
+ * Mostrar aviso se os dados tiverem mais de X dias
+ */
+var STATIC_DATA_CONFIG = [
+  {
+    cardSelector: "#ttf-body",
+    label: "Gás Natural TTF/MIBGAS",
+    refDate: "2026-03-11",
+    maxAgeDays: 30,
+    note: "Actualizar em: src da secção Gás Natural · Hubs Europeus"
+  },
+  {
+    cardSelector: "#gaspt-body",
+    label: "Tarifas Gás Natural PT",
+    refDate: "2026-03-11",
+    maxAgeDays: 90,
+    note: "ERSE publica tarifas em Outubro. Próxima actualização: Out 2026"
+  },
+  {
+    cardSelector: "#transp-body",
+    label: "Horários CP e Tarifas",
+    refDate: "2025-12-14",
+    maxAgeDays: 180,
+    note: "CP publica novos horários em Dezembro. Verificar cp.pt"
+  },
+  {
+    cardSelector: "#smn-body",
+    label: "Salário Mínimo & IPC",
+    refDate: "2026-01-01",
+    maxAgeDays: 365,
+    note: "SMN actualiza em Janeiro. IPC actualiza mensalmente via INE."
+  },
+  {
+    cardSelector: "#press-body",
+    label: "Índices Liberdade/Democracia",
+    refDate: "2024-01-01",
+    maxAgeDays: 365,
+    note: "RSF e EIU publicam índices anuais. Próxima edição: Abr/Mai 2026"
+  },
+];
+
+/**
+ * Verificar e mostrar avisos de dados desactualizados
+ */
+function checkStaleDataWarnings() {
+  var now = new Date();
+  STATIC_DATA_CONFIG.forEach(function(cfg) {
+    var refDate = new Date(cfg.refDate);
+    var ageDays = Math.floor((now - refDate) / (1000 * 60 * 60 * 24));
+    if (ageDays < cfg.maxAgeDays) return; // Dados ainda válidos
+
+    var el = document.querySelector(cfg.cardSelector);
+    if (!el || el.querySelector('.stale-warning')) return; // Já tem aviso
+
+    var warning = document.createElement('div');
+    warning.className = 'stale-warning';
+    warning.style.cssText = [
+      'background:#F59E0B12',
+      'border:1px solid #F59E0B44',
+      'border-radius:6px',
+      'padding:6px 10px',
+      'margin-bottom:8px',
+      'font-size:.6rem',
+      'color:#F59E0B',
+      'display:flex',
+      'align-items:flex-start',
+      'gap:6px',
+      'line-height:1.4'
+    ].join(';');
+    warning.innerHTML = '<span style="flex-shrink:0">⚠️</span>'
+      + '<span><b>' + cfg.label + '</b> — dados de referência com '
+      + ageDays + ' dias. ' + cfg.note + '</span>';
+
+    el.insertBefore(warning, el.firstChild);
+  });
+}
+
+/* Executar verificação após carregamento dos cards */
+setTimeout(checkStaleDataWarnings, 3000);
+
+
+/* ══════════════════════════════════════════════════════════════
+   IMOBILIÁRIO — API INE pingo.jsp via proxy CORS
+   ══════════════════════════════════════════════════════════════ */
+
+var IMOB_FALLBACK_KPIS = {
+  period:"Q3 2025",iphab_total:17.7,iphab_novas:14.1,iphab_exist:19.1,
+  transacoes:42481,transacoes_chg:3.8,valor_total_M:10500,
+  preco_mediano:2111,preco_mediano_chg:17.7,live:false
+};
+
+function fmtINEperiod(p){
+  if(!p) return "—";
+  var m=p.match(/^(\d{4})T(\d)$/);
+  return m?"Q"+m[2]+" "+m[1]:p;
+}
+
+async function loadImobKPIs(force){
+  var ck="ine_imob_v2";
+  var cached=force?null:lsGet(ck);
+  if(cached){applyImobKPIs(cached);return;}
+  try{
+    var BASE="https://www.ine.pt/ine/json_indicador/pingo.jsp?op=2&lang=PT&varcd=";
+    var [rIPH,rTr]=await Promise.all([
+      fetchWithCORS(BASE+"0011561").then(function(r){if(!r.ok)throw new Error("INE "+r.status);return r.json();}),
+      fetchWithCORS(BASE+"0008088").then(function(r){if(!r.ok)throw new Error("INE "+r.status);return r.json();})
+    ]);
+    var sortP=function(arr){return arr.sort(function(a,b){return b.Periodo.localeCompare(a.Periodo);});};
+    var iph_t=sortP((Array.isArray(rIPH)?rIPH:[]).filter(function(x){return x.GeoDsg==="Portugal"&&(!x.Dim3||x.Dim3==="Total"||x.Dim3==="T");}));
+    var iph_n=sortP((Array.isArray(rIPH)?rIPH:[]).filter(function(x){return x.GeoDsg==="Portugal"&&x.Dim3&&x.Dim3.toLowerCase().includes("nov");}));
+    var iph_e=sortP((Array.isArray(rIPH)?rIPH:[]).filter(function(x){return x.GeoDsg==="Portugal"&&x.Dim3&&x.Dim3.toLowerCase().includes("exis");}));
+    if(!iph_t.length){iph_t=sortP((Array.isArray(rIPH)?rIPH:[]).filter(function(x){return x.GeoDsg==="Portugal";}));}
+    if(!iph_t.length) throw new Error("Sem dados IPHab PT");
+    var tr_pt=sortP((Array.isArray(rTr)?rTr:[]).filter(function(x){return x.GeoDsg==="Portugal"&&x.Valor>0;}));
+    var tr_cur=tr_pt[0]?tr_pt[0].Valor:null;
+    var tr_prev=tr_pt[1]?tr_pt[1].Valor:null;
+    var tr_chg=(tr_cur&&tr_prev)?((tr_cur-tr_prev)/tr_prev*100).toFixed(1):null;
+    var series=iph_t.slice(0,8).reverse().map(function(x){return{q:fmtINEperiod(x.Periodo),v:parseFloat(x.Valor)};});
+    var kpis={
+      period:fmtINEperiod(iph_t[0].Periodo),
+      iphab_total:parseFloat(iph_t[0].Valor),
+      iphab_novas:iph_n[0]?parseFloat(iph_n[0].Valor):IMOB_FALLBACK_KPIS.iphab_novas,
+      iphab_exist:iph_e[0]?parseFloat(iph_e[0].Valor):IMOB_FALLBACK_KPIS.iphab_exist,
+      transacoes:tr_cur?Math.round(tr_cur):IMOB_FALLBACK_KPIS.transacoes,
+      transacoes_chg:tr_chg?parseFloat(tr_chg):IMOB_FALLBACK_KPIS.transacoes_chg,
+      iphab_series:series,
+      preco_mediano:IMOB_FALLBACK_KPIS.preco_mediano,
+      preco_mediano_chg:parseFloat(iph_t[0].Valor),
+      live:true
+    };
+    lsSet(ck,kpis);
+    applyImobKPIs(kpis);
+  }catch(e){
+    console.warn("INE Imob falhou:",e.message,"— fallback");
+    applyImobKPIs(IMOB_FALLBACK_KPIS);
+  }
+}
+
+function applyImobKPIs(kpis){
+  var isLive=kpis.live!==false;
+  var periodEl=document.getElementById("imobRefQuarter");
+  if(periodEl){
+    var tag=isLive?'<span style="color:#10B981;font-size:.44rem;margin-left:3px">● INE live</span>':'<span style="color:#F59E0B;font-size:.44rem;margin-left:3px">⚠ fallback</span>';
+    periodEl.innerHTML="INE · "+(kpis.period||"—")+tag;
+  }
+  var kpiBoxes=document.querySelectorAll("#imob-card .imob-kpi");
+  if(kpiBoxes.length>=4){
+    var valEl=kpiBoxes[0].querySelector(".imob-kpi-val");
+    if(valEl) valEl.innerHTML=(kpis.preco_mediano||"—").toLocaleString("pt-PT")+' <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span>';
+    var chg0=kpiBoxes[0].querySelector(".imob-kpi-chg");
+    if(chg0){var c=kpis.preco_mediano_chg||0;chg0.style.color=c>=0?"#10b981":"#EF4444";chg0.textContent=(c>=0?"▲ +":"▼ ")+Math.abs(c).toFixed(1)+"% homólogo";}
+    var v1=kpiBoxes[1].querySelector(".imob-kpi-val");
+    if(v1) v1.textContent=(kpis.transacoes||"—").toLocaleString("pt-PT");
+    var chg1=kpiBoxes[1].querySelector(".imob-kpi-chg");
+    if(chg1){var c1=kpis.transacoes_chg||0;chg1.style.color=c1>=0?"#10b981":"#EF4444";chg1.textContent=(c1>=0?"▲ +":"▼ ")+Math.abs(c1).toFixed(1)+"% homólogo";}
+    var v2=kpiBoxes[2].querySelector(".imob-kpi-val");
+    if(v2) v2.textContent="+"+(kpis.iphab_novas||"—").toFixed(1)+"%";
+    var v3=kpiBoxes[3].querySelector(".imob-kpi-val");
+    if(v3) v3.textContent="+"+(kpis.iphab_exist||"—").toFixed(1)+"%";
+  }
+  var period=kpis.period||"—";
+  var s1=document.getElementById("imobSub1"); if(s1) s1.textContent=period+" · famílias";
+  var s2=document.getElementById("imobSub2"); if(s2) s2.textContent="variação homóloga "+period;
+  var s3=document.getElementById("imobSub3"); if(s3) s3.textContent="variação homóloga "+period;
+  var srcEl=document.getElementById("imobRefSrc");
+  if(srcEl) srcEl.innerHTML="✦ INE · dados.ine.pt · IPHab + Transações · "+period+(isLive?' · <span style="color:#10B981">● live</span>':' · <span style="color:#F59E0B">⚠ fallback</span>');
+  if(kpis.iphab_series&&kpis.iphab_series.length>2){
+    IMOB_TREND=kpis.iphab_series.map(function(x){return{q:x.q,v:x.v};});
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   SALÁRIO MÍNIMO EU — Eurostat earn_mw_cur (CORS nativo)
+   + IPC POR CATEGORIA — Eurostat prc_hicp_manr COICOP
+   ══════════════════════════════════════════════════════════════ */
+
+var SMN_EU_FALLBACK=[
+  {c:"🇱🇺",n:"Luxemburgo",v:2637,col:"#10B981"},{c:"🇳🇱",n:"Holanda",v:2191,col:"#10B981"},
+  {c:"🇩🇪",n:"Alemanha",v:2096,col:"#10B981"},{c:"🇧🇪",n:"Bélgica",v:2070,col:"#10B981"},
+  {c:"🇫🇷",n:"França",v:1802,col:"#3B82F6"},{c:"🇪🇸",n:"Espanha",v:1381,col:"#3B82F6"},
+  {c:"🇬🇷",n:"Grécia",v:968,col:"#F59E0B"},{c:"🇵🇹",n:"Portugal",v:920,col:"#F59E0B"},
+  {c:"🇵🇱",n:"Polónia",v:887,col:"#F97316"},{c:"🇷🇴",n:"Roménia",v:704,col:"#EF4444"},
+  {c:"🇧🇬",n:"Bulgária",v:534,col:"#EF4444"},
+];
+var SMN_GEO_CFG={
+  LU:{c:"🇱🇺",n:"Luxemburgo",col:"#10B981"},NL:{c:"🇳🇱",n:"Holanda",col:"#10B981"},
+  DE:{c:"🇩🇪",n:"Alemanha",col:"#10B981"},BE:{c:"🇧🇪",n:"Bélgica",col:"#10B981"},
+  FR:{c:"🇫🇷",n:"França",col:"#3B82F6"},ES:{c:"🇪🇸",n:"Espanha",col:"#3B82F6"},
+  GR:{c:"🇬🇷",n:"Grécia",col:"#F59E0B"},PT:{c:"🇵🇹",n:"Portugal",col:"#F59E0B"},
+  PL:{c:"🇵🇱",n:"Polónia",col:"#F97316"},RO:{c:"🇷🇴",n:"Roménia",col:"#EF4444"},
+  BG:{c:"🇧🇬",n:"Bulgária",col:"#EF4444"},
+};
+var COICOP_CFG={
+  "CP01":{ico:"🛒",cat:"Alimentação",fb:2.4},"CP04":{ico:"🏠",cat:"Habitação/Energ.",fb:4.2},
+  "CP06":{ico:"🏥",cat:"Saúde",fb:4.8},"CP07":{ico:"🚗",cat:"Transportes",fb:3.6},
+  "CP08":{ico:"📱",cat:"Comunicações",fb:-0.5},"CP09":{ico:"📚",cat:"Recreio",fb:3.1},
+  "CP11":{ico:"🍽️",cat:"Restauração",fb:4.1},
+};
+
+async function loadSMN(force){
+  var el=document.getElementById("smn-body"); if(!el) return;
+  var smn_ck="eurostat_smn_v2", ipc_ck="eurostat_ipc_cat_v2";
+  var smnD=force?null:lsGet(smn_ck);
+  var ipcD=force?null:lsGet(ipc_ck);
+  /* Fetch SMN */
+  if(!smnD){
+    try{
+      var geos=Object.keys(SMN_GEO_CFG).join("&geo=");
+      var r=await fetch("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/earn_mw_cur?geo="+geos+"&unit=EUR&lastTimePeriod=2&format=JSON&lang=PT",{signal:AbortSignal.timeout(14000),headers:{"Accept":"application/json"}});
+      if(!r.ok) throw new Error("Eurostat SMN "+r.status);
+      var j=await r.json();
+      var vals=j.value||{},tIdx=j.dimension.time.category.index,gIdx=j.dimension.geo.category.index;
+      var nG=Object.keys(gIdx).length,yrs=Object.keys(tIdx).sort(),lat=yrs[yrs.length-1];
+      var res=[];
+      Object.keys(gIdx).forEach(function(geo){
+        var gP=gIdx[geo],tP=tIdx[lat]; if(tP===undefined) return;
+        var val=vals[(tP*nG+gP).toString()]; if(val==null) return;
+        var cfg=SMN_GEO_CFG[geo]; if(!cfg) return;
+        res.push({c:cfg.c,n:cfg.n,v:Math.round(parseFloat(val)),col:cfg.col});
+      });
+      res.sort(function(a,b){return b.v-a.v;});
+      if(res.length>=5){smnD={list:res,period:lat,live:true};lsSet(smn_ck,smnD);}
+    }catch(e){console.warn("Eurostat SMN falhou:",e.message);smnD={list:SMN_EU_FALLBACK,live:false};}
+  }
+  /* Fetch IPC categorias */
+  if(!ipcD){
+    try{
+      var coicops=Object.keys(COICOP_CFG).join("&coicop=");
+      var r2=await fetch("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=PT&unit=RCH_A&coicop="+coicops+"&lastTimePeriod=1&format=JSON&lang=PT",{signal:AbortSignal.timeout(14000),headers:{"Accept":"application/json"}});
+      if(!r2.ok) throw new Error("Eurostat IPC-cat "+r2.status);
+      var j2=await r2.json();
+      var vals2=j2.value||{},cIdx=j2.dimension.coicop.category.index,tIdx2=j2.dimension.time.category.index;
+      var nC=Object.keys(cIdx).length,yrs2=Object.keys(tIdx2).sort(),lat2=yrs2[yrs2.length-1];
+      var catR={};
+      Object.keys(cIdx).forEach(function(cp){
+        var cP=cIdx[cp],tP=tIdx2[lat2]; if(tP===undefined) return;
+        var val=vals2[(tP*nC+cP).toString()]; if(val!=null) catR[cp]=parseFloat(val);
+      });
+      if(Object.keys(catR).length>=4){ipcD={cats:catR,period:lat2,live:true};lsSet(ipc_ck,ipcD);}
+    }catch(e){console.warn("Eurostat IPC-cat falhou:",e.message);ipcD={cats:{},live:false};}
+  }
+  renderSMNCard(smnD,ipcD);
+}
+
+function renderSMNCard(smnD,ipcD){
+  var el=document.getElementById("smn-body"); if(!el) return;
+  var smn_list=(smnD&&smnD.list)||SMN_EU_FALLBACK;
+  var ipc_cats=(ipcD&&ipcD.cats)||{};
+  var smn_live=smnD&&smnD.live, ipc_live=ipcD&&ipcD.live;
+  var smn=smn_list.find(function(x){return x.n==="Portugal";}), smnVal=smn?smn.v:920;
+  var max_smn=Math.max.apply(null,smn_list.map(function(x){return x.v;}))||2700;
+  var smnPeriod=smnD&&smnD.period?smnD.period:"2025S1";
+  var ipcPeriod=ipcD&&ipcD.period?ipcD.period:"—";
+  var SMN_HIST=[{y:2017,v:557},{y:2018,v:580},{y:2019,v:600},{y:2020,v:635},{y:2021,v:665},{y:2022,v:705},{y:2023,v:760},{y:2024,v:820},{y:2025,v:870},{y:2026,v:smnVal}];
+  var vals=SMN_HIST.map(function(x){return x.v;}),mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rng=mx-mn||1;
+  var SW=180,SH=40,px=function(i){return Math.round(i/(vals.length-1)*SW);},py=function(v){return Math.round(SH-(v-mn)/rng*SH);};
+  var pts=vals.map(function(v,i){return px(i)+","+py(v);}).join(" ");
+  var fill=pts+" "+SW+","+(SH+1)+" 0,"+(SH+1);
+  var sTag=smn_live?'<span style="color:#10B981;font-size:.5rem">● live</span>':'<span style="color:#F59E0B;font-size:.5rem">⚠</span>';
+  var iTag=ipc_live?'<span style="color:#10B981;font-size:.5rem">● live</span>':'<span style="color:#F59E0B;font-size:.5rem">⚠</span>';
+  var custoLx=1750,custoResto=1220,rLx=(smnVal/custoLx*100).toFixed(0),rResto=(smnVal/custoResto*100).toFixed(0);
+  var ipcGeral=(ipc_cats["CP00"]||2.4).toFixed(1);
+  el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div>'+
+    '<div style="background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
+    '<div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">SMN Portugal '+new Date().getFullYear()+' '+sTag+'</div>'+
+    '<div style="display:flex;align-items:flex-end;gap:5px"><div style="font-size:2.2rem;font-weight:900;color:#10B981;line-height:1">'+smnVal+'</div><div style="font-size:.72rem;color:var(--t3);margin-bottom:3px">€/mês</div></div>'+
+    '<div style="font-size:.68rem;color:#10B981;font-weight:600;margin-top:1px">▲ '+( ((smnVal-820)/820)*100).toFixed(1)+'% vs 2024 (820€)</div>'+
+    '<svg viewBox="0 0 '+SW+' '+( SH+10)+'" style="width:100%;height:'+( SH+10)+'px;margin-top:5px">'+
+    '<polygon points="'+fill+'" fill="#10B98118"/><polyline points="'+pts+'" fill="none" stroke="#10B981" stroke-width="1.8"/>'+
+    '<circle cx="'+px(vals.length-1)+'" cy="'+py(smnVal)+'" r="3" fill="#10B981"/>'+
+    '<text x="1" y="'+( SH+9)+'" font-size="7" fill="#4A526A">2017: 557€</text>'+
+    '<text x="'+SW+'" y="'+( SH+9)+'" font-size="7" fill="#10B981" text-anchor="end">'+new Date().getFullYear()+': '+smnVal+'€</text></svg>'+
+    '<div style="font-size:.57rem;color:var(--t3);margin-top:1px">+'+( ((smnVal-557)/557)*100).toFixed(0)+'% em 9 anos</div></div>'+
+    '<div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">Comparação EU '+smnPeriod+' '+sTag+':</div>'+
+    smn_list.map(function(r){var bw=Math.round((r.v/max_smn)*100),ispt=r.n==="Portugal";
+      return '<div style="display:grid;grid-template-columns:16px 66px 1fr 38px;align-items:center;gap:3px;padding:2px '+( ispt?"4px":"0")+';'+( ispt?"background:"+r.col+"15;border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)")+'">'+
+        '<span style="font-size:.76rem">'+r.c+'</span>'+
+        '<span style="font-size:.59rem;font-weight:'+( ispt?700:400)+';color:'+( ispt?"#fff":"var(--t2)")+'">'+r.n+'</span>'+
+        '<div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden"><div style="width:'+bw+'%;height:100%;background:'+r.col+'"></div></div>'+
+        '<span style="font-size:.61rem;color:'+r.col+';font-weight:600;text-align:right">'+r.v+'€</span></div>';
+    }).join("")+
+    '</div><div>'+
+    '<div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">💰 SMN vs custo de vida</div>'+
+    [{l:"Lisboa",v:custoLx,r:rLx},{l:"Resto",v:custoResto,r:rResto}].map(function(x){
+      var col=x.r<70?"#EF4444":x.r<85?"#F59E0B":"#10B981";
+      return '<div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:6px">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
+        '<span style="font-size:.62rem;color:var(--t2);font-weight:600">'+x.l+'</span>'+
+        '<span style="font-size:.59rem;color:var(--t3)">est. '+x.v+'€/mês</span></div>'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'+
+        '<span style="font-size:.7rem;font-weight:700;color:'+col+'">SMN cobre '+x.r+'%</span>'+
+        '<span style="font-size:.65rem;color:var(--t3)">défice ~'+Math.max(0,x.v-smnVal)+'€</span></div>'+
+        '<div style="background:var(--b);border-radius:3px;height:6px;overflow:hidden">'+
+        '<div style="width:'+Math.min(x.r,100)+'%;height:100%;background:'+col+';border-radius:3px"></div></div></div>';
+    }).join("")+
+    '<div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:6px 0 4px">📊 IPC por categoria '+ipcPeriod+' '+iTag+'</div>'+
+    Object.entries(COICOP_CFG).map(function(e){var cp=e[0],cfg=e[1];
+      var val=ipc_cats[cp]!=null?ipc_cats[cp]:cfg.fb,abs=Math.abs(val),bw=Math.round((abs/6)*100);
+      var col=val>=4?"#EF4444":val>=2?"#F59E0B":val<0?"#10B981":"#3B82F6";
+      return '<div style="display:grid;grid-template-columns:16px 86px 1fr 34px;align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--b)">'+
+        '<span style="font-size:.7rem">'+cfg.ico+'</span>'+
+        '<span style="font-size:.59rem;color:var(--t2)">'+cfg.cat+'</span>'+
+        '<div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">'+
+        '<div style="width:'+bw+'%;height:100%;background:'+col+';opacity:.85"></div></div>'+
+        '<span style="font-size:.62rem;font-weight:700;color:'+col+';text-align:right">'+( val>=0?"▲":"▼")+abs.toFixed(1)+'%</span></div>';
+    }).join("")+
+    '<div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral: <b style="color:var(--text)">'+ipcGeral+'%</b> · SMN '+new Date().getFullYear()+': '+smnVal+'€</div>'+
+    '</div></div>';
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   PAINEL DE MANUTENÇÃO — Acessível via index.html#admin
+   ══════════════════════════════════════════════════════════════ */
+
+var MANUAL_DATA_SCHEDULE=[
+  {id:"ttf_mibgas",label:"Gás Natural TTF/MIBGAS",varName:"GAS_TARIFAS",frequency:"mensal",lastUpdate:"2026-03-11",nextUpdate:"2026-04-10",source:"https://www.mibgas.es",instruction:"Actualizar preços spot MIBGAS e TTF em mibgas.es e tradingeconomics.com"},
+  {id:"erse_tarifas",label:"Tarifas ERSE (Elect. + Gás)",varName:"ELEC_TARIFAS + GAS_TARIFAS",frequency:"anual",lastUpdate:"2025-10-01",nextUpdate:"2026-10-01",source:"https://www.erse.pt/eletricidade/tarifas-e-precos/",instruction:"ERSE publica em Outubro. Actualizar ELEC_TARIFAS e GAS_TARIFAS com Deliberação Tarifária."},
+  {id:"horarios_cp",label:"Horários CP",varName:"HORARIOS_LX_EV, HORARIOS_EV_LX",frequency:"anual",lastUpdate:"2025-12-14",nextUpdate:"2026-12-13",source:"https://www.cp.pt/passageiros/pt/consultar-horarios",instruction:"CP muda horários em Dezembro. Actualizar arrays HORARIOS_LX_EV e HORARIOS_EV_LX."},
+  {id:"bce_reunioes",label:"Agenda BCE",varName:"EURIBOR_FALLBACK.bceNext",frequency:"trimestral",lastUpdate:"2026-03-06",nextUpdate:"2026-04-17",source:"https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html",instruction:"Actualizar após cada reunião BCE (6x/ano). Data + probabilidades de mercado."},
+  {id:"imob_precos",label:"Preços Habitação €/m² NUTS",varName:"IMOB_REGIOES, IMOB_MUNIC",frequency:"trimestral",lastUpdate:"2026-01-15",nextUpdate:"2026-04-15",source:"https://www.ine.pt",instruction:"INE publica trimestralmente com ~3m de atraso. Actualizar arrays €/m² das tabelas INE."},
+  {id:"conflitos",label:"Conflitos Globais",varName:"C (array conflitos)",frequency:"mensal",lastUpdate:"2026-03-01",nextUpdate:"2026-04-01",source:"https://www.crisisgroup.org/crisiswatch",instruction:"Rever lista de conflitos activos. Actualizar intensidade, adicionar novos, remover resolvidos."},
+  {id:"cal_economico",label:"Calendário Económico",varName:"EVENTS",frequency:"mensal",lastUpdate:"2026-03-11",nextUpdate:"2026-04-01",source:"https://www.forexfactory.com/calendar",instruction:"Actualizar eventos do próximo mês. Remover passados, adicionar novos (Fed, BCE, INE, BLS)."},
+  {id:"smn_pt",label:"Salário Mínimo Portugal",varName:"SMN_HIST",frequency:"anual",lastUpdate:"2026-01-01",nextUpdate:"2027-01-01",source:"https://www.dgert.gov.pt/retribuicao-minima-mensal-garantida",instruction:"Actualizar em Janeiro. Adicionar novo ano ao SMN_HIST."},
+  {id:"press_freedom",label:"Liberdade Imprensa + Democracia",varName:"RSF, EIU",frequency:"anual",lastUpdate:"2024-05-01",nextUpdate:"2026-05-01",source:"https://rsf.org/en/index",instruction:"RSF publica em Maio, EIU em Jan/Fev. Actualizar arrays RSF e EIU com novos rankings."},
+];
+
+function getUpdateUrgency(item){
+  var now=new Date(),last=new Date(item.lastUpdate),next=new Date(item.nextUpdate);
+  var daysToNext=Math.floor((next-now)/86400000);
+  if(daysToNext<0)       return{level:"critical",label:"⛔ ATRASADO "+Math.abs(daysToNext)+"d",color:"#EF4444",bg:"#EF444420"};
+  if(daysToNext<7)       return{level:"urgent",  label:"🔴 Em "+daysToNext+"d",              color:"#F97316",bg:"#F9731620"};
+  if(daysToNext<30)      return{level:"soon",    label:"🟡 Em "+daysToNext+"d",              color:"#F59E0B",bg:"#F59E0B15"};
+  return                        {level:"ok",     label:"✅ Em "+daysToNext+"d",              color:"#10B981",bg:"#10B98115"};
+}
+
+function renderMaintenancePanel(){
+  var container=document.getElementById("maintenance-panel");
+  if(!container){container=document.createElement("div");container.id="maintenance-panel";container.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(7,9,14,0.97);z-index:99999;overflow-y:auto;padding:20px";document.body.appendChild(container);}
+  var now=new Date();
+  var items=MANUAL_DATA_SCHEDULE.map(function(item){return Object.assign({},item,{urgency:getUpdateUrgency(item)});}).sort(function(a,b){var o={critical:0,urgent:1,soon:2,ok:3};return o[a.urgency.level]-o[b.urgency.level];});
+  var critical=items.filter(function(x){return x.urgency.level==="critical";}).length;
+  var urgent=items.filter(function(x){return x.urgency.level==="urgent";}).length;
+  var soon=items.filter(function(x){return x.urgency.level==="soon";}).length;
+  container.innerHTML='<div style="max-width:900px;margin:0 auto">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1E2340">'+
+    '<div><h1 style="font-size:1.4rem;font-weight:700;color:#DDE3F0;margin:0">🔧 Painel de Manutenção</h1>'+
+    '<div style="font-size:.7rem;color:#6E7A96;margin-top:4px">Dados com actualização manual · '+now.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+'</div></div>'+
+    '<button onclick="closeMaintenancePanel()" style="background:#1E2340;border:1px solid #2A3660;border-radius:8px;padding:8px 16px;color:#DDE3F0;font-size:.75rem;cursor:pointer">✕ Fechar</button></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'+
+    '<div style="background:#EF444418;border:1px solid #EF444440;border-radius:8px;padding:12px;text-align:center"><div style="font-size:2rem;font-weight:800;color:#EF4444">'+critical+'</div><div style="font-size:.65rem;color:#EF4444">Atrasados</div></div>'+
+    '<div style="background:#F9731618;border:1px solid #F9731640;border-radius:8px;padding:12px;text-align:center"><div style="font-size:2rem;font-weight:800;color:#F97316">'+urgent+'</div><div style="font-size:.65rem;color:#F97316">Esta semana</div></div>'+
+    '<div style="background:#F59E0B15;border:1px solid #F59E0B40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:2rem;font-weight:800;color:#F59E0B">'+soon+'</div><div style="font-size:.65rem;color:#F59E0B">Este mês</div></div>'+
+    '<div style="background:#10B98115;border:1px solid #10B98140;border-radius:8px;padding:12px;text-align:center"><div style="font-size:2rem;font-weight:800;color:#10B981">'+( items.length-critical-urgent-soon)+'</div><div style="font-size:.65rem;color:#10B981">Em dia</div></div></div>'+
+    items.map(function(item){var u=item.urgency;
+      return '<div style="background:#0F1220;border:1px solid '+u.color+'40;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid '+u.color+'">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'+
+        '<div><div style="font-size:.85rem;font-weight:700;color:#DDE3F0">'+item.label+'</div>'+
+        '<div style="font-size:.6rem;color:#6E7A96;margin-top:2px;font-family:monospace">'+item.varName+'</div></div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:12px">'+
+        '<span style="font-size:.65rem;font-weight:600;color:'+u.color+';background:'+u.bg+';border-radius:4px;padding:3px 8px">'+u.label+'</span>'+
+        '<span style="font-size:.58rem;color:#6E7A96">'+item.frequency+'</span></div></div>'+
+        '<div style="font-size:.65rem;color:#C2CCDE;line-height:1.5;margin-bottom:8px">'+item.instruction+'</div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #1E2340">'+
+        '<div style="font-size:.6rem;color:#6E7A96">Última: <b style="color:#C2CCDE">'+new Date(item.lastUpdate).toLocaleDateString("pt-PT")+'</b> · Próxima: <b style="color:'+u.color+'">'+new Date(item.nextUpdate).toLocaleDateString("pt-PT")+'</b></div>'+
+        '<a href="'+item.source+'" target="_blank" style="font-size:.6rem;color:#4B96F3;text-decoration:none;background:#4B96F315;border-radius:4px;padding:3px 8px">↗ Fonte</a></div></div>';
+    }).join("")+
+    '<div style="text-align:center;padding:20px 0;font-size:.65rem;color:#4A526A">Painel de Manutenção · Painel Pessoal Portugal · v1.1.1</div></div>';
+}
+
+function closeMaintenancePanel(){
+  var p=document.getElementById("maintenance-panel"); if(p) p.remove();
+  history.pushState("",document.title,window.location.pathname);
+}
+
+function checkAdminHash(){
+  if(window.location.hash==="#admin") setTimeout(renderMaintenancePanel,100);
+}
+window.addEventListener("hashchange",checkAdminHash);
+document.addEventListener("DOMContentLoaded",function(){setTimeout(checkAdminHash,1000);});
 
 </script>
 </body>
