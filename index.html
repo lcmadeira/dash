@@ -7463,12 +7463,12 @@ async function loadAir(force=false){
       const ctx=canvas.getContext("2d");
       const W=220, H=160;
 
-      const minLon=-13,maxLon=-4,minLat=35,maxLat=44;
-      const padLon=(maxLon-minLon)*0.04, padLat=(maxLat-minLat)*0.04;
-      function proj(lat,lon){
-        const x=(lon-(minLon-padLon))/((maxLon+padLon)-(minLon-padLon))*W;
-        const y=(1-(lat-(minLat-padLat))/((maxLat+padLat)-(minLat-padLat)))*H;
-        return [x,y];
+    /* proj calibrada para coincidir com os paths SVG hardcoded */
+    function proj(lat,lon){
+      const x=(lon+36.9)*4.38;
+      const y=(43.95-lat)*10.65;
+      return [x,y];
+    }
       }
 
       /* Fundo oceano */
