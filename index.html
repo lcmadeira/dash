@@ -5947,102 +5947,211 @@ setTimeout(renderImob,300);
 /* ══════════════════════════════════════════════════════
    SALÁRIO MÍNIMO & CUSTO DE VIDA · PT
    ══════════════════════════════════════════════════════ */
-function loadTTF(force=false){
-  const el=document.getElementById("ttf-body");
-  if(!el) return;
+/* ══════════════════════════════════════════════════════════════
+   GÁS NATURAL · HUBS EUROPEUS — DADOS AO VIVO
+   
+   Fontes:
+   - Preço TTF: Stooq (tg.f · Dutch TTF Gas Endex ICE) — sem chave
+   - Yahoo Finance (TTF=F) como fallback
+   - Outros hubs: calculados por spread histórico vs TTF
+   - Reservas EU: dados GIE AGSI (actualizar semanalmente)
+   
+   Cache: 30 minutos
+   ══════════════════════════════════════════════════════════════ */
 
-  /* Hubs europeus — preços spot ref. Mar 2026 (€/MWh)
-     Fontes: ICIS, Montel, EEX, GIE AGSI+ · Actualizar mensalmente */
-  const HUBS=[
-    {name:"TTF",    country:"🇳🇱",full:"Title Transfer Facility",
-     price:38.5,prev:40.2,col:"#3B82F6",
-     desc:"Hub de referência europeu (Holanda). Benchmark para contratos LNG e spot."},
-    {name:"NBP",    country:"🇬🇧",full:"National Balancing Point",
-     price:36.8,prev:38.1,col:"#8B5CF6",
-     desc:"Hub britânico. Spread vs TTF reflecte isolamento pós-Brexit."},
-    {name:"MIBGAS", country:"🇪🇸🇵🇹",full:"Mercado Ibérico do Gás",
-     price:57.3,prev:46.2,col:"#F97316",
-     desc:"Hub ibérico (PT+ES). Inclui terminais GNL de Sines, Huelva, Bilbau."},
-    {name:"PEG",    country:"🇫🇷",full:"Point d'Échange de Gaz",
-     price:38.2,prev:40.0,col:"#F59E0B",
-     desc:"Hub francês (GRTgaz). Muito próximo do TTF pelo interligador."},
-    {name:"THE",    country:"🇩🇪",full:"Trading Hub Europe",
-     price:38.7,prev:40.5,col:"#EF4444",
-     desc:"Hub alemão (fusão Gaspool+NCG). Grande liquidez, próximo TTF."},
-    {name:"VTP",    country:"🇦🇹",full:"Virtual Trading Point",
-     price:39.1,prev:41.2,col:"#F97316",
-     desc:"Hub austríaco. Ponto de entrada do gás russo/azeri via Turquia."},
+async function loadTTF(force = false) {
+  const el = document.getElementById("ttf-body");
+  if (!el) return;
+  el.innerHTML = skeletonKPIs(4);
+
+  const CK = "ttf_live_v3";
+  let cache = force ? null : lsGet(CK);
+
+  /* ── Dados estáticos de fallback ── actualizar mensalmente */
+  const STATIC = {
+    ttf:   { price: 49.8, prev: 38.5, col: "#3B82F6", name: "TTF",    country: "🇳🇱", full: "Title Transfer Facility"   },
+    nbp:   { price: 47.2, prev: 36.8, col: "#8B5CF6", name: "NBP",    country: "🇬🇧", full: "National Balancing Point"  },
+    mibgas:{ price: 57.3, prev: 46.2, col: "#F97316", name: "MIBGAS", country: "🇪🇸🇵🇹", full: "Mercado Ibérico do Gás" },
+    peg:   { price: 49.5, prev: 38.2, col: "#F59E0B", name: "PEG",    country: "🇫🇷", full: "Point d'Échange de Gaz"    },
+    the:   { price: 50.1, prev: 38.7, col: "#EF4444", name: "THE",    country: "🇩🇪", full: "Trading Hub Europe"         },
+  };
+
+  /* Histórico TTF mensal — actualizar mensalmente */
+  const TTF_HIST = [
+    ["Mar 25",40.8],["Abr 25",36.2],["Mai 25",34.1],["Jun 25",32.8],
+    ["Jul 25",35.4],["Ago 25",37.1],["Set 25",40.2],["Out 25",42.8],
+    ["Nov 25",44.6],["Dez 25",46.3],["Jan 26",47.8],["Fev 26",41.2],
+    ["Mar 26",49.8],
   ];
 
-  /* Histórico TTF mensal Jan 2024 → Mar 2026 */
-  const TTF_HIST=[
-    ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
-    ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
-    ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
-    ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
-    ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
-    ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
-    ["Jan 26",47.8],["Fev 26",41.2],["Mar 26",38.5],
+  /* Reservas EU por país · GIE AGSI+ · 18 Mar 2026 — actualizar semanalmente */
+  const RESERVAS_STATIC = [
+    {c:"🇩🇪",name:"Alemanha",pct:26.4,col:"#EF4444"},
+    {c:"🇮🇹",name:"Itália",  pct:31.8,col:"#EF4444"},
+    {c:"🇫🇷",name:"França",  pct:27.0,col:"#EF4444"},
+    {c:"🇳🇱",name:"Holanda", pct:20.9,col:"#EF4444"},
+    {c:"🇦🇹",name:"Áustria", pct:35.4,col:"#F59E0B"},
+    {c:"🇪🇸",name:"Espanha", pct:40.1,col:"#F59E0B"},
+    {c:"🇵🇱",name:"Polónia", pct:48.2,col:"#10B981"},
   ];
+  const EU_FILL_STATIC = 28.93;  /* % · GIE AGSI+ 18 Mar 2026 */
+  const EU_FILL_DATE   = "18 Mar 2026";
 
-  /* Reservas EU por país — ref. Mar 2026 (GIE AGSI+) */
-  const RESERVAS=[
-    {c:"🇩🇪",name:"Alemanha",pct:30.2,col:"#EF4444"},
-    {c:"🇮🇹",name:"Itália",  pct:34.1,col:"#F97316"},
-    {c:"🇫🇷",name:"França",  pct:29.0,col:"#F59E0B"},
-    {c:"🇳🇱",name:"Holanda", pct:23.5,col:"#EF4444"},
-    {c:"🇪🇸",name:"Espanha", pct:42.8,col:"#10B981"},
-    {c:"🇦🇹",name:"Áustria", pct:38.4,col:"#F59E0B"},
-    {c:"🇵🇱",name:"Polónia", pct:51.2,col:"#10B981"},
-  ];
-  const EU_AVG=35;
-  const EU_PREV=52; /* mesmo período ano anterior */
+  /* ── Tentar dados ao vivo via Stooq / Yahoo Finance ── */
+  if (!cache) {
+    const YF  = "https://query1.finance.yahoo.com/v8/finance/chart/";
+    const YF2 = "https://query2.finance.yahoo.com/v8/finance/chart/";
 
-  /* Sparkline TTF */
-  const vals=TTF_HIST.map(x=>x[1]);
-  const vmin=Math.min(...vals), vmax=Math.max(...vals), vrng=vmax-vmin||1;
-  const SW=200,SH=40;
-  const sx=i=>Math.round(i/(vals.length-1)*SW);
-  const sy=v=>Math.round(SH-(v-vmin)/vrng*(SH-4)+2);
-  const pts=vals.map((v,i)=>`${sx(i)},${sy(v)}`).join(" ");
-  const fill=pts+` ${SW},${SH+2} 0,${SH+2}`;
+    const PROXIES_YF = [
+      s => "https://api.allorigins.win/raw?url=" + encodeURIComponent(YF  + s + "?range=5d&interval=1d"),
+      s => "https://corsproxy.io/?url="          + encodeURIComponent(YF  + s + "?range=5d&interval=1d"),
+      s => "https://api.allorigins.win/raw?url=" + encodeURIComponent(YF2 + s + "?range=5d&interval=1d"),
+    ];
+    const PROXIES_STOOQ = [
+      s => "https://api.allorigins.win/raw?url=" + encodeURIComponent(
+             `https://stooq.com/q/l/?s=${s}&f=sd2t2ohlcv&h&e=csv`),
+      s => "https://corsproxy.io/?url="          + encodeURIComponent(
+             `https://stooq.com/q/l/?s=${s}&f=sd2t2ohlcv&h&e=csv`),
+    ];
 
-  el.innerHTML=`
-  <!-- Header: TTF actual + contexto -->
+    async function fetchStooq(sym) {
+      for (const mkUrl of PROXIES_STOOQ) {
+        try {
+          const r = await fetch(mkUrl(sym), { signal: AbortSignal.timeout(8000) });
+          if (!r.ok) continue;
+          const csv = await r.text();
+          const rows = csv.trim().split("
+");
+          if (rows.length < 2) continue;
+          const cols  = rows[1].split(",");
+          /* Symbol,Date,Time,Open,High,Low,Close,Volume */
+          const open  = parseFloat(cols[3]);
+          const close = parseFloat(cols[6]);
+          if (!isNaN(close) && close > 0)
+            return { price: close, prev: open, chg: open ? ((close-open)/open*100) : null, live: true };
+        } catch {}
+      }
+      return null;
+    }
+
+    async function fetchYF(sym) {
+      for (const mkUrl of PROXIES_YF) {
+        try {
+          const r = await fetch(mkUrl(sym), { signal: AbortSignal.timeout(8000) });
+          if (!r.ok) continue;
+          const j    = await r.json();
+          const meta = j?.chart?.result?.[0]?.meta;
+          if (!meta?.regularMarketPrice) continue;
+          const price = meta.regularMarketPrice;
+          const prev  = meta.previousClose || meta.chartPreviousClose || price;
+          return { price, prev, chg: prev ? ((price-prev)/prev*100) : null, live: true };
+        } catch {}
+      }
+      return null;
+    }
+
+    try {
+      /* Stooq tg.f → Dutch TTF Gas Endex (ICE) */
+      const stooqRes = await fetchStooq("tg.f");
+      const yfRes    = !stooqRes ? await fetchYF("TTF=F") : null;
+      const ttfData  = stooqRes || yfRes;
+
+      if (ttfData?.live) {
+        const p = ttfData.price, pv = ttfData.prev;
+
+        /* Spreads históricos médios (€/MWh) vs TTF — verificar mensalmente */
+        const SP = { nbp: -2.1, mibgas: 8.5, peg: -0.3, the: 0.2 };
+
+        cache = {
+          live:         true,
+          source:       stooqRes ? "Stooq · tg.f" : "Yahoo · TTF=F",
+          ts:           Date.now(),
+          hubs: {
+            ttf:    { ...STATIC.ttf,    price: p,             prev: pv             },
+            nbp:    { ...STATIC.nbp,    price: p + SP.nbp,    prev: pv + SP.nbp    },
+            mibgas: { ...STATIC.mibgas, price: p + SP.mibgas, prev: pv + SP.mibgas },
+            peg:    { ...STATIC.peg,    price: p + SP.peg,    prev: pv + SP.peg    },
+            the:    { ...STATIC.the,    price: p + SP.the,    prev: pv + SP.the    },
+          },
+          reservas:    RESERVAS_STATIC,
+          euFill:      EU_FILL_STATIC,
+          euFillDate:  EU_FILL_DATE,
+        };
+        lsSet(CK, cache);
+        console.log(`⛽ TTF ao vivo: ${p.toFixed(2)} €/MWh (${cache.source})`);
+      }
+    } catch(e) {
+      console.warn("loadTTF live fetch falhou:", e.message);
+    }
+
+    if (!cache) {
+      cache = {
+        live: false, source: "fallback · Mar 2026", ts: Date.now(),
+        hubs: STATIC, reservas: RESERVAS_STATIC,
+        euFill: EU_FILL_STATIC, euFillDate: EU_FILL_DATE,
+      };
+    }
+  }
+
+  /* ── RENDER ── */
+  const hubs    = Object.values(cache.hubs);
+  const ttfH    = cache.hubs.ttf;
+  const liveTag = cache.live
+    ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">● ${cache.source}</span>`
+    : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ ${cache.source}</span>`;
+
+  const age    = Math.round((Date.now() - (cache.ts || Date.now())) / 60000);
+  const ageStr = age < 2 ? "agora" : age < 60 ? `${age}min atrás` : `${Math.floor(age/60)}h atrás`;
+
+  /* Sparkline */
+  const vals = TTF_HIST.map(x => x[1]);
+  const vmin = Math.min(...vals), vmax = Math.max(...vals), vrng = vmax - vmin || 1;
+  const SW = 200, SH = 40;
+  const sx = i => Math.round(i / (vals.length - 1) * SW);
+  const sy = v => Math.round(SH - (v - vmin) / vrng * (SH - 4) + 2);
+  const pts  = vals.map((v, i) => `${sx(i)},${sy(v)}`).join(" ");
+  const fill = pts + ` ${SW},${SH + 2} 0,${SH + 2}`;
+
+  const ttfChg    = ttfH.prev ? ((ttfH.price - ttfH.prev) / ttfH.prev * 100) : 0;
+  const ttfChgCol = ttfChg >= 0 ? "#EF4444" : "#10B981";
+
+  el.innerHTML = `
   <div style="display:flex;align-items:center;justify-content:space-between;
        background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:10px">
     <div>
       <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-           letter-spacing:.5px;margin-bottom:2px">TTF Day-ahead · ref. Mar 2026</div>
+           letter-spacing:.5px;margin-bottom:2px">TTF Day-ahead · ${liveTag}</div>
       <div style="display:flex;align-items:flex-end;gap:5px">
-        <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">38.5</div>
+        <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">${ttfH.price.toFixed(1)}</div>
         <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
       </div>
-      <div style="font-size:.65rem;color:#10B981;margin-top:2px">
-        ▼ 4.2% vs mês anterior
+      <div style="font-size:.65rem;color:${ttfChgCol};margin-top:2px;font-weight:600">
+        ${ttfChg >= 0 ? "▲" : "▼"} ${Math.abs(ttfChg).toFixed(1)}% vs fecho anterior
       </div>
+      <div style="font-size:.56rem;color:var(--t3);margin-top:1px">${ageStr}</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">Jan 2024 → Mar 2026</div>
-      <svg width="${SW}" height="${SH+4}" style="display:block">
-        <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+      <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">Mar 2025 → hoje</div>
+      <svg width="${SW}" height="${SH + 4}" style="display:block">
+        <defs><linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#3B82F6" stop-opacity=".25"/>
           <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
         </linearGradient></defs>
-        <polygon points="${fill}" fill="url(#tg)"/>
+        <polygon points="${fill}" fill="url(#tg2)"/>
         <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="1.5"/>
+        <circle cx="${sx(vals.length - 1)}" cy="${sy(vals[vals.length - 1])}" r="3" fill="#3B82F6"/>
       </svg>
     </div>
   </div>
 
-  <!-- Tabela hubs -->
   <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
     🌍 Hubs europeus · spot
+    ${cache.live ? "" : `<span style="font-size:.55rem;font-weight:400;color:#F59E0B"> · spreads históricos vs TTF</span>`}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
-    ${HUBS.map(hub=>{
-      const chg=((hub.price-hub.prev)/hub.prev*100);
-      const chgCol=chg>=0?"#EF4444":"#10B981";
+    ${hubs.map(hub => {
+      const cp = hub.prev ? ((hub.price - hub.prev) / hub.prev * 100) : 0;
+      const cc = cp >= 0 ? "#EF4444" : "#10B981";
       return `<div style="background:var(--b2);border-radius:7px;padding:6px 8px;
            border-left:3px solid ${hub.col}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -6052,34 +6161,47 @@ function loadTTF(force=false){
           </div>
           <div style="text-align:right">
             <div style="font-size:.75rem;font-weight:700;color:var(--text)">${hub.price.toFixed(1)}</div>
-            <div style="font-size:.54rem;color:${chgCol}">${chg>=0?"▲":"▼"}${Math.abs(chg).toFixed(1)}%</div>
+            <div style="font-size:.54rem;color:${cc}">${cp >= 0 ? "▲" : "▼"}${Math.abs(cp).toFixed(1)}%</div>
           </div>
         </div>
       </div>`;
     }).join("")}
   </div>
 
-  <!-- Reservas EU -->
   <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    🏭 Reservas de gás · EU · Mar 2026
-    <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
+    🏭 Reservas de gás · EU · ${cache.euFillDate}
+    <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · EU: ${cache.euFill.toFixed(1)}%</span>
   </div>
-  ${RESERVAS.map(r=>`
+  <div style="background:var(--b2);border-radius:8px;padding:7px 10px;margin-bottom:7px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="font-size:1.4rem;font-weight:800;color:#EF4444;line-height:1">${cache.euFill.toFixed(1)}%</div>
+      <div>
+        <div style="font-size:.62rem;font-weight:600;color:#EF4444">Muito abaixo da meta</div>
+        <div style="font-size:.56rem;color:var(--t3)">Meta: 90% até Nov 2026</div>
+      </div>
+    </div>
+    <div style="background:var(--b);border-radius:3px;height:8px;overflow:hidden;margin-bottom:4px">
+      <div style="width:${cache.euFill}%;height:100%;background:linear-gradient(90deg,#EF4444,#F59E0B);border-radius:3px"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.54rem;color:var(--t3)">
+      <span>0%</span><span style="color:#EF4444">${cache.euFill.toFixed(1)}%</span><span>90% (meta)</span><span>100%</span>
+    </div>
+  </div>
+  ${cache.reservas.map(r => `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
       <div style="min-width:22px;font-size:.75rem">${r.c}</div>
-      <div style="min-width:55px;font-size:.62rem;color:var(--t2)">${r.name}</div>
-      <div style="flex:1;background:var(--b2);border-radius:3px;height:7px;overflow:hidden">
-        <div style="width:${r.pct}%;height:100%;background:${r.col};border-radius:3px"></div>
+      <div style="min-width:55px;font-size:.59rem;color:var(--t2)">${r.name}</div>
+      <div style="flex:1;background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
+        <div style="width:${r.pct}%;height:100%;background:${r.col};border-radius:2px"></div>
       </div>
-      <div style="min-width:36px;text-align:right;font-size:.65rem;font-weight:600;
-           color:${r.col}">${r.pct}%</div>
+      <div style="min-width:36px;text-align:right;font-size:.65rem;font-weight:600;color:${r.col}">${r.pct}%</div>
     </div>`).join("")}
   <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
-    ⚠️ Reservas EU muito abaixo da média histórica. Meta: 90% até Nov 2026.
-    Contexto: suspensão exportações QatarEnergy (Mar 2026) pressionou preços.
+    ${cache.live
+      ? `✦ Preço TTF ao vivo (${cache.source}) · Reservas: GIE AGSI+ ${cache.euFillDate}`
+      : `✦ Dados estáticos (fallback) · Actualizar: próximo início de mês`}
   </div>`;
 }
-
 function loadGasPT(force=false){
   const el=document.getElementById("gaspt-body");
   if(!el) return;
