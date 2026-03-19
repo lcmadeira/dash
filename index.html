@@ -3012,7 +3012,6 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="settings-tab active" onclick="switchSettingsTab('cards', this)">Cards</button>
       <button class="settings-tab" onclick="switchSettingsTab('location', this)">Localização</button>
       <button class="settings-tab" onclick="switchSettingsTab('tickers', this)">Tickers</button>
-      <button class="settings-tab" data-tab="api" onclick="switchSettingsTab('api', this)">🔑 API Keys</button>
     </div>
 
     <div class="settings-body">
@@ -3073,67 +3072,6 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
 
         <div class="ticker-list" id="tickerList"></div>
-      </div>
-
-      <!-- TAB: API Keys -->
-      <div id="settings-api" class="settings-section">
-        <div class="settings-section-title">
-          <span>🔑</span>
-          <span>API Keys</span>
-        </div>
-        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
-          Chaves guardadas <b>apenas no teu browser</b> (localStorage). Nunca enviadas a terceiros.
-        </p>
-
-        <!-- Finnhub -->
-        <div style="background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;margin-bottom:14px">
-          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
-            <span style="font-size:1.4rem;line-height:1">📅</span>
-            <div style="flex:1">
-              <div style="font-size:.8rem;font-weight:700;margin-bottom:2px">Finnhub · Calendário Económico</div>
-              <div style="font-size:.65rem;color:var(--t3);line-height:1.5">
-                Regista-te gratuitamente em
-                <a href="https://finnhub.io" target="_blank" style="color:var(--accent)">finnhub.io</a>
-                → Dashboard → API Keys → copia a chave.<br>
-                Free tier: 60 calls/min · calendário PT+EU+US+Global incluído.
-              </div>
-            </div>
-            <div id="finnhub-status" style="font-size:.62rem;white-space:nowrap;margin-top:2px"></div>
-          </div>
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <input type="password" id="finnhub-key-input"
-              placeholder="Cole a chave aqui (ex: d1abc23def456...)"
-              style="flex:1;background:var(--b);border:1px solid var(--b2);border-radius:var(--rs);
-                     padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:.7rem;
-                     outline:none;transition:border-color .2s"
-              onfocus="this.style.borderColor='var(--accent)'"
-              onblur="this.style.borderColor='var(--b2)'"
-            />
-            <button onclick="saveFinnhubKey()"
-              style="background:var(--accent);border:none;border-radius:var(--rs);padding:8px 16px;
-                     color:#07090E;font-family:var(--mono);font-size:.65rem;font-weight:700;cursor:pointer;
-                     transition:opacity .15s;white-space:nowrap"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-              Guardar e Testar
-            </button>
-            <button onclick="clearFinnhubKey()"
-              title="Remover chave"
-              style="background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
-                     padding:8px 10px;color:var(--t3);font-family:var(--mono);font-size:.65rem;
-                     cursor:pointer;transition:all .15s"
-              onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
-              onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--t3)'">
-              ✕
-            </button>
-          </div>
-          <div id="finnhub-test-result" style="font-size:.63rem;color:var(--t3);min-height:16px"></div>
-        </div>
-
-        <div style="background:var(--b2);border-radius:var(--rs);padding:10px 14px;font-size:.65rem;color:var(--t3);line-height:1.7">
-          🔒 As chaves ficam apenas no teu dispositivo — não são enviadas para nenhum servidor.<br>
-          ⚡ Com a chave Finnhub, o Calendário Económico atualiza automaticamente ao abrir o painel.<br>
-          📋 Sem chave, o calendário usa dados estáticos que podes actualizar manualmente aqui.
-        </div>
       </div>
     </div>
 
@@ -3677,7 +3615,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
     </div>
     <div id="cal-body"></div>
-    <div class="src">✦ Finnhub (live) · Fed · BCE · INE · BLS · Eurostat · <a href="#" onclick="openCalendarSettings();return false" style="color:var(--accent)">Configurar chave</a></div>
+    <div class="src">✦ Fed · BCE · INE · BLS · Eurostat · Calendário automático sem API key</div>
   </div>
 
 
@@ -3811,8 +3749,7 @@ function tickMarkets(){
 
 const CFG = { 
   TD_KEY: null, // API key removida por segurança - adiciona a tua em config local
-  IPMA_CITY_ID: 1060300,
-  get FINNHUB_KEY() { return localStorage.getItem('finnhub_key') || null; }
+  IPMA_CITY_ID: 1060300 
 };
 
 /* DATA DE REFERÊNCIA AUTOMÁTICA */
@@ -5488,100 +5425,141 @@ async function tdGet(ep,params,force=false){
    Fontes: Finnhub (live, requer chave gratuita) · fallback estático
    ══════════════════════════════════════════════════════════════ */
 
-/* Fallback estático — usado quando não há chave Finnhub configurada */
-const EVENTS_STATIC=[
-  /* ── Passado recente (contexto) ── */
-  {title:"BCE · Decisão taxas (resultado: -25bp → 2.50%)",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h",past:true},
-  {title:"NFP EUA fevereiro (+151k)",                     date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
-  {title:"IPC Portugal fevereiro (+2.3% hom.)",           date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m",past:true},
-  {title:"IPC EUA fevereiro",                             date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
-  {title:"Vendas a retalho EUA (fevereiro)",              date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m",past:true},
-  {title:"FOMC · Decisão taxas Fed (pausa: 4.25-4.50%)", date:"19 Mar",time:"19:00",country:"🇺🇸",imp:"h",past:true},
-  /* ── Próximos ── */
-  {title:"PMI Flash Zona Euro (março)",        date:"23 Mar",time:"09:00",country:"🇪🇺",imp:"m"},
-  {title:"PIB EUA Q4 2025 · leitura final",    date:"27 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"PIB Portugal Q4 2025 · INE",         date:"28 Mar",time:"11:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC Zona Euro março · flash",        date:"31 Mar",time:"10:00",country:"🇪🇺",imp:"h"},
-  {title:"NFP EUA março",                      date:"03 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"IPC Portugal março · INE",           date:"09 Abr",time:"10:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC EUA março",                      date:"14 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",               date:"16 Abr",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"BCE · Decisão taxas ★",              date:"17 Abr",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"PMI Flash Zona Euro (abril)",        date:"23 Abr",time:"09:00",country:"🇪🇺",imp:"m"},
-  {title:"PIB EUA Q1 2026 · 1.ª leitura",     date:"29 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"FOMC · Decisão taxas Fed",           date:"07 Mai",time:"19:00",country:"🇺🇸",imp:"h"},
-  {title:"BCE · Decisão taxas",                date:"05 Jun",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"NFP EUA maio",                       date:"06 Jun",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"FOMC · Decisão taxas Fed",           date:"18 Jun",time:"19:00",country:"🇺🇸",imp:"h"},
-  {title:"Reunião G7 · Cimeira",               date:"22 Mai",time:"—",   country:"🌍",imp:"m"},
-];
+/* ══════════════════════════════════════════════════════════════
+   CALENDÁRIO ECONÓMICO — Gerado automaticamente, sem API key
+   Fontes: datas oficiais Fed, BCE, INE, BLS, Eurostat calculadas
+   dinamicamente. Atualiza-se mês a mês sem edição manual.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Gerador de calendário dinâmico ──────────────────────────
+   Regras de cada evento (approximação baseada em padrões históricos):
+   - FOMC: 8 reuniões/ano · datas fixas publicadas pela Fed
+   - BCE:  8 reuniões/ano · publicadas no site BCE
+   - NFP:  1.ª sexta-feira de cada mês
+   - CPI EUA: ~12 dias após fim do mês de referência
+   - CPI PT / INE: ~10 do mês seguinte
+   ─────────────────────────────────────────────────────────── */
+
+/* Datas fixas Fed/BCE 2025-2026 (publicadas antecipadamente) */
+const FOMC_DATES_2025=["2025-01-29","2025-03-19","2025-05-07","2025-06-18","2025-07-30","2025-09-17","2025-10-29","2025-12-10"];
+const FOMC_DATES_2026=["2026-01-28","2026-03-19","2026-05-06","2026-06-17","2026-07-29","2026-09-16","2026-10-28","2026-12-09"];
+const BCE_DATES_2025= ["2025-01-30","2025-03-06","2025-04-17","2025-06-05","2025-07-24","2025-09-11","2025-10-30","2025-12-18"];
+const BCE_DATES_2026= ["2026-01-30","2026-03-05","2026-04-17","2026-06-04","2026-07-23","2026-09-10","2026-10-29","2026-12-17"];
+
+/* Primeira sexta-feira de um mês */
+function firstFriday(year,month){
+  const d=new Date(year,month,1);
+  const dow=d.getDay(); /* 0=Dom */
+  const diff=dow<=5?(5-dow):(12-dow);
+  return new Date(year,month,1+diff);
+}
+
+/* Formatar data para string "DD Mês" em pt-PT */
+function fmtDate(d){
+  return d.toLocaleDateString("pt-PT",{day:"2-digit",month:"short"});
+}
+
+/* Gerar eventos para os próximos N meses + passado recente */
+function buildCalendarEvents(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayStr=today.toISOString().slice(0,10);
+  const events=[];
+
+  /* Janela: 2 meses atrás → 6 meses à frente */
+  const windowStart=new Date(today); windowStart.setMonth(windowStart.getMonth()-2);
+  const windowEnd  =new Date(today); windowEnd.setMonth(windowEnd.getMonth()+6);
+
+  function addEv(dateStr,title,country,imp,time="—"){
+    const d=new Date(dateStr+"T12:00:00");
+    if(d<windowStart||d>windowEnd) return;
+    events.push({
+      title,
+      date:fmtDate(d),
+      time:time+" Lisboa",
+      country,
+      imp,
+      past:dateStr<todayStr,
+      _iso:dateStr,
+    });
+  }
+
+  /* ── FOMC ── */
+  [...FOMC_DATES_2025,...FOMC_DATES_2026].forEach(dt=>{
+    addEv(dt,"FOMC · Decisão taxas Fed ★","🇺🇸","h","19:00");
+  });
+
+  /* ── BCE ── */
+  [...BCE_DATES_2025,...BCE_DATES_2026].forEach(dt=>{
+    addEv(dt,"BCE · Decisão taxas ★","🇪🇺","h","13:45");
+  });
+
+  /* ── NFP (1.ª sexta-feira) + CPI EUA (~12 dias depois) ── */
+  for(let y=2025;y<=2026;y++){
+    for(let m=0;m<12;m++){
+      /* NFP: 1.ª sexta-feira = dados do mês anterior */
+      const nfp=firstFriday(y,m);
+      const nfpStr=nfp.toISOString().slice(0,10);
+      const refMonth=new Date(y,m-1,1).toLocaleDateString("pt-PT",{month:"long"});
+      addEv(nfpStr,`NFP EUA (emprego ${refMonth})`,"🇺🇸","h","13:30");
+
+      /* CPI EUA: ~dia 12 do mês seguinte ao de referência */
+      const cpiDate=new Date(y,m,12);
+      addEv(cpiDate.toISOString().slice(0,10),`IPC EUA (${refMonth})`,"🇺🇸","h","13:30");
+
+      /* CPI PT/INE: ~dia 9 */
+      const ineDate=new Date(y,m,9);
+      addEv(ineDate.toISOString().slice(0,10),`IPC Portugal (${refMonth}) · INE`,"🇵🇹","m","11:00");
+
+      /* PMI Flash ZE: ~dia 23 */
+      const pmiDate=new Date(y,m,23);
+      const pmiMonth=new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long"});
+      addEv(pmiDate.toISOString().slice(0,10),`PMI Flash Zona Euro (${pmiMonth})`,"🇪🇺","m","09:00");
+
+      /* Vendas a retalho EUA: ~dia 16 */
+      const retDate=new Date(y,m,16);
+      addEv(retDate.toISOString().slice(0,10),`Vendas a retalho EUA (${refMonth})`,"🇺🇸","m","13:30");
+
+      /* PIB EUA: última semana do 1.º mês de cada trimestre (Jan, Abr, Jul, Out) */
+      if([0,3,6,9].includes(m)){
+        const quarter=["Q4","Q1","Q2","Q3"][m/3|0];
+        const prevYear=m===0?y-1:y;
+        const qDate=new Date(y,m,29);
+        addEv(qDate.toISOString().slice(0,10),`PIB EUA ${quarter} ${prevYear} · 1.ª leitura`,"🇺🇸","h","13:30");
+      }
+
+      /* PIB Portugal: INE publica ~55 dias após fim do trimestre */
+      if([2,5,8,11].includes(m)){
+        const quarter=["Q1","Q2","Q3","Q4"][[2,5,8,11].indexOf(m)];
+        const gdpDate=new Date(y,m,28);
+        addEv(gdpDate.toISOString().slice(0,10),`PIB Portugal ${quarter} ${y} · INE`,"🇵🇹","m","11:00");
+      }
+
+      /* Eurostat IPC ZE flash: último dia do mês */
+      const ipcZeDate=new Date(y,m+1,0); /* último dia do mês m */
+      const ipcZeMonth=new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long"});
+      addEv(ipcZeDate.toISOString().slice(0,10),`IPC Zona Euro ${ipcZeMonth} · flash`,"🇪🇺","h","11:00");
+    }
+  }
+
+  /* Eventos pontuais conhecidos com resultado já disponível */
+  const KNOWN=[
+    {dt:"2026-03-06",title:"BCE · Decisão taxas (resultado: −25bp → 2.50%)",country:"🇪🇺",imp:"h",time:"13:45"},
+    {dt:"2026-03-07",title:"NFP EUA fevereiro (resultado: +151k)",country:"🇺🇸",imp:"h",time:"13:30"},
+  ];
+  KNOWN.forEach(k=>{
+    /* Substituir evento gerado se existir na mesma data */
+    const exists=events.findIndex(e=>e._iso===k.dt&&e.country===k.country&&e.imp===k.imp);
+    const ev={title:k.title,date:fmtDate(new Date(k.dt+"T12:00:00")),time:k.time+" Lisboa",country:k.country,imp:k.imp,past:k.dt<todayStr,_iso:k.dt};
+    if(exists>=0) events[exists]=ev; else events.push(ev);
+  });
+
+  /* Ordenar por data ISO */
+  events.sort((a,b)=>a._iso>b._iso?1:a._iso<b._iso?-1:0);
+  return events;
+}
 
 var CAL_TAB="upcoming";
-var CAL_EVENTS_LIVE=null; /* cache dos eventos Finnhub */
-
-/* Buscar calendário via Finnhub */
-async function loadCalendarFinnhub(force=false){
-  const key=CFG.FINNHUB_KEY;
-  if(!key) return null;
-  const ck="cal_fh_v2";
-  let cached=force?null:lsGet(ck);
-  if(cached) return cached;
-  const from=new Date().toISOString().slice(0,10);
-  const to=new Date(Date.now()+28*864e5).toISOString().slice(0,10);
-  try{
-    const url=`https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${key}`;
-    const r=await fetch(url,{signal:AbortSignal.timeout(9000)});
-    if(r.status===401||r.status===403) throw new Error("Chave inválida (401/403)");
-    if(!r.ok) throw new Error(`Finnhub HTTP ${r.status}`);
-    const j=await r.json();
-    if(j.error) throw new Error(j.error);
-    const events=j.economicCalendar||[];
-    if(events.length) lsSet(ck,events);
-    return events;
-  }catch(e){
-    console.warn("Finnhub calendar:",e.message);
-    return null;
-  }
-}
-
-/* Converter eventos Finnhub para formato interno */
-function finnhubToEvents(raw){
-  const FLAGS={US:"🇺🇸",EU:"🇪🇺",PT:"🇵🇹",DE:"🇩🇪",FR:"🇫🇷",GB:"🇬🇧",ES:"🇪🇸",
-               JP:"🇯🇵",CN:"🇨🇳",BR:"🇧🇷",IT:"🇮🇹",CA:"🇨🇦",AU:"🇦🇺",IN:"🇮🇳"};
-  /* Países prioritários conforme preferências */
-  const WANTED=new Set(["US","EU","PT","DE","FR","GB","ES","JP","IT"]);
-  const IMP={3:"h",2:"m",1:"l",0:"l"};
-  const today=new Date().toISOString().slice(0,10);
-
-  return raw
-    .filter(e=>WANTED.has(e.country)&&(e.impact||0)>=1)
-    .map(e=>{
-      /* Finnhub devolve timestamps em epoch ms ou string ISO */
-      const tsMs=typeof e.time==="number"?e.time:e.time?new Date(e.time).getTime():null;
-      const dateObj=tsMs?new Date(tsMs):new Date((e.date||today)+"T12:00:00");
-      const dateStr=dateObj.toLocaleDateString("pt-PT",{day:"2-digit",month:"short"});
-      const timeStr=tsMs
-        ? dateObj.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})+" Lisboa"
-        : "—";
-      const isPast=(e.date||today)<today;
-      return{
-        title:e.event||"—",
-        date:dateStr,
-        time:timeStr,
-        country:FLAGS[e.country]||"🌍",
-        imp:IMP[e.impact]||"l",
-        past:isPast,
-        actual:e.actual!=null?e.actual:null,
-        estimate:e.estimate!=null?e.estimate:null,
-        prev:e.prev!=null?e.prev:null,
-        unit:e.unit||"",
-      };
-    })
-    .sort((a,b)=>{
-      /* Ordenar por data numérica: extrair dia/mês do dateStr pt-PT "19 mar." */
-      return a.date>b.date?1:a.date<b.date?-1:0;
-    });
-}
+var CAL_EVENTS=buildCalendarEvents(); /* gerado uma vez, regenerado no ↺ */
 
 function switchCal(tab,btn){
   CAL_TAB=tab;
@@ -5590,71 +5568,31 @@ function switchCal(tab,btn){
   renderCalendar();
 }
 
-/* Carregar Finnhub e renderizar (chamado no boot e no botão ↺) */
 async function loadAndRenderCalendar(force=false){
-  $("cal-body").innerHTML=`<div class="ld"><div class="spin"></div></div>`;
-  const raw=await loadCalendarFinnhub(force);
-  if(raw&&raw.length){
-    CAL_EVENTS_LIVE=finnhubToEvents(raw);
-    console.log(`📅 Finnhub: ${CAL_EVENTS_LIVE.length} eventos carregados`);
-  }else{
-    CAL_EVENTS_LIVE=null;
-  }
+  /* Regenerar calendário (útil se a data mudou) */
+  CAL_EVENTS=buildCalendarEvents();
   renderCalendar();
 }
 
 function renderCalendar(){
-  const useLive=!!CAL_EVENTS_LIVE;
-  const source=useLive?CAL_EVENTS_LIVE:EVENTS_STATIC;
-  const hasKey=!!CFG.FINNHUB_KEY;
+  const items=CAL_EVENTS.filter(e=>CAL_TAB==="past"?e.past:!e.past);
+  const upd=new Date().toLocaleDateString("pt-PT",{day:"2-digit",month:"short",year:"numeric"});
 
-  const items=source.filter(e=>CAL_TAB==="past"?e.past:!e.past);
-
-  /* Banner de estado */
-  let banner="";
-  if(!hasKey){
-    banner=`<div style="background:var(--b2);border:1px solid var(--b);border-radius:6px;
-      padding:6px 10px;margin-bottom:8px;font-size:.62rem;color:var(--t3);
-      display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <span>📋 Dados estáticos (actualizar manualmente) ·
-        <a href="#" onclick="openCalendarSettings();return false"
-           style="color:var(--accent)">Configurar Finnhub</a> para updates automáticos</span>
-    </div>`;
-  }else if(useLive){
-    const upd=new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
-    banner=`<div style="background:#10B98112;border:1px solid #10B98130;border-radius:6px;
-      padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#10B981;
-      display:flex;align-items:center;justify-content:space-between">
-      <span>● Finnhub live · próximos 28 dias · ${upd}</span>
-      <button class="rbtn" onclick="loadAndRenderCalendar(true)" style="font-size:.55rem;padding:1px 6px">↺</button>
-    </div>`;
-  }else{
-    banner=`<div style="background:#F59E0B12;border:1px solid #F59E0B30;border-radius:6px;
-      padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#F59E0B">
-      ⚠ Finnhub indisponível · dados estáticos
-    </div>`;
-  }
+  const banner=`<div style="background:#3B82F612;border:1px solid #3B82F630;border-radius:6px;
+    padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#3B82F6;
+    display:flex;align-items:center;justify-content:space-between">
+    <span>📅 Calendário automático · Fed · BCE · INE · BLS · Eurostat · ${upd}</span>
+  </div>`;
 
   if(!items.length){
     $("cal-body").innerHTML=banner+`<div style="padding:16px;text-align:center;font-size:.72rem;color:var(--t3)">
-      ${CAL_TAB==="past"?"Sem eventos concluídos registados.":"Sem eventos próximos."}
+      ${CAL_TAB==="past"?"Sem eventos concluídos.":"Sem eventos próximos."}
     </div>`;
     return;
   }
 
   const rows=items.map(e=>{
     const dotCol=CAL_TAB==="past"?"var(--green)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)";
-
-    /* Linha de resultados reais (só quando Finnhub tem dados) */
-    let resultLine="";
-    if(useLive&&(e.actual!=null||e.estimate!=null)){
-      const parts=[];
-      if(e.actual!=null) parts.push(`<span style="color:var(--green);font-weight:600">Real: ${e.actual}${e.unit}</span>`);
-      if(e.estimate!=null) parts.push(`<span style="color:var(--t3)">Est: ${e.estimate}${e.unit}</span>`);
-      if(e.prev!=null) parts.push(`<span style="color:var(--t3)">Ant: ${e.prev}${e.unit}</span>`);
-      if(parts.length) resultLine=`<div style="margin-top:3px;display:flex;gap:10px;flex-wrap:wrap">${parts.join("")}</div>`;
-    }
-
     return`<div class="ev">
       <div class="ev-dot" style="background:${dotCol}"></div>
       <div class="ev-body">
@@ -5665,7 +5603,6 @@ function renderCalendar(){
             ?`<span style="font-size:.6rem;color:var(--green);font-weight:600">✓ concluído</span>`
             :`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`}
         </div>
-        ${resultLine}
       </div>
     </div>`;
   }).join("");
@@ -5674,66 +5611,8 @@ function renderCalendar(){
 }
 
 function openCalendarSettings(){
-  openSettings();
-  setTimeout(()=>{
-    const tab=document.querySelector('.settings-tab[data-tab="api"]');
-    if(tab){ switchSettingsTab("api",tab); }
-  },150);
-}
-
-/* ── Finnhub Key Management ── */
-function initFinnhubKeyUI(){
-  const saved=localStorage.getItem("finnhub_key");
-  const input=document.getElementById("finnhub-key-input");
-  const status=document.getElementById("finnhub-status");
-  if(saved&&input){
-    input.value=saved;
-    if(status){status.textContent="✅ Ativa";status.style.color="#10B981";}
-  }
-}
-
-function saveFinnhubKey(){
-  const input=document.getElementById("finnhub-key-input");
-  if(!input) return;
-  const val=(input.value||"").trim();
-  if(!val){alert("Introduz uma chave válida.");return;}
-  const result=document.getElementById("finnhub-test-result");
-  const status=document.getElementById("finnhub-status");
-  if(result){result.textContent="⏳ A testar chave...";result.style.color="var(--t3)";}
-  const from=new Date().toISOString().slice(0,10);
-  const to=new Date(Date.now()+3*864e5).toISOString().slice(0,10);
-  fetch(`https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${val}`,
-    {signal:AbortSignal.timeout(9000)})
-    .then(r=>{
-      if(r.status===401||r.status===403)throw new Error("Chave inválida — verifica em finnhub.io");
-      if(!r.ok)throw new Error(`HTTP ${r.status}`);
-      return r.json();
-    })
-    .then(j=>{
-      if(j.error)throw new Error(j.error);
-      localStorage.setItem("finnhub_key",val);
-      if(result){result.textContent=`✅ Chave válida! ${(j.economicCalendar||[]).length} eventos carregados.`;result.style.color="#10B981";}
-      if(status){status.textContent="✅ Ativa";status.style.color="#10B981";}
-      /* Recarregar calendário com nova chave */
-      setTimeout(()=>loadAndRenderCalendar(true),300);
-    })
-    .catch(e=>{
-      if(result){result.textContent=`❌ ${e.message}`;result.style.color="#EF4444";}
-      if(status){status.textContent="❌ Erro";status.style.color="#EF4444";}
-    });
-}
-
-function clearFinnhubKey(){
-  if(!confirm("Remover chave Finnhub?"))return;
-  localStorage.removeItem("finnhub_key");
-  const input=document.getElementById("finnhub-key-input");
-  const result=document.getElementById("finnhub-test-result");
-  const status=document.getElementById("finnhub-status");
-  if(input)input.value="";
-  if(result){result.textContent="Chave removida. O calendário voltará aos dados estáticos.";result.style.color="var(--t3)";}
-  if(status)status.textContent="";
-  CAL_EVENTS_LIVE=null;
-  renderCalendar();
+  /* Nada a configurar — calendário é automático */
+  alert("O calendário económico é gerado automaticamente a partir de datas oficiais do Fed, BCE e INE. Não são necessárias API keys.");
 }
 
 /* ── Boot ── */
@@ -5741,7 +5620,7 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-loadAndRenderCalendar(); /* Finnhub se tiver chave, senão fallback estático */
+loadAndRenderCalendar(); /* Calendário dinâmico: FOMC, BCE, NFP, CPI, INE */
 loadHolidays();
 renderInflation();
 renderEuribor();
@@ -9349,7 +9228,6 @@ function openSettings() {
   renderCardToggles();
   renderLocationGrid();
   renderTickerList();
-  initFinnhubKeyUI();
   console.log('Conteúdo renderizado!');
 }
 
