@@ -5356,34 +5356,37 @@ function renderEuribor(){
    ══════════════════════════════════════════════════════════════ */
 async function initEuribor(force=false){
   const CK="euribor_live_v1";
+  const ref=document.getElementById("euriborRefDate");
 
+  /* 1. Cache valido -> mostrar e sair */
   if(!force){
     const cached=lsGet(CK);
     if(cached){
       EURIBOR_DATA=cached;
-      const ref=document.getElementById("euriborRefDate");
       if(ref) ref.textContent=cached.updated+(cached._source==="bce_live"?" \u25cf live":"");
-      initEuribor();
+      renderEuribor();
       console.log("📐 Euribor: cache local ("+cached.updated+")");
       return;
     }
   }
 
+  /* 2. Sem cache: mostrar fallback IMEDIATAMENTE enquanto tenta BCE */
+  EURIBOR_DATA=EURIBOR_FALLBACK;
+  if(ref) ref.textContent=EURIBOR_FALLBACK.updated;
+  renderEuribor();
+
+  /* 3. Tentar BCE em background e actualizar se responder */
   try{
-    console.log("📐 Euribor: a carregar do BCE...");
+    console.log("📐 Euribor: a actualizar do BCE em background...");
     const live=await loadEuriborFromBCE();
     EURIBOR_DATA=live;
     lsSet(CK,live);
-    const ref=document.getElementById("euriborRefDate");
     if(ref) ref.textContent=live.updated+" \u25cf live";
-    initEuribor();
-    console.log("\u2705 Euribor BCE carregado:",live.updated);
+    renderEuribor();
+    console.log("\u2705 Euribor BCE actualizado:",live.updated);
   }catch(e){
-    console.warn("\u26a0\ufe0f Euribor BCE falhou, a usar fallback EMMI:",e.message);
-    EURIBOR_DATA=EURIBOR_FALLBACK;
-    const ref=document.getElementById("euriborRefDate");
-    if(ref) ref.textContent=EURIBOR_FALLBACK.updated;
-    initEuribor();
+    /* Fallback ja esta visivel - apenas registar o aviso */
+    console.warn("\u26a0\ufe0f Euribor BCE indisponivel, a usar EMMI:",e.message);
   }
 }
 
