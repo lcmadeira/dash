@@ -5370,12 +5370,7 @@ async function tdGet(ep,params,force=false){
   const j=await r.json();if(j.status==="error")throw new Error(j.message||"TD error");
   lsSet(ck,j);return j;
 }
-const MSTATS=[
-  {id:"VIX",sym:"VIXY",label:"VIX",        sub:"Volatilidade S&P",color:"var(--red)"},
-  {id:"GLD",sym:"GLD", label:"Ouro",        sub:"USD / oz (GLD)",  color:"var(--accent)"},
-  {id:"WTI",sym:"USO", label:"Petróleo WTI",sub:"USD / barril",    color:"var(--orange)"},
-  {id:"DXY",sym:"UUP", label:"USD Index",   sub:"Índice do dólar", color:"var(--blue)"},
-];
+
 /* ── Calendário Económico ── */
 const /* Calendário económico — actualizado 11 Mar 2026
    Fontes: Fed, BCE, INE, BLS, Eurostat */
@@ -6098,41 +6093,127 @@ function fmtAgo(ts){
 buildConflictMap();
 loadGeo();
 
-/* ── Twelve Data — loadMarketStats ── */
+/* ── loadMarketStats — fontes abertas, sem API key ──
+   Fontes:
+   • Stooq CSV (via allorigins) — VIX, Ouro, Prata, S&P500, WTI, Gás Nat.
+   • Frankfurter BCE           — USD/EUR (reutiliza cache do loadFX)
+   • CoinGecko                 — BTC/EUR (reutiliza cache do loadCrypto)
+   ─────────────────────────────────────────────────────────────────────── */
 async function loadMarketStats(force=false){
-  $("mstats-body").innerHTML=skeletonKPIs(4);
-  
-  // Verificar se API key está configurada
-  if (!CFG.TD_KEY) {
-    $("mstats-body").innerHTML = `
-      <div style="padding:20px;text-align:center">
-        <div style="font-size:2rem;margin-bottom:8px">🔑</div>
-        <div style="font-size:.75rem;color:var(--t2);line-height:1.6">
-          API key Twelve Data não configurada.<br>
-          Indicadores de mercado desativados.
-        </div>
-        <div style="font-size:.6rem;color:var(--t3);margin-top:8px;font-family:var(--mono)">
-          Ver README para configurar
-        </div>
-      </div>
-    `;
-    console.warn('⚠️ Market Stats: API key não configurada');
-    return;
-  }
-  
-  try{
-    const res={};
-    for(const m of MSTATS){
-      try{const j=await tdGet("/quote",{symbol:m.sym},force);res[m.id]={price:parseFloat(j.close||j.price||0),change:parseFloat(j.percent_change||0)};}catch{}
-      if(force)await new Promise(r=>setTimeout(r,500));
+  const el=$("mstats-body");
+  if(!el) return;
+  el.innerHTML=skeletonKPIs(6);
+
+  const CK="mstats_v3";
+  let cache=force?null:lsGet(CK);
+
+  if(!cache){
+    /* ── Símbolos Stooq (CSV via allorigins, sem chave, mesmo método do PSI20/Agri) ── */
+    const STOOQ_SYMS=[
+      {sym:"^vix", label:"VIX",       sub:"Volatilidade S&P 500", col:"var(--red)",    unit:"",  dec:2},
+      {sym:"gc.f", label:"Ouro",      sub:"USD / oz · COMEX",     col:"var(--accent)", unit:"$", dec:2},
+      {sym:"si.f", label:"Prata",     sub:"USD / oz · COMEX",     col:"#C0C0C0",       unit:"$", dec:3},
+      {sym:"^spx", label:"S&P 500",   sub:"Índice americano",     col:"var(--blue)",   unit:"",  dec:2},
+      {sym:"cl.f", label:"Petróleo",  sub:"USD / barril · WTI",   col:"var(--orange)", unit:"$", dec:2},
+      {sym:"ng.f", label:"Gás Nat.",  sub:"USD / MMBtu · NYMEX",  col:"#3B82F6",       unit:"$", dec:3},
+    ];
+
+    async function fetchStooqStat(sym){
+      const url=`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv`;
+      const proxies=[
+        "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
+        "https://corsproxy.io/?url="+encodeURIComponent(url),
+      ];
+      for(const p of proxies){
+        try{
+          const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
+          if(!r.ok) continue;
+          const csv=await r.text();
+          const rows=csv.trim().split("\n");
+          if(rows.length<2) continue;
+          const cols=rows[1].split(",");
+          /* CSV Stooq: Symbol,Date,Time,Open,High,Low,Close,Volume */
+          const open =parseFloat(cols[3]);
+          const close=parseFloat(cols[6]);
+          const hi   =parseFloat(cols[4]);
+          const lo   =parseFloat(cols[5]);
+          if(!isNaN(close)&&close>0)
+            return {price:close,prev:open,hi,lo,
+                    chg:open?((close-open)/open*100):0,live:true};
+        }catch{}
+      }
+      return null;
     }
-    $("mstats-body").innerHTML=`<div class="mstat-grid">${MSTATS.map(m=>{
-      const q=res[m.id];
-      return`<div class="mstat"><div class="mstat-lbl">${m.label}</div>
-        <div class="mstat-val" style="color:${m.color}">${q&&q.price>0?fmtP(q.price,2):"—"}</div>
-        <div class="mstat-sub">${m.sub}</div><div class="mstat-chg">${q?chg(q.change):""}</div></div>`;
-    }).join("")}</div>`;
-  }catch(e){$("mstats-body").innerHTML=er(e.message);}
+
+    const results=await Promise.allSettled(STOOQ_SYMS.map(s=>fetchStooqStat(s.sym)));
+
+    let usdEur=null;
+    const fxCache=lsGet("fx");
+    if(fxCache?.rates?.USD) usdEur=(1/fxCache.rates.USD);
+
+    let btcEur=null;
+    const cgCache=lsGet("cg");
+    if(cgCache?.bitcoin?.eur) btcEur=cgCache.bitcoin.eur;
+
+    cache={
+      items: STOOQ_SYMS.map((s,i)=>{
+        const v=results[i];
+        return {...s,data:(v.status==="fulfilled"&&v.value)?v.value:null};
+      }),
+      usdEur,btcEur,ts:Date.now()
+    };
+
+    const hasLive=cache.items.some(x=>x.data?.live);
+    if(hasLive) lsSet(CK,cache);
+  }
+
+  /* ── Render ── */
+  const liveCount=cache.items.filter(x=>x.data?.live).length;
+  const liveTag=liveCount>0
+    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">\u25CF Stooq ${liveCount}/6</span>`
+    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26A0 sem dados live</span>`;
+
+  function miniChg(chg){
+    if(chg==null) return `<span style="color:var(--t3);font-size:.58rem">\u2014</span>`;
+    const col=chg>=0?"#10B981":"#EF4444";
+    const arr=chg>=0?"\u25b2":"\u25bc";
+    return `<span style="font-family:var(--mono);font-size:.62rem;font-weight:600;color:${col}">${arr} ${Math.abs(chg).toFixed(2)}%</span>`;
+  }
+
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="font-size:.63rem;font-weight:700;color:var(--t2)">Mercados \u00b7 indicadores globais</div>
+    ${liveTag}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px">
+    ${cache.items.map(item=>{
+      const d=item.data;
+      const priceStr=d?(item.unit+(d.price>999?d.price.toLocaleString("pt-PT",{maximumFractionDigits:item.dec}):d.price.toFixed(item.dec))):"\u2014";
+      return `<div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid ${item.col}">
+        <div style="font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">
+          ${item.label} \u00b7 <span style="text-transform:none;font-weight:400">${item.sub}</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:${item.col};line-height:1.1">${priceStr}</div>
+        <div style="margin-top:3px">${miniChg(d?.chg)}</div>
+        ${d?`<div style="font-family:var(--mono);font-size:.52rem;color:var(--t3);margin-top:2px">H ${d.hi.toFixed(item.dec)} \u00b7 L ${d.lo.toFixed(item.dec)}</div>`:""}
+      </div>`;
+    }).join("")}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+    <div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid var(--green)">
+      <div style="font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">USD/EUR \u00b7 BCE</div>
+      <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:var(--green)">${cache.usdEur?("\u20ac"+cache.usdEur.toFixed(4)):"\u2014"}</div>
+      <div style="font-size:.52rem;color:var(--t3);margin-top:3px">Frankfurter API \u00b7 BCE oficial</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid var(--accent)">
+      <div style="font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">BTC/EUR \u00b7 CoinGecko</div>
+      <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:var(--accent)">${cache.btcEur?("\u20ac"+cache.btcEur.toLocaleString("pt-PT",{maximumFractionDigits:0})):"\u2014"}</div>
+      <div style="font-size:.52rem;color:var(--t3);margin-top:3px">CoinGecko API</div>
+    </div>
+  </div>
+  <div style="font-size:.54rem;color:var(--t3);margin-top:6px">
+    \u2756 Stooq.com \u00b7 Frankfurter/BCE \u00b7 CoinGecko \u00b7 Sem chave API \u00b7 Dados do \u00faltimo fecho
+  </div>`;
 }
 
 /* ═══ IMOBILIÁRIO PT ═══ */
