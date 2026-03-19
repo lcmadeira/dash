@@ -126,17 +126,18 @@
 **Data de conclusão**: 13/03/2026  
 **Documentação**: Ver `PERSONALIZACAO.md` para guia completo
 
-#### 3.3 Notificações → ⚠️ **Implementado com limitações CORS**
+#### 3.3 Notificações → ✅ **CONCLUÍDO (com limitações CORS)**
 
 - [x] Sistema de alertas no painel
   - Centro de notificações dropdown
   - Badge animado com contador
   - 4 tabs de filtro (Todas, Sismos, Notícias, Energia)
-- [x] **Integração com dados reais - Sismos USGS**
+- [x] **Integração com dados reais - Sismos USGS** ✅ **FUNCIONA**
   - Verifica sismos M≥3.0 nas últimas 24h
   - Severidade: High (M≥4.5), Medium (M≥4.0), Low (M≥3.0)
   - Anti-spam via notifId único
-  - ⚠️ Limitado por CORS (proxies públicos bloqueiam)
+  - 5 fallbacks CORS (directo, allorigins raw, corsproxy.io, allorigins get, thingproxy)
+  - **Robusto**: funciona sem API key
 - [x] **Integração com dados reais - Breaking News**
   - Keywords: urgente, breaking, última hora, agora, alerta
   - Feed RSS Google News Portugal
@@ -160,16 +161,16 @@
 - [ ] Alertas meteorológicos (IPMA)
 - [ ] Modal de configurações (ajustar thresholds)
 
-**Data de conclusão**: 16/03/2026 (com limitações)  
+**Data de conclusão**: 19/03/2026 (sismos robusto)
 **Documentação**: Ver `NOTIFICACOES_REAIS.md` para estado completo
 
 **Limitações conhecidas**:
-- Proxies públicos (AllOrigins, CORSProxy) bloqueiam pedidos repetidos
+- Sismos: ✅ Funciona com múltiplos fallbacks CORS
+- Breaking News / Energia: Proxies públicos podem bloquear pedidos repetidos
 - Monitoramento automático a cada 5min desativado
-- Notificações verificam: (1) ao carregar página, (2) refresh manual
-- Para produção: requer backend próprio, Cloudflare Worker ou Extension
+- Para produção: requer backend próprio ou Cloudflare Worker
 
-**Impacto**: ✅ Sistema funcional mas ⚠️ limitado por infraestrutura
+**Impacto**: ✅ Sistema funcional para sismos, ⚠️ limitado para notícias/energia
 
 #### 3.4 Exportar Dados
 - [ ] Exportar dados brutos das APIs (CSV/JSON) — *prioridade real: Média*
@@ -237,6 +238,20 @@
 
 ### Prioridade: **Baixa** 🟢 *(exceto qualidade do ar: Média)*
 
+#### 5.0 Fontes Atuais (✅ Implementado)
+- **Indicadores de Mercado** — ✅ Migração para fontes abertas (v1.1.2)
+  - Stooq CSV (via allorigins): VIX, Ouro, Prata, S&P500, WTI, Gás Natural
+  - Frankfurter BCE: USD/EUR (taxa oficial)
+  - CoinGecko: BTC/EUR
+  - **Zero API keys necessárias**
+- **Sismos Ibéria** — ✅ USGS Earthquake API (v1.1.2)
+  - 30 dias · Ibéria + Açores · mag ≥ 0.5
+  - 5 fallbacks CORS robustos
+- **Câmbios EUR** — ✅ Frankfurter API (BCE)
+- **Criptomoedas** — ✅ CoinGecko API
+- **Tempo** — ✅ IPMA API
+- **Combustíveis** — ✅ DGEG API
+
 #### 5.1 Novas Fontes de Dados
 - [ ] **Qualidade do ar (PM2.5, PM10, NO₂, O₃)** 🟡 **Média** — API: [OpenAQ](https://openaq.org/) (gratuita, sem chave)
 - [ ] **Dados de barragens (níveis de água)** 🟡 **Média** — API: [SNIRH](https://snirh.apambiente.pt/) (dados.gov.pt)
@@ -288,9 +303,9 @@
 
 ## 🔧 7. Melhorias Técnicas
 
-### Prioridade: **Média** 🟡 *(subiu de Baixa — ficheiro com 7 927 linhas)*
+### Prioridade: **Média** 🟡 *(subiu de Baixa — ficheiro com 10 809 linhas)*
 
-> ⚠️ O `index.html` tem ~347 KB e 7 927 linhas num único ficheiro. A manutenibilidade vai degradar com o tempo. Separar em módulos deve ser objetivo do v1.2.0.
+> ⚠️ O `index.html` tem ~422 KB e 10 809 linhas num único ficheiro. A manutenibilidade vai degradar com o tempo. Separar em módulos deve ser objetivo do v1.2.0.
 
 - [ ] **Separar JS em módulos** (ES Modules ou bundler básico) ← prioritário
 - [ ] **Extrair configurações** para ficheiro `config.js` (TTLs, chaves, IDs de cidade)
@@ -322,7 +337,24 @@
 - ✅ Design dark mode com Chart.js + TradingView widgets
 - ✅ Gráficos interativos
 
-### v1.1.0 — Em curso ⚡
+### v1.1.2 — Atual ✅
+- ✅ **Indicadores de Mercado migrados para fontes abertas** (19/03/2026)
+  - Removida dependência de API key (Twelve Data)
+  - Stooq CSV (via allorigins): VIX, Ouro, Prata, S&P500, WTI, Gás Natural
+  - Frankfurter BCE: USD/EUR (reutiliza cache do loadFX)
+  - CoinGecko: BTC/EUR (reutiliza cache do loadCrypto)
+  - **Zero API keys necessárias!**
+- ✅ **Card de Sismos melhorado** (19/03/2026)
+  - Mapa full-width (ocupa largura total do card)
+  - CORS robusto: 5 fallbacks (directo, allorigins raw, corsproxy.io, allorigins get, thingproxy)
+  - Notificações de sismos integradas (M≥3.0 nas últimas 24h)
+  - Período: 30 dias · Ibéria + Açores · mag ≥ 0.5
+- ✅ **Mapa de Qualidade do Ar corrigido** (19/03/2026)
+  - TopoJSON real com coordenadas correctas
+  - Aeroportos com coordenadas correctas
+  - Layout reorganizado
+
+### v1.1.0 — Concluído ✅
 - ✅ **Correções Urgentes** (16/03/2026)
   - API key Twelve Data removida (segurança)
   - Notificações demo controladas por flag
@@ -350,24 +382,22 @@
   - 10 cards principais atualizados
   - Animação shimmer profissional (1.5s, 60fps)
   - UX tipo Facebook/LinkedIn
-- ⚠️ **Notificações com dados reais** (16/03/2026)
+- ✅ **Notificações com dados reais** (16/03/2026)
   - 3 tipos implementados: Sismos (M≥3.0), Breaking News (keywords), Energia (+20% média)
   - Sistema de verificação e deduplicação (notifId)
   - Badge + Toast popups funcionam
-  - **Limitação**: Monitoramento automático desativado (CORS issues com proxies públicos)
-  - Funciona: Verificação ao carregar dados + refresh manual
-  - Mensagens de erro amigáveis para API key missing e CORS
+  - Verificação ao carregar dados + refresh manual
+  - Mensagens de erro amigáveis para CORS
 - ✅ **Sistema de Exportação — base** (16/03/2026)
   - 4 formatos: PNG, PDF, CSV, JSON
   - Modal de seleção
-  - ⚠️ Downloads funcionam mas com delays no browser
 - [ ] Modo claro/escuro
 
 ### v1.2.0 — Planeado
 - [ ] Modularização do código (JS + CSS separados)
 - [ ] Qualidade do ar (OpenAQ)
 - [ ] Dados de barragens (SNIRH)
-- [ ] Notificações integradas com dados reais
+- [ ] Notificações automáticas (requer backend/worker)
 
 ### v2.0.0 — Futuro
 - [ ] PWA (Progressive Web App) com Service Worker
@@ -376,5 +406,5 @@
 
 ---
 
-**Última atualização**: 16 de Março de 2026  
+**Última atualização**: 19 de Março de 2026  
 **Mantido por**: Tu e Claude 🤝
