@@ -4154,28 +4154,66 @@ async function loadElec(force=false){
     const ck="elec_v2";
     let cached=force?null:lsGet(ck);
 
-    if(!cached){
-      /* Buscar hoje + ontem + amanhã em paralelo */
+if(!cached){
+      /* ── Fetch REE com múltiplos proxies e fallback stale ── */
+      async function fetchREE(path){
+        const base="https://apidatos.ree.es";
+        const full=base+path;
+        const attempts=[
+          /* 1. Directo (funciona quando CORS está activo) */
+          ()=>fetch(full,{signal:AbortSignal.timeout(8000)}),
+          /* 2. allorigins raw */
+          ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),
+                {signal:AbortSignal.timeout(10000)}),
+          /* 3. corsproxy.io */
+          ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(full),
+                {signal:AbortSignal.timeout(10000)}),
+          /* 4. thingproxy */
+          ()=>fetch("https://thingproxy.freeboard.io/fetch/"+full,
+                {signal:AbortSignal.timeout(10000)}),
+          /* 5. allorigins get (wrapper JSON) */
+          ()=>fetch("https://api.allorigins.win/get?url="+encodeURIComponent(full),
+                {signal:AbortSignal.timeout(10000)})
+              .then(async r=>{
+                const j=await r.json();
+                return new Response(j.contents||"{}",{status:j.contents?"200":"500"});
+              }),
+        ];
+        for(const attempt of attempts){
+          try{
+            const r=await attempt();
+            if(!r.ok) continue;
+            const j=await r.json();
+            if(j && (j.included || j.data)) return j;
+          }catch{}
+        }
+        return null;
+      }
+
+      /* Buscar hoje + ontem + amanhã */
       const dates=[todayStr, yesterStr,
         new Date(today.getTime()+864e5).toISOString().slice(0,10)];
       const fetches=dates.map(d=>
-        fetchWithCORS(`https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real`+
+        fetchREE(`/en/datos/mercados/precios-mercados-tiempo-real`+
           `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`)
-        .then(r=>r.json()).catch(()=>null)
       );
-      /* Mix energético em tempo real */
-      const mixFetch=fetchWithCORS(
-        `https://apidatos.ree.es/en/datos/generacion/estructura-generacion`+
-        `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`)
-      .then(r=>r.json()).catch(()=>null);
+      const mixFetch=fetchREE(
+        `/en/datos/generacion/estructura-generacion`+
+        `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`);
 
       const [todayData, yesterData, tomorrowData, mixData]=
         await Promise.all([...fetches, mixFetch]);
 
+      /* parseVals mais robusto — aceita "spot", "precio", "pvpc" */
       const parseVals=j=>{
         if(!j) return null;
         const inc=j.included||[];
-        const spot=inc.find(s=>(s.attributes?.title||"").toLowerCase().includes("spot"))||inc[0];
+        if(!inc.length) return null;
+        const spot=inc.find(s=>{
+          const t=(s.attributes?.title||s.attributes?.type||"").toLowerCase();
+          return t.includes("spot")||t.includes("precio spot")||t.includes("pvpc")||
+                 t.includes("omie")||t.includes("mercado");
+        })||inc[0];
         return spot?.attributes?.values||null;
       };
 
@@ -4243,7 +4281,31 @@ async function loadElec(force=false){
     const yesterPrices=(cached.yesterVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
     const tomPrices=(cached.tomorrowVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
 
-    if(!prices.length) throw new Error("Sem dados MIBEL");
+    if(if(!prices.length){
+      /* Tentar dados stale do cache anterior */
+      const staleKey="elec_v2";
+      const staleRaw=localStorage.getItem("dash_v15_"+staleKey);
+      if(staleRaw){
+        try{
+          const staleObj=JSON.parse(staleRaw);
+          const stalePrices=(staleObj.d?.todayVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+          if(stalePrices.length){
+            const staleAge=Math.round((Date.now()-(staleObj.ts||0))/60000);
+            cached={...staleObj.d};
+            // Re-renderizar com aviso de stale no topo
+            const staleHtml=`<div style="background:#F59E0B12;border:1px solid #F59E0B44;border-radius:6px;
+              padding:5px 10px;font-size:.6rem;color:#F59E0B;margin-bottom:8px">
+              ⚠ Dados em cache (há ${staleAge}min) · API REE temporariamente inacessível
+            </div>`;
+            // forçar re-render passando os dados stale
+            const p2=stalePrices;
+            $("elec-body").innerHTML=staleHtml+$("elec-body").innerHTML;
+            return;
+          }
+        }catch{}
+      }
+      throw new Error("Sem dados MIBEL · API REE inacessível");
+    }!prices.length) throw new Error("Sem dados MIBEL");
 
     const avg=prices.reduce((a,b)=>a+b)/prices.length;
     const min=Math.min(...prices), max=Math.max(...prices);
