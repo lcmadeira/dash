@@ -3294,7 +3294,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="euri-body"></div>
-    <div class="src">✦ BCE · data-api.ecb.europa.eu · CORS nativo · Auto-actualiza diariamente</div>
+    <div class="src">✦ EMMI · emmi-benchmarks.eu · Referência crédito habitação PT</div>
   </div>
 
     <!-- Imobiliário PT -->
@@ -3420,7 +3420,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="div-body"></div>
-    <div class="src">✦ Eurostat · gov_10dd_edpt1 · CORS nativo · Auto-actualiza anualmente</div>
+    <div class="src">✦ Eurostat · General Government Debt · 2024 · % do PIB</div>
   </div>
 
 </div><!-- /grid row3 -->
@@ -3464,7 +3464,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadSMN(true)">↺</button></div>
     </div>
     <div id="smn-body"></div>
-    <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026 · SMN e IPC via Eurostat (live)</div>
+    <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026</div>
   </div>
 
   <!-- Transportes PT -->
@@ -3585,7 +3585,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="renderInflation()">↺</button></div>
     </div>
     <div id="inf-body"></div>
-    <div class="src">✦ Eurostat · prc_hicp_manr · CORS nativo · Auto-actualiza mensalmente</div>
+    <div class="src">✦ INE Portugal · Eurostat · Referência mensal</div>
   </div>
 
 
@@ -5432,355 +5432,6 @@ function renderCalendar(){
     </div>`).join("")}</div>`;
 }
 
-
-/* ── switchHolTab — tabs dentro do resumo de feriados ── */
-function switchHolTab(tab, btn) {
-  document.querySelectorAll("#hol-tab-res, #hol-tab-hol").forEach(b => b.classList.remove("on"));
-  if (btn) btn.classList.add("on");
-  var resumo   = document.getElementById("hol-resumo");
-  var feriados = document.getElementById("hol-feriados");
-  if (resumo)   resumo.style.display   = tab === "resumo"   ? "" : "none";
-  if (feriados) feriados.style.display = tab === "feriados" ? "" : "none";
-}
-
-
-/* ══════════════════════════════════════════════════════════════
-   EURIBOR LIVE — API BCE (data-api.ecb.europa.eu) CORS nativo
-   Complementa renderEuribor() (estático) com dados ao vivo
-   Cache: 24h
-   ══════════════════════════════════════════════════════════════ */
-
-var BCE_EURIBOR_SERIES = [
-  {term:"1S",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR1WD_.HSTA", color:"#06B6D4"},
-  {term:"1M",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR1MD_.HSTA", color:"#22D3EE"},
-  {term:"3M",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA", color:"#3B82F6"},
-  {term:"6M",  key:"FM.M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA", color:"#8B5CF6"},
-  {term:"12M", key:"FM.M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA", color:"#A855F7"},
-];
-
-function parseBCESeries(json) {
-  var series = json.dataSets && json.dataSets[0] && json.dataSets[0].series;
-  if (!series) throw new Error("Sem series BCE");
-  var seriesKey = Object.keys(series)[0];
-  var obs = series[seriesKey].observations;
-  var dims = json.structure.dimensions.observation[0].values;
-  var result = [];
-  Object.keys(obs).forEach(function(idx) {
-    var val = obs[idx][0];
-    if (val !== null && val !== undefined && !isNaN(val)) {
-      result.push({ date: dims[parseInt(idx)].id, value: parseFloat(val) });
-    }
-  });
-  result.sort(function(a, b) { return a.date.localeCompare(b.date); });
-  return result;
-}
-
-async function loadEuribor(force) {
-  var cacheKey = "euribor_bce_v3";
-  var cached = force ? null : lsGet(cacheKey);
-  if (cached) {
-    /* Actualizar badge com info live */
-    var badge = document.getElementById("euriborRefDate");
-    if (badge) badge.innerHTML = (cached.updated||"") + ' <span style="color:#10B981;font-size:.5rem">● BCE</span>';
-    /* Actualizar pills de taxa se disponíveis */
-    _updateEuriborRates(cached.rates);
-    return;
-  }
-  try {
-    var results = await Promise.allSettled(
-      BCE_EURIBOR_SERIES.map(function(s) {
-        var key = s.key.replace(/^FM\./, "");
-        var url = "https://data-api.ecb.europa.eu/service/data/FM/" + key
-          + "?format=jsondata&lastNObservations=3";
-        return fetch(url, {
-          signal: AbortSignal.timeout(12000),
-          headers: { "Accept": "application/json" }
-        }).then(function(r) {
-          if (!r.ok) throw new Error("BCE " + r.status);
-          return r.json().then(parseBCESeries);
-        });
-      })
-    );
-    var rates = BCE_EURIBOR_SERIES.map(function(s, i) {
-      var res = results[i];
-      if (res.status !== "fulfilled" || !res.value.length) return null;
-      var data = res.value;
-      var latest = data[data.length - 1];
-      var prev = data.length > 1 ? data[data.length - 2].value : latest.value;
-      return { term: s.term, val: latest.value, prev: prev, color: s.color, date: latest.date };
-    }).filter(Boolean);
-
-    if (rates.length < 3) throw new Error("Dados BCE insuficientes");
-
-    var months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-    var latestDate = rates[0].date;
-    var parts = latestDate.split("-");
-    var updLabel = months[parseInt(parts[1])-1] + " " + parts[0] + " · BCE";
-
-    var cacheData = { rates: rates, updated: updLabel, live: true };
-    lsSet(cacheKey, cacheData);
-
-    var badge = document.getElementById("euriborRefDate");
-    if (badge) badge.innerHTML = updLabel + ' <span style="color:#10B981;font-size:.5rem">● live</span>';
-    _updateEuriborRates(rates);
-    console.log("✅ Euribor BCE:", rates.map(r=>r.term+":"+r.val.toFixed(3)).join(", "));
-  } catch(e) {
-    console.warn("BCE Euribor falhou:", e.message);
-    /* Fallback: manter EURIBOR_DATA estático já renderizado */
-  }
-}
-
-function _updateEuriborRates(rates) {
-  /* Actualizar as pills de taxa no card Euribor se renderEuribor() já correu */
-  if (!rates || !rates.length) return;
-  var pills = document.querySelectorAll("#euri-body div[style*='border-top']");
-  if (!pills.length) return; /* Card ainda não renderizado */
-  rates.forEach(function(r, i) {
-    if (!pills[i]) return;
-    var valEl = pills[i].querySelector("div[style*='font-weight:700']");
-    if (valEl) valEl.innerHTML = r.val.toFixed(3) + '<span style="font-size:.5rem">%</span>';
-    var diff = r.val - r.prev;
-    var diffEl = pills[i].querySelector("div[style*='font-size:.5rem']:last-child");
-    if (diffEl && diffEl !== valEl) {
-      diffEl.style.color = diff < 0 ? "#10B981" : "#EF4444";
-      diffEl.textContent = (diff<0?"▼":"▲") + Math.abs(diff).toFixed(3) + "pp";
-    }
-  });
-}
-
-
-/* ══════════════════════════════════════════════════════════════
-   INFLAÇÃO LIVE — Eurostat prc_hicp_manr CORS nativo
-   Complementa renderInflation() (estático) com dados ao vivo
-   Cache: 12h
-   ══════════════════════════════════════════════════════════════ */
-
-async function loadInflation(force) {
-  var cacheKey = "eurostat_infl_v3";
-  var cached = force ? null : lsGet(cacheKey);
-  if (cached) { _applyInflationData(cached); return; }
-  try {
-    var url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr"
-      + "?geo=PT&geo=EA&unit=RCH_A&coicop=CP00&lastTimePeriod=8&format=JSON&lang=PT";
-    var r = await fetch(url, { signal: AbortSignal.timeout(14000), headers: { "Accept": "application/json" } });
-    if (!r.ok) throw new Error("Eurostat HICP " + r.status);
-    var json = await r.json();
-    var vals = json.value || {};
-    var timeIndex = json.dimension.time.category.index;
-    var geoIndex  = json.dimension.geo.category.index;
-    var nGeo = Object.keys(geoIndex).length;
-    var MONTHS = ["janeiro","fevereiro","março","abril","maio","junho",
-                  "julho","agosto","setembro","outubro","novembro","dezembro"];
-    var ptPos = geoIndex["PT"] !== undefined ? geoIndex["PT"] : geoIndex["pt"];
-    var eaPos = geoIndex["EA"] !== undefined ? geoIndex["EA"] : geoIndex["ea"];
-    var data = [];
-    Object.keys(timeIndex).sort().reverse().slice(0, 8).forEach(function(date) {
-      var tPos = timeIndex[date];
-      var ptVal = vals[(tPos * nGeo + ptPos).toString()];
-      var eaVal = eaPos !== undefined ? vals[(tPos * nGeo + eaPos).toString()] : null;
-      if (ptVal === undefined) return;
-      var parts = date.split("-");
-      var mName = MONTHS[parseInt(parts[1]) - 1];
-      data.push({
-        m: mName.charAt(0).toUpperCase() + mName.slice(1) + " " + parts[0],
-        date: date,
-        pt: parseFloat(ptVal),
-        eu: eaVal !== undefined && eaVal !== null ? parseFloat(eaVal) : null
-      });
-    });
-    if (!data.length) throw new Error("Sem dados Eurostat HICP");
-    var cacheData = { data: data, live: true };
-    lsSet(cacheKey, cacheData);
-    _applyInflationData(cacheData);
-    console.log("✅ Inflação Eurostat:", data[0].m, "PT:"+data[0].pt+"% EA:"+data[0].eu+"%");
-  } catch(e) {
-    console.warn("Eurostat Inflação falhou:", e.message, "— mantendo dados estáticos");
-  }
-}
-
-function _applyInflationData(wrapper) {
-  var INFLATION_LIVE = wrapper.data;
-  if (!INFLATION_LIVE || !INFLATION_LIVE.length) return;
-  var el = document.getElementById("inf-body");
-  if (!el) return;
-  var l = INFLATION_LIVE[0];
-  var maxV = Math.max.apply(null, INFLATION_LIVE.map(function(d){ return Math.max(d.pt||0, d.eu||0); })) * 1.1 || 5;
-  var ptC = "var(--accent)", euC = "var(--blue)";
-  var liveTag = '<span style="color:#10B981;font-size:.5rem;margin-left:3px">&#9679; Eurostat</span>';
-  var metaCol = (l.eu && l.eu <= 2.2) ? "var(--green)" : "var(--red)";
-  var metaTxt = (l.eu && l.eu <= 2.2) ? "&#10003; próximo" : "&#9650; acima";
-  var rows = INFLATION_LIVE.map(function(d) {
-    var bp = d.pt ? Math.round((d.pt/maxV)*100) : 0;
-    var be = d.eu ? Math.round((d.eu/maxV)*100) : 0;
-    return '<div class="inf-row">'
-      + '<div class="inf-row-lbl">' + d.m + '</div>'
-      + '<div class="inf-bar-wrap">'
-      + '<div class="inf-bar-pt" style="width:' + bp + '%;background:' + ptC + '"></div>'
-      + '<div class="inf-bar-eu" style="width:' + be + '%;background:' + euC + '"></div>'
-      + '</div>'
-      + '<div class="inf-row-pt" style="color:' + ptC + '">' + d.pt.toFixed(1) + '%</div>'
-      + '<div class="inf-row-eu" style="color:' + euC + '">' + (d.eu!=null ? d.eu.toFixed(1) : '—') + '%</div>'
-      + '</div>';
-  }).join('');
-  el.innerHTML = '<div class="inf-hero">'
-    + '<div class="inf-block"><div class="inf-flag">&#127477;&#127481;</div>'
-    + '<div class="inf-val" style="color:' + ptC + '">' + l.pt.toFixed(1) + '<span style="font-size:.8rem">%</span></div>'
-    + '<div class="inf-lbl">Portugal &middot; IPC</div>'
-    + '<div class="inf-lbl">' + l.m + liveTag + '</div></div>'
-    + '<div class="inf-sep"></div>'
-    + '<div class="inf-block"><div class="inf-flag">&#127466;&#127482;</div>'
-    + '<div class="inf-val" style="color:' + euC + '">' + (l.eu!=null ? l.eu.toFixed(1) : '&mdash;') + '<span style="font-size:.8rem">%</span></div>'
-    + '<div class="inf-lbl">Zona Euro &middot; IHPC</div>'
-    + '<div class="inf-lbl">' + l.m + liveTag + '</div></div>'
-    + '<div class="inf-sep"></div>'
-    + '<div class="inf-block"><div class="inf-flag" style="font-size:.75rem;margin-bottom:5px">Meta BCE</div>'
-    + '<div class="inf-val" style="color:var(--green);font-size:1.35rem">2.0<span style="font-size:.8rem">%</span></div>'
-    + '<div class="inf-lbl" style="color:' + metaCol + '">' + metaTxt + ' da meta</div>'
-    + '<div class="inf-lbl">&nbsp;</div></div></div>'
-    + '<div class="inf-hist">' + rows + '</div>'
-    + '<div style="display:flex;gap:14px;margin-top:8px">'
-    + '<span style="font-family:var(--mono);font-size:.56rem;color:' + ptC + '">&#9644; Portugal</span>'
-    + '<span style="font-family:var(--mono);font-size:.56rem;color:' + euC + '">&#9644; Zona Euro</span>'
-    + '</div>';
-}
-
-
-/* ══════════════════════════════════════════════════════════════
-   DÍVIDA PÚBLICA LIVE — Eurostat gov_10dd_edpt1 CORS nativo
-   Actualiza DIV_PAISES e DIV_TREND com dados ao vivo
-   Cache: 7 dias
-   ══════════════════════════════════════════════════════════════ */
-
-var DIV_GEO_CFG = {
-  GR:{n:"Grécia",c:"#EF4444"},IT:{n:"Itália",c:"#F97316"},FR:{n:"França",c:"#EAB308"},
-  BE:{n:"Bélgica",c:"#F59E0B"},ES:{n:"Espanha",c:"#F59E0B"},PT:{n:"Portugal",c:"#84CC16",hl:true},
-  EA20:{n:"Zona Euro",c:"#8B5CF6"},DE:{n:"Alemanha",c:"#3B82F6"},NL:{n:"Holanda",c:"#06B6D4"},
-};
-
-async function loadDividaPT(force) {
-  var cacheKey = "eurostat_debt_v3";
-  var cached = force ? null : lsGet(cacheKey);
-  if (cached && cached.paises && cached.paises.length) {
-    DIV_PAISES = cached.paises;
-    DIV_TREND  = cached.trend || DIV_TREND;
-    renderDiv();
-    _updateDivSrc(cached.year, true);
-    return;
-  }
-  try {
-    var geos = Object.keys(DIV_GEO_CFG).join("&geo=");
-    var url = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10dd_edpt1"
-      + "?geo=" + geos + "&na_item=GD&sector=S13&unit=PC_GDP&sinceTimePeriod=2014&format=JSON&lang=PT";
-    var r = await fetch(url, { signal: AbortSignal.timeout(15000), headers: { "Accept": "application/json" } });
-    if (!r.ok) throw new Error("Eurostat Debt " + r.status);
-    var json = await r.json();
-    var vals = json.value || {};
-    var timeIndex = json.dimension.time.category.index;
-    var geoIndex  = json.dimension.geo.category.index;
-    var nGeo = Object.keys(geoIndex).length;
-    var years = Object.keys(timeIndex).sort();
-    var latestYear = years[years.length - 1];
-    var paises = [];
-    Object.keys(geoIndex).forEach(function(geo) {
-      var gP = geoIndex[geo], tP = timeIndex[latestYear];
-      if (tP === undefined) return;
-      var val = vals[(tP * nGeo + gP).toString()];
-      if (val == null) return;
-      var cfg = DIV_GEO_CFG[geo]; if (!cfg) return;
-      paises.push({ n: cfg.n, v: parseFloat(val), c: cfg.c, hl: cfg.hl });
-    });
-    paises.sort(function(a,b){return b.v-a.v;});
-    var ptPos = geoIndex["PT"];
-    var trendPT = years.map(function(year) {
-      var tP = timeIndex[year]; if (tP === undefined) return null;
-      var val = vals[(tP * nGeo + ptPos).toString()];
-      return val != null ? { y: year.slice(2), v: parseFloat(val) } : null;
-    }).filter(Boolean);
-    lsSet(cacheKey, { paises: paises, trend: trendPT, year: latestYear, live: true });
-    DIV_PAISES = paises;
-    DIV_TREND  = trendPT;
-    renderDiv();
-    _updateDivSrc(latestYear, true);
-    console.log("✅ Dívida Eurostat:", latestYear, paises.find(p=>p.hl)?.v+"%");
-  } catch(e) {
-    console.warn("Eurostat Debt falhou:", e.message, "— mantendo dados estáticos");
-    renderDiv(); /* Renderizar com os dados estáticos que já estão em DIV_PAISES */
-  }
-}
-
-function _updateDivSrc(year, live) {
-  var srcEl = document.querySelector("#div-card .src");
-  if (srcEl) srcEl.innerHTML = "✦ Eurostat · gov_10dd_edpt1 · " + (year||"2024")
-    + " · % do PIB" + (live ? ' · <span style="color:#10B981">● live</span>' : '');
-}
-
-
-/* ══════════════════════════════════════════════════════════════
-   IMOBILIÁRIO KPIs LIVE — INE pingo.jsp via proxy CORS
-   Actualiza os KPIs estáticos do card Imobiliário
-   Cache: 7 dias
-   ══════════════════════════════════════════════════════════════ */
-
-async function loadImobKPIs(force) {
-  var cacheKey = "ine_imob_v2";
-  var cached = force ? null : lsGet(cacheKey);
-  if (cached) { _applyImobKPIs(cached); return; }
-  try {
-    var BASE = "https://www.ine.pt/ine/json_indicador/pingo.jsp?op=2&lang=PT&varcd=";
-    var [rIPH, rTr] = await Promise.all([
-      fetchWithCORS(BASE + "0011561").then(r => { if(!r.ok) throw new Error("INE "+r.status); return r.json(); }),
-      fetchWithCORS(BASE + "0008088").then(r => { if(!r.ok) throw new Error("INE "+r.status); return r.json(); })
-    ]);
-    var sortP = function(arr) { return arr.sort(function(a,b){return b.Periodo.localeCompare(a.Periodo);}); };
-    var iph_t = sortP((Array.isArray(rIPH)?rIPH:[]).filter(x => x.GeoDsg==="Portugal" && (!x.Dim3||x.Dim3==="Total"||x.Dim3==="T")));
-    if (!iph_t.length) iph_t = sortP((Array.isArray(rIPH)?rIPH:[]).filter(x => x.GeoDsg==="Portugal"));
-    if (!iph_t.length) throw new Error("Sem dados INE IPHab");
-    var fmtP = function(p) {
-      var m = p.match(/^(\d{4})T(\d)$/);
-      return m ? "Q"+m[2]+" "+m[1] : p;
-    };
-    var period = fmtP(iph_t[0].Periodo);
-    var tr_pt = sortP((Array.isArray(rTr)?rTr:[]).filter(x => x.GeoDsg==="Portugal" && x.Valor>0));
-    var kpis = {
-      period: period,
-      iphab_total: parseFloat(iph_t[0].Valor),
-      transacoes: tr_pt[0] ? Math.round(tr_pt[0].Valor) : 42481,
-      transacoes_chg: tr_pt[0] && tr_pt[1] ? ((tr_pt[0].Valor-tr_pt[1].Valor)/tr_pt[1].Valor*100) : 3.8,
-      live: true
-    };
-    lsSet(cacheKey, kpis);
-    _applyImobKPIs(kpis);
-    console.log("✅ Imob INE:", kpis.period, "IPHab:"+kpis.iphab_total+"%");
-  } catch(e) {
-    console.warn("INE Imob falhou:", e.message);
-  }
-}
-
-function _applyImobKPIs(kpis) {
-  var periodEl = document.getElementById("imobRefQuarter");
-  if (periodEl) {
-    var tag = kpis.live ? '<span style="color:#10B981;font-size:.44rem;margin-left:3px">● INE</span>'
-                       : '<span style="color:#F59E0B;font-size:.44rem;margin-left:3px">⚠</span>';
-    periodEl.innerHTML = "INE · " + (kpis.period||"—") + tag;
-  }
-  var kpiBoxes = document.querySelectorAll("#imob-card .imob-kpi");
-  if (kpiBoxes.length >= 4) {
-    var chg0 = kpiBoxes[0].querySelector(".imob-kpi-chg");
-    if (chg0 && kpis.iphab_total) {
-      chg0.style.color = kpis.iphab_total >= 0 ? "#10b981" : "#EF4444";
-      chg0.textContent = (kpis.iphab_total>=0?"▲ +":"▼ ") + Math.abs(kpis.iphab_total).toFixed(1) + "% homólogo";
-    }
-    var v1 = kpiBoxes[1].querySelector(".imob-kpi-val");
-    if (v1 && kpis.transacoes) v1.textContent = kpis.transacoes.toLocaleString("pt-PT");
-  }
-  var s1=document.getElementById("imobSub1"); if(s1&&kpis.period) s1.textContent=kpis.period+" · famílias";
-  var s2=document.getElementById("imobSub2"); if(s2&&kpis.period) s2.textContent="variação homóloga "+kpis.period;
-  var s3=document.getElementById("imobSub3"); if(s3&&kpis.period) s3.textContent="variação homóloga "+kpis.period;
-  var srcEl=document.getElementById("imobRefSrc");
-  if(srcEl) srcEl.innerHTML="✦ INE · dados.ine.pt · IPHab + Transações · "+(kpis.period||"—")
-    +(kpis.live?' · <span style="color:#10B981">● live</span>':' · ⚠ fallback');
-}
-
 /* ── Boot ── */
 loadWeather();
 loadNews("pt",true);
@@ -5788,15 +5439,9 @@ loadNews("world",true);
 renderFuel();
 renderCalendar();
 loadHolidays();
-/* Inflação e Euribor: tentar APIs live, renderizar estático como fallback imediato */
 renderInflation();
 renderEuribor();
 setTimeout(()=>{renderExp();renderDiv();},50);
-/* APIs live — correm em paralelo e actualizam os cards se tiverem sucesso */
-setTimeout(()=>loadInflation(),  200);
-setTimeout(()=>loadEuribor(),    200);
-setTimeout(()=>loadDividaPT(),   300);
-setTimeout(()=>loadImobKPIs(),   600);
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),         400);
@@ -8051,7 +7696,7 @@ function renderDiv(){
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="air_v7";
+  const ck="air_v8";
   let d=force?null:lsGet(ck);
   if(!d){
     const URLS=[
@@ -8069,6 +7714,18 @@ async function loadAir(force=false){
     }
   }
 
+  /* ── Aeroportos PT+ES com coordenadas reais ── */
+  const AIRPORTS=[
+    {lat:38.7756,lon:-9.1354,code:"LIS",name:"Lisboa Humberto Delgado",col:"#3B82F6"},
+    {lat:41.2481,lon:-8.6814,code:"OPO",name:"Porto Francisco Sá Carneiro",col:"#8B5CF6"},
+    {lat:37.0144,lon:-7.9659,code:"FAO",name:"Faro",col:"#10B981"},
+    {lat:32.6897,lon:-16.7781,code:"FNC",name:"Funchal",col:"#F59E0B"},
+    {lat:37.7412,lon:-25.6979,code:"PDL",name:"Ponta Delgada",col:"#06B6D4"},
+    {lat:40.1574,lon:-8.8217,code:"COR",name:"Covilhã / Coimbra",col:"#84CC16"},
+    {lat:40.4193,lon:-3.6917,code:"MAD",name:"Madrid Barajas",col:"#EF4444"},
+    {lat:41.2974,lon:2.0833, code:"BCN",name:"Barcelona El Prat",col:"#F97316"},
+  ];
+
   if(d?.live&&d.states?.length){
     const states=d.states;
     const flying=states.filter(s=>!s[8]);
@@ -8079,158 +7736,35 @@ async function loadAir(force=false){
     const avgVel=vels.length?Math.round(vels.reduce((a,b)=>a+b,0)/vels.length):0;
     const maxVel=vels.length?Math.round(Math.max(...vels)):0;
 
-    /* Bandas de altitude */
     const altBands=[
-      {label:"Solo",     col:"#6E7A96", count:ground.length},
-      {label:"<FL100",   col:"#8B5CF6", count:flying.filter(s=>s[7]>0&&s[7]<3048).length},
-      {label:"FL100-200",col:"#3B82F6", count:flying.filter(s=>s[7]>=3048&&s[7]<6096).length},
-      {label:"FL200-300",col:"#06B6D4", count:flying.filter(s=>s[7]>=6096&&s[7]<9144).length},
-      {label:">FL300",   col:"#10B981", count:flying.filter(s=>s[7]>=9144).length},
+      {label:"Solo",      col:"#6E7A96", count:ground.length},
+      {label:"<FL100",    col:"#8B5CF6", count:flying.filter(s=>s[7]>0&&s[7]<3048).length},
+      {label:"FL100-200", col:"#3B82F6", count:flying.filter(s=>s[7]>=3048&&s[7]<6096).length},
+      {label:"FL200-300", col:"#06B6D4", count:flying.filter(s=>s[7]>=6096&&s[7]<9144).length},
+      {label:">FL300",    col:"#10B981", count:flying.filter(s=>s[7]>=9144).length},
     ];
 
-    /* Top países */
     const byCtry={};
     states.forEach(s=>{const c=s[2]||"?";byCtry[c]=(byCtry[c]||0)+1;});
     const topCtry=Object.entries(byCtry).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-    /* Top voos por altitude */
     const flights=flying.filter(s=>s[1]&&s[1].trim()&&s[7]>500)
-      .sort((a,b)=>(b[7]||0)-(a[7]||0)).slice(0,9);
+      .sort((a,b)=>(b[7]||0)-(a[7]||0)).slice(0,10);
 
-    /* Prefixos de companhia (ICAO→nome curto) */
     const AIRLINES={
-      TAP:"TAP",RYR:"Ryanair",EZY:"easyJet",IBE:"Iberia",VLG:"Vueling",
-      BAW:"British",AFR:"Air France",DLH:"Lufthansa",KLM:"KLM",
-      UAE:"Emirates",ETH:"Ethiopian",THY:"Turkish",AAL:"American",
-      UAL:"United",DAL:"Delta",TRA:"Transavia",AZA:"Alitalia",
-      SWR:"Swiss",AUA:"Austrian",SAS:"SAS",AEE:"Aegean",
+      TAP:"TAP Air Portugal",RYR:"Ryanair",EZY:"easyJet",IBE:"Iberia",VLG:"Vueling",
+      BAW:"British Airways",AFR:"Air France",DLH:"Lufthansa",KLM:"KLM",
+      UAE:"Emirates",ETH:"Ethiopian",THY:"Turkish Airlines",AAL:"American",
+      UAL:"United",DAL:"Delta",TRA:"Transavia",SWR:"SWISS",AUA:"Austrian",
+      AZA:"ITA Airways",SAS:"SAS",AEE:"Aegean",NJU:"easyJet",WZZ:"Wizz Air",
     };
     function airline(cs){ return AIRLINES[cs?.slice(0,3).toUpperCase()]||""; }
 
-    /* Taxa de subida/descida geral */
     const climbing=flying.filter(s=>s[11]>2).length;
     const descending=flying.filter(s=>s[11]<-2).length;
     const level=flying.length-climbing-descending;
-
     const age=Math.round((Date.now()-d.ts)/60000);
 
-    el.innerHTML=`
-    <!-- KPIs linha 1 -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px">
-      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:1.6rem;font-weight:800;color:#3B82F6;line-height:1">${flying.length}</div>
-        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Em voo</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:1.6rem;font-weight:800;color:#6E7A96;line-height:1">${ground.length}</div>
-        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Em terra</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:1.6rem;font-weight:800;color:#06B6D4;line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
-        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">Alt. média m</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:1.6rem;font-weight:800;color:#8B5CF6;line-height:1">${avgVel||"—"}</div>
-        <div style="font-size:.6rem;color:var(--t2);margin-top:2px">km/h média</div>
-      </div>
-    </div>
-    <!-- KPIs linha 2: subida/descida/nível + vel máx -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px">
-      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
-        <div style="font-size:1.1rem;font-weight:700;color:#10B981">▲ ${climbing}</div>
-        <div style="font-size:.58rem;color:var(--t3)">A subir</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
-        <div style="font-size:1.1rem;font-weight:700;color:#EF4444">▼ ${descending}</div>
-        <div style="font-size:.58rem;color:var(--t3)">A descer</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
-        <div style="font-size:1.1rem;font-weight:700;color:#6E7A96">→ ${level}</div>
-        <div style="font-size:.58rem;color:var(--t3)">Em cruzeiro</div>
-      </div>
-      <div style="background:var(--b2);border-radius:8px;padding:6px 8px;text-align:center">
-        <div style="font-size:1.1rem;font-weight:700;color:#F59E0B">${maxVel||"—"}</div>
-        <div style="font-size:.58rem;color:var(--t3)">km/h máx</div>
-      </div>
-    </div>
-
-    <!-- Corpo principal: mapa + lista -->
-    <div style="display:flex;gap:12px;align-items:flex-start">
-
-      <!-- MAPA CANVAS -->
-      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:5px">
-        <div id="air-map-wrap" style="position:relative;width:220px;height:160px;
-             border-radius:7px;overflow:hidden;border:1px solid var(--b);background:#0a1020">
-          <canvas id="air-map-canvas" width="220" height="160"
-                  style="width:100%;height:100%;display:block"></canvas>
-          <div id="air-map-tip" style="position:absolute;background:#1E2340cc;
-               border:1px solid #3D4560;padding:5px 9px;border-radius:5px;
-               font-size:.64rem;color:#DDE3F0;pointer-events:none;opacity:0;
-               transition:opacity .15s;z-index:10;max-width:170px;line-height:1.5;
-               white-space:nowrap"></div>
-        </div>
-        <!-- Legenda altitude -->
-        <div style="display:flex;flex-wrap:wrap;gap:5px">
-          ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
-            <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
-            <span>${b.label} <b style="color:var(--t2)">${b.count}</b></span>
-          </div>`).join("")}
-        </div>
-        <!-- Barra de distribuição altitude -->
-        <div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden">
-          ${altBands.map(b=>{
-            const total=states.length||1;
-            const pct=(b.count/total*100).toFixed(1);
-            return `<div style="flex:${b.count||0.1};background:${b.col};opacity:0.8" title="${b.label}: ${pct}%"></div>`;
-          }).join("")}
-        </div>
-      </div>
-
-      <!-- Lista e países -->
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin-bottom:5px">
-          Voos activos <span style="color:var(--t3);font-weight:400">(por altitude)</span>
-        </div>
-        ${flights.map(s=>{
-          const cs=(s[1]||"???").trim();
-          const fl=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
-          const vel=s[9]?Math.round(s[9]*3.6)+"":"-";
-          const vr=s[11];
-          const vrIcon=vr>2?"▲":vr<-2?"▼":"→";
-          const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
-          const altCol=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
-          const al=airline(cs);
-          return `<div style="display:grid;grid-template-columns:62px 40px 46px 14px 1fr;
-                       align-items:center;gap:4px;padding:3px 0;
-                       border-bottom:1px solid var(--b)">
-            <div style="font-size:.7rem;font-weight:700;color:var(--text);
-                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cs}</div>
-            <div style="font-size:.65rem;color:${altCol};font-weight:600">${fl}</div>
-            <div style="font-size:.6rem;color:var(--t2)">${vel}<span style="font-size:.55rem">km/h</span></div>
-            <div style="font-size:.65rem;color:${vrCol};text-align:center">${vrIcon}</div>
-            <div style="font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;
-                 text-overflow:ellipsis">${al||s[2]||""}</div>
-          </div>`;
-        }).join("")}
-
-        <!-- Top países -->
-        <div style="font-size:.67rem;font-weight:600;color:var(--t2);margin:8px 0 4px">
-          Por país de registo:
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${topCtry.map(([c,n])=>`<div style="background:var(--b2);border-radius:4px;
-               padding:2px 8px;font-size:.64rem">
-            <span style="color:var(--t3)">${c}</span>
-            <span style="color:var(--text);font-weight:600;margin-left:3px">${n}</span>
-          </div>`).join("")}
-        </div>
-        <div style="font-size:.6rem;color:var(--t3);margin-top:7px">
-          🟢 Live · ${age}min · lon[-12,-5] lat[36,44]
-        </div>
-      </div>
-    </div>`;
-
-    /* ── MAPA SVG Hardcoded ── */
     const airDots=states.filter(s=>s[5]!=null&&s[6]!=null).map(s=>{
       const onGnd=s[8], alt=s[7]||0;
       const col=onGnd?"#6E7A96":alt>9000?"#10B981":alt>6000?"#06B6D4":alt>3000?"#3B82F6":"#8B5CF6";
@@ -8241,93 +7775,288 @@ async function loadAir(force=false){
               label:`<b>${cs}</b>${onGnd?" · Em terra":""}<br>${fl} ${vel}<br>${s[2]||""}`};
     });
 
-    function paintAirMap(){
+    el.innerHTML=`
+    <!-- KPIs compactos numa linha -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#3B82F6;line-height:1">${flying.length}</div>
+        <div style="font-size:.55rem;color:var(--t3)">Em voo</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#6E7A96;line-height:1">${ground.length}</div>
+        <div style="font-size:.55rem;color:var(--t3)">Em terra</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#10B981;line-height:1">▲${climbing}</div>
+        <div style="font-size:.55rem;color:var(--t3)">A subir</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">▼${descending}</div>
+        <div style="font-size:.55rem;color:var(--t3)">A descer</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+        <div style="font-size:.55rem;color:var(--t3)">Alt.méd m</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${avgVel||"—"}</div>
+        <div style="font-size:.55rem;color:var(--t3)">km/h méd</div>
+      </div>
+      <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${maxVel||"—"}</div>
+        <div style="font-size:.55rem;color:var(--t3)">km/h máx</div>
+      </div>
+    </div>
+
+    <!-- MAPA grande + legenda + barra altitude -->
+    <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1020;margin-bottom:10px">
+      <canvas id="air-map-canvas" style="width:100%;height:260px;display:block"></canvas>
+      <div id="air-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
+           padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
+           opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;white-space:nowrap;
+           top:8px;left:8px"></div>
+      <!-- Badge live -->
+      <div style="position:absolute;top:6px;right:6px;background:#10B98122;border:1px solid #10B98144;
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:#10B981">
+        🟢 Live · ${age}min
+      </div>
+    </div>
+
+    <!-- Legenda altitude + barra distribuição -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+        <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
+        <span>${b.label} <b style="color:var(--t2)">${b.count}</b></span>
+      </div>`).join("")}
+      <div style="flex:1;min-width:80px">
+        <div style="display:flex;gap:1px;height:5px;border-radius:3px;overflow:hidden">
+          ${altBands.map(b=>`<div style="flex:${b.count||0.1};background:${b.col};opacity:.8"></div>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista voos + top países lado a lado -->
+    <div style="display:grid;grid-template-columns:1fr auto;gap:12px">
+      <!-- Lista de voos -->
+      <div>
+        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:4px">
+          Voos activos · por altitude
+        </div>
+        <div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
+             font-family:var(--mono);font-size:.6rem;color:var(--t3);padding:0 0 3px;
+             border-bottom:1px solid var(--b);margin-bottom:2px">
+          <span>Voo</span><span>FL</span><span>Vel.</span><span></span><span>Operadora</span>
+        </div>
+        ${flights.map(s=>{
+          const cs=(s[1]||"???").trim();
+          const fl=s[7]?`FL${Math.round(s[7]/30.48/10)*10}`:"—";
+          const vel=s[9]?Math.round(s[9]*3.6)+"":"-";
+          const vr=s[11];
+          const vrIcon=vr>2?"▲":vr<-2?"▼":"→";
+          const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
+          const altCol=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
+          const al=airline(cs);
+          return `<div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
+                       align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid var(--b)">
+            <div style="font-size:.68rem;font-weight:700;color:var(--text);
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cs}</div>
+            <div style="font-size:.63rem;color:${altCol};font-weight:600">${fl}</div>
+            <div style="font-size:.6rem;color:var(--t2)">${vel}<span style="font-size:.54rem">km/h</span></div>
+            <div style="font-size:.63rem;color:${vrCol}">${vrIcon}</div>
+            <div style="font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;
+                 text-overflow:ellipsis">${al||s[2]||""}</div>
+          </div>`;
+        }).join("")}
+      </div>
+      <!-- Top países + aeroportos -->
+      <div style="min-width:110px">
+        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:4px">Por país</div>
+        ${topCtry.map(([c,n])=>`<div style="display:flex;justify-content:space-between;
+             gap:8px;padding:3px 0;border-bottom:1px solid var(--b)">
+          <span style="font-family:var(--mono);font-size:.63rem;color:var(--t3)">${c}</span>
+          <span style="font-family:var(--mono);font-size:.63rem;font-weight:700;color:var(--text)">${n}</span>
+        </div>`).join("")}
+        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin:8px 0 4px">Aeroportos</div>
+        ${AIRPORTS.filter(a=>a.code!=="MAD"&&a.code!=="BCN").map(a=>`<div style="display:flex;
+             align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid var(--b)">
+          <div style="width:6px;height:6px;border-radius:50%;background:${a.col};flex-shrink:0"></div>
+          <span style="font-family:var(--mono);font-size:.65rem;font-weight:700;color:${a.col}">${a.code}</span>
+          <span style="font-size:.58rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name.split(" ")[0]}</span>
+        </div>`).join("")}
+        <div style="font-size:.56rem;color:var(--t3);margin-top:6px">lon[-12,-5]<br>lat[36,44]</div>
+      </div>
+    </div>`;
+
+    /* ── PINTAR MAPA usando TopoJSON já carregado ── */
+    (function(){
       const canvas=document.getElementById("air-map-canvas");
       if(!canvas) return;
-      canvas.width=220; canvas.height=160;
-      const ctx=canvas.getContext("2d");
-      const W=220, H=160;
 
-      const minLon=-13,maxLon=-4,minLat=35,maxLat=44;
-      const padLon=(maxLon-minLon)*0.04, padLat=(maxLat-minLat)*0.04;
+      /* Dimensões: usar width real do elemento */
+      const rect=canvas.getBoundingClientRect();
+      const W=rect.width||canvas.parentElement.offsetWidth||600;
+      const H=260;
+      canvas.width=W;
+      canvas.height=H;
+      const ctx=canvas.getContext("2d");
+
+      /* Bounding box da região ibérica */
+      const minLon=-13, maxLon=5, minLat=35, maxLat=44.5;
+
       function proj(lat,lon){
-        const x=(lon-(minLon-padLon))/((maxLon+padLon)-(minLon-padLon))*W;
-        const y=(1-(lat-(minLat-padLat))/((maxLat+padLat)-(minLat-padLat)))*H;
+        const pad=0.02;
+        const x=(lon-minLon)/(maxLon-minLon)*(W*(1-pad*2))+W*pad;
+        const y=(1-(lat-minLat)/(maxLat-minLat))*(H*(1-pad*2))+H*pad;
         return [x,y];
       }
 
-      /* Fundo oceano */
-      ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
+      function draw(geo){
+        /* Fundo oceano */
+        ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
 
-      /* Grid */
-      ctx.strokeStyle="rgba(255,255,255,0.03)"; ctx.lineWidth=0.5;
-      for(let lon=-12;lon<=-4;lon+=2){const[x]=proj(39,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-      for(let lat=36;lat<=44;lat+=2){const[,y]=proj(lat,-8);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+        /* Grid subtil */
+        ctx.strokeStyle="rgba(255,255,255,0.025)"; ctx.lineWidth=0.4;
+        for(let lon=-12;lon<=5;lon+=3){
+          const[x]=proj(37,lon);
+          ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+        }
+        for(let lat=36;lat<=44;lat+=2){
+          const[,y]=proj(lat,-5);
+          ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+        }
 
-      /* Países SVG paths hardcoded */
-      function drawPath(pathStr, fill, stroke){
-        const p=new Path2D(pathStr);
-        ctx.fillStyle=fill; ctx.fill(p);
-        ctx.strokeStyle=stroke; ctx.lineWidth=0.8; ctx.stroke(p);
-      }
-      drawPath("M128.0,18.6L159.7,18.6L159.8,21.5L167.2,23.6L172.4,25.8L185.0,27.5L185.2,32.3L172.5,38.7L167.0,60.4L141.6,67.7L140.3,70.0L136.5,70.0L130.4,63.4L130.4,60.4L131.2,53.8L132.9,45.8L134.2,40.3L133.1,34.5L135.7,33.5L134.2,30.4L123.7,29.4L123.4,21.5L128.0,18.6Z","#1a2d48","#263d5e");
-      drawPath("M123.7,29.4L134.2,30.4L135.7,33.5L133.1,34.5L134.2,40.3L132.9,45.8L131.2,53.8L130.4,60.4L131.2,63.3L128.9,63.6L128.0,63.7L124.6,63.3L123.0,61.0L123.7,58.6L121.7,53.9L120.4,52.0L121.7,46.1L123.9,40.9L123.9,32.7L124.4,31.2L123.6,30.0L123.7,29.4Z","#1e3454","#2e4a72");
-      drawPath("M138.8,70.7L158.6,73.3L157.6,76.6L138.2,83.2L128.0,79.9L141.3,75.9L138.8,70.7Z","#1a2d3a","#253a4a");
-
-      /* Aeronaves */
-      airDots.forEach(d=>{
-        const[x,y]=proj(d.lat,d.lon);
-        if(x<-5||x>W+5||y<-5||y>H+5) return;
-        const size=d.r===2?2.5:3.5;
-        /* Glow */
-        const grd=ctx.createRadialGradient(x,y,0,x,y,size*3);
-        grd.addColorStop(0,d.col+"55"); grd.addColorStop(1,d.col+"00");
-        ctx.beginPath(); ctx.arc(x,y,size*3,0,Math.PI*2);
-        ctx.fillStyle=grd; ctx.fill();
-        /* Triângulo direccional */
-        ctx.save(); ctx.translate(x,y); ctx.rotate(d.hdg*Math.PI/180);
-        ctx.beginPath();
-        ctx.moveTo(0,-size*1.8); ctx.lineTo(-size*0.9,size); ctx.lineTo(size*0.9,size);
-        ctx.closePath();
-        ctx.fillStyle=d.col; ctx.globalAlpha=0.92; ctx.fill();
-        ctx.globalAlpha=1; ctx.restore();
-      });
-
-      /* Labels aeroportos */
-      [{lat:38.72,lon:-9.14,txt:"LIS"},{lat:41.15,lon:-8.67,txt:"OPO"},
-       {lat:37.02,lon:-7.93,txt:"FAO"},{lat:40.42,lon:-3.70,txt:"MAD"}].forEach(l=>{
-        const[x,y]=proj(l.lat,l.lon);
-        if(x<0||x>W||y<0||y>H) return;
-        ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
-        ctx.fillStyle="#4A90B8"; ctx.fill();
-        ctx.fillStyle="#6AB0D8"; ctx.font="bold 7.5px monospace";
-        ctx.fillText(l.txt,x+4,y+3);
-      });
-
-      /* Tooltip */
-      const tip=document.getElementById("air-map-tip");
-      if(tip){
-        canvas.onmousemove=function(e){
-          const rect=canvas.getBoundingClientRect();
-          const scaleX=W/rect.width, scaleY=H/rect.height;
-          const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
-          let hit=null, minD=Infinity;
-          airDots.forEach(d=>{
-            const[px,py]=proj(d.lat,d.lon);
-            const dist=Math.hypot(px-mx,py-my);
-            if(dist<16&&dist<minD){minD=dist;hit=d;}
+        /* Países do TopoJSON */
+        if(geo && geo.features){
+          geo.features.forEach(f=>{
+            const geom=f.geometry;
+            if(!geom) return;
+            const polys=geom.type==="Polygon"?[geom.coordinates]:
+                         geom.type==="MultiPolygon"?geom.coordinates:[];
+            polys.forEach(poly=>{
+              poly.forEach(ring=>{
+                /* Verificar se está na região */
+                let inRegion=false;
+                for(let i=0;i<ring.length;i+=8){
+                  const lon=ring[i][0], lat=ring[i][1];
+                  if(lon>=minLon-2&&lon<=maxLon+2&&lat>=minLat-2&&lat<=maxLat+2){
+                    inRegion=true; break;
+                  }
+                }
+                if(!inRegion) return;
+                ctx.beginPath();
+                ring.forEach(([lon,lat],i)=>{
+                  const[x,y]=proj(lat,lon);
+                  if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                });
+                ctx.closePath();
+                ctx.fillStyle="#1E2B4A";
+                ctx.fill();
+                ctx.strokeStyle="#2A3A60";
+                ctx.lineWidth=0.7;
+                ctx.stroke();
+              });
+            });
           });
-          if(hit){
-            tip.style.opacity="1";
-            tip.style.left=Math.min(e.offsetX+12,rect.width-185)+"px";
-            tip.style.top=Math.max(e.offsetY-35,4)+"px";
-            tip.innerHTML=hit.label;
-          } else tip.style.opacity="0";
-        };
-        canvas.onmouseleave=()=>tip.style.opacity="0";
+        }
+
+        /* Aeronaves */
+        airDots.forEach(dot=>{
+          const[x,y]=proj(dot.lat,dot.lon);
+          if(x<-8||x>W+8||y<-8||y>H+8) return;
+          const sz=dot.r===2?2.5:3.5;
+          /* Glow */
+          const grd=ctx.createRadialGradient(x,y,0,x,y,sz*3.5);
+          grd.addColorStop(0,dot.col+"66"); grd.addColorStop(1,dot.col+"00");
+          ctx.beginPath(); ctx.arc(x,y,sz*3.5,0,Math.PI*2);
+          ctx.fillStyle=grd; ctx.fill();
+          /* Triângulo direccional */
+          ctx.save(); ctx.translate(x,y);
+          ctx.rotate((dot.hdg||0)*Math.PI/180);
+          ctx.beginPath();
+          ctx.moveTo(0,-sz*1.8); ctx.lineTo(-sz*.9,sz); ctx.lineTo(sz*.9,sz);
+          ctx.closePath();
+          ctx.fillStyle=dot.col; ctx.globalAlpha=0.88; ctx.fill();
+          ctx.globalAlpha=1; ctx.restore();
+        });
+
+        /* Aeroportos com coordenadas reais */
+        AIRPORTS.forEach(ap=>{
+          const[x,y]=proj(ap.lat,ap.lon);
+          if(x<0||x>W||y<0||y>H) return;
+          /* Círculo externo */
+          ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+          ctx.fillStyle=ap.col+"33";
+          ctx.strokeStyle=ap.col;
+          ctx.lineWidth=1.5;
+          ctx.fill(); ctx.stroke();
+          /* Ponto central */
+          ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
+          ctx.fillStyle=ap.col; ctx.fill();
+          /* Label */
+          ctx.fillStyle=ap.col;
+          ctx.font="bold 9px monospace";
+          ctx.shadowColor=ap.col;
+          ctx.shadowBlur=4;
+          ctx.fillText(ap.code, x+7, y+3);
+          ctx.shadowBlur=0;
+        });
+
+        /* Tooltip */
+        const tip=document.getElementById("air-map-tip");
+        if(tip){
+          canvas.onmousemove=function(e){
+            const rect=canvas.getBoundingClientRect();
+            const scaleX=W/rect.width, scaleY=H/rect.height;
+            const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
+            /* Aeroportos primeiro */
+            let hit=null, minD=Infinity;
+            AIRPORTS.forEach(ap=>{
+              const[px,py]=proj(ap.lat,ap.lon);
+              const dist=Math.hypot(px-mx,py-my);
+              if(dist<14&&dist<minD){
+                minD=dist;
+                hit={label:`<b>✈ ${ap.code}</b><br>${ap.name}`};
+              }
+            });
+            /* Depois aeronaves */
+            if(!hit){
+              airDots.forEach(dot=>{
+                const[px,py]=proj(dot.lat,dot.lon);
+                const dist=Math.hypot(px-mx,py-my);
+                if(dist<14&&dist<minD){minD=dist;hit=dot;}
+              });
+            }
+            if(hit){
+              tip.style.opacity="1";
+              tip.style.left=Math.min(e.offsetX+14,rect.width-210)+"px";
+              tip.style.top=Math.max(e.offsetY-10,4)+"px";
+              tip.innerHTML=hit.label;
+            } else tip.style.opacity="0";
+          };
+          canvas.onmouseleave=()=>tip.style.opacity="0";
+        }
       }
-    }
-    paintAirMap();
+
+      /* Usar TopoJSON já em cache ou aguardar carregamento */
+      if(window._topoCache){
+        draw(window._topoCache);
+      } else {
+        /* Desenhar fundo enquanto espera */
+        ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
+        ctx.fillStyle="#6E7A96"; ctx.font="11px monospace";
+        ctx.textAlign="center";
+        ctx.fillText("A carregar mapa...",W/2,H/2);
+        ctx.textAlign="left";
+        /* Tentar até 5s */
+        let tries=0;
+        const wait=setInterval(()=>{
+          tries++;
+          if(window._topoCache){ clearInterval(wait); draw(window._topoCache); return; }
+          if(tries>25) clearInterval(wait);
+        },200);
+      }
+    })();
+
     return;
   }
 
@@ -8366,6 +8095,7 @@ async function loadAir(force=false){
       <span style="font-size:.67rem;color:var(--t2);font-weight:600">${r.freq}</span>
     </div>`).join("")}`;
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    SISMOS IBÉRIA — USGS (CORS livre)
