@@ -8103,7 +8103,7 @@ async function loadAir(force=false){
 async function loadSeis(force=false){
   const el=$("seis-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="seis_v8";
+  const ck="seis_v9";
   let d=force?null:lsGet(ck);
   if(!d||!d.length){
     try{
@@ -8117,10 +8117,9 @@ async function loadSeis(force=false){
       d=j.features||[];
       if(d.length)lsSet(ck,d);
     }catch(e){
-      // Mensagem mais amigável para erros CORS
       const isCORS = e.message.includes('CORS') || e.message.includes('proxies');
-      const msg = isCORS 
-        ? `⚠️ Erro de rede (CORS). Dados em cache podem estar disponíveis.` 
+      const msg = isCORS
+        ? `⚠️ Erro de rede (CORS). Dados em cache podem estar disponíveis.`
         : e.message;
       el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:20px 0;text-align:center">
         ${msg}
@@ -8132,49 +8131,28 @@ async function loadSeis(force=false){
       return;
     }
   }
-  
-  // ──────────────────────────────────────────────────────────────
-  // VERIFICAR NOTIFICAÇÕES DE SISMOS (só se temos dados)
-  // ──────────────────────────────────────────────────────────────
+
+  /* ── Notificações ── */
   if (notificationSettings.sismos.enabled && d && d.length > 0) {
-    // Verificar sismos recentes (últimas 24h)
     const recent24h = d.filter(x => (Date.now() - x.properties.time) < 24 * 60 * 60 * 1000);
-    
     recent24h.forEach(sismo => {
       const mag = sismo.properties.mag;
       const place = sismo.properties.place || 'Localização desconhecida';
       const time = sismo.properties.time;
       const depth = sismo.geometry?.coordinates?.[2] || 0;
-      
-      // Notificar se magnitude >= minMagnitude (3.0 padrão)
       if (mag >= notificationSettings.sismos.minMagnitude) {
-        // Verificar se já notificámos este sismo
         const notifId = `sismo-${time}`;
         const exists = notifications.find(n => n.data?.notifId === notifId);
-        
         if (!exists) {
           const severity = mag >= 4.5 ? 'high' : mag >= 4.0 ? 'medium' : 'low';
-          
-          addNotification(
-            'sismos',
-            `Sismo de magnitude ${mag.toFixed(1)} registado`,
-            `${place} • Profundidade: ${depth.toFixed(0)}km`,
-            severity,
-            { 
-              notifId,
-              magnitude: mag, 
-              location: place, 
-              depth,
-              timestamp: time 
-            }
-          );
-          
-          console.log(`🌍 Nova notificação: Sismo M${mag.toFixed(1)} - ${place}`);
+          addNotification('sismos',`Sismo de magnitude ${mag.toFixed(1)} registado`,
+            `${place} • Profundidade: ${depth.toFixed(0)}km`,severity,
+            {notifId,magnitude:mag,location:place,depth,timestamp:time});
         }
       }
     });
   }
-  
+
   if(!d.length){
     el.innerHTML=`<div style="color:var(--t2);font-size:.75rem;padding:10px 0">✓ Sem sismos registados</div>`;
     return;
@@ -8186,163 +8164,296 @@ async function loadSeis(force=false){
   const maxMag=Math.max(...use.map(x=>x.properties.mag));
   const big=use.filter(x=>x.properties.mag>=3).length;
   const med=use.filter(x=>x.properties.mag>=2&&x.properties.mag<3).length;
+  const total24h=d.filter(x=>(Date.now()-x.properties.time)<24*864e5/24).length;
 
   /* Pontos para o mapa */
   const seisDots=use.filter(f=>f.geometry?.coordinates).map(f=>{
     const mag=f.properties.mag, c=f.geometry.coordinates;
     const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
-    const r=Math.max(3,Math.min(9,mag*2.2));
+    const r=Math.max(4,Math.min(11,mag*2.5));
     const dt=new Date(f.properties.time).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
+    const tm=new Date(f.properties.time).toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
     return {lat:c[1],lon:c[0],col,r,mag,
-             label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").slice(0,40)}<br>${dt}`};
+            label:`<b>M${mag.toFixed(1)}</b><br>${(f.properties.place||"").slice(0,38)}<br>${dt} ${tm}`};
   });
 
   el.innerHTML=`
-  <!-- Layout: mapa à esquerda, KPIs+lista à direita -->
-  <div style="display:flex;gap:10px;align-items:flex-start">
-
-    <!-- MAPA -->
-    <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px">
-      <div style="position:relative;width:200px;height:140px;border-radius:7px;
-           overflow:hidden;border:1px solid var(--b);background:#0a1020">
-        <canvas id="seis-map-canvas" width="200" height="140"
-                style="width:100%;height:100%;display:block"></canvas>
-        <div id="seis-map-tip" style="position:absolute;background:#1E2340cc;
-             border:1px solid #3D4560;padding:5px 8px;border-radius:5px;
-             font-size:.64rem;color:#DDE3F0;pointer-events:none;opacity:0;
-             transition:opacity .15s;z-index:10;max-width:160px;line-height:1.4;
-             white-space:nowrap"></div>
-      </div>
-      <!-- Legenda -->
-      <div style="display:flex;gap:5px;flex-wrap:wrap">
-        ${[["#EF4444","≥4"],["#F97316","≥3"],["#F59E0B","≥2"],["#8B5CF6","<2"]].map(([c,l])=>
-          `<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
-            <div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}
-          </div>`).join("")}
-      </div>
+  <!-- KPIs compactos numa linha -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
+    <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${use.length}</div>
+      <div style="font-size:.55rem;color:var(--t3)">${periodo}</div>
     </div>
+    <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${maxMag.toFixed(1)}</div>
+      <div style="font-size:.55rem;color:var(--t3)">Máx. M</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#F97316;line-height:1">${big}</div>
+      <div style="font-size:.55rem;color:var(--t3)">Mag ≥3</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${med}</div>
+      <div style="font-size:.55rem;color:var(--t3)">Mag 2-3</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${total24h}</div>
+      <div style="font-size:.55rem;color:var(--t3)">Últimas 24h</div>
+    </div>
+  </div>
 
-    <!-- DIREITA: KPIs + lista -->
-    <div style="flex:1;min-width:0">
-      <!-- KPIs compactos -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
-        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
-          <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${use.length}</div>
-          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">${periodo}</div>
-        </div>
-        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
-          <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${maxMag.toFixed(1)}</div>
-          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Máx.</div>
-        </div>
-        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
-          <div style="font-size:1.3rem;font-weight:800;color:#F97316;line-height:1">${big}</div>
-          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Mag ≥3</div>
-        </div>
-        <div style="background:var(--b2);border-radius:7px;padding:6px;text-align:center">
-          <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${med}</div>
-          <div style="font-size:.58rem;color:var(--t2);margin-top:1px">Mag 2-3</div>
-        </div>
+  <!-- MAPA GRANDE full-width -->
+  <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1020;margin-bottom:10px">
+    <canvas id="seis-map-canvas" style="width:100%;height:280px;display:block"></canvas>
+    <div id="seis-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
+         padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
+         opacity:0;transition:opacity .15s;z-index:10;max-width:220px;line-height:1.5;
+         white-space:nowrap;top:8px;left:8px"></div>
+    <!-- Badge fonte -->
+    <div style="position:absolute;top:6px;right:6px;background:#F59E0B22;border:1px solid #F59E0B44;
+         border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:#F59E0B">
+      USGS · ${periodo}
+    </div>
+  </div>
+
+  <!-- Legenda magnitude -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+    ${[["#EF4444","≥ 4.0 — Forte"],["#F97316","≥ 3.0"],["#F59E0B","≥ 2.0"],["#8B5CF6","< 2.0"]].map(([c,l])=>
+      `<div style="display:flex;align-items:center;gap:4px;font-size:.58rem;color:var(--t3)">
+        <div style="width:8px;height:8px;border-radius:50%;background:${c}"></div>
+        <span>${l}</span>
+      </div>`).join("")}
+  </div>
+
+  <!-- Lista de sismos + Açores side-by-side -->
+  <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">
+
+    <!-- Lista principal -->
+    <div>
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--t3);
+           text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">
+        Eventos mais recentes
       </div>
-      <!-- Lista sismos recentes -->
-      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">
-        Mais recentes (${periodo}):
+      <div style="display:grid;grid-template-columns:38px 1fr 80px;
+           font-family:var(--mono);font-size:.58rem;color:var(--t3);
+           padding:0 0 3px;border-bottom:1px solid var(--b);margin-bottom:2px;gap:6px">
+        <span>Mag.</span><span>Localização</span><span style="text-align:right">Data/Hora</span>
       </div>
-      ${use.slice(0,8).map(f=>{
+      ${use.slice(0,10).map(f=>{
         const p=f.properties, mag=p.mag.toFixed(1);
         const col=mag>=4?"#EF4444":mag>=3?"#F97316":mag>=2?"#F59E0B":"#8B5CF6";
         const dt=new Date(p.time);
-        const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"})
-          +" "+dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
-        const place=(p.place||"").replace(/ of /g," ").slice(0,36);
-        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;
+        const dts=dt.toLocaleDateString("pt",{day:"2-digit",month:"2-digit"});
+        const tms=dt.toLocaleTimeString("pt",{hour:"2-digit",minute:"2-digit"});
+        const place=(p.place||"").replace(/ of /g," ").slice(0,42);
+        return `<div style="display:grid;grid-template-columns:38px 1fr 80px;
+                     align-items:center;gap:6px;padding:4px 0;
                      border-bottom:1px solid var(--b)">
           <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;
-               padding:2px 5px;font-size:.72rem;font-weight:700;color:${col};
-               min-width:30px;text-align:center;flex-shrink:0">${mag}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:.65rem;color:var(--text);white-space:nowrap;
-                 overflow:hidden;text-overflow:ellipsis">${place}</div>
-            <div style="font-size:.57rem;color:var(--t3)">${dts}</div>
+               padding:2px 4px;font-size:.72rem;font-weight:700;color:${col};text-align:center">
+            ${mag}
+          </div>
+          <div style="font-size:.65rem;color:var(--text);white-space:nowrap;
+               overflow:hidden;text-overflow:ellipsis">${place}</div>
+          <div style="font-size:.6rem;color:var(--t3);text-align:right;white-space:nowrap">
+            ${dts}<br>${tms}
           </div>
         </div>`;
       }).join("")}
-      ${use.length>8?`<div style="font-size:.58rem;color:var(--t3);margin-top:3px;padding-left:2px">+ ${use.length-8} eventos registados</div>`:""}</div>
+      ${use.length>10?`<div style="font-size:.58rem;color:var(--t3);margin-top:4px;text-align:center">
+        + ${use.length-10} eventos em ${periodo}</div>`:""}
+    </div>
+
+    <!-- Painel lateral: estatísticas por zona -->
+    <div style="min-width:110px">
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--t3);
+           text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Zonas</div>
+      ${(()=>{
+        const zones=[
+          {name:"Continente",minLat:36.9,maxLat:42.2,minLon:-9.5,maxLon:-6.2,col:"#3B82F6"},
+          {name:"Açores",   minLat:36.5,maxLat:40.5,minLon:-31.5,maxLon:-24.5,col:"#10B981"},
+          {name:"Madeira",  minLat:32.5,maxLat:33.2,minLon:-17.5,maxLon:-16.5,col:"#F59E0B"},
+          {name:"Atlântico",minLat:27.0,maxLat:44.0,minLon:-24.4,maxLon:-9.5, col:"#8B5CF6"},
+        ];
+        return zones.map(z=>{
+          const count=use.filter(f=>{
+            const c=f.geometry?.coordinates;
+            return c&&c[1]>=z.minLat&&c[1]<=z.maxLat&&c[0]>=z.minLon&&c[0]<=z.maxLon;
+          }).length;
+          const maxZ=use.filter(f=>{
+            const c=f.geometry?.coordinates;
+            return c&&c[1]>=z.minLat&&c[1]<=z.maxLat&&c[0]>=z.minLon&&c[0]<=z.maxLon;
+          }).map(f=>f.properties.mag);
+          const mxZ=maxZ.length?Math.max(...maxZ).toFixed(1):"—";
+          return `<div style="background:var(--b2);border-radius:6px;padding:5px 7px;
+               margin-bottom:4px;border-left:2px solid ${z.col}">
+            <div style="font-size:.65rem;font-weight:600;color:${z.col}">${z.name}</div>
+            <div style="font-size:.6rem;color:var(--t3)">${count} eventos</div>
+            <div style="font-size:.6rem;color:var(--t2)">máx M${mxZ}</div>
+          </div>`;
+        }).join("");
+      })()}
+      <div style="font-size:.56rem;color:var(--t3);margin-top:6px;line-height:1.4">
+        lon[-32,-4]<br>lat[27,45]
+      </div>
+    </div>
   </div>`;
 
-  /* ── MAPA SVG Hardcoded ── */
+  /* ── MAPA CANVAS grande ── */
   (function(){
     const canvas=document.getElementById("seis-map-canvas");
     if(!canvas) return;
-    const W=200,H=140,ctx=canvas.getContext("2d");
-    const minLon=-32,maxLon=5,minLat=26,maxLat=46;
-    const padLon=(maxLon-minLon)*0.03, padLat=(maxLat-minLat)*0.03;
+
+    const rect=canvas.getBoundingClientRect();
+    const W=rect.width||canvas.parentElement.offsetWidth||600;
+    const H=280;
+    canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext("2d");
+
+    /* Bounding box: Ibéria + Açores + Atlântico N */
+    const minLon=-32, maxLon=5, minLat=26, maxLat=46;
+
     function proj(lat,lon){
-      const x=(lon-(minLon-padLon))/((maxLon+padLon)-(minLon-padLon))*W;
-      const y=(1-(lat-(minLat-padLat))/((maxLat+padLat)-(minLat-padLat)))*H;
+      const pad=0.02;
+      const x=(lon-minLon)/(maxLon-minLon)*(W*(1-pad*2))+W*pad;
+      const y=(1-(lat-minLat)/(maxLat-minLat))*(H*(1-pad*2))+H*pad;
       return [x,y];
     }
-    /* Fundo */
-    ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
-    /* Grid */
-    ctx.strokeStyle="rgba(255,255,255,0.03)"; ctx.lineWidth=0.4;
-    [-30,-20,-10,0].forEach(lon=>{const[x]=proj(35,lon);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
-    [30,40].forEach(lat=>{const[,y]=proj(lat,0);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
-    /* Países */
-    function drawPath(d,fill,stroke){
-      const p=new Path2D(d);
-      ctx.fillStyle=fill;ctx.fill(p);
-      ctx.strokeStyle=stroke;ctx.lineWidth=0.7;ctx.stroke(p);
-    }
-    drawPath("M128.0,18.6L159.7,18.6L159.8,21.5L167.2,23.6L172.4,25.8L185.0,27.5L185.2,32.3L172.5,38.7L167.0,60.4L141.6,67.7L140.3,70.0L136.5,70.0L130.4,63.4L130.4,60.4L131.2,53.8L132.9,45.8L134.2,40.3L133.1,34.5L135.7,33.5L134.2,30.4L123.7,29.4L123.4,21.5L128.0,18.6Z","#1a2d48","#263d5e");
-    drawPath("M123.7,29.4L134.2,30.4L135.7,33.5L133.1,34.5L134.2,40.3L132.9,45.8L131.2,53.8L130.4,60.4L131.2,63.3L128.9,63.6L128.0,63.7L124.6,63.3L123.0,61.0L123.7,58.6L121.7,53.9L120.4,52.0L121.7,46.1L123.9,40.9L123.9,32.7L124.4,31.2L123.6,30.0L123.7,29.4Z","#1e3454","#2e4a72");
-    drawPath("M138.8,70.7L158.6,73.3L157.6,76.6L138.2,83.2L128.0,79.9L141.3,75.9L138.8,70.7Z","#1a2d3a","#253a4a");
-    drawPath("M168.8,62.7L184.1,63.4L194.3,64.7L184.1,66.7L168.8,65.4L168.8,62.7Z","#1a2a36","#24394a");
-    /* Açores */
-    drawPath("M37.0,57.7L40.8,57.7L40.8,59.0L38.8,59.4L37.0,59.0L37.0,57.7Z","#1e3454","#2e4a72");
-    drawPath("M22.0,52.2L25.0,52.2L25.0,54.2L22.5,54.2L22.0,52.2Z","#1e3454","#2e4a72");
-    drawPath("M80.6,89.2L84.2,89.2L84.2,92.5L81.6,92.5L80.6,89.2Z","#1e3454","#2e4a72");
-    /* Label Açores */
-    const[ax,ay]=proj(39.0,-28.0);
-    ctx.fillStyle="#4A6A8A"; ctx.font="6px monospace"; ctx.fillText("Açores",ax-8,ay-6);
 
-    /* Sismos */
-    seisDots.forEach(d=>{
-      const[x,y]=proj(d.lat,d.lon);
-      if(x<-5||x>W+5||y<-5||y>H+5) return;
-      /* Pulsar ring */
-      ctx.beginPath(); ctx.arc(x,y,d.r*2,0,Math.PI*2);
-      ctx.fillStyle=d.col+"30"; ctx.fill();
-      /* Círculo */
-      ctx.beginPath(); ctx.arc(x,y,d.r,0,Math.PI*2);
-      ctx.fillStyle=d.col; ctx.globalAlpha=0.88; ctx.fill();
-      ctx.globalAlpha=1;
-      ctx.strokeStyle="rgba(255,255,255,0.25)"; ctx.lineWidth=0.5; ctx.stroke();
-    });
+    function draw(geo){
+      /* Fundo oceano */
+      ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
 
-    /* Tooltip */
-    const tip=document.getElementById("seis-map-tip");
-    if(tip){
-      canvas.onmousemove=function(e){
-        const rect=canvas.getBoundingClientRect();
-        const scaleX=W/rect.width, scaleY=H/rect.height;
-        const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
-        let hit=null, minD=Infinity;
-        seisDots.forEach(d=>{
-          const[px,py]=proj(d.lat,d.lon);
-          const dist=Math.hypot(px-mx,py-my);
-          if(dist<14&&dist<minD){minD=dist;hit=d;}
+      /* Grid subtil */
+      ctx.strokeStyle="rgba(255,255,255,0.025)"; ctx.lineWidth=0.4;
+      for(let lon=-30;lon<=4;lon+=5){
+        const[x]=proj(35,lon);
+        ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+        ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.font="7px monospace";
+        ctx.fillText(lon+"°",x+2,H-3);
+      }
+      for(let lat=28;lat<=44;lat+=4){
+        const[,y]=proj(lat,-5);
+        ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+        ctx.fillStyle="rgba(255,255,255,0.2)";
+        ctx.fillText(lat+"°",2,y-2);
+      }
+
+      /* Países */
+      if(geo&&geo.features){
+        geo.features.forEach(f=>{
+          const geom=f.geometry;
+          if(!geom) return;
+          const polys=geom.type==="Polygon"?[geom.coordinates]:
+                       geom.type==="MultiPolygon"?geom.coordinates:[];
+          polys.forEach(poly=>{
+            poly.forEach(ring=>{
+              let inRegion=false;
+              for(let i=0;i<ring.length;i+=8){
+                const lon=ring[i][0], lat=ring[i][1];
+                if(lon>=minLon-2&&lon<=maxLon+2&&lat>=minLat-2&&lat<=maxLat+2){
+                  inRegion=true; break;
+                }
+              }
+              if(!inRegion) return;
+              ctx.beginPath();
+              ring.forEach(([lon,lat],i)=>{
+                const[x,y]=proj(lat,lon);
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+              });
+              ctx.closePath();
+              ctx.fillStyle="#1E2B4A";
+              ctx.fill();
+              ctx.strokeStyle="#2A3A60";
+              ctx.lineWidth=0.7;
+              ctx.stroke();
+            });
+          });
         });
-        if(hit){
-          tip.style.opacity="1";
-          tip.style.left=Math.min(e.offsetX+10,rect.width-170)+"px";
-          tip.style.top=Math.max(e.offsetY-35,4)+"px";
-          tip.innerHTML=hit.label;
-        } else tip.style.opacity="0";
-      };
-      canvas.onmouseleave=()=>tip.style.opacity="0";
+      }
+
+      /* Referências geográficas */
+      const LABELS=[
+        {lat:39.5,lon:-8.0,txt:"Portugal"},
+        {lat:39.0,lon:-3.5,txt:"Espanha"},
+        {lat:38.7,lon:-27.2,txt:"Açores"},
+        {lat:32.7,lon:-17.0,txt:"Madeira"},
+      ];
+      LABELS.forEach(l=>{
+        const[x,y]=proj(l.lat,l.lon);
+        ctx.fillStyle="rgba(110,122,150,0.65)";
+        ctx.font="italic 9px sans-serif";
+        ctx.fillText(l.txt,x,y);
+      });
+
+      /* Sismos */
+      seisDots.forEach(dot=>{
+        const[x,y]=proj(dot.lat,dot.lon);
+        if(x<-10||x>W+10||y<-10||y>H+10) return;
+        const sz=dot.r;
+        /* Glow */
+        const grd=ctx.createRadialGradient(x,y,0,x,y,sz*3.5);
+        grd.addColorStop(0,dot.col+"66"); grd.addColorStop(1,dot.col+"00");
+        ctx.beginPath(); ctx.arc(x,y,sz*3.5,0,Math.PI*2);
+        ctx.fillStyle=grd; ctx.fill();
+        /* Círculo */
+        ctx.beginPath(); ctx.arc(x,y,sz,0,Math.PI*2);
+        ctx.fillStyle=dot.col; ctx.globalAlpha=0.85; ctx.fill();
+        ctx.globalAlpha=1;
+        ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=0.6; ctx.stroke();
+        /* Label magnitude para ≥4 */
+        if(dot.mag>=4.0){
+          ctx.fillStyle="#fff";
+          ctx.font="bold 8px monospace";
+          ctx.textAlign="center";
+          ctx.fillText("M"+dot.mag.toFixed(1),x,y-sz-3);
+          ctx.textAlign="left";
+        }
+      });
+
+      /* Tooltip */
+      const tip=document.getElementById("seis-map-tip");
+      if(tip){
+        canvas.onmousemove=function(e){
+          const rect=canvas.getBoundingClientRect();
+          const scaleX=W/rect.width, scaleY=H/rect.height;
+          const mx=(e.clientX-rect.left)*scaleX, my=(e.clientY-rect.top)*scaleY;
+          let hit=null, minD=Infinity;
+          seisDots.forEach(dot=>{
+            const[px,py]=proj(dot.lat,dot.lon);
+            const dist=Math.hypot(px-mx,py-my);
+            if(dist<Math.max(dot.r+8,14)&&dist<minD){minD=dist;hit=dot;}
+          });
+          if(hit){
+            tip.style.opacity="1";
+            tip.style.left=Math.min(e.offsetX+14,rect.width-230)+"px";
+            tip.style.top=Math.max(e.offsetY-10,4)+"px";
+            tip.innerHTML=hit.label;
+          } else tip.style.opacity="0";
+        };
+        canvas.onmouseleave=()=>tip.style.opacity="0";
+      }
+    }
+
+    /* Usar TopoJSON em cache ou aguardar */
+    if(window._topoCache){
+      draw(window._topoCache);
+    } else {
+      ctx.fillStyle="#0a1520"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#6E7A96"; ctx.font="11px monospace";
+      ctx.textAlign="center";
+      ctx.fillText("A carregar mapa...",W/2,H/2);
+      ctx.textAlign="left";
+      let tries=0;
+      const wait=setInterval(()=>{
+        tries++;
+        if(window._topoCache){ clearInterval(wait); draw(window._topoCache); return; }
+        if(tries>25) clearInterval(wait);
+      },200);
     }
   })();
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    EMISSÕES CO2 — calculado do mix REE (apidatos.ree.es)
