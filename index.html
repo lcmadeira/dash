@@ -5088,9 +5088,21 @@ var EURIBOR_DATA=null;
 /* ── Parser SDMX JSON (formato BCE) ──────────────────────────── */
 function parseBCEseries(json){
   try{
-    const obs  =json.dataSets[0].series["0:0:0:0:0:0"].observations;
-    const dates=json.structure.dimensions.observation[0].values;
-    const rows =[];
+    /* Chave da serie: usar a primeira disponivel (nao hardcodar "0:0:0:0:0:0")
+       O numero de dimensoes varia consoante a serie BCE utilizada */
+    const ds=json.dataSets[0];
+    const seriesKey=Object.keys(ds.series)[0];
+    if(!seriesKey){console.warn("parseBCEseries: sem series");return[];}
+    const obs=ds.series[seriesKey].observations;
+    /* Dimensao temporal: pode estar em observation[0] ou na ultima de series[] */
+    const dimObs=json.structure.dimensions.observation;
+    const dimSer=json.structure.dimensions.series;
+    const timeDim=(dimObs&&dimObs.length>0)
+      ?dimObs[0]
+      :(dimSer&&dimSer.length>0?dimSer[dimSer.length-1]:null);
+    if(!timeDim){console.warn("parseBCEseries: dimensao temporal nao encontrada");return[];}
+    const dates=timeDim.values;
+    const rows=[];
     Object.entries(obs).forEach(([idxStr,vals])=>{
       const idx=parseInt(idxStr);
       if(idx<dates.length&&vals[0]!==null)
