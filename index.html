@@ -3012,6 +3012,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <button class="settings-tab active" onclick="switchSettingsTab('cards', this)">Cards</button>
       <button class="settings-tab" onclick="switchSettingsTab('location', this)">Localização</button>
       <button class="settings-tab" onclick="switchSettingsTab('tickers', this)">Tickers</button>
+      <button class="settings-tab" data-tab="api" onclick="switchSettingsTab('api', this)">🔑 API Keys</button>
     </div>
 
     <div class="settings-body">
@@ -3072,6 +3073,67 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
 
         <div class="ticker-list" id="tickerList"></div>
+      </div>
+
+      <!-- TAB: API Keys -->
+      <div id="settings-api" class="settings-section">
+        <div class="settings-section-title">
+          <span>🔑</span>
+          <span>API Keys</span>
+        </div>
+        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+          Chaves guardadas <b>apenas no teu browser</b> (localStorage). Nunca enviadas a terceiros.
+        </p>
+
+        <!-- Finnhub -->
+        <div style="background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:14px;margin-bottom:14px">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+            <span style="font-size:1.4rem;line-height:1">📅</span>
+            <div style="flex:1">
+              <div style="font-size:.8rem;font-weight:700;margin-bottom:2px">Finnhub · Calendário Económico</div>
+              <div style="font-size:.65rem;color:var(--t3);line-height:1.5">
+                Regista-te gratuitamente em
+                <a href="https://finnhub.io" target="_blank" style="color:var(--accent)">finnhub.io</a>
+                → Dashboard → API Keys → copia a chave.<br>
+                Free tier: 60 calls/min · calendário PT+EU+US+Global incluído.
+              </div>
+            </div>
+            <div id="finnhub-status" style="font-size:.62rem;white-space:nowrap;margin-top:2px"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input type="password" id="finnhub-key-input"
+              placeholder="Cole a chave aqui (ex: d1abc23def456...)"
+              style="flex:1;background:var(--b);border:1px solid var(--b2);border-radius:var(--rs);
+                     padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:.7rem;
+                     outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor='var(--b2)'"
+            />
+            <button onclick="saveFinnhubKey()"
+              style="background:var(--accent);border:none;border-radius:var(--rs);padding:8px 16px;
+                     color:#07090E;font-family:var(--mono);font-size:.65rem;font-weight:700;cursor:pointer;
+                     transition:opacity .15s;white-space:nowrap"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              Guardar e Testar
+            </button>
+            <button onclick="clearFinnhubKey()"
+              title="Remover chave"
+              style="background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
+                     padding:8px 10px;color:var(--t3);font-family:var(--mono);font-size:.65rem;
+                     cursor:pointer;transition:all .15s"
+              onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+              onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--t3)'">
+              ✕
+            </button>
+          </div>
+          <div id="finnhub-test-result" style="font-size:.63rem;color:var(--t3);min-height:16px"></div>
+        </div>
+
+        <div style="background:var(--b2);border-radius:var(--rs);padding:10px 14px;font-size:.65rem;color:var(--t3);line-height:1.7">
+          🔒 As chaves ficam apenas no teu dispositivo — não são enviadas para nenhum servidor.<br>
+          ⚡ Com a chave Finnhub, o Calendário Económico atualiza automaticamente ao abrir o painel.<br>
+          📋 Sem chave, o calendário usa dados estáticos que podes actualizar manualmente aqui.
+        </div>
       </div>
     </div>
 
@@ -3606,13 +3668,16 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
+      <div class="ch-r">
+        <button class="rbtn" onclick="loadAndRenderCalendar(true)" title="Atualizar">↺</button>
+      </div>
     </div>
     <div style="display:flex;gap:4px;margin:6px 0 8px">
       <button class="rbtn on" id="cal-tab-up" onclick="switchCal('upcoming',this)">Próximos</button>
       <button class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
     </div>
     <div id="cal-body"></div>
-    <div class="src">✦ Fed · BCE · INE · BLS · Eurostat</div>
+    <div class="src">✦ Finnhub (live) · Fed · BCE · INE · BLS · Eurostat · <a href="#" onclick="openCalendarSettings();return false" style="color:var(--accent)">Configurar chave</a></div>
   </div>
 
 
@@ -3746,7 +3811,8 @@ function tickMarkets(){
 
 const CFG = { 
   TD_KEY: null, // API key removida por segurança - adiciona a tua em config local
-  IPMA_CITY_ID: 1060300 
+  IPMA_CITY_ID: 1060300,
+  get FINNHUB_KEY() { return localStorage.getItem('finnhub_key') || null; }
 };
 
 /* DATA DE REFERÊNCIA AUTOMÁTICA */
@@ -5417,60 +5483,257 @@ async function tdGet(ep,params,force=false){
   lsSet(ck,j);return j;
 }
 
-/* ── Calendário Económico ── */
-const /* Calendário económico — actualizado 11 Mar 2026
-   Fontes: Fed, BCE, INE, BLS, Eurostat */
-EVENTS=[
-  /* ── Já aconteceu mas relevante como contexto ── */
-  {title:"BCE · Decisão taxas (resultado: -25bp → 2.50%)", date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h",past:true},
-  {title:"NFP EUA fevereiro (+151k)",                      date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
-  {title:"IPC Portugal fevereiro (+2.3% hom.)",            date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m",past:true},
-  /* ── Próximos eventos ── */
-  {title:"IPC EUA fevereiro",            date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",         date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"Confiança consumidor ZE",      date:"14 Mar",time:"15:00",country:"🇪🇺",imp:"l"},
-  {title:"FOMC · Decisão taxas Fed ★",   date:"19 Mar",time:"19:00",country:"🇺🇸",imp:"h"},
-  {title:"PMI Flash Zona Euro (março)",  date:"23 Mar",time:"09:00",country:"🇪🇺",imp:"m"},
-  {title:"PIB EUA Q4 2025 · leitura final",date:"27 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"PIB Portugal Q4 2025 · INE",   date:"28 Mar",time:"11:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC Zona Euro março · flash",  date:"31 Mar",time:"10:00",country:"🇪🇺",imp:"h"},
-  {title:"NFP EUA março",                date:"03 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"IPC Portugal março · INE",     date:"09 Abr",time:"10:00",country:"🇵🇹",imp:"m"},
-  {title:"IPC EUA março",                date:"14 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"Vendas a retalho EUA",         date:"16 Abr",time:"13:30",country:"🇺🇸",imp:"m"},
-  {title:"BCE · Decisão taxas ★",        date:"17 Abr",time:"13:45",country:"🇪🇺",imp:"h"},
-  {title:"PMI Flash Zona Euro (abril)",  date:"23 Abr",time:"09:00",country:"🇪🇺",imp:"m"},
-  {title:"PIB EUA Q1 2026 · 1.ª leitura",date:"29 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
-  {title:"FOMC · Decisão taxas Fed",     date:"07 Mai",time:"19:00",country:"🇺🇸",imp:"h"},
+/* ══════════════════════════════════════════════════════════════
+   CALENDÁRIO ECONÓMICO — Finnhub API + fallback estático
+   Fontes: Finnhub (live, requer chave gratuita) · fallback estático
+   ══════════════════════════════════════════════════════════════ */
+
+/* Fallback estático — usado quando não há chave Finnhub configurada */
+const EVENTS_STATIC=[
+  /* ── Passado recente (contexto) ── */
+  {title:"BCE · Decisão taxas (resultado: -25bp → 2.50%)",date:"06 Mar",time:"13:45",country:"🇪🇺",imp:"h",past:true},
+  {title:"NFP EUA fevereiro (+151k)",                     date:"07 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
+  {title:"IPC Portugal fevereiro (+2.3% hom.)",           date:"11 Mar",time:"10:00",country:"🇵🇹",imp:"m",past:true},
+  {title:"IPC EUA fevereiro",                             date:"12 Mar",time:"13:30",country:"🇺🇸",imp:"h",past:true},
+  {title:"Vendas a retalho EUA (fevereiro)",              date:"14 Mar",time:"13:30",country:"🇺🇸",imp:"m",past:true},
+  {title:"FOMC · Decisão taxas Fed (pausa: 4.25-4.50%)", date:"19 Mar",time:"19:00",country:"🇺🇸",imp:"h",past:true},
+  /* ── Próximos ── */
+  {title:"PMI Flash Zona Euro (março)",        date:"23 Mar",time:"09:00",country:"🇪🇺",imp:"m"},
+  {title:"PIB EUA Q4 2025 · leitura final",    date:"27 Mar",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"PIB Portugal Q4 2025 · INE",         date:"28 Mar",time:"11:00",country:"🇵🇹",imp:"m"},
+  {title:"IPC Zona Euro março · flash",        date:"31 Mar",time:"10:00",country:"🇪🇺",imp:"h"},
+  {title:"NFP EUA março",                      date:"03 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"IPC Portugal março · INE",           date:"09 Abr",time:"10:00",country:"🇵🇹",imp:"m"},
+  {title:"IPC EUA março",                      date:"14 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"Vendas a retalho EUA",               date:"16 Abr",time:"13:30",country:"🇺🇸",imp:"m"},
+  {title:"BCE · Decisão taxas ★",              date:"17 Abr",time:"13:45",country:"🇪🇺",imp:"h"},
+  {title:"PMI Flash Zona Euro (abril)",        date:"23 Abr",time:"09:00",country:"🇪🇺",imp:"m"},
+  {title:"PIB EUA Q1 2026 · 1.ª leitura",     date:"29 Abr",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"FOMC · Decisão taxas Fed",           date:"07 Mai",time:"19:00",country:"🇺🇸",imp:"h"},
+  {title:"BCE · Decisão taxas",                date:"05 Jun",time:"13:45",country:"🇪🇺",imp:"h"},
+  {title:"NFP EUA maio",                       date:"06 Jun",time:"13:30",country:"🇺🇸",imp:"h"},
+  {title:"FOMC · Decisão taxas Fed",           date:"18 Jun",time:"19:00",country:"🇺🇸",imp:"h"},
+  {title:"Reunião G7 · Cimeira",               date:"22 Mai",time:"—",   country:"🌍",imp:"m"},
 ];
+
 var CAL_TAB="upcoming";
+var CAL_EVENTS_LIVE=null; /* cache dos eventos Finnhub */
+
+/* Buscar calendário via Finnhub */
+async function loadCalendarFinnhub(force=false){
+  const key=CFG.FINNHUB_KEY;
+  if(!key) return null;
+  const ck="cal_fh_v2";
+  let cached=force?null:lsGet(ck);
+  if(cached) return cached;
+  const from=new Date().toISOString().slice(0,10);
+  const to=new Date(Date.now()+28*864e5).toISOString().slice(0,10);
+  try{
+    const url=`https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${key}`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(9000)});
+    if(r.status===401||r.status===403) throw new Error("Chave inválida (401/403)");
+    if(!r.ok) throw new Error(`Finnhub HTTP ${r.status}`);
+    const j=await r.json();
+    if(j.error) throw new Error(j.error);
+    const events=j.economicCalendar||[];
+    if(events.length) lsSet(ck,events);
+    return events;
+  }catch(e){
+    console.warn("Finnhub calendar:",e.message);
+    return null;
+  }
+}
+
+/* Converter eventos Finnhub para formato interno */
+function finnhubToEvents(raw){
+  const FLAGS={US:"🇺🇸",EU:"🇪🇺",PT:"🇵🇹",DE:"🇩🇪",FR:"🇫🇷",GB:"🇬🇧",ES:"🇪🇸",
+               JP:"🇯🇵",CN:"🇨🇳",BR:"🇧🇷",IT:"🇮🇹",CA:"🇨🇦",AU:"🇦🇺",IN:"🇮🇳"};
+  /* Países prioritários conforme preferências */
+  const WANTED=new Set(["US","EU","PT","DE","FR","GB","ES","JP","IT"]);
+  const IMP={3:"h",2:"m",1:"l",0:"l"};
+  const today=new Date().toISOString().slice(0,10);
+
+  return raw
+    .filter(e=>WANTED.has(e.country)&&(e.impact||0)>=1)
+    .map(e=>{
+      /* Finnhub devolve timestamps em epoch ms ou string ISO */
+      const tsMs=typeof e.time==="number"?e.time:e.time?new Date(e.time).getTime():null;
+      const dateObj=tsMs?new Date(tsMs):new Date((e.date||today)+"T12:00:00");
+      const dateStr=dateObj.toLocaleDateString("pt-PT",{day:"2-digit",month:"short"});
+      const timeStr=tsMs
+        ? dateObj.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})+" Lisboa"
+        : "—";
+      const isPast=(e.date||today)<today;
+      return{
+        title:e.event||"—",
+        date:dateStr,
+        time:timeStr,
+        country:FLAGS[e.country]||"🌍",
+        imp:IMP[e.impact]||"l",
+        past:isPast,
+        actual:e.actual!=null?e.actual:null,
+        estimate:e.estimate!=null?e.estimate:null,
+        prev:e.prev!=null?e.prev:null,
+        unit:e.unit||"",
+      };
+    })
+    .sort((a,b)=>{
+      /* Ordenar por data numérica: extrair dia/mês do dateStr pt-PT "19 mar." */
+      return a.date>b.date?1:a.date<b.date?-1:0;
+    });
+}
+
 function switchCal(tab,btn){
   CAL_TAB=tab;
   document.querySelectorAll("#cal-tab-up,#cal-tab-pa").forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
   renderCalendar();
 }
+
+/* Carregar Finnhub e renderizar (chamado no boot e no botão ↺) */
+async function loadAndRenderCalendar(force=false){
+  $("cal-body").innerHTML=`<div class="ld"><div class="spin"></div></div>`;
+  const raw=await loadCalendarFinnhub(force);
+  if(raw&&raw.length){
+    CAL_EVENTS_LIVE=finnhubToEvents(raw);
+    console.log(`📅 Finnhub: ${CAL_EVENTS_LIVE.length} eventos carregados`);
+  }else{
+    CAL_EVENTS_LIVE=null;
+  }
+  renderCalendar();
+}
+
 function renderCalendar(){
-  const items=EVENTS.filter(e=>CAL_TAB==="past"?e.past:!e.past);
+  const useLive=!!CAL_EVENTS_LIVE;
+  const source=useLive?CAL_EVENTS_LIVE:EVENTS_STATIC;
+  const hasKey=!!CFG.FINNHUB_KEY;
+
+  const items=source.filter(e=>CAL_TAB==="past"?e.past:!e.past);
+
+  /* Banner de estado */
+  let banner="";
+  if(!hasKey){
+    banner=`<div style="background:var(--b2);border:1px solid var(--b);border-radius:6px;
+      padding:6px 10px;margin-bottom:8px;font-size:.62rem;color:var(--t3);
+      display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span>📋 Dados estáticos (actualizar manualmente) ·
+        <a href="#" onclick="openCalendarSettings();return false"
+           style="color:var(--accent)">Configurar Finnhub</a> para updates automáticos</span>
+    </div>`;
+  }else if(useLive){
+    const upd=new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+    banner=`<div style="background:#10B98112;border:1px solid #10B98130;border-radius:6px;
+      padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#10B981;
+      display:flex;align-items:center;justify-content:space-between">
+      <span>● Finnhub live · próximos 28 dias · ${upd}</span>
+      <button class="rbtn" onclick="loadAndRenderCalendar(true)" style="font-size:.55rem;padding:1px 6px">↺</button>
+    </div>`;
+  }else{
+    banner=`<div style="background:#F59E0B12;border:1px solid #F59E0B30;border-radius:6px;
+      padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#F59E0B">
+      ⚠ Finnhub indisponível · dados estáticos
+    </div>`;
+  }
+
   if(!items.length){
-    $("cal-body").innerHTML=`<div style="padding:16px;text-align:center;font-size:.72rem;color:var(--t3)">
+    $("cal-body").innerHTML=banner+`<div style="padding:16px;text-align:center;font-size:.72rem;color:var(--t3)">
       ${CAL_TAB==="past"?"Sem eventos concluídos registados.":"Sem eventos próximos."}
     </div>`;
     return;
   }
-  $("cal-body").innerHTML=`<div class="ev-list">${items.map(e=>`
-    <div class="ev">
-      <div class="ev-dot" style="background:${CAL_TAB==="past"?"var(--green)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)"}"></div>
+
+  const rows=items.map(e=>{
+    const dotCol=CAL_TAB==="past"?"var(--green)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)";
+
+    /* Linha de resultados reais (só quando Finnhub tem dados) */
+    let resultLine="";
+    if(useLive&&(e.actual!=null||e.estimate!=null)){
+      const parts=[];
+      if(e.actual!=null) parts.push(`<span style="color:var(--green);font-weight:600">Real: ${e.actual}${e.unit}</span>`);
+      if(e.estimate!=null) parts.push(`<span style="color:var(--t3)">Est: ${e.estimate}${e.unit}</span>`);
+      if(e.prev!=null) parts.push(`<span style="color:var(--t3)">Ant: ${e.prev}${e.unit}</span>`);
+      if(parts.length) resultLine=`<div style="margin-top:3px;display:flex;gap:10px;flex-wrap:wrap">${parts.join("")}</div>`;
+    }
+
+    return`<div class="ev">
+      <div class="ev-dot" style="background:${dotCol}"></div>
       <div class="ev-body">
         <div class="ev-title">${e.country} ${e.title}</div>
         <div class="ev-meta">
-          <span>${e.date} · ${e.time} Lisboa</span>
+          <span>${e.date} · ${e.time}</span>
           ${CAL_TAB==="past"
             ?`<span style="font-size:.6rem;color:var(--green);font-weight:600">✓ concluído</span>`
             :`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`}
         </div>
+        ${resultLine}
       </div>
-    </div>`).join("")}</div>`;
+    </div>`;
+  }).join("");
+
+  $("cal-body").innerHTML=banner+`<div class="ev-list">${rows}</div>`;
+}
+
+function openCalendarSettings(){
+  openSettings();
+  setTimeout(()=>{
+    const tab=document.querySelector('.settings-tab[data-tab="api"]');
+    if(tab){ switchSettingsTab("api",tab); }
+  },150);
+}
+
+/* ── Finnhub Key Management ── */
+function initFinnhubKeyUI(){
+  const saved=localStorage.getItem("finnhub_key");
+  const input=document.getElementById("finnhub-key-input");
+  const status=document.getElementById("finnhub-status");
+  if(saved&&input){
+    input.value=saved;
+    if(status){status.textContent="✅ Ativa";status.style.color="#10B981";}
+  }
+}
+
+function saveFinnhubKey(){
+  const input=document.getElementById("finnhub-key-input");
+  if(!input) return;
+  const val=(input.value||"").trim();
+  if(!val){alert("Introduz uma chave válida.");return;}
+  const result=document.getElementById("finnhub-test-result");
+  const status=document.getElementById("finnhub-status");
+  if(result){result.textContent="⏳ A testar chave...";result.style.color="var(--t3)";}
+  const from=new Date().toISOString().slice(0,10);
+  const to=new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  fetch(`https://finnhub.io/api/v1/calendar/economic?from=${from}&to=${to}&token=${val}`,
+    {signal:AbortSignal.timeout(9000)})
+    .then(r=>{
+      if(r.status===401||r.status===403)throw new Error("Chave inválida — verifica em finnhub.io");
+      if(!r.ok)throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then(j=>{
+      if(j.error)throw new Error(j.error);
+      localStorage.setItem("finnhub_key",val);
+      if(result){result.textContent=`✅ Chave válida! ${(j.economicCalendar||[]).length} eventos carregados.`;result.style.color="#10B981";}
+      if(status){status.textContent="✅ Ativa";status.style.color="#10B981";}
+      /* Recarregar calendário com nova chave */
+      setTimeout(()=>loadAndRenderCalendar(true),300);
+    })
+    .catch(e=>{
+      if(result){result.textContent=`❌ ${e.message}`;result.style.color="#EF4444";}
+      if(status){status.textContent="❌ Erro";status.style.color="#EF4444";}
+    });
+}
+
+function clearFinnhubKey(){
+  if(!confirm("Remover chave Finnhub?"))return;
+  localStorage.removeItem("finnhub_key");
+  const input=document.getElementById("finnhub-key-input");
+  const result=document.getElementById("finnhub-test-result");
+  const status=document.getElementById("finnhub-status");
+  if(input)input.value="";
+  if(result){result.textContent="Chave removida. O calendário voltará aos dados estáticos.";result.style.color="var(--t3)";}
+  if(status)status.textContent="";
+  CAL_EVENTS_LIVE=null;
+  renderCalendar();
 }
 
 /* ── Boot ── */
@@ -5478,7 +5741,7 @@ loadWeather();
 loadNews("pt",true);
 loadNews("world",true);
 renderFuel();
-renderCalendar();
+loadAndRenderCalendar(); /* Finnhub se tiver chave, senão fallback estático */
 loadHolidays();
 renderInflation();
 renderEuribor();
@@ -9086,6 +9349,7 @@ function openSettings() {
   renderCardToggles();
   renderLocationGrid();
   renderTickerList();
+  initFinnhubKeyUI();
   console.log('Conteúdo renderizado!');
 }
 
