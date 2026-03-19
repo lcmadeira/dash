@@ -4635,6 +4635,17 @@ function renderTrendChart(canvas, history, options = {}) {
 }
 
 
+
+/* ── switchHolTab — tabs dentro do resumo de feriados ── */
+function switchHolTab(tab, btn) {
+  document.querySelectorAll("#hol-tab-res, #hol-tab-hol").forEach(b => b.classList.remove("on"));
+  if (btn) btn.classList.add("on");
+  const resumo   = document.getElementById("hol-resumo");
+  const feriados = document.getElementById("hol-feriados");
+  if (resumo)   resumo.style.display   = tab === "resumo"   ? "" : "none";
+  if (feriados) feriados.style.display = tab === "feriados" ? "" : "none";
+}
+
 /* ── Feriados ── */
 function switchWxHol(tab,btn){
   document.querySelectorAll("#wxhol-tab-wx,#wxhol-tab-res,#wxhol-tab-hol")
