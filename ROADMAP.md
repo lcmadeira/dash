@@ -55,7 +55,8 @@
 
 ### 3.2 Personalização → ✅ **CONCLUÍDO** (13/03/2026)
 - [x] Painel de configurações com 3 tabs (Cards, Localização, Tickers)
-- [x] Toggle de visibilidade de 31 cards configuráveis
+- [x] Toggle de visibilidade de **31 cards configuráveis** (via Settings)
+- [x] **Cabaz Alimentar** existe como card extra fixo (`data-card-id="cabaz"`) — fora do painel de Cards
 - [x] Drag & Drop para reordenar cards
 - [x] Seleção de localização (11 cidades IPMA)
 - [x] Gestão de tickers favoritos (até 10)
@@ -70,11 +71,13 @@
 - [x] **Picos de Energia REE** — trigger ≥20% acima da média diária
 - [x] Toast popups temporários + persistência localStorage
 - [x] Marcar lidas / dispensar individualmente
-- [ ] Monitoramento automático periódico *(bloqueado por CORS — requer backend)*
+- [x] Função de monitorização periódica implementada (`startNotificationMonitoring()`), mas **desativada por default** (chamada comentada)
+- [ ] Expor toggle nas Settings + hardening (rate limits/erros) antes de ativar por defeito
 - [ ] Alertas meteorológicos (IPMA)
 - [ ] Modal de configuração de thresholds
 
-**Limitação**: Monitoramento automático desativado. Funciona: verificação ao carregar + refresh manual (↺).
+**Limitação**: Monitoramento automático (dedicado) desativado. Funciona: verificação ao carregar + refresh manual (↺).
+> Nota: existe refresh periódico global (setInterval) a cada ~15 minutos; a rotina dedicada de 5 minutos (`startNotificationMonitoring`) está desativada por default.
 
 ### 3.4 Exportar Dados
 - [x] Modal com 4 formatos (PNG, PDF, CSV, JSON) — base implementada
@@ -96,6 +99,12 @@
 - [x] Botão "Tentar novamente" nos erros de sismos
 - [ ] Fallback cache para restantes cards
 
+### 4.2.1 Labels de fonte (linha `.src`) → 🟡 **Pendente**
+- [ ] Alinhar texto de fonte com a implementação real (hoje há inconsistências no HTML base):
+  - PSI 20: `.src` diz Yahoo Finance, mas o fetch é Stooq CSV via proxy
+  - Market Stats (`mstats`): `.src` diz gold-api.com/EIA, mas o fetch é Stooq + Frankfurter + CoinGecko
+  - Euribor: `.src` diz EMMI, mas o fetch principal é BCE (EMMI fica como fallback)
+
 ### 4.3–4.4 Tooltips & Animações
 - [ ] Tooltips em termos técnicos (gCO₂/kWh, MW, Euribor, etc.)
 - [ ] Animação ↺ durante fetch
@@ -111,29 +120,42 @@
 |------|-------|------|---------|
 | Meteorologia | IPMA | Live | Não |
 | Combustíveis | API Aberta PT | Live | Não |
+| Cabaz Alimentar | DECO PROteste (manual + histórico local) | Manual | Não |
+| Petróleo | TradingView (Brent/WTI) | Live | Não |
 | Eletricidade | REE `apidatos.ree.es` `/pt/` | Live | Não |
 | Câmbios EUR | Frankfurter (BCE) | Live | Não |
 | Criptomoedas | CoinGecko | Live | Não |
 | Sismos | USGS | Live | Não |
-| PSI 20 / Bolsa | Stooq CSV | Live (fecho) | Não |
-| Indicadores Mercado | Stooq + Frankfurter + CoinGecko | Live | Não |
+| Mercados Financeiros | TradingView (Advanced Chart) | Live | Não |
+| PSI 20 / Bolsa | Stooq CSV (via proxies CORS) | Live (com fallback) | Não |
+| Indicadores Mercado | Stooq + Frankfurter + CoinGecko | Live (com fallback) | Não |
 | Preços Agrícolas | Yahoo Finance + Stooq | Live | Não |
 | Fear & Greed | Alternative.me | Live | Não |
 | Recessão 10Y-2Y | FRED St. Louis | Live | Não |
 | Tráfego Aéreo | OpenSky Network | Live | Não |
 | Notícias | Google News RSS | Live | Não |
-| Geopolítica | Crisis Group / BBC RSS | Live | Não |
+| Geopolítica (RSS) | Crisis Group + outras fontes RSS | Live | Não |
+| Conflitos Globais | Dataset local (refs ACLED/CFR/UCDP) | Manual | Não |
+| Emissões CO₂ (PT) | DGEG/REN 2024 (dataset local) | Manual | Não |
+| Liberdade Imprensa/Democracia | RSF/EIU/Freedom House 2024 (dataset local) | Manual | Não |
+| Mapa de Calor | TradingView (Heatmap) | Live | Não |
 | Feriados | date.nager.at | Cache anual | Não |
 | Calendário Económico | **Gerado algoritmicamente** | Auto | Não |
 | **Euribor** | **BCE `data-api.ecb.europa.eu`** | **Live** | **Não** |
 | **Inflação PT/EU** | **Eurostat `PRC_HICP_MANR`** | **Live** | **Não** |
-| Imobiliário | INE (estático trimestral) | Manual | Não |
-| Gás Natural | ICIS/GIE AGSI+ (estático mensal) | Manual | Não |
+| Imobiliário | INE API (via proxies) + fallback estático | Live (parcial) | Não |
+| Gás Natural EU | Stooq (TTF + hubs) | Live | Não |
+| Gás Natural PT | MIBGAS/ERSE (tarifas) | Manual | Não |
+| Exportações PT | INE/AICEP (dataset estático 2024) | Manual | Não |
+| Dívida Pública | Eurostat 2024 (dataset estático) | Manual | Não |
+| Salário mínimo/custo vida | DGERT/INE/Eurostat (dataset local) | Manual | Não |
+| Transportes PT | CP/Carris/Metro (dataset local) | Manual | Não |
 
 ### 5.1 Dados a automatizar (prioridade média)
 - [x] ~~**Inflação**~~ — ✅ Eurostat SDMX API (`PRC_HICP_MANR`) — **concluído 20/03/2026**
-- [ ] **Imobiliário** — INE API (disponível, verificar endpoints)
-- [ ] **Gás Natural** — MIBGAS e GIE AGSI+ têm APIs públicas
+- [x] **Imobiliário** — INE API live (via proxies CORS) + fallback estático (ref. Q3 2025)
+- [x] **Gás Natural (EU)** — TTF/hubs via Stooq (via proxies CORS)
+- [ ] **Gás Natural (PT)** — automatizar MIBGAS spot + storage (AGSI+) e reduzir dependência de dados manuais
 
 ### 5.2 Novas fontes
 - [ ] **Qualidade do ar** 🟡 — OpenAQ (gratuita, sem chave)
@@ -234,7 +256,7 @@
   - Badge "● Eurostat live" ou "⚠ estático" consoante fonte
   - Cache `inflation_eurostat_v1` (24h TTL)
   - setInterval actualizado para `initInflation(true)`
-  - Script de patch: `apply_inflation_eurostat.py`
+  - (Nota) Não existe script externo no repo — a migração está toda no `index.html`
 
 ### v1.2.0 — Planeado
 - [ ] Modularização do código (JS + CSS separados) ← **TOP PRIORITY**
