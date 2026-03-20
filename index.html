@@ -4155,12 +4155,13 @@ async function loadElec(force=false){
     const today=new Date(), hh=today.getHours();
     const todayStr=today.toISOString().slice(0,10);
     const yesterStr=new Date(today-864e5).toISOString().slice(0,10);
-    const ck="elec_v2";
+    const ck="elec_v3"; /* v3: corrigido endpoint /pt/ MIBEL Portugal */
     let cached=force?null:lsGet(ck);
 
     if(!cached){
       /* ── Fetch REE com múltiplos proxies + fallback stale ── */
       async function fetchREE(path){
+        /* MIBEL Portugal: usar locale /pt/ (não /en/ que dá preços ES) */
         const base="https://apidatos.ree.es";
         const full=base+path;
         const attempts=[
@@ -4203,12 +4204,32 @@ async function loadElec(force=false){
         if(!j) return null;
         const inc=j.included||[];
         if(!inc.length) return null;
-        const spot=inc.find(s=>{
+        /* Prioridade: preço spot/OMIE (excluir PVPC e componentes tarifárias) */
+        const PREFER=["spot","omie","mercado diário","mercado diario","precio mercado"];
+        const EXCLUDE=["pvpc","término","termino","componente","peaje","cargo"];
+        let spot=inc.find(s=>{
           const t=(s.attributes?.title||s.attributes?.type||"").toLowerCase();
-          return t.includes("spot")||t.includes("precio spot")||
-                 t.includes("pvpc")||t.includes("omie")||t.includes("mercado");
-        })||inc[0];
-        return spot?.attributes?.values||null;
+          const hasPrefer=PREFER.some(p=>t.includes(p));
+          const hasExclude=EXCLUDE.some(p=>t.includes(p));
+          return hasPrefer && !hasExclude;
+        });
+        /* Fallback: qualquer série com "spot" */
+        if(!spot) spot=inc.find(s=>
+          (s.attributes?.title||"").toLowerCase().includes("spot"));
+        /* Último recurso: primeira série cujos valores pareçam preços de mercado */
+        if(!spot){
+          spot=inc.find(s=>{
+            const vals=s.attributes?.values||[];
+            if(!vals.length) return false;
+            const v=parseFloat(vals[Math.floor(vals.length/2)]?.value);
+            return !isNaN(v) && v>=0 && v<=500; /* sanidade: 0-500 €/MWh */
+          })||inc[0];
+        }
+        /* Validação de sanidade dos valores */
+        const raw=spot?.attributes?.values||null;
+        if(!raw) return null;
+        const sane=raw.filter(v=>parseFloat(v.value)>=0&&parseFloat(v.value)<=500);
+        return sane.length>=12?sane:raw; /* usar raw se maioria for válida */
       };
 
       const todayVals=parseVals(todayData);
@@ -4415,7 +4436,10 @@ async function loadElec(force=false){
       <div style="background:${ctx.bg};border:1px solid ${ctx.col}33;
            border-radius:10px;padding:10px 12px">
         <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-             letter-spacing:.5px;margin-bottom:2px">Spot MIBEL · ${dl}</div>
+             letter-spacing:.5px;margin-bottom:2px">
+          Spot MIBEL PT · ${dl}
+          <span style="font-size:.48rem;background:#3B82F622;color:#3B82F6;border-radius:3px;padding:1px 4px;margin-left:3px">apidatos.ree.es/pt</span>
+        </div>
         <div style="display:flex;align-items:flex-end;gap:5px">
           <div style="font-size:2rem;font-weight:900;color:${ctx.col};
                line-height:1">${now.toFixed(1)}</div>
