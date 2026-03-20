@@ -126,12 +126,12 @@
 | Feriados | date.nager.at | Cache anual | Não |
 | Calendário Económico | **Gerado algoritmicamente** | Auto | Não |
 | **Euribor** | **BCE `data-api.ecb.europa.eu`** | **Live** | **Não** |
-| Inflação PT/EU | INE/Eurostat (estático mensal) | Manual | Não |
+| **Inflação PT/EU** | **Eurostat `PRC_HICP_MANR`** | **Live** | **Não** |
 | Imobiliário | INE (estático trimestral) | Manual | Não |
 | Gás Natural | ICIS/GIE AGSI+ (estático mensal) | Manual | Não |
 
 ### 5.1 Dados a automatizar (prioridade média)
-- [ ] **Inflação** — Eurostat SDMX API (CORS nativo, verificar)
+- [x] ~~**Inflação**~~ — ✅ Eurostat SDMX API (`PRC_HICP_MANR`) — **concluído 20/03/2026**
 - [ ] **Imobiliário** — INE API (disponível, verificar endpoints)
 - [ ] **Gás Natural** — MIBGAS e GIE AGSI+ têm APIs públicas
 
@@ -212,26 +212,35 @@
   - 5 proxies CORS, stale-while-revalidate melhorado
 - ✅ **Calendário Económico** — totalmente algorítmico, sem API key
   - FOMC 2025-2026, BCE 2025-2026 (datas fixas oficiais)
-  - NFP: 1.ª sexta-feira de cada mês
-  - CPI EUA/PT, PMI Flash ZE, PIB EUA/PT, Vendas Retalho: calculados dinamicamente
-  - Janela: 2 meses atrás → 6 meses à frente; botão ↺ regenera
+  - NFP, CPI, PMI, PIB, Vendas Retalho: calculados dinamicamente
+  - Janela: 2 meses atrás → 6 meses à frente
 
 ### v1.1.3 — Euribor BCE Live (20/03/2026)
 - ✅ **Euribor** — migrado de EMMI estático para **API BCE live** (`euribor_live_v1`)
   - Endpoint: `data-api.ecb.europa.eu/service/data/FM/…` (CORS nativo, sem chave)
   - 5 maturidades: 1S, 1M, 3M, 6M, 12M via séries SDMX JSON
-  - `parseBCEseries()` — parser robusto com chave de série dinâmica (`Object.keys(ds.series)[0]`)
+  - `parseBCEseries()` — parser robusto com chave de série dinâmica
   - Estratégia: fallback EMMI visível imediatamente → BCE em background → actualiza se responder
   - Badge "● BCE live" ou "⚠ EMMI estático" consoante fonte
   - Cache `euribor_live_v1` (24h TTL)
-  - Botão ↺ force-refresh
+
+### v1.1.4 — Inflação Eurostat Live (20/03/2026)
+- ✅ **Inflação PT vs Zona Euro** — migrado de dados estáticos para **Eurostat API live**
+  - Dataset: `PRC_HICP_MANR` (HICP monthly, annual rate of change)
+  - Geo: `PT` (Portugal) + `EA20` (Zona Euro 20 membros)
+  - CORS nativo, sem chave, sem proxy necessário
+  - Parser JSON-stat robusto — lida com `EA20`, `EA` e outros agregados da Zona Euro
+  - Estratégia idêntica ao Euribor: fallback estático imediato → API em background
+  - Badge "● Eurostat live" ou "⚠ estático" consoante fonte
+  - Cache `inflation_eurostat_v1` (24h TTL)
+  - setInterval actualizado para `initInflation(true)`
+  - Script de patch: `apply_inflation_eurostat.py`
 
 ### v1.2.0 — Planeado
 - [ ] Modularização do código (JS + CSS separados) ← **TOP PRIORITY**
-- [ ] Qualidade do ar (OpenAQ) — sem API key
-- [ ] Automação Inflação (Eurostat SDMX)
 - [ ] Automação Imobiliário (INE API)
 - [ ] Automação Gás Natural (MIBGAS/GIE AGSI+)
+- [ ] Qualidade do ar (OpenAQ) — sem API key
 - [ ] Notificações automáticas periódicas (Cloudflare Worker ou backend)
 - [ ] Modo claro/escuro
 
