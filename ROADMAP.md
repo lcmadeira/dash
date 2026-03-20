@@ -83,6 +83,9 @@
 - [x] Modal com 4 formatos (PNG, PDF, CSV, JSON) — base implementada
 - [ ] Melhorar CSV/JSON com dados estruturados reais
 - [ ] Export PNG limitado por iframes TradingView
+- [ ] Ao selecionar cards para export, detetar widgets/iframes (TradingView) e:
+  - marcar como “não exportável” (com tooltip/razão), ou
+  - exportar com placeholder + link para o card
 
 ---
 
@@ -104,6 +107,7 @@
   - PSI 20: `.src` diz Yahoo Finance, mas o fetch é Stooq CSV via proxy
   - Market Stats (`mstats`): `.src` diz gold-api.com/EIA, mas o fetch é Stooq + Frankfurter + CoinGecko
   - Euribor: `.src` diz EMMI, mas o fetch principal é BCE (EMMI fica como fallback)
+- [ ] Rever `.src` do card Eletricidade (garantir que não herda/repete a fonte do card anterior)
 
 ### 4.3–4.4 Tooltips & Animações
 - [ ] Tooltips em termos técnicos (gCO₂/kWh, MW, Euribor, etc.)
@@ -193,6 +197,14 @@
 - [ ] Testes unitários (Jest) para cache e parsing RSS
 - [ ] CI/CD pipeline (GitHub Actions)
 
+### 7.1 Qualidade & Coerência (sugestões a curto prazo)
+- [ ] Remover duplicações no boot (ex.: `loadPSI20()` aparece repetido) e centralizar a sequência de carregamento
+- [ ] Normalizar IDs de cards: garantir que **todos** os cards têm `data-card-id` explícito (evitar depender de auto-mapping)
+- [ ] Integrar o card `cabaz` no sistema de personalização (visibilidade/reorder) **ou** documentar decisão de o manter fixo
+- [ ] Unificar “refresh global” (15 min) vs “monitorização de notificações” (5 min) com um scheduler único + Page Visibility API (pausar em background)
+- [ ] Extrair lista de proxies CORS e timeouts para config única (evitar divergências entre módulos Stooq/INE/USGS/REE)
+- [ ] Criar wrapper `fetchWithFallback()` + métricas por fonte (taxa de falha, tempo, cache-hit) para diagnóstico rápido
+
 ---
 
 ## 📈 Tracking de Progresso
@@ -260,8 +272,8 @@
 
 ### v1.2.0 — Planeado
 - [ ] Modularização do código (JS + CSS separados) ← **TOP PRIORITY**
-- [ ] Automação Imobiliário (INE API)
-- [ ] Automação Gás Natural (MIBGAS/GIE AGSI+)
+- [ ] Hardening Imobiliário (INE API): retries, validação, e cache robusto (já existe live+fallback)
+- [ ] Automação Gás Natural (PT): MIBGAS spot + (opcional) AGSI+ storage
 - [ ] Qualidade do ar (OpenAQ) — sem API key
 - [ ] Notificações automáticas periódicas (Cloudflare Worker ou backend)
 - [ ] Modo claro/escuro
