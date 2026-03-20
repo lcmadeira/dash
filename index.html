@@ -3219,6 +3219,93 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 
+
+  <!-- Cabaz Alimentar DECO PROteste -->
+  <div class="card" data-card-id="cabaz">
+    <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
+    <div class="ch">
+      <div class="ch-ico" style="background:#10B98120">🛒</div>
+      <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
+      <div class="ch-r">
+        <button class="rbtn" id="cabaz-edit-btn" onclick="openCabazEditor()" title="Actualizar valor desta semana">✏️</button>
+        <button class="rbtn" onclick="renderCabaz()" title="Recarregar">↺</button>
+      </div>
+    </div>
+    <div id="cabaz-body"></div>
+    <div class="src">✦ DECO PROteste · 63 produtos essenciais · monitorização semanal (quartas-feiras) · desde Jan 2022</div>
+  </div>
+
+  <!-- Modal de edição do cabaz -->
+  <div id="cabaz-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+       background:rgba(7,9,14,.92);backdrop-filter:blur(8px);z-index:9999;
+       align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--card);border:1px solid var(--b2);border-radius:12px;
+         max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--b);display:flex;
+           align-items:center;justify-content:space-between">
+        <div style="font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px">
+          🛒 Actualizar Cabaz Alimentar
+        </div>
+        <button onclick="closeCabazEditor()" style="background:var(--surface);border:1px solid var(--b);
+             border-radius:6px;padding:5px 9px;color:var(--t3);cursor:pointer;font-size:1.1rem">✕</button>
+      </div>
+      <div style="padding:22px">
+        <p style="font-size:.72rem;color:var(--t3);margin-bottom:14px;line-height:1.6">
+          Insere o valor do cabaz desta semana (publicado todas as <b style="color:var(--accent)">quartas-feiras</b>
+          pela DECO PROteste). Fonte:
+          <a href="https://www.deco.proteste.pt/familia-consumo/supermercado/noticias/precos-estao-aumentar-alimentos"
+             target="_blank" style="color:var(--blue)">deco.proteste.pt</a>
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div>
+            <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
+                   text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
+              Valor do cabaz (€)
+            </label>
+            <input id="cabaz-input-valor" type="number" step="0.01" min="180" max="400"
+              placeholder="254.32"
+              style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
+                     color:var(--text);font-family:var(--mono);font-size:.9rem;padding:8px 12px;
+                     outline:none;transition:border-color .2s">
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
+                   text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
+              Data da publicação
+            </label>
+            <input id="cabaz-input-data" type="date"
+              style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
+                     color:var(--text);font-family:var(--mono);font-size:.9rem;padding:8px 12px;
+                     outline:none;transition:border-color .2s">
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
+                 text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
+            Nota opcional (produtos que mais subiram, etc.)
+          </label>
+          <input id="cabaz-input-nota" type="text" maxlength="120"
+            placeholder="Ex: Curgete +17%, ovos +6%"
+            style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
+                   color:var(--text);font-family:var(--font);font-size:.75rem;padding:8px 12px;
+                   outline:none;transition:border-color .2s">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="closeCabazEditor()" style="padding:8px 16px;border-radius:var(--rs);
+               font-family:var(--mono);font-size:.65rem;font-weight:600;text-transform:uppercase;
+               cursor:pointer;background:var(--surface);border:1px solid var(--b);color:var(--t3)">
+            Cancelar
+          </button>
+          <button onclick="saveCabazEntry()" style="padding:8px 18px;border-radius:var(--rs);
+               font-family:var(--mono);font-size:.65rem;font-weight:600;text-transform:uppercase;
+               cursor:pointer;background:var(--accent);border:none;color:#07090E">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">🛢️</div>
@@ -5970,6 +6057,7 @@ setInterval(()=>{
   loadElec();loadGeo();loadFX(true);loadCrypto(true);initInflation(true);
   loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);loadImob(true);
   setTimeout(()=>loadMarketStats(true),800);
+  renderCabaz();
   setTimeout(()=>loadPSI20(true),1000);
 },CACHE_TTL);
 
@@ -11657,6 +11745,324 @@ function closeTrendModal() {
   if (trendModal) trendModal.style.display = 'none';
 }
 
+
+
+
+/* ══════════════════════════════════════════════════════════════
+   CABAZ ALIMENTAR DECO PROteste — histórico semanal completo
+   Início monitorização: 5 Jan 2022 (183.63€)
+   Actualizar: botão ✏️ no card (todas as quartas-feiras)
+   Fonte: DECO PROteste comunicados semanais
+   ══════════════════════════════════════════════════════════════ */
+
+/* Histórico anual consolidado (média anual por ano) */
+const CABAZ_ANUAL=[
+  {y:2022, v:195.40, label:"2022", note:"Início guerra Ucrânia · inflação histórica"},
+  {y:2023, v:228.60, label:"2023", note:"Pico inflação alimentar · IVA zero aplicado"},
+  {y:2024, v:237.00, label:"2024", note:"Estabilização · inflação a ceder"},
+  {y:2025, v:243.50, label:"2025", note:"Subida moderada · 2.3% IPC médio"},
+];
+
+/* Histórico semanal (format: [data_iso, valor_eur, nota_opcional])
+   Fonte: DECO PROteste comunicados · Renascença · ECO · RTP · Agroportal
+   Pontos chave reconstituídos de artigos publicados (2022-2026) */
+const CABAZ_HIST_BASE=[
+  /* 2022 */
+  ["2022-01-05", 183.63, "Início da monitorização DECO"],
+  ["2022-03-01", 185.17, "Início invasão Ucrânia · pressão cereais"],
+  ["2022-06-01", 195.00, "Pico inflação energética"],
+  ["2022-08-31", 206.39, "Máximo 2022 · +11% desde Mar"],
+  ["2022-10-01", 208.50, ""],
+  ["2022-12-01", 212.00, ""],
+  /* 2023 */
+  ["2023-01-04", 213.80, ""],
+  ["2023-03-01", 222.00, "IVA zero cabaz 40 produtos (Abr 2023)"],
+  ["2023-04-05", 217.60, "Efeito IVA zero · primeira descida"],
+  ["2023-06-01", 225.00, ""],
+  ["2023-08-01", 229.00, "Máximo intermédio 2023"],
+  ["2023-10-01", 232.00, ""],
+  ["2023-12-01", 234.50, ""],
+  /* 2024 */
+  ["2024-01-03", 235.82, ""],
+  ["2024-03-01", 236.50, ""],
+  ["2024-06-01", 234.00, "Ligeira descida · desinflação"],
+  ["2024-09-01", 238.00, ""],
+  ["2024-11-19", 243.65, ""],
+  ["2024-11-26", 243.65, ""],
+  ["2024-12-01", 244.00, ""],
+  /* 2025 */
+  ["2025-01-07", 241.83, "Início 2025"],
+  ["2025-03-01", 239.50, ""],
+  ["2025-06-01", 237.87, "Cabaz 1 ano antes: 237.87 (ref. Fev 2026)"],
+  ["2025-09-01", 241.00, ""],
+  ["2025-11-26", 243.65, "ref. Alvorada Nov 2025"],
+  ["2025-12-17", 244.37, ""],
+  /* 2026 — dados confirmados em artigos */
+  ["2026-01-07", 241.83, "Início 2026"],
+  ["2026-01-15", 249.09, "Máximo 4 anos · +7.27€ na semana"],
+  ["2026-01-21", 251.49, "Novo máximo · curgete +25% desde Jan"],
+  ["2026-01-28", 249.02, "Ligeira descida · curgete +47% YTD"],
+  ["2026-02-04", 253.09, "Novo máximo · cereais fibra +16%"],
+  ["2026-02-11", 253.43, "Mantém máximo · curgete +96% YTD"],
+  ["2026-02-18", 253.19, ""],
+  ["2026-02-25", 253.19, "4 anos guerra: +69.56€ (+37.88%)"],
+  ["2026-03-12", 254.12, "Novo máximo histórico · +12.30€ desde Jan"],
+  ["2026-03-19", 254.32, "Máximo absoluto histórico"],
+];
+
+const CABAZ_CK = "cabaz_deco_v1";
+
+/* Carregar histórico persistido do localStorage (entradas manuais adicionadas pelo user) */
+function loadCabazHist(){
+  let extra=[];
+  try{
+    const s=localStorage.getItem(CABAZ_CK);
+    if(s) extra=JSON.parse(s);
+  }catch{}
+  /* Merge: base + extra, sem duplicados por data, ordenado */
+  const byDate={};
+  [...CABAZ_HIST_BASE,...extra].forEach(e=>{byDate[e[0]]=e;});
+  return Object.values(byDate).sort((a,b)=>a[0]>b[0]?1:-1);
+}
+
+/* Guardar entrada manual */
+function saveCabazToLS(iso, valor, nota){
+  let extra=[];
+  try{const s=localStorage.getItem(CABAZ_CK);if(s)extra=JSON.parse(s);}catch{}
+  /* Substituir se mesmo dia */
+  extra=extra.filter(e=>e[0]!==iso);
+  extra.push([iso,valor,nota||""]);
+  localStorage.setItem(CABAZ_CK,JSON.stringify(extra));
+}
+
+/* ── Render principal ── */
+function renderCabaz(){
+  const el=document.getElementById("cabaz-body");
+  if(!el)return;
+
+  const hist=loadCabazHist();
+  if(!hist.length){el.innerHTML='<p class="err">Sem dados</p>';return;}
+
+  const cur=hist[hist.length-1];
+  const prev=hist[hist.length-2]||cur;
+  const weekChg=cur[1]-prev[1];
+  const weekPct=(weekChg/prev[1]*100);
+
+  /* Há 1 ano (aprox. 52 entradas atrás, ou a mais próxima de 365 dias) */
+  const curDate=new Date(cur[0]);
+  const yearAgo=hist.filter(e=>new Date(e[0])<=new Date(curDate-365*864e5));
+  const yearRef=yearAgo.length?yearAgo[yearAgo.length-1]:hist[0];
+  const yearChg=cur[1]-yearRef[1];
+  const yearPct=(yearChg/yearRef[1]*100);
+
+  /* Desde início (Jan 2022) */
+  const start=hist[0];
+  const totalChg=cur[1]-start[1];
+  const totalPct=(totalChg/start[1]*100);
+
+  /* Desde início do ano corrente */
+  const curYear=curDate.getFullYear();
+  const startYear=hist.filter(e=>e[0].startsWith(curYear+"-")).shift()||start;
+  const ytdChg=cur[1]-startYear[1];
+
+  /* Sparkline */
+  const vals=hist.map(e=>e[1]);
+  const vMin=Math.min(...vals), vMax=Math.max(...vals), vRng=vMax-vMin||1;
+  const SW=280, SH=52;
+  const spx=i=>Math.round(i/(vals.length-1)*SW);
+  const spy=v=>Math.round(SH-(v-vMin)/vRng*(SH-6)+3);
+  const pts=vals.map((v,i)=>`${spx(i)},${spy(v)}`).join(" ");
+  const fill=pts+` ${SW},${SH+2} 0,${SH+2}`;
+
+  /* Anos para ticks no gráfico */
+  const years=[...new Set(hist.map(e=>e[0].slice(0,4)))];
+  const yearTicks=years.map(y=>{
+    const idx=hist.findIndex(e=>e[0].startsWith(y));
+    return idx>=0?`<text x="${spx(idx)}" y="${SH+14}" font-size="7.5" fill="var(--t3)"
+      text-anchor="middle">${y}</text>`:""
+  }).join("");
+
+  /* Classificação da tendência esta semana */
+  const wCol=weekChg>=0?"#EF4444":"#10B981";
+  const wArr=weekChg>=0?"▲":"▼";
+  const wColYTD=ytdChg>=0?"#EF4444":"#10B981";
+  const wColYear=yearChg>=0?"#EF4444":"#10B981";
+
+  /* Data formatada */
+  const fmtDate=iso=>{
+    const d=new Date(iso+"T12:00:00");
+    return d.toLocaleDateString("pt-PT",{day:"numeric",month:"short",year:"numeric"});
+  };
+
+  el.innerHTML=`
+  <!-- Hero: valor actual + variações -->
+  <div style="background:var(--b2);border-radius:10px;padding:11px 14px;margin-bottom:10px">
+    <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+         letter-spacing:.5px;margin-bottom:3px">
+      Cabaz 63 produtos · ${fmtDate(cur[0])}
+      <span style="font-size:.5rem;background:#F59E0B22;color:#F59E0B;
+            border-radius:3px;padding:1px 5px;margin-left:5px">⚠ dados manuais</span>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
+      <div style="font-size:2.6rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">
+        ${cur[1].toFixed(2)}</div>
+      <div style="font-size:.85rem;color:var(--t3);margin-bottom:4px">€</div>
+      <div style="flex:1"></div>
+      <div style="text-align:right">
+        <div style="font-size:.75rem;font-weight:700;color:${wCol}">
+          ${wArr} ${Math.abs(weekChg).toFixed(2)}€ <span style="font-size:.62rem;font-weight:400">(${Math.abs(weekPct).toFixed(2)}%)</span>
+        </div>
+        <div style="font-size:.6rem;color:var(--t3)">vs semana anterior</div>
+      </div>
+    </div>
+    ${cur[2]?`<div style="font-size:.65rem;color:var(--t3);border-top:1px solid var(--b);
+       padding-top:5px;margin-top:2px">💬 ${cur[2]}</div>`:""}
+  </div>
+
+  <!-- KPIs 4 em grelha -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px">
+    <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
+      <div style="font-size:1rem;font-weight:800;color:${wCol}">${wArr}${Math.abs(weekPct).toFixed(1)}%</div>
+      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">semana</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
+      <div style="font-size:1rem;font-weight:800;color:${wColYTD}">
+        ${ytdChg>=0?"+":""}${ytdChg.toFixed(2)}€</div>
+      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">desde Jan ${curYear}</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
+      <div style="font-size:1rem;font-weight:800;color:${wColYear}">
+        ${yearChg>=0?"+":""}${Math.abs(yearChg).toFixed(2)}€</div>
+      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">vs 1 ano atrás</div>
+    </div>
+    <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
+      <div style="font-size:1rem;font-weight:800;color:#EF4444">
+        +${Math.abs(totalPct).toFixed(1)}%</div>
+      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">desde Jan 2022</div>
+    </div>
+  </div>
+
+  <!-- Sparkline histórico completo -->
+  <div style="background:var(--b2);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <div style="font-size:.62rem;font-weight:600;color:var(--t2)">Evolução Jan 2022 → Hoje</div>
+      <div style="font-size:.6rem;color:var(--t3)">${hist.length} registos</div>
+    </div>
+    <svg viewBox="0 0 ${SW} ${SH+18}" style="width:100%;height:${SH+18}px">
+      <defs>
+        <linearGradient id="cabaz-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#10B981" stop-opacity=".25"/>
+          <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Linha de referência: preço início 2022 -->
+      <line x1="0" y1="${spy(start[1])}" x2="${SW}" y2="${spy(start[1])}"
+            stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="2" y="${spy(start[1])-3}" font-size="6.5" fill="rgba(255,255,255,.3)">
+        ${start[1].toFixed(0)}€
+      </text>
+      <!-- Área + linha -->
+      <polygon points="${fill}" fill="url(#cabaz-grad)"/>
+      <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="2"/>
+      <!-- Ponto actual -->
+      <circle cx="${spx(vals.length-1)}" cy="${spy(cur[1])}" r="4" fill="#10B981"/>
+      <text x="${Math.min(spx(vals.length-1)-2,SW-32)}" y="${spy(cur[1])-6}"
+            font-size="7" fill="#10B981" text-anchor="end" font-weight="bold">
+        ${cur[1].toFixed(2)}€
+      </text>
+      <!-- Ticks de ano -->
+      ${yearTicks}
+    </svg>
+  </div>
+
+  <!-- Comparação anual em barras -->
+  <div style="margin-bottom:10px">
+    <div style="font-size:.62rem;font-weight:600;color:var(--t2);margin-bottom:5px">
+      Média anual do cabaz
+    </div>
+    ${(()=>{
+      const maxV=Math.max(...CABAZ_ANUAL.map(x=>x.v));
+      return CABAZ_ANUAL.map(a=>{
+        const bw=(a.v/maxV*100).toFixed(1);
+        const col=a.y===2022?"#3B82F6":a.y===2023?"#8B5CF6":a.y===2024?"#F59E0B":"#EF4444";
+        return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+          <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);min-width:32px">${a.y}</div>
+          <div style="flex:1;background:var(--b);border-radius:3px;height:7px">
+            <div style="width:${bw}%;height:100%;background:${col};border-radius:3px"></div>
+          </div>
+          <div style="font-family:var(--mono);font-size:.65rem;font-weight:600;color:${col};min-width:52px;text-align:right">
+            ${a.v.toFixed(2)}€</div>
+        </div>
+        <div style="font-size:.55rem;color:var(--t3);margin:-2px 0 4px 39px">${a.note}</div>`;
+      }).join("");
+    })()}
+  </div>
+
+  <!-- Aviso de metodologia e update -->
+  <div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:7px;
+       padding:7px 10px;font-size:.63rem;color:#F59E0B;line-height:1.5">
+    ⚠ Dados actualizados manualmente. A DECO PROteste publica às <b>quartas-feiras</b>.
+    Clica em <b>✏️</b> para adicionar o valor da semana corrente.
+    <a href="https://www.deco.proteste.pt/familia-consumo/supermercado/noticias/precos-estao-aumentar-alimentos"
+       target="_blank" style="color:#F59E0B;text-decoration:underline">Ver em deco.proteste.pt →</a>
+  </div>`;
+}
+
+/* ── Modal de edição ── */
+function openCabazEditor(){
+  const modal=document.getElementById("cabaz-modal");
+  if(!modal)return;
+  modal.style.display="flex";
+
+  /* Pré-preencher com data de hoje e valor actual */
+  const hist=loadCabazHist();
+  const cur=hist[hist.length-1];
+  const today=new Date().toISOString().slice(0,10);
+  const inputData=document.getElementById("cabaz-input-data");
+  const inputValor=document.getElementById("cabaz-input-valor");
+  if(inputData) inputData.value=today;
+  if(inputValor) inputValor.value=cur?cur[1]:"";
+  document.body.style.overflow="hidden";
+}
+
+function closeCabazEditor(){
+  const modal=document.getElementById("cabaz-modal");
+  if(modal)modal.style.display="none";
+  document.body.style.overflow="";
+}
+
+function saveCabazEntry(){
+  const iso=document.getElementById("cabaz-input-data")?.value;
+  const raw=document.getElementById("cabaz-input-valor")?.value;
+  const nota=document.getElementById("cabaz-input-nota")?.value||"";
+  const valor=parseFloat(raw);
+
+  if(!iso||isNaN(valor)||valor<150||valor>600){
+    alert("Insere uma data válida e um valor entre 150€ e 600€.");
+    return;
+  }
+
+  saveCabazToLS(iso,valor,nota);
+  closeCabazEditor();
+  renderCabaz();
+
+  /* Confirmação visual */
+  const btn=document.getElementById("cabaz-edit-btn");
+  if(btn){
+    const orig=btn.textContent;
+    btn.textContent="✓";
+    btn.style.color="var(--green)";
+    setTimeout(()=>{btn.textContent=orig;btn.style.color="";},2000);
+  }
+}
+
+/* Fechar modal ao clicar fora */
+document.getElementById("cabaz-modal")?.addEventListener("click",function(e){
+  if(e.target===this)closeCabazEditor();
+});
+
+/* Boot */
+renderCabaz();
 
 </script>
 </body>
