@@ -3948,6 +3948,7 @@ const CACHE_TTL_MAP = {
   euribor: 24 * 60 * 60 * 1000, // 24h (taxas)
   fuel: 24 * 60 * 60 * 1000,    // 24h (combustíveis)
   co2: 60 * 60 * 1000,          // 1h (emissões)
+  hist: 6 * 60 * 60 * 1000,     // 6h (históricos / séries)
   static: 7 * 24 * 60 * 60 * 1000  // 7 dias (dados estáticos)
 };
 
@@ -4009,6 +4010,25 @@ function lsSet(k, d) {
       return false;
     }
   }
+}
+
+/* ── Dev proxy (local) ── */
+const IS_LOCAL_DEV = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+function localProxyUrl(url){
+  return `/proxy?url=${encodeURIComponent(url)}`;
+}
+async function fetchViaLocalProxy(url, options = {}){
+  return fetch(localProxyUrl(url), { ...options, signal: AbortSignal.timeout(12000) });
+}
+
+function getStaleCache(key){
+  try{
+    const raw = localStorage.getItem(PFX + key);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(parsed && parsed.d) return parsed;
+  }catch{}
+  return null;
 }
 
 /**
@@ -4106,15 +4126,58 @@ async function loadWeather(force=false){
 
 /* ── Google News RSS ── */
 async function fetchRSS(url){
-  try{const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);if(!r.ok)throw 0;const j=await r.json();if(!j.contents)throw 0;return parseRSS(j.contents);}catch{}
-  const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-  if(!r.ok)throw new Error(`HTTP ${r.status}`);return parseRSS(await r.text());
+  const isGoogleNews = /(^|\/\/)news\.google\.com\//i.test(url);
+  const attempts = [];
+
+  /* Em localhost, usar proxy local primeiro (evita CORS e rate-limits de proxies públicos). */
+  if(IS_LOCAL_DEV){
+    attempts.push(async () => {
+      const r = await fetchViaLocalProxy(url);
+      if(!r.ok) throw new Error(`localproxy ${r.status}`);
+      return parseRSS(await r.text());
+    });
+  }
+
+  attempts.push(async () => {
+    const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, {
+      signal: AbortSignal.timeout(12000)
+    });
+    if(!r.ok) throw new Error(`allorigins ${r.status}`);
+    return parseRSS(await r.text());
+  });
+
+  /* Jina pode responder 451 em alguns domínios (ex.: Google News). */
+  if(!isGoogleNews){
+    attempts.push(async () => {
+      const r = await fetch(`https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`, {
+        signal: AbortSignal.timeout(12000)
+      });
+      if(!r.ok) throw new Error(`jina ${r.status}`);
+      return parseRSS(await r.text());
+    });
+  }
+
+  attempts.push(async () => {
+    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, {
+      signal: AbortSignal.timeout(12000)
+    });
+    if(!r.ok) throw new Error(`corsproxy ${r.status}`);
+    return parseRSS(await r.text());
+  });
+
+  let lastErr = null;
+  for (const attempt of attempts) {
+    try { return await attempt(); } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("RSS indisponível");
 }
 
 /* ── Fetch com Proxy CORS ── */
 async function fetchWithCORS(url, options = {}) {
   const proxies = [
+    ...(IS_LOCAL_DEV ? [localProxyUrl(url)] : []),
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`
   ];
   
@@ -4277,10 +4340,240 @@ var GAS_TARIFAS={
   /* Spread MIBGAS-TTF */
   spread:57.30-48.20,
 };
+
+const ELEC_TREND_PREF_KEY = 'elec_trend_pref_v1';
+function getElecTrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + ELEC_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+    return { days };
+  } catch {
+    return { days: 30 };
+  }
+}
+function setElecTrendPref(patch) {
+  const cur = getElecTrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + ELEC_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setElecTrendDays(days) {
+  setElecTrendPref({ days });
+  loadElecTrend(false).catch(() => {});
+}
+
+async function loadElecTrend(force = false) {
+  const canvas = document.getElementById('elecTrendCanvas');
+  const statusEl = document.getElementById('elecTrendStatus');
+  const daysEl = document.getElementById('elecTrendDays');
+  if (!canvas || !statusEl || !daysEl) return;
+
+  const pref = getElecTrendPref();
+  _setOnByDataAttr(daysEl, 'data-days', pref.days);
+  statusEl.textContent = 'A carregar tendência...';
+
+  const cacheKey = 'hist_elec_spot_90';
+  try {
+    let series = (!force) ? lsGet(cacheKey) : null;
+	    if (!series) {
+	      const base = 'https://apidatos.ree.es';
+	      async function fetchREEChunk(startStr, endStr){
+	        const basePath = `/en/datos/mercados/precios-mercados-tiempo-real`;
+	        const mkUrl = (trunc) => `${base}${basePath}?start_date=${startStr}T00:00&end_date=${endStr}T23:59&time_trunc=${trunc}`;
+	        const fullDay = mkUrl("day");
+	        const fullHour = mkUrl("hour");
+
+	        async function fetchJson(full){
+	          const attempts = [
+	            () => fetch(full, { signal: AbortSignal.timeout(9000) }),
+	            () => (IS_LOCAL_DEV ? fetchViaLocalProxy(full) : Promise.reject(0)),
+	            () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+	            () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+	          ];
+	          for (const attempt of attempts) {
+	            try{
+	              const r = await attempt();
+	              if(!r.ok) continue;
+	              const j = await r.json();
+	              if (j && (j.included || j.data)) return j;
+	            }catch{}
+	          }
+	          return null;
+	        }
+
+	        /* Preferir day; se falhar (REE pode dar 500), usar hour e agregar para diário */
+	        const jDay = await fetchJson(fullDay);
+	        if (jDay) return { mode: "day", json: jDay };
+
+	        const jHour = await fetchJson(fullHour);
+	        if (jHour) return { mode: "hour", json: jHour };
+
+	        return null;
+	      }
+
+      const end = new Date();
+      const endStr = end.toISOString().slice(0, 10);
+      const byDate = {};
+
+      /* A API REE por vezes falha (500) com janelas longas; dividir em chunks de 30 dias. */
+      const chunkDays = 30;
+      for(let offset=90-chunkDays; offset>=0; offset-=chunkDays){
+        const chunkEnd = new Date(end.getTime() - offset * 864e5);
+        const chunkStart = new Date(chunkEnd.getTime() - (chunkDays - 1) * 864e5);
+        const s = chunkStart.toISOString().slice(0, 10);
+        const e = chunkEnd.toISOString().slice(0, 10);
+	        const res = await fetchREEChunk(s, e);
+	        if(!res) continue;
+
+	        const inc = res.json.included || [];
+	        const PREFER = ['spot', 'omie', 'mercado diário', 'mercado diario', 'precio mercado'];
+	        const EXCLUDE = ['pvpc', 'término', 'termino', 'componente', 'peaje', 'cargo'];
+	        let spot = inc.find(sx => {
+	          const t = (sx.attributes?.title || sx.attributes?.type || '').toLowerCase();
+	          const hasPrefer = PREFER.some(p => t.includes(p));
+	          const hasExclude = EXCLUDE.some(p => t.includes(p));
+	          return hasPrefer && !hasExclude;
+	        });
+	        if (!spot) spot = inc.find(sx => (sx.attributes?.title || '').toLowerCase().includes('spot'));
+	        if (!spot) spot = inc[0];
+	        const vals = spot?.attributes?.values || [];
+
+	        if(res.mode === "day"){
+	          for (const v of vals) {
+	            const date = (v?.datetime ? new Date(v.datetime) : new Date()).toISOString().slice(0, 10);
+	            const value = Number(v?.value);
+	            if (!Number.isFinite(value)) continue;
+	            byDate[date] = { date, timestamp: Date.parse(date), value };
+	          }
+	        } else if(res.mode === "hour"){
+	          const sums = {};
+	          const counts = {};
+	          for (const v of vals) {
+	            const date = (v?.datetime ? new Date(v.datetime) : new Date()).toISOString().slice(0, 10);
+	            const value = Number(v?.value);
+	            if (!Number.isFinite(value) || value < 0 || value > 500) continue;
+	            sums[date] = (sums[date] || 0) + value;
+	            counts[date] = (counts[date] || 0) + 1;
+	          }
+	          for (const date of Object.keys(sums)) {
+	            const avg = sums[date] / (counts[date] || 1);
+	            byDate[date] = { date, timestamp: Date.parse(date), value: avg };
+	          }
+	        }
+	      }
+
+      series = Object.values(byDate).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      if(series.length >= 10) lsSet(cacheKey, series);
+    }
+
+    let usedLocal = false;
+    if (!Array.isArray(series) || series.length < 2) {
+      const local = getHistory('elec_spot_day', 90)
+        .map(h => ({ date: h.date, timestamp: h.timestamp || Date.parse(h.date), value: Number(h.value) }))
+        .filter(x => x.date && Number.isFinite(x.value))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      if (local.length >= 10) {
+        series = local;
+        usedLocal = true;
+      }
+    }
+    if ((!Array.isArray(series) || series.length < 2) && pref.days <= 7) {
+      /* Último recurso: derivar série diária a partir de time_trunc=hour nos últimos N dias */
+      const N = pref.days;
+      const end = new Date();
+      const days = Array.from({length: N}, (_,i)=>new Date(end.getTime()-(N-1-i)*864e5))
+        .map(d=>d.toISOString().slice(0,10));
+
+      async function fetchREEHours(d){
+        const full = `${base}/en/datos/mercados/precios-mercados-tiempo-real?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`;
+        const attempts = IS_LOCAL_DEV
+          ? [() => fetchViaLocalProxy(full)]
+          : [
+              () => fetch(full, { signal: AbortSignal.timeout(9000) }),
+              () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+              () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+            ];
+        for (const attempt of attempts) {
+          try{
+            const r = await attempt();
+            if(!r.ok) continue;
+            const j = await r.json();
+            if (j && (j.included || j.data)) return j;
+          }catch{}
+        }
+        return null;
+      }
+
+      function pickSpotValues(json){
+        const inc = json?.included || [];
+        const PREFER = ['spot', 'omie', 'mercado diário', 'mercado diario', 'precio mercado'];
+        const EXCLUDE = ['pvpc', 'término', 'termino', 'componente', 'peaje', 'cargo'];
+        let spot = inc.find(sx => {
+          const t = (sx.attributes?.title || sx.attributes?.type || '').toLowerCase();
+          const hasPrefer = PREFER.some(p => t.includes(p));
+          const hasExclude = EXCLUDE.some(p => t.includes(p));
+          return hasPrefer && !hasExclude;
+        });
+        if (!spot) spot = inc.find(sx => (sx.attributes?.title || '').toLowerCase().includes('spot'));
+        if (!spot) spot = inc[0];
+        const vals = spot?.attributes?.values || [];
+        return vals.map(v => Number(v?.value)).filter(v => Number.isFinite(v) && v >= 0 && v <= 500);
+      }
+
+      const out = [];
+      for (const d of days) {
+        const json = await fetchREEHours(d);
+        if(!json) continue;
+        const vals = pickSpotValues(json);
+        if(vals.length < 6) continue;
+        const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+        out.push({ date: d, timestamp: Date.parse(d), value: avg });
+      }
+      if (out.length >= 2) {
+        series = out;
+        usedLocal = true;
+      }
+    }
+
+    if (!Array.isArray(series) || series.length < 2) throw new Error('Histórico MIBEL indisponível');
+
+    const view = _lastN(series, pref.days);
+    if (view.length < 2) throw new Error('Histórico insuficiente');
+
+    const first = view[0]?.value || 0;
+    const last = view[view.length - 1]?.value || 0;
+    const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+    const sign = pct > 0 ? '+' : '';
+
+    renderTrendChart(canvas, view, {
+      label: 'Spot MIBEL',
+      borderColor: '#10B981',
+      backgroundColor: 'rgba(16,185,129,0.10)',
+      unit: ' €/MWh',
+      decimals: 0
+    });
+
+    statusEl.innerHTML = `
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        ${pref.days}D · tendência${usedLocal ? ' · local' : ''}
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        ${sign}${pct.toFixed(1)}%
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        último: ${last.toFixed(0)} €/MWh
+      </span>`;
+  } catch (e) {
+    statusEl.textContent = (e && e.message) ? e.message : 'Tendência indisponível';
+  }
+}
+
 async function loadElec(force=false){
   $("elec-body").innerHTML=skeletonKPIs(4);
   try{
     const T=ELEC_TARIFAS;
+    const trendPref = getElecTrendPref();
     const today=new Date(), hh=today.getHours();
     const todayStr=today.toISOString().slice(0,10);
     const yesterStr=new Date(today-864e5).toISOString().slice(0,10);
@@ -4295,15 +4588,11 @@ async function loadElec(force=false){
         const full=base+path;
         const attempts=[
           ()=>fetch(full,{signal:AbortSignal.timeout(8000)}),
+          ()=>IS_LOCAL_DEV?fetchViaLocalProxy(full):Promise.reject(0),
           ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),
                 {signal:AbortSignal.timeout(10000)}),
           ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(full),
                 {signal:AbortSignal.timeout(10000)}),
-          ()=>fetch("https://thingproxy.freeboard.io/fetch/"+full,
-                {signal:AbortSignal.timeout(10000)}),
-          ()=>fetch("https://api.allorigins.win/get?url="+encodeURIComponent(full),
-                {signal:AbortSignal.timeout(10000)})
-              .then(async r=>{const j=await r.json();return new Response(j.contents||"{}",{status:j.contents?"200":"500"});}),
         ];
         for(const attempt of attempts){
           try{
@@ -4427,20 +4716,17 @@ async function loadElec(force=false){
 
     if(!prices.length){
       /* Stale-while-revalidate: usar cache expirado antes de mostrar erro */
-      const staleRaw=localStorage.getItem("dash_v15_elec_v2");
-      if(staleRaw){
-        try{
-          const so=JSON.parse(staleRaw);
-          const sp=(so.d?.todayVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
-          if(sp.length){
-            cached=so.d;
-            const age=Math.round((Date.now()-(so.ts||0))/60000);
-            const warn=document.createElement("div");
-            warn.style.cssText="background:#F59E0B12;border:1px solid #F59E0B44;border-radius:6px;padding:5px 10px;font-size:.6rem;color:#F59E0B;margin-bottom:8px";
-            warn.textContent="⚠ Dados em cache (há "+age+"min) · API REE temporariamente inacessível";
-            const eb=$("elec-body"); if(eb.firstChild) eb.insertBefore(warn,eb.firstChild);
-          }
-        }catch{}
+      const stale = getStaleCache(ck) || getStaleCache("elec_v2") || getStaleCache("elec_v1");
+      if(stale){
+        const sp=(stale.d?.todayVals||[]).map(v=>parseFloat(v.value)).filter(v=>!isNaN(v)&&v>=0);
+        if(sp.length){
+          cached=stale.d;
+          const age=Math.round((Date.now()-(stale.ts||0))/60000);
+          const warn=document.createElement("div");
+          warn.style.cssText="background:#F59E0B12;border:1px solid #F59E0B44;border-radius:6px;padding:5px 10px;font-size:.6rem;color:#F59E0B;margin-bottom:8px";
+          warn.textContent="⚠ Dados em cache (há "+age+"min) · API REE temporariamente inacessível";
+          const eb=$("elec-body"); if(eb.firstChild) eb.insertBefore(warn,eb.firstChild);
+        }
       }
       if(!(cached?.todayVals?.length)) throw new Error("Sem dados MIBEL · API REE inacessível");
     }
@@ -4450,6 +4736,7 @@ async function loadElec(force=false){
     const now=prices[Math.min(hh,prices.length-1)]??avg;
     const yesterAvg=yesterPrices.length?yesterPrices.reduce((a,b)=>a+b)/yesterPrices.length:null;
     const yoyChg=yesterAvg?((avg-yesterAvg)/yesterAvg*100):null;
+    try{ addToHistory('elec_spot_day', avg); }catch{}
 
     /* Contexto caro/barato */
     const pct=(now-min)/(max-min||1);
@@ -4626,6 +4913,20 @@ async function loadElec(force=false){
       ${chartLabel==="hoje"?`· <span style="color:#10B98188">▬</span> melhor janela`:""}
     </div>
 
+    <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+        <div id="elecTrendStatus" style="flex:1;min-width:0"></div>
+        <div id="elecTrendDays" style="display:flex;gap:4px;flex-shrink:0">
+          <button class="rbtn ${trendPref.days===7?'on':''}"  data-days="7"  onclick="setElecTrendDays(7)">7D</button>
+          <button class="rbtn ${trendPref.days===30?'on':''}" data-days="30" onclick="setElecTrendDays(30)">30D</button>
+          <button class="rbtn ${trendPref.days===90?'on':''}" data-days="90" onclick="setElecTrendDays(90)">90D</button>
+        </div>
+      </div>
+      <div style="height:120px">
+        <canvas id="elecTrendCanvas"></canvas>
+      </div>
+    </div>
+
     ${mixHtml()}
 
     <!-- Tarifas ERSE 2026 -->
@@ -4664,12 +4965,14 @@ async function loadElec(force=false){
                  background:${t.col};border-radius:3px"></div>
           </div>
         </div>`).join("")}
-      <div style="font-size:.58rem;color:var(--t3);margin-top:2px">
-        💡 Tri-horária mais económica para consumo concentrado fora de ponta · 
-        Bi-horária ideal para uso nocturno · 
-        Período actual destacado <span style="color:#10B981">●</span>
-      </div>
+    <div style="font-size:.58rem;color:var(--t3);margin-top:2px">
+      💡 Tri-horária mais económica para consumo concentrado fora de ponta · 
+      Bi-horária ideal para uso nocturno · 
+      Período actual destacado <span style="color:#10B981">●</span>
+    </div>
     </div>`;
+
+    loadElecTrend(false).catch(()=>{});
 
   }catch(e){
     $("elec-body").innerHTML=`${er(e.message)}
@@ -4696,7 +4999,7 @@ async function loadElec(force=false){
 
 // Armazena snapshots de dados ao longo do tempo
 const HISTORY_PREFIX = 'hist_';
-const MAX_HISTORY_DAYS = 30; // Manter 30 dias de histórico
+const MAX_HISTORY_DAYS = 90; // Manter 90 dias de histórico (7/30/90)
 
 /**
  * Adiciona entrada ao histórico
@@ -4771,6 +5074,7 @@ function renderTrendChart(canvas, history, options = {}) {
   };
   
   const cfg = { ...defaults, ...options };
+  const pointRadius = history.length > 40 ? 0 : 3;
   
   // Preparar dados
   const labels = history.map(h => {
@@ -4779,7 +5083,8 @@ function renderTrendChart(canvas, history, options = {}) {
   });
   
   const data = history.map(h => {
-    return typeof h.value === 'object' ? (h.value.price || h.value.value || 0) : h.value;
+    const raw = typeof h.value === 'object' ? (h.value.price || h.value.value || 0) : h.value;
+    return Number(raw) || 0;
   });
   
   // Criar gráfico
@@ -4800,7 +5105,7 @@ function renderTrendChart(canvas, history, options = {}) {
         borderWidth: 2,
         tension: 0.4,
         fill: true,
-        pointRadius: 3,
+        pointRadius,
         pointHoverRadius: 5
       }]
     },
@@ -4819,7 +5124,7 @@ function renderTrendChart(canvas, history, options = {}) {
         y: {
           beginAtZero: false,
           ticks: {
-            callback: (val) => val.toFixed(cfg.decimals) + cfg.unit,
+            callback: (val) => Number(val).toFixed(cfg.decimals) + cfg.unit,
             color: '#7A85A0',
             font: { size: 10 }
           },
@@ -4835,6 +5140,64 @@ function renderTrendChart(canvas, history, options = {}) {
       }
     }
   });
+}
+
+function _lastN(arr, n) {
+  if (!Array.isArray(arr)) return [];
+  if (!n || n <= 0) return [];
+  return arr.slice(Math.max(0, arr.length - n));
+}
+
+function _setOnByDataAttr(rootEl, attr, val) {
+  if (!rootEl) return;
+  const all = rootEl.querySelectorAll(`[${attr}]`);
+  all.forEach(b => b.classList.toggle('on', b.getAttribute(attr) === String(val)));
+}
+
+async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
+  const cacheKey = `hist_stooq_${sym}_d_${maxDays}`;
+  if (!force) {
+    const cached = lsGet(cacheKey);
+    if (Array.isArray(cached) && cached.length >= 10) return cached;
+  }
+
+  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`;
+  const proxies = [
+    ...(IS_LOCAL_DEV ? [localProxyUrl(url)] : []),
+    "https://r.jina.ai/http://" + url.replace(/^https?:\/\//, ""),
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(url.replace("stooq.com", "stooq.pl")),
+    "https://corsproxy.io/?url=" + encodeURIComponent(url),
+  ];
+
+  for (const p of proxies) {
+    try {
+      const r = await fetch(p, { signal: AbortSignal.timeout(11000) });
+      if (!r.ok) continue;
+      const csv = (await r.text()).trim();
+      const lines = csv.split("\n").filter(Boolean);
+      if (lines.length < 5) continue;
+
+      const out = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(",");
+        const date = (cols[0] || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const close = Number(cols[4]);
+        if (!Number.isFinite(close)) continue;
+        out.push({ date, timestamp: Date.parse(date), value: close });
+      }
+      out.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+      const sliced = _lastN(out, maxDays);
+      if (sliced.length >= 10) {
+        lsSet(cacheKey, sliced);
+        return sliced;
+      }
+    } catch {}
+  }
+
+  throw new Error("Stooq histórico indisponível");
 }
 
 
@@ -5608,7 +5971,154 @@ function renderFX(date){
       </div>
     </div>`;
   }).join("")}</div>
+
+  <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+      <div id="fxTrendStatus" style="flex:1;min-width:0"></div>
+      <div id="fxTrendDays" style="display:flex;gap:4px;flex-shrink:0">
+        <button class="rbtn" data-days="7"  onclick="setFXTrendDays(7)">7D</button>
+        <button class="rbtn on" data-days="30" onclick="setFXTrendDays(30)">30D</button>
+        <button class="rbtn" data-days="90" onclick="setFXTrendDays(90)">90D</button>
+      </div>
+      <div id="fxTrendPairs" style="display:flex;gap:4px;flex-shrink:0">
+        <button class="rbtn on" data-code="USD" onclick="setFXTrendCode('USD')">USD</button>
+        <button class="rbtn" data-code="GBP" onclick="setFXTrendCode('GBP')">GBP</button>
+      </div>
+    </div>
+    <div style="height:120px">
+      <canvas id="fxTrendCanvas"></canvas>
+    </div>
+  </div>
+
   <div class="src" style="margin-top:8px">✦ BCE · ${date||""} · Frankfurter API · Taxa oficial de referência</div>`;
+
+  try{
+    FX_PAIRS.forEach(p=>{
+      const rate = Number(fxRates?.[p.code]);
+      if (Number.isFinite(rate) && rate > 0) addToHistory(`fx_${p.code}`, rate);
+    });
+  }catch{}
+
+  loadFXTrend(false).catch(()=>{});
+}
+
+const FX_TREND_PREF_KEY = 'fx_trend_pref_v1';
+function getFXTrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + FX_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const code = (parsed?.code && typeof parsed.code === 'string') ? parsed.code : 'USD';
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+    return { code, days };
+  } catch {
+    return { code: 'USD', days: 30 };
+  }
+}
+function setFXTrendPref(patch) {
+  const cur = getFXTrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + FX_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setFXTrendDays(days) {
+  setFXTrendPref({ days });
+  loadFXTrend(false).catch(() => {});
+}
+function setFXTrendCode(code) {
+  setFXTrendPref({ code });
+  loadFXTrend(false).catch(() => {});
+}
+
+async function loadFXTrend(force = false) {
+  const canvas = document.getElementById('fxTrendCanvas');
+  const statusEl = document.getElementById('fxTrendStatus');
+  const daysEl = document.getElementById('fxTrendDays');
+  const pairsEl = document.getElementById('fxTrendPairs');
+  if (!canvas || !statusEl || !daysEl || !pairsEl) return;
+
+  const pref = getFXTrendPref();
+  _setOnByDataAttr(daysEl, 'data-days', pref.days);
+  _setOnByDataAttr(pairsEl, 'data-code', pref.code);
+  statusEl.textContent = 'A carregar histórico...';
+
+  const cacheKey = `hist_fx_${pref.code}_90`;
+  try {
+    let series = (!force) ? lsGet(cacheKey) : null;
+    if (!series) {
+      const end = new Date();
+      const start = new Date(end.getTime() - (90 - 1) * 864e5);
+      const startStr = start.toISOString().slice(0, 10);
+      const endStr = end.toISOString().slice(0, 10);
+      const url = `https://api.frankfurter.dev/v1/${startStr}..${endStr}?from=EUR&to=${encodeURIComponent(pref.code)}`;
+
+      let json = null;
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(9000) });
+        if (r.ok) json = await r.json();
+      } catch {}
+      if (!json?.rates) throw new Error('Frankfurter indisponível');
+
+      const out = Object.entries(json.rates)
+        .map(([date, obj]) => {
+          const value = Number(obj?.[pref.code] ?? obj);
+          return { date, timestamp: Date.parse(date), value };
+        })
+        .filter(x => x.date && Number.isFinite(x.value))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+      if (out.length < 10) throw new Error('Histórico insuficiente');
+      series = out;
+      lsSet(cacheKey, series);
+    }
+
+    const view = _lastN(series, pref.days);
+    if (view.length < 2) throw new Error('Histórico insuficiente');
+
+    const first = view[0]?.value || 0;
+    const last = view[view.length - 1]?.value || 0;
+    const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+    const sign = pct > 0 ? '+' : '';
+
+    const col = pref.code === 'GBP' ? 'var(--purple)' : 'var(--blue)';
+    renderTrendChart(canvas, view, {
+      label: `EUR→${pref.code}`,
+      borderColor: col,
+      backgroundColor: (pref.code === 'GBP') ? 'rgba(149,117,240,0.10)' : 'rgba(75,150,243,0.10)',
+      unit: ` ${pref.code}`,
+      decimals: pref.code === 'JPY' ? 2 : 4
+    });
+
+    statusEl.innerHTML = `
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        ${pref.days}D · EUR→${pref.code}
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        ${sign}${pct.toFixed(1)}%
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        último: ${last.toFixed(pref.code === 'JPY' ? 2 : 4)}
+      </span>`;
+  } catch (e) {
+    try {
+      const local = getHistory(`fx_${pref.code}`, 90)
+        .map(h => ({ date: h.date, timestamp: h.timestamp || Date.parse(h.date), value: Number(h.value) }))
+        .filter(x => Number.isFinite(x.value))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      const view = _lastN(local, pref.days);
+      if (view.length >= 2) {
+        renderTrendChart(canvas, view, {
+          label: `EUR→${pref.code}`,
+          borderColor: pref.code === 'GBP' ? 'var(--purple)' : 'var(--blue)',
+          backgroundColor: (pref.code === 'GBP') ? 'rgba(149,117,240,0.10)' : 'rgba(75,150,243,0.10)',
+          unit: ` ${pref.code}`,
+          decimals: pref.code === 'JPY' ? 2 : 4
+        });
+        statusEl.textContent = `${pref.days}D · histórico local (sem Frankfurter)`;
+        return;
+      }
+    } catch {}
+    statusEl.textContent = (e && e.message) ? e.message : 'Histórico indisponível';
+  }
 }
 
 /* ── Inflação PT vs Zona Euro ── */
@@ -5827,6 +6337,112 @@ const CRYPTO_IDS=[
   {id:"ripple",     name:"XRP",      sym:"XRP",color:"#22D3EE"},
   {id:"binancecoin",name:"BNB",      sym:"BNB",color:"#F59E0B"},
 ];
+
+const CRYPTO_TREND_PREF_KEY = 'crypto_trend_pref_v1';
+function getCryptoTrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + CRYPTO_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const coinId = parsed?.coinId || 'bitcoin';
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+    return { coinId, days };
+  } catch {
+    return { coinId: 'bitcoin', days: 30 };
+  }
+}
+function setCryptoTrendPref(patch) {
+  const cur = getCryptoTrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + CRYPTO_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setCryptoTrendDays(days) {
+  const next = setCryptoTrendPref({ days });
+  loadCryptoTrend(false).catch(() => {});
+  return next;
+}
+function setCryptoTrendCoin(coinId) {
+  const next = setCryptoTrendPref({ coinId });
+  loadCryptoTrend(false).catch(() => {});
+  return next;
+}
+
+function _cgDailyFromPrices(prices) {
+  const byDate = {};
+  for (const row of prices || []) {
+    const ts = row?.[0];
+    const price = Number(row?.[1]);
+    if (!ts || !Number.isFinite(price)) continue;
+    const date = new Date(ts).toISOString().slice(0, 10);
+    byDate[date] = { date, timestamp: ts, value: price };
+  }
+  return Object.values(byDate).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+}
+
+async function loadCryptoTrend(force = false) {
+  const canvas = document.getElementById('cryptoTrendCanvas');
+  const statusEl = document.getElementById('cryptoTrendStatus');
+  const daysEl = document.getElementById('cryptoTrendDays');
+  const coinsEl = document.getElementById('cryptoTrendCoins');
+  if (!canvas || !statusEl || !daysEl || !coinsEl) return;
+
+  const pref = getCryptoTrendPref();
+  _setOnByDataAttr(daysEl, 'data-days', pref.days);
+  _setOnByDataAttr(coinsEl, 'data-coin', pref.coinId);
+
+  const meta = CRYPTO_IDS.find(c => c.id === pref.coinId) || CRYPTO_IDS[0];
+  const cacheKey = `hist_cg_${meta.id}_90`;
+  statusEl.textContent = 'A carregar histórico...';
+
+  try {
+    let series = (!force) ? lsGet(cacheKey) : null;
+    if (!series) {
+      const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(meta.id)}/market_chart?vs_currency=eur&days=90`;
+      let json = null;
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
+        if (r.ok) json = await r.json();
+      } catch {}
+      if (!json) {
+        const rp = await fetch('https://corsproxy.io/?' + encodeURIComponent(url), { signal: AbortSignal.timeout(11000) });
+        if (!rp.ok) throw new Error(`CoinGecko ${rp.status}`);
+        json = await rp.json();
+      }
+      series = _cgDailyFromPrices(json?.prices);
+      lsSet(cacheKey, series);
+    }
+
+    const view = _lastN(series, pref.days);
+    if (view.length < 2) throw new Error('Histórico insuficiente');
+
+    const first = view[0]?.value || 0;
+    const last = view[view.length - 1]?.value || 0;
+    const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+    const sign = pct > 0 ? '+' : '';
+
+    renderTrendChart(canvas, view, {
+      label: `${meta.sym}/EUR`,
+      borderColor: meta.color,
+      backgroundColor: meta.color + '18',
+      unit: ' €',
+      decimals: last >= 100 ? 0 : 2
+    });
+
+    statusEl.innerHTML = `
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        ${pref.days}D
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        ${sign}${pct.toFixed(1)}%
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        último: €${fmtP(last, last >= 100 ? 0 : 2)}
+      </span>`;
+  } catch (e) {
+    statusEl.textContent = (e && e.message) ? e.message : 'Histórico indisponível';
+  }
+}
+
 async function loadCrypto(force=false){
   $("crypto-body").innerHTML=skeletonKPIs(6);
   try{
@@ -5840,6 +6456,15 @@ async function loadCrypto(force=false){
       const r={ok:true};data=cgData;
       lsSet("cg",data);
     }
+    /* Snapshot diário (localStorage) */
+    try{
+      CRYPTO_IDS.forEach(c=>{
+        const price = Number(data?.[c.id]?.eur);
+        if (Number.isFinite(price) && price > 0) addToHistory(`crypto_${c.id}`, price);
+      });
+    }catch{}
+
+    const pref = getCryptoTrendPref();
     $("crypto-body").innerHTML=`<div class="crypto-grid">${CRYPTO_IDS.map(c=>{
       const q=data[c.id],price=q?.eur||0,pc=q?.eur_24h_change||0;
       return`<div class="ci2">
@@ -5847,6 +6472,27 @@ async function loadCrypto(force=false){
         <div class="ci2-name">${c.name}</div>
         <div class="ci2-price" style="color:${c.color}">${price>0?"€"+fmtP(price,price>100?2:4):"—"}</div>
       </div>`;}).join("")}</div>`;
+
+    $("crypto-body").innerHTML += `
+      <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+          <div id="cryptoTrendStatus" style="flex:1;min-width:0"></div>
+          <div id="cryptoTrendDays" style="display:flex;gap:4px;flex-shrink:0">
+            <button class="rbtn ${pref.days===7?'on':''}"  data-days="7"  onclick="setCryptoTrendDays(7)">7D</button>
+            <button class="rbtn ${pref.days===30?'on':''}" data-days="30" onclick="setCryptoTrendDays(30)">30D</button>
+            <button class="rbtn ${pref.days===90?'on':''}" data-days="90" onclick="setCryptoTrendDays(90)">90D</button>
+          </div>
+          <div id="cryptoTrendCoins" style="display:flex;gap:4px;flex-shrink:0">
+            <button class="rbtn ${pref.coinId==='bitcoin'?'on':''}"  data-coin="bitcoin"  onclick="setCryptoTrendCoin('bitcoin')">BTC</button>
+            <button class="rbtn ${pref.coinId==='ethereum'?'on':''}" data-coin="ethereum" onclick="setCryptoTrendCoin('ethereum')">ETH</button>
+          </div>
+        </div>
+        <div style="height:120px">
+          <canvas id="cryptoTrendCanvas"></canvas>
+        </div>
+      </div>`;
+
+    loadCryptoTrend(false).catch(()=>{});
   }catch(e){$("crypto-body").innerHTML=er(e.message);}
 }
 
@@ -6132,6 +6778,23 @@ function polBarW(key, val) {
   return Math.min(100, Math.round(val / p.bad * 100));
 }
 
+function estimateEuropeanAqiFromPols(pols) {
+  /* Aproximação simples: mapear cada poluente para escala 0-100 e usar o pior caso. */
+  function scoreFor(key, val) {
+    const p = AQ_POLS.find(x => x.key === key);
+    if (!p || val == null || !Number.isFinite(val)) return null;
+    const v = Number(val);
+    if (v <= p.good) return Math.round((v / p.good) * 20);
+    if (v <= p.mod)  return Math.round(20 + ((v - p.good) / (p.mod - p.good)) * 40); // 20-60
+    if (v <= p.bad)  return Math.round(60 + ((v - p.mod) / (p.bad - p.mod)) * 40);  // 60-100
+    return 110;
+  }
+  const keys = ["pm2_5","pm10","no2","o3","so2"];
+  const scores = keys.map(k => scoreFor(k, pols[k])).filter(s => s != null);
+  if (!scores.length) return null;
+  return Math.max(...scores);
+}
+
 async function loadAirQuality(force=false) {
   const el = $("aq-body");
   if (!el) return;
@@ -6146,33 +6809,59 @@ async function loadAirQuality(force=false) {
 
   if (!data) {
     try {
-      /* Air Quality API — tenta cams_global (cobertura mundial garantida)
-         O modelo cams_europe pode falhar com "SurfacePressureAndHeight"
-         em certas coordenadas ibéricas perto da costa ou interior */
-      const AQ_BASE = `https://air-quality-api.open-meteo.com/v1/air-quality`
+      /* Air Quality API — alguns parâmetros mudam/falham consoante o backend.
+         Estratégia: tentar variantes (forecast_hours vs forecast_days, domains) e,
+         em localhost, usar proxy local primeiro para evitar rate limits externos. */
+      const base = `https://air-quality-api.open-meteo.com/v1/air-quality`
         + `?latitude=${coords.lat}&longitude=${coords.lon}`
-        + `&hourly=european_aqi,pm10,pm2_5,no2,o3,so2`
-        + `&forecast_days=1`;
+        + `&timezone=Europe%2FLisbon`;
 
-      let r = null;
-      /* Tentativa 1: sem domínio especificado (auto) */
-      try {
-        r = await fetch(AQ_BASE, {signal: AbortSignal.timeout(10000)});
-        if (!r.ok) r = null;
-      } catch { r = null; }
+      const hourlySets = [
+        "european_aqi,pm10,pm2_5,no2,o3,so2",
+        "pm10,pm2_5,no2,o3,so2",
+        "pm10,pm2_5",
+      ];
 
-      /* Tentativa 2: forçar cams_global */
-      if (!r) {
-        try {
-          r = await fetch(AQ_BASE + `&domains=cams_global`,
-            {signal: AbortSignal.timeout(10000)});
-          if (!r.ok) r = null;
-        } catch { r = null; }
+      const variants = [];
+      hourlySets.forEach(hs => {
+        const b = `${base}&hourly=${encodeURIComponent(hs)}`;
+        variants.push(`${b}&forecast_hours=24`);
+        variants.push(`${b}&forecast_days=1`);
+        variants.push(`${b}&forecast_hours=24&domains=cams_europe`);
+        variants.push(`${b}&forecast_hours=24&domains=cams_global`);
+      });
+
+      async function tryFetchJson(url){
+        const attempts = IS_LOCAL_DEV
+          ? [() => fetchViaLocalProxy(url), () => fetch(url, {signal: AbortSignal.timeout(10000)})]
+          : [() => fetch(url, {signal: AbortSignal.timeout(10000)})];
+
+        let last = null;
+        for(const a of attempts){
+          try{
+            const r = await a();
+            if(!r.ok){
+              const txt = await r.text().catch(()=> "");
+              last = new Error(`HTTP ${r.status}${txt?` · ${txt.slice(0,120)}`:""}`);
+              continue;
+            }
+            return await r.json();
+          }catch(e){
+            last = e;
+          }
+        }
+        throw last || new Error("Falha de rede");
       }
 
-      if (!r) throw new Error(`Open-Meteo AQ indisponível (tentativas esgotadas)`);
+      let lastErr = null;
+      for(const u of variants){
+        try{
+          data = await tryFetchJson(u);
+          break;
+        }catch(e){ lastErr = e; }
+      }
+      if(!data) throw new Error(`Open-Meteo AQ indisponível (${lastErr?.message||"tentativas esgotadas"})`);
 
-      data = await r.json();
       if (data.error) throw new Error(`Open-Meteo AQ: ${data.reason||data.error}`);
 
       /* UV Index: buscar da API forecast (mesmo endpoint que IPMA usa internamente) */
@@ -6180,7 +6869,7 @@ async function loadAirQuality(force=false) {
         const uvUrl = `https://api.open-meteo.com/v1/forecast`
           + `?latitude=${coords.lat}&longitude=${coords.lon}`
           + `&hourly=uv_index&forecast_days=1&timezone=Europe%2FLisbon`;
-        const ru = await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
+        const ru = IS_LOCAL_DEV ? await fetchViaLocalProxy(uvUrl, {signal: AbortSignal.timeout(8000)}) : await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
         if (ru.ok) {
           const ju = await ru.json();
           if (ju.hourly?.uv_index) data._uv = ju.hourly.uv_index;
@@ -6207,12 +6896,23 @@ async function loadAirQuality(force=false) {
   }
 
   /* Valores actuais = hora do array */
-  const aqi    = Math.round(hourly.european_aqi?.[hIdx] ?? 0);
-  const pm25   = hourly.pm2_5?.[hIdx] ?? null;
-  const pm10   = hourly.pm10?.[hIdx]  ?? null;
-  const no2    = hourly.no2?.[hIdx]   ?? null;
-  const o3     = hourly.o3?.[hIdx]    ?? null;
-  const so2    = hourly.so2?.[hIdx]   ?? null;
+  const polMapNow = {
+    pm2_5: hourly.pm2_5?.[hIdx] ?? null,
+    pm10:  hourly.pm10?.[hIdx]  ?? null,
+    no2:   hourly.no2?.[hIdx]   ?? null,
+    o3:    hourly.o3?.[hIdx]    ?? null,
+    so2:   hourly.so2?.[hIdx]   ?? null,
+  };
+
+  const aqiLive = hourly.european_aqi?.[hIdx];
+  const aqiEst = estimateEuropeanAqiFromPols(polMapNow);
+  const aqiIsEstimated = !(aqiLive != null && Number.isFinite(aqiLive));
+  const aqi = Math.round(aqiIsEstimated ? (aqiEst ?? 0) : aqiLive);
+  const pm25   = polMapNow.pm2_5;
+  const pm10   = polMapNow.pm10;
+  const no2    = polMapNow.no2;
+  const o3     = polMapNow.o3;
+  const so2    = polMapNow.so2;
   const uv     = data._uv?.[hIdx]     ?? null;
 
   const info = aqiInfo(aqi);
@@ -6220,15 +6920,16 @@ async function loadAirQuality(force=false) {
   /* Atualizar badge no header */
   const badge = $("aq-aqi-badge");
   if (badge) {
-    badge.textContent = `AQI ${aqi} · ${info.label}`;
+    badge.textContent = `AQI ${aqiIsEstimated ? "~" : ""}${aqi} · ${info.label}`;
     badge.style.color = info.col;
     badge.style.borderColor = info.col + "44";
     badge.style.background = info.bg;
   }
 
-  /* Previsão horária AQI (próximas 8h) */
-  const aqiHourly = hourly.european_aqi || [];
-  const aqiNext8 = aqiHourly.slice(hIdx, hIdx + 8);
+  /* Previsão horária AQI (próximas 8h) — só mostrar quando existir série europeam_aqi real */
+  const hasLiveAqiSeries = Array.isArray(hourly.european_aqi) && hourly.european_aqi.length > 0;
+  const aqiHourly = hasLiveAqiSeries ? hourly.european_aqi : [];
+  const aqiNext8 = hasLiveAqiSeries ? aqiHourly.slice(hIdx, hIdx + 8) : [];
 
   /* Poluentes disponíveis */
   const polMap = {pm2_5: pm25, pm10: pm10, no2: no2, o3: o3, so2: so2};
@@ -6267,13 +6968,13 @@ async function loadAirQuality(force=false) {
   }).join("") : "";
 
   /* UV */
-  const uvLine = uv != null ? (() => {
-    const uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
-    const uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
-    return `<span style="font-size:.65rem;color:${uvCol};background:${uvCol}15;
-      border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">
-      ☀️ UV ${uv.toFixed(1)} · ${uvLabel}</span>`;
-  })() : "";
+  let uvLabel = null, uvCol = null;
+  if (uv != null && Number.isFinite(uv)) {
+    uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
+    uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
+  }
+  const uvLine = (uvLabel && uvCol) ? `<span style="font-size:.65rem;color:${uvCol};background:${uvCol}15;
+      border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">☀️ UV ${uv.toFixed(1)} · ${uvLabel}</span>` : "";
 
   const updTime = now.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"});
 
@@ -6285,16 +6986,16 @@ async function loadAirQuality(force=false) {
       <div style="font-size:2.6rem;font-weight:900;color:${info.col};
            line-height:1;letter-spacing:-2px">${aqi}</div>
       <div style="font-size:.58rem;color:${info.col};font-weight:700;
-           text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU</div>
+           text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU${aqiIsEstimated ? " (est.)" : ""}</div>
     </div>
     <div style="flex:1">
-      <div style="font-size:.9rem;font-weight:700;color:${info.col}">${info.label}</div>
+      <div style="font-size:.9rem;font-weight:700;color:${info.col}">
+        ${info.label}
+        ${aqiIsEstimated ? `<span style="font-family:var(--mono);font-size:.55rem;color:${info.col};background:${info.col}12;border:1px solid ${info.col}33;border-radius:999px;padding:1px 7px;margin-left:6px">est.</span>` : ""}
+      </div>
       <div style="font-size:.65rem;color:var(--t2);margin-top:2px">${coords.name} · ${updTime}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
-        <span style="font-size:.65rem;color:${uvCol};background:${uvCol}15;
-              border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">
-          ☀️ UV ${uv.toFixed(0)} · ${uvLabel}
-        </span>
+        ${uvLine}
       </div>
     </div>
     <!-- Escala AQI -->
@@ -7198,9 +7899,9 @@ async function loadImob(force=false){
   async function fetchINE(varcd){
     const url=buildINEUrl(varcd);
     const proxies=[
+      ...(IS_LOCAL_DEV?[localProxyUrl(url)]:[]),
       "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
       "https://corsproxy.io/?url="+encodeURIComponent(url),
-      "https://thingproxy.freeboard.io/fetch/"+encodeURIComponent(url),
     ];
     for(const p of proxies){
       try{
@@ -7374,6 +8075,82 @@ setTimeout(renderImob,300);
 /* ══════════════════════════════════════════════════════
    SALÁRIO MÍNIMO & CUSTO DE VIDA · PT
    ══════════════════════════════════════════════════════ */
+const TTF_TREND_PREF_KEY = 'ttf_trend_pref_v1';
+function getTTFTrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + TTF_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+    return { days };
+  } catch {
+    return { days: 30 };
+  }
+}
+function setTTFTrendPref(patch) {
+  const cur = getTTFTrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + TTF_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setTTFTrendDays(days) {
+  setTTFTrendPref({ days });
+  loadTTFTrend(false).catch(() => {});
+}
+
+async function loadTTFTrend(force = false) {
+  const canvas = document.getElementById('ttfTrendCanvas');
+  const statusEl = document.getElementById('ttfTrendStatus');
+  const daysEl = document.getElementById('ttfTrendDays');
+  if (!canvas || !statusEl || !daysEl) return;
+
+  const pref = getTTFTrendPref();
+  _setOnByDataAttr(daysEl, 'data-days', pref.days);
+  statusEl.textContent = 'A carregar tendência...';
+
+  try {
+    let series = null;
+    try {
+      series = await fetchStooqDailySeries('tg.f', 90, force);
+    } catch {
+      const local = getHistory('ttf_eur_mwh', 90)
+        .map(h => ({ date: h.date, timestamp: h.timestamp || Date.parse(h.date), value: Number(h.value) }))
+        .filter(x => Number.isFinite(x.value) && x.value > 0)
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      if (local.length >= 10) series = local;
+    }
+
+    if (!series || series.length < 2) throw new Error('Histórico insuficiente');
+    const view = _lastN(series, pref.days);
+    if (view.length < 2) throw new Error('Histórico insuficiente');
+
+    const first = view[0]?.value || 0;
+    const last = view[view.length - 1]?.value || 0;
+    const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+    const sign = pct > 0 ? '+' : '';
+
+    renderTrendChart(canvas, view, {
+      label: 'TTF EUR/MWh',
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59,130,246,0.10)',
+      unit: ' €/MWh',
+      decimals: 0
+    });
+
+    statusEl.innerHTML = `
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        ${pref.days}D · TTF
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        ${sign}${pct.toFixed(1)}%
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        último: ${last.toFixed(1)} €/MWh
+      </span>`;
+  } catch (e) {
+    statusEl.textContent = (e && e.message) ? e.message : 'Tendência indisponível';
+  }
+}
+
 function loadTTF(force=false){
   const el=document.getElementById("ttf-body");
   if(!el) return;
@@ -7433,10 +8210,10 @@ function loadTTF(force=false){
   async function fetchTTFStooq(){
     const url=`https://stooq.com/q/l/?s=tg.f&f=sd2t2ohlcv&h&e=csv`;
     const proxies=[
+      ...(IS_LOCAL_DEV?[localProxyUrl(url)]:[]),
       "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
       "https://corsproxy.io/?url="+encodeURIComponent(url),
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(
-        url.replace("stooq.com","stooq.pl")),
+      "https://api.allorigins.win/raw?url="+encodeURIComponent(url.replace("stooq.com","stooq.pl")),
     ];
     for(const p of proxies){
       try{
@@ -7488,6 +8265,7 @@ function loadTTF(force=false){
 
   /* ── Render com dados TTF (live ou estático) ─────────────── */
   function render(ttfData, sourceLabel){
+    const trendPref = getTTFTrendPref();
     const ttfPrice = ttfData?.price ?? 38.5;
     const ttfPrev  = ttfData?.prev  ?? 40.2;
     const ttfHi    = ttfData?.hi    ?? ttfPrice*1.01;
@@ -7554,6 +8332,20 @@ function loadTTF(force=false){
       </div>
     </div>
 
+    <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+        <div id="ttfTrendStatus" style="flex:1;min-width:0"></div>
+        <div id="ttfTrendDays" style="display:flex;gap:4px;flex-shrink:0">
+          <button class="rbtn ${trendPref.days===7?'on':''}"  data-days="7"  onclick="setTTFTrendDays(7)">7D</button>
+          <button class="rbtn ${trendPref.days===30?'on':''}" data-days="30" onclick="setTTFTrendDays(30)">30D</button>
+          <button class="rbtn ${trendPref.days===90?'on':''}" data-days="90" onclick="setTTFTrendDays(90)">90D</button>
+        </div>
+      </div>
+      <div style="height:120px">
+        <canvas id="ttfTrendCanvas"></canvas>
+      </div>
+    </div>
+
     <!-- Tabela hubs (TTF live + restantes estáticos) -->
     <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       🌍 Hubs europeus · spot
@@ -7612,6 +8404,8 @@ function loadTTF(force=false){
     <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
       ⚠️ Reservas EU abaixo da média histórica. Meta: 90% até Nov 2026.
     </div>`;
+
+    loadTTFTrend(false).catch(()=>{});
   }
 
   /* ── Inicialização: cache → fallback → fetch live ───────── */
@@ -7634,6 +8428,7 @@ function loadTTF(force=false){
       const data = await fetchTTFStooq();
       if(data){
         lsSet(CK, data);
+        try{ addToHistory('ttf_eur_mwh', data.price); }catch{}
         render(data, "Stooq");
         console.log("✅ TTF Stooq live: "+data.price.toFixed(1)+" €/MWh ("+data.chg.toFixed(2)+"%)");
         return;
@@ -7645,6 +8440,7 @@ function loadTTF(force=false){
       const data = await fetchTTFYahoo();
       if(data){
         lsSet(CK, data);
+        try{ addToHistory('ttf_eur_mwh', data.price); }catch{}
         render(data, "Yahoo");
         console.log("✅ TTF Yahoo live: "+data.price.toFixed(1)+" €/MWh");
         return;
@@ -7662,17 +8458,7 @@ function loadGasPT(force=false){
   const el=document.getElementById("gaspt-body");
   if(!el) return;
 
-  /* ══════════════════════════════════════════════════════════════
-     GÁS NATURAL PT — MIBGAS estimado via TTF live + spread sazonal
-     Fonte TTF : Stooq tg.f (cache ttf_live_v1, partilhado com card TTF)
-     Metodologia: MIBGAS ≈ TTF + spread sazonal
-       O spread reflecte: custo GNL ibérico (Sines/Huelva/Bilbau),
-       capacidade interligação França, sazonalidade inverno/verão.
-     Tarifas ERSE: Deliberação Out 2025 (válidas até Out 2026)
-     ══════════════════════════════════════════════════════════════ */
-
-  /* Spread MIBGAS−TTF por mês (€/MWh) — médias históricas 2024-2026 */
-  const SPREAD_MENSAL=[
+  const GASPT_SPREAD_MENSAL=[
     18.5, // Jan — pico Inverno
     16.2, // Fev
     14.8, // Mar
@@ -7686,11 +8472,92 @@ function loadGasPT(force=false){
     15.6, // Nov
     17.9, // Dez — pico Inverno
   ];
+  const GASPT_MESES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  const GASPT_TREND_PREF_KEY = 'gaspt_trend_pref_v1';
+  function getGasPTTrendPref() {
+    try {
+      const raw = localStorage.getItem(PFX + GASPT_TREND_PREF_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+      return { days };
+    } catch {
+      return { days: 30 };
+    }
+  }
+  function setGasPTTrendPref(patch) {
+    const cur = getGasPTTrendPref();
+    const next = { ...cur, ...patch };
+    try { localStorage.setItem(PFX + GASPT_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+    return next;
+  }
+  window.setGasPTTrendDays = function(days) {
+    setGasPTTrendPref({ days });
+    loadGasPTTrend(false).catch(() => {});
+  };
+
+  async function loadGasPTTrend(forceTrend = false) {
+    const canvas = document.getElementById('gasptTrendCanvas');
+    const statusEl = document.getElementById('gasptTrendStatus');
+    const daysEl = document.getElementById('gasptTrendDays');
+    if (!canvas || !statusEl || !daysEl) return;
+
+    const pref = getGasPTTrendPref();
+    _setOnByDataAttr(daysEl, 'data-days', pref.days);
+    statusEl.textContent = 'A carregar tendência...';
+
+    try {
+      const ttf = await fetchStooqDailySeries('tg.f', 90, forceTrend);
+      const mib = ttf.map(p => {
+        const m = new Date(p.date + 'T00:00:00').getMonth();
+        const spread = GASPT_SPREAD_MENSAL[m] ?? 0;
+        return { date: p.date, timestamp: p.timestamp, value: Number(p.value) + spread };
+      }).filter(x => Number.isFinite(x.value));
+
+      const view = _lastN(mib, pref.days);
+      if (view.length < 2) throw new Error('Histórico insuficiente');
+
+      const first = view[0]?.value || 0;
+      const last = view[view.length - 1]?.value || 0;
+      const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+      const sign = pct > 0 ? '+' : '';
+
+      renderTrendChart(canvas, view, {
+        label: 'MIBGAS est.',
+        borderColor: '#F97316',
+        backgroundColor: 'rgba(249,115,22,0.12)',
+        unit: ' €/MWh',
+        decimals: 1
+      });
+
+      statusEl.innerHTML = `
+        <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+          ${pref.days}D · MIBGAS est.
+        </span>
+        <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+          ${sign}${pct.toFixed(1)}%
+        </span>
+        <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+          último: ${last.toFixed(1)} €/MWh
+        </span>`;
+    } catch (e) {
+      statusEl.textContent = (e && e.message) ? e.message : 'Tendência indisponível';
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     GÁS NATURAL PT — MIBGAS estimado via TTF live + spread sazonal
+     Fonte TTF : Stooq tg.f (cache ttf_live_v1, partilhado com card TTF)
+     Metodologia: MIBGAS ≈ TTF + spread sazonal
+       O spread reflecte: custo GNL ibérico (Sines/Huelva/Bilbau),
+       capacidade interligação França, sazonalidade inverno/verão.
+     Tarifas ERSE: Deliberação Out 2025 (válidas até Out 2026)
+     ══════════════════════════════════════════════════════════════ */
 
   const G=GAS_TARIFAS;
   const mes=new Date().getMonth();
-  const spreadActual=SPREAD_MENSAL[mes];
-  const MESES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const spreadActual=GASPT_SPREAD_MENSAL[mes];
+  const MESES=GASPT_MESES;
 
   /* Reutilizar cache TTF (já carregado pelo card Gás Natural · Hubs Europeus) */
   const ttfCache=lsGet("ttf_live_v1");
@@ -7703,6 +8570,7 @@ function loadGasPT(force=false){
   const mibEst =ttfPrice!=null?+(ttfPrice+spreadActual).toFixed(2):null;
   const mibPrev=ttfPrev !=null?+(ttfPrev +spreadActual).toFixed(2):G.mibgasSpot;
   const mibRef =mibEst??G.mibgasSpot;
+  try{ if (Number.isFinite(mibRef)) addToHistory('gaspt_mibgas_est', mibRef); }catch{}
 
   /* Variações */
   const mibChg=((mibRef-mibPrev)/mibPrev*100);
@@ -7733,6 +8601,7 @@ function loadGasPT(force=false){
     ?`MIBGAS est. (TTF+${spreadActual.toFixed(1)}\u20ac/MWh spread ${MESES[mes]})`
     :`MIBGAS ref. est\u00e1tico`;
 
+  const trendPref = getGasPTTrendPref();
   el.innerHTML=`
   <!-- KPIs: MIBGAS estimado + TTF -->
   <div style="display:grid;grid-template-columns:1fr 1px 1fr;
@@ -7803,6 +8672,20 @@ function loadGasPT(force=false){
       \u26a0 Sparkline estimado (aguarda carregamento do TTF)</div>`:""}
   </div>
 
+  <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+      <div id="gasptTrendStatus" style="flex:1;min-width:0"></div>
+      <div id="gasptTrendDays" style="display:flex;gap:4px;flex-shrink:0">
+        <button class="rbtn ${trendPref.days===7?'on':''}"  data-days="7"  onclick="setGasPTTrendDays(7)">7D</button>
+        <button class="rbtn ${trendPref.days===30?'on':''}" data-days="30" onclick="setGasPTTrendDays(30)">30D</button>
+        <button class="rbtn ${trendPref.days===90?'on':''}" data-days="90" onclick="setGasPTTrendDays(90)">90D</button>
+      </div>
+    </div>
+    <div style="height:120px">
+      <canvas id="gasptTrendCanvas"></canvas>
+    </div>
+  </div>
+
   <!-- Spread sazonal visual -->
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
     <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
@@ -7813,7 +8696,7 @@ function loadGasPT(force=false){
       <div style="font-size:.62rem;color:var(--t3)">spread ${MESES[mes]} \u2192 est\u00e1vel \u00b1 2 \u20ac/MWh</div>
     </div>
     <div style="display:flex;gap:1px;height:10px;border-radius:4px;overflow:hidden;margin-bottom:3px">
-      ${SPREAD_MENSAL.map((s,i)=>{
+      ${GASPT_SPREAD_MENSAL.map((s,i)=>{
         const h=((s-9)/(18.5-9)*100).toFixed(0);
         const col=s>15?"#EF4444":s>12?"#F59E0B":"#10B981";
         const isCur=i===mes;
@@ -7823,7 +8706,7 @@ function loadGasPT(force=false){
       }).join("")}
     </div>
     <div style="display:flex;justify-content:space-between;font-size:.52rem;color:var(--t3)">
-      ${SPREAD_MENSAL.map((_,i)=>`<span>${MESES[i]}</span>`).join("")}
+      ${GASPT_SPREAD_MENSAL.map((_,i)=>`<span>${MESES[i]}</span>`).join("")}
     </div>
     <div style="font-size:.56rem;color:var(--t3);margin-top:5px;line-height:1.4">
       Spread inclui: terminais GNL Sines/Huelva/Bilbau + custo transporte ibérico.
@@ -7867,6 +8750,8 @@ function loadGasPT(force=false){
   <div style="font-size:.56rem;color:var(--t3);margin-top:4px">
     Termo fixo: ${G.termoFixo.toFixed(2)} €/mês · IVA 6% incluído · Fonte: ERSE Deliberação Oct 2025
   </div>`;
+
+  loadGasPTTrend(false).catch(()=>{});
 }
 
 /* ── PSI20 · dados ── actualizar fallbacks mensalmente */
@@ -7888,6 +8773,71 @@ const EU_INDICES=[
   {sym:"^ftse",     label:"FTSE 100",    flag:"🇬🇧", col:"#06B6D4", fallback:8540,  fChg: 0.1},
   {sym:"^stoxx50e", label:"EURO STOXX",  flag:"🇪🇺", col:"#A855F7", fallback:5480,  fChg: 0.2},
 ];
+
+const PSI20_TREND_PREF_KEY = 'psi20_trend_pref_v1';
+function getPSI20TrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + PSI20_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 30;
+    return { days };
+  } catch {
+    return { days: 30 };
+  }
+}
+function setPSI20TrendPref(patch) {
+  const cur = getPSI20TrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + PSI20_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setPSI20TrendDays(days) {
+  setPSI20TrendPref({ days });
+  loadPSI20Trend(false).catch(() => {});
+}
+
+async function loadPSI20Trend(force = false) {
+  const canvas = document.getElementById('psi20TrendCanvas');
+  const statusEl = document.getElementById('psi20TrendStatus');
+  const daysEl = document.getElementById('psi20TrendDays');
+  if (!canvas || !statusEl || !daysEl) return;
+
+  const pref = getPSI20TrendPref();
+  _setOnByDataAttr(daysEl, 'data-days', pref.days);
+  statusEl.textContent = 'A carregar histórico...';
+
+  try {
+    const series = await fetchStooqDailySeries('^psi20', 90, force);
+    const view = _lastN(series, pref.days);
+    if (view.length < 2) throw new Error('Histórico insuficiente');
+
+    const first = view[0]?.value || 0;
+    const last = view[view.length - 1]?.value || 0;
+    const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+    const sign = pct > 0 ? '+' : '';
+
+    renderTrendChart(canvas, view, {
+      label: 'PSI 20',
+      borderColor: '#10B981',
+      backgroundColor: 'rgba(16,185,129,0.10)',
+      unit: '',
+      decimals: 0
+    });
+
+    statusEl.innerHTML = `
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        ${pref.days}D · PSI 20
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        ${sign}${pct.toFixed(1)}%
+      </span>
+      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        último: ${last.toFixed(0)}
+      </span>`;
+  } catch (e) {
+    statusEl.textContent = (e && e.message) ? e.message : 'Histórico indisponível';
+  }
+}
 
 async function loadPSI20(force=false){
   const el=document.getElementById("psi20-body");
@@ -7949,9 +8899,11 @@ async function loadPSI20(force=false){
   }
 
   const psi=cache.indices[0];
+  try{ addToHistory('psi20_index', psi.price); }catch{}
   const psiChg=psi.chg||0;
   const psiCol=psiChg>=0?"#10B981":"#EF4444";
   const psiArr=psiChg>=0?"▲":"▼";
+  const trendPref = getPSI20TrendPref();
 
   /* Sparkline simples baseado em hi/lo/open/close do dia */
   function miniBar(chg, w=50, h=20){
@@ -8009,6 +8961,20 @@ async function loadPSI20(force=false){
     </div>
   </div>
 
+  <div style="margin:10px 0 12px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+      <div id="psi20TrendStatus" style="flex:1;min-width:0"></div>
+      <div id="psi20TrendDays" style="display:flex;gap:4px;flex-shrink:0">
+        <button class="rbtn ${trendPref.days===7?'on':''}"  data-days="7"  onclick="setPSI20TrendDays(7)">7D</button>
+        <button class="rbtn ${trendPref.days===30?'on':''}" data-days="30" onclick="setPSI20TrendDays(30)">30D</button>
+        <button class="rbtn ${trendPref.days===90?'on':''}" data-days="90" onclick="setPSI20TrendDays(90)">90D</button>
+      </div>
+    </div>
+    <div style="height:120px">
+      <canvas id="psi20TrendCanvas"></canvas>
+    </div>
+  </div>
+
   <!-- Constituintes PSI20 -->
   <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
     🏢 Constituintes · cotações do dia</div>
@@ -8043,6 +9009,8 @@ async function loadPSI20(force=false){
     ✦ Stooq.com · stooq.com · Euronext Lisboa (.ls) · 
     ${cache.live?"Dados do último fecho disponível":"Fallback: referência Mar 2026"}
   </div>`;
+
+  loadPSI20Trend(false).catch(()=>{});
 }
 
 
@@ -8702,6 +9670,28 @@ async function loadFng(force){
 /* ══════════════════════════════════════════════════════════════
    INDICADOR RECESSÃO — US 10Y-2Y Spread via tdGet()
    ══════════════════════════════════════════════════════════════ */
+const REC_TREND_PREF_KEY = 'rec_trend_pref_v1';
+function getRecTrendPref() {
+  try {
+    const raw = localStorage.getItem(PFX + REC_TREND_PREF_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const days = [7, 30, 90].includes(parsed?.days) ? parsed.days : 90;
+    return { days };
+  } catch {
+    return { days: 90 };
+  }
+}
+function setRecTrendPref(patch) {
+  const cur = getRecTrendPref();
+  const next = { ...cur, ...patch };
+  try { localStorage.setItem(PFX + REC_TREND_PREF_KEY, JSON.stringify(next)); } catch {}
+  return next;
+}
+function setRecTrendDays(days) {
+  setRecTrendPref({ days });
+  loadRec(false).catch(() => {});
+}
+
 async function loadRec(force=false){
   const el=$("rec-body"); if(!el)return;
   el.innerHTML=ld();
@@ -8725,17 +9715,19 @@ async function loadRec(force=false){
     if(!data||!data.length) data=[["2024-01-05",-1.39],["2024-02-02",-1.35],["2024-03-01",-1.22],["2024-04-05",-1.08],["2024-05-03",-0.95],["2024-06-07",-0.82],["2024-07-05",-0.68],["2024-08-09",-0.48],["2024-09-06",-0.32],["2024-10-04",-0.15],["2024-11-01",-0.08],["2024-12-06",-0.25],["2025-01-03",-0.38],["2025-02-07",-0.35],["2025-03-07",-0.25],["2025-04-04",-0.12],["2025-05-02",0.02],["2025-06-06",0.12],["2025-07-04",0.22],["2025-08-01",0.32],["2025-09-05",0.18],["2025-10-03",0.08],["2025-11-07",-0.05],["2025-12-05",-0.18],["2026-01-02",-0.28],["2026-01-16",-0.32],["2026-02-06",-0.38],["2026-02-27",-0.35],["2026-03-10",-0.30]];
   }
 
-  const cur=data[data.length-1][1];
-  const prev=data[data.length-2]?.[1]??cur;
+  const pref = getRecTrendPref();
+  const view = _lastN(data, pref.days);
+  const cur=view[view.length-1][1];
+  const prev=view[view.length-2]?.[1]??cur;
   const delta=cur-prev;
   const isInv=cur<0;
   const col=isInv?"#EF4444":cur<0.3?"#F59E0B":"#10B981";
   const signal=isInv?"⚠ INVERTIDA":"✓ Normal";
   const signalSub=isInv?"sinal histórico de recessão":"sem sinal de recessão";
-  const lastDate=data[data.length-1][0];
+  const lastDate=view[view.length-1][0];
   const isLive=data.length>30;
 
-  const vals=data.map(x=>x[1]);
+  const vals=view.map(x=>x[1]);
   const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
 
   /* Sparkline principal */
@@ -8755,8 +9747,8 @@ async function loadRec(force=false){
   });
 
   /* Meses marcadores */
-  const ticks=data.filter((_,i)=>i%4===0).map((d2,_,arr)=>{
-    const i=data.indexOf(d2);
+  const ticks=view.filter((_,i)=>i%4===0).map((d2,_,arr)=>{
+    const i=view.indexOf(d2);
     const mo=d2[0].slice(0,7).slice(5,7)+"/"+d2[0].slice(2,4);
     return `<text x="${px(i)}" y="${H+14}" font-size="7" fill="#4A526A" text-anchor="middle">${mo}</text>`;
   }).join("");
@@ -8765,11 +9757,11 @@ async function loadRec(force=false){
   const zeroLineY=py(0);
 
   /* Indicadores complementares: histórico de inversões */
-  const invertedDays=data.filter(x=>x[1]<0).length;
-  const pctInverted=Math.round(invertedDays/data.length*100);
+  const invertedDays=view.filter(x=>x[1]<0).length;
+  const pctInverted=Math.round(invertedDays/view.length*100);
   const longestRun=(()=>{
     let max=0,cur2=0;
-    data.forEach(x=>{cur2=x[1]<0?cur2+1:0;if(cur2>max)max=cur2;});
+    view.forEach(x=>{cur2=x[1]<0?cur2+1:0;if(cur2>max)max=cur2;});
     return max;
   })();
 
@@ -8795,6 +9787,12 @@ async function loadRec(force=false){
       <div style="font-size:.68rem;color:var(--t2);margin-top:2px">${signal} · ${signalSub}</div>
       <div style="font-size:.6rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · FRED live":" · ref. Mar 2026"}</div>
     </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:4px;margin:-6px 0 10px">
+    <button class="rbtn ${pref.days===7?'on':''}"  onclick="setRecTrendDays(7)">7D</button>
+    <button class="rbtn ${pref.days===30?'on':''}" onclick="setRecTrendDays(30)">30D</button>
+    <button class="rbtn ${pref.days===90?'on':''}" onclick="setRecTrendDays(90)">90D</button>
   </div>
 
   <!-- Gráfico com zona acima/abaixo de zero -->
@@ -9501,22 +10499,13 @@ async function loadSeis(force=false){
     const ATTEMPTS=[
       /* 1. Directo */
       ()=>fetch(USGS_URL,{signal:AbortSignal.timeout(10000)}),
+      /* 1b. Proxy local (dev) */
+      ()=>IS_LOCAL_DEV?fetchViaLocalProxy(USGS_URL):Promise.reject(0),
       /* 2. allorigins raw */
       ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(USGS_URL),
               {signal:AbortSignal.timeout(12000)}),
       /* 3. corsproxy.io */
       ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(USGS_URL),
-              {signal:AbortSignal.timeout(12000)}),
-      /* 4. allorigins get (wrapper JSON) */
-      ()=>fetch("https://api.allorigins.win/get?url="+encodeURIComponent(USGS_URL),
-              {signal:AbortSignal.timeout(12000)})
-            .then(async r=>{
-              const j=await r.json();
-              /* allorigins/get devolve {contents: "..."} */
-              return new Response(j.contents||"{}",{status:j.contents?"200":"500"});
-            }),
-      /* 5. jsonp via thingproxy */
-      ()=>fetch("https://thingproxy.freeboard.io/fetch/"+USGS_URL,
               {signal:AbortSignal.timeout(12000)}),
     ];
 
