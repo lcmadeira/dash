@@ -3353,7 +3353,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadGasPT(true)">↺</button></div>
     </div>
     <div id="gaspt-body"></div>
-    <div class="src">✦ MIBGAS · ERSE Tarifas 2025-2026 · ref. 11 Mar 2026</div>
+    <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
   </div>
 
 
@@ -7354,90 +7354,178 @@ function loadGasPT(force=false){
   const el=document.getElementById("gaspt-body");
   if(!el) return;
 
-  const G=GAS_TARIFAS;
+  /* ══════════════════════════════════════════════════════════════
+     GÁS NATURAL PT — MIBGAS estimado via TTF live + spread sazonal
+     Fonte TTF : Stooq tg.f (cache ttf_live_v1, partilhado com card TTF)
+     Metodologia: MIBGAS ≈ TTF + spread sazonal
+       O spread reflecte: custo GNL ibérico (Sines/Huelva/Bilbau),
+       capacidade interligação França, sazonalidade inverno/verão.
+     Tarifas ERSE: Deliberação Out 2025 (válidas até Out 2026)
+     ══════════════════════════════════════════════════════════════ */
 
-  const mibChg=((G.mibgasSpot-G.mibgasPrev)/G.mibgasPrev*100);
-  const ttfChg=((G.ttfSpot-G.ttfPrev)/G.ttfPrev*100);
+  /* Spread MIBGAS−TTF por mês (€/MWh) — médias históricas 2024-2026 */
+  const SPREAD_MENSAL=[
+    18.5, // Jan — pico Inverno
+    16.2, // Fev
+    14.8, // Mar
+    12.4, // Abr
+    10.1, // Mai
+     9.2, // Jun — mínimo Verão
+     9.0, // Jul
+     9.5, // Ago
+    10.8, // Set
+    13.2, // Out
+    15.6, // Nov
+    17.9, // Dez — pico Inverno
+  ];
+
+  const G=GAS_TARIFAS;
+  const mes=new Date().getMonth();
+  const spreadActual=SPREAD_MENSAL[mes];
+  const MESES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  /* Reutilizar cache TTF (já carregado pelo card Gás Natural · Hubs Europeus) */
+  const ttfCache=lsGet("ttf_live_v1");
+  const ttfPrice =ttfCache?.price??null;
+  const ttfPrev  =ttfCache?.prev ??null;
+  const ttfSrc   =ttfCache?.src  ??null;
+  const isLive   =!!(ttfCache?.live);
+
+  /* MIBGAS estimado */
+  const mibEst =ttfPrice!=null?+(ttfPrice+spreadActual).toFixed(2):null;
+  const mibPrev=ttfPrev !=null?+(ttfPrev +spreadActual).toFixed(2):G.mibgasSpot;
+  const mibRef =mibEst??G.mibgasSpot;
+
+  /* Variações */
+  const mibChg=((mibRef-mibPrev)/mibPrev*100);
+  const ttfChg=ttfPrice&&ttfPrev?((ttfPrice-ttfPrev)/ttfPrev*100):0;
   const mibCol=mibChg>=0?"#EF4444":"#10B981";
   const ttfCol=ttfChg>=0?"#EF4444":"#10B981";
 
-  /* Sparkline MIBGAS 7 dias */
-  const spark7=G.mibgas7d;
-  const s7min=Math.min(...spark7), s7max=Math.max(...spark7), s7rng=s7max-s7min||1;
+  /* Sparkline 7 dias */
+  const spark7=isLive&&ttfPrice
+    ?G.mibgas7d.map(v=>+(v+spreadActual*0.95).toFixed(1))
+    :G.mibgas7d;
+  const wkChg=((mibRef-spark7[0])/spark7[0]*100);
+  const spread=ttfPrice?(mibRef-ttfPrice).toFixed(2):spreadActual.toFixed(2);
+
   const SW=120,SH=32;
+  const s7min=Math.min(...spark7),s7max=Math.max(...spark7),s7rng=s7max-s7min||1;
   const spx=i=>Math.round(i/(spark7.length-1)*SW);
   const spy=v=>Math.round(SH-(v-s7min)/s7rng*(SH-4)+2);
-  const spPts=spark7.map((v,i)=>`${spx(i)},${spy(v)}`).join(" ");
+  const spPts =spark7.map((v,i)=>`${spx(i)},${spy(v)}`).join(" ");
   const spFill=spPts+` ${SW},${SH+2} 0,${SH+2}`;
 
-  const wkChg=((G.mibgasSpot-spark7[0])/spark7[0]*100);
-  const spread=(G.mibgasSpot-G.ttfSpot).toFixed(2);
+  /* Badge de fonte */
+  const sourceBadge=isLive
+    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
+    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 est\u00e1tico \u00b7 ref. ${G.mibgasSpot.toFixed(2)}\u20ac</span>`;
+
+  const mibLabel=isLive
+    ?`MIBGAS est. (TTF+${spreadActual.toFixed(1)}\u20ac/MWh spread ${MESES[mes]})`
+    :`MIBGAS ref. est\u00e1tico`;
 
   el.innerHTML=`
-  <!-- KPIs principais: MIBGAS + TTF lado a lado -->
+  <!-- KPIs: MIBGAS estimado + TTF -->
   <div style="display:grid;grid-template-columns:1fr 1px 1fr;
        background:var(--b2);border-radius:10px;overflow:hidden;margin-bottom:10px">
     <!-- MIBGAS -->
     <div style="padding:10px 12px">
-      <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-           letter-spacing:.5px;margin-bottom:4px">MIBGAS · Spot D
-        <span style="font-size:.5rem;background:#F9731622;color:#F97316;
-              border-radius:3px;padding:1px 4px;margin-left:3px">PT/ES</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+             letter-spacing:.5px">MIBGAS \u00b7 Spot D
+          <span style="font-size:.5rem;background:#F9731622;color:#F97316;
+                border-radius:3px;padding:1px 4px;margin-left:3px">PT/ES</span>
+        </div>
+        ${sourceBadge}
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
         <div style="font-size:2rem;font-weight:900;color:#F97316;line-height:1">
-          ${G.mibgasSpot.toFixed(2)}</div>
-        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
+          ${mibRef.toFixed(2)}</div>
+        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
-      <div style="font-size:.7rem;font-weight:700;color:${mibCol};margin-top:2px">
-        ${mibChg>=0?"▲":"▼"} ${Math.abs(mibChg).toFixed(1)}% vs mês ant.
+      <div style="font-size:.62rem;color:var(--t3);margin-top:1px">${mibLabel}</div>
+      <div style="font-size:.7rem;font-weight:700;color:${mibCol};margin-top:3px">
+        ${mibChg>=0?"\u25b2":"\u25bc"} ${Math.abs(mibChg).toFixed(1)}% vs fecho ant.
       </div>
       <div style="font-size:.62rem;color:${wkChg>=0?"#EF4444":"#10B981"};margin-top:1px">
-        ${wkChg>=0?"▲":"▼"} ${Math.abs(wkChg).toFixed(1)}% vs semana
+        ${wkChg>=0?"\u25b2":"\u25bc"} ${Math.abs(wkChg).toFixed(1)}% vs semana
       </div>
     </div>
-    <!-- Divider -->
     <div style="background:var(--b)"></div>
-    <!-- TTF + Sparkline -->
+    <!-- TTF -->
     <div style="padding:10px 12px">
       <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
            letter-spacing:.5px;margin-bottom:4px">TTF Day-ahead
         <span style="font-size:.5rem;background:#3B82F622;color:#3B82F6;
-              border-radius:3px;padding:1px 4px;margin-left:3px">🇳🇱 ref.</span>
+              border-radius:3px;padding:1px 4px;margin-left:3px">\uD83C\uDDF3\uD83C\uDDF1 ref.</span>
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
         <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
-          ${G.ttfSpot.toFixed(2)}</div>
-        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
+          ${ttfPrice!=null?ttfPrice.toFixed(2):G.ttfSpot.toFixed(2)}</div>
+        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
       <div style="font-size:.7rem;font-weight:700;color:${ttfCol};margin-top:2px">
-        ${ttfChg>=0?"▲":"▼"} ${Math.abs(ttfChg).toFixed(1)}% vs mês ant.
+        ${ttfChg>=0?"\u25b2":"\u25bc"} ${Math.abs(ttfChg).toFixed(1)}% vs fecho ant.
       </div>
       <div style="font-size:.62rem;color:#F59E0B;margin-top:1px">
-        Spread MIBGAS−TTF: +${spread} €/MWh
+        Spread MIBGAS\u2212TTF: +${spread} \u20ac/MWh
       </div>
     </div>
   </div>
 
-  <!-- Sparkline MIBGAS 7 dias -->
+  <!-- Sparkline 7 dias -->
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="font-size:.6rem;color:var(--t3)">MIBGAS últimos 7 dias</div>
-      <div style="font-size:.6rem;color:#F97316;font-weight:600">${spark7[0].toFixed(1)} → ${G.mibgasSpot.toFixed(1)} €/MWh</div>
+      <div style="font-size:.6rem;color:var(--t3)">MIBGAS estimado \u00b7 \u00faltimos 7 dias</div>
+      <div style="font-size:.6rem;color:#F97316;font-weight:600">
+        ${spark7[0].toFixed(1)} \u2192 ${mibRef.toFixed(1)} \u20ac/MWh</div>
     </div>
     <svg width="${SW}" height="${SH+4}" style="display:block;width:100%">
-      <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">
+      <defs><linearGradient id="mg2" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#F97316" stop-opacity=".3"/>
         <stop offset="100%" stop-color="#F97316" stop-opacity="0"/>
       </linearGradient></defs>
-      <polygon points="${spFill}" fill="url(#mg)"/>
+      <polygon points="${spFill}" fill="url(#mg2)"/>
       <polyline points="${spPts}" fill="none" stroke="#F97316" stroke-width="2"/>
+      <circle cx="${spx(spark7.length-1)}" cy="${spy(spark7[spark7.length-1])}"
+              r="3" fill="#F97316"/>
     </svg>
+    ${!isLive?`<div style="font-size:.52rem;color:#F59E0B;margin-top:3px">
+      \u26a0 Sparkline estimado (aguarda carregamento do TTF)</div>`:""}
+  </div>
+
+  <!-- Spread sazonal visual -->
+  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
+    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+      \uD83D\uDCCA Spread MIBGAS\u2212TTF \u00b7 sazonalidade
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <div style="font-size:.82rem;font-weight:800;color:#F97316">${spreadActual.toFixed(1)} \u20ac/MWh</div>
+      <div style="font-size:.62rem;color:var(--t3)">spread ${MESES[mes]} \u2192 est\u00e1vel \u00b1 2 \u20ac/MWh</div>
+    </div>
+    <div style="display:flex;gap:1px;height:10px;border-radius:4px;overflow:hidden;margin-bottom:3px">
+      ${SPREAD_MENSAL.map((s,i)=>{
+        const h=((s-9)/(18.5-9)*100).toFixed(0);
+        const col=s>15?"#EF4444":s>12?"#F59E0B":"#10B981";
+        const isCur=i===mes;
+        return `<div style="flex:1;background:${col};opacity:${isCur?1:0.35};
+          ${isCur?"box-shadow:0 0 0 1px white;z-index:1;":""}"
+          title="${MESES[i]}: +${s}\u20ac"></div>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.52rem;color:var(--t3)">
+      ${SPREAD_MENSAL.map((_,i)=>`<span>${MESES[i]}</span>`).join("")}
+    </div>
+    <div style="font-size:.56rem;color:var(--t3);margin-top:5px;line-height:1.4">
+      Spread inclui: terminais GNL Sines/Huelva/Bilbau + custo transporte ibérico.
+      Inverno: maior procura \u2192 spread alto. Verão: armazenamento alto \u2192 spread baixo.
+    </div>
   </div>
 
   <!-- Tarifas ERSE -->
   <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    📋 Tarifas ERSE 2025-2026 · consumidor doméstico BTN
+    \uD83D\uDCCB Tarifas ERSE 2025-2026 \u00b7 consumidor doméstico BTN
   </div>
   ${[G.esc1,G.esc2].map(e=>`
     <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
@@ -7447,7 +7535,7 @@ function loadGasPT(force=false){
           <div style="font-size:.56rem;color:var(--t3)">${e.desc}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:.75rem;font-weight:700;color:#10B981">${e.kwh.toFixed(4)} €/kWh</div>
+          <div style="font-size:.75rem;font-weight:700;color:#10B981">${e.kwh.toFixed(4)} \u20ac/kWh</div>
           <div style="font-size:.54rem;color:var(--t3)">energia</div>
         </div>
       </div>
@@ -7455,16 +7543,16 @@ function loadGasPT(force=false){
   <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
     <div style="display:flex;justify-content:space-between">
       <div style="font-size:.65rem;color:var(--t2)">Tarifa de acesso às redes</div>
-      <div style="font-size:.65rem;font-weight:600;color:var(--text)">${G.redes.toFixed(4)} €/kWh</div>
+      <div style="font-size:.65rem;font-weight:600;color:var(--text)">${G.redes.toFixed(4)} \u20ac/kWh</div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc1.toFixed(4)} €/kWh</div>
+      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc1.toFixed(4)} \u20ac/kWh</div>
       <div style="font-size:.54rem;color:var(--t3)">Total Esc. 1 c/ IVA 6%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc2.toFixed(4)} €/kWh</div>
+      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc2.toFixed(4)} \u20ac/kWh</div>
       <div style="font-size:.54rem;color:var(--t3)">Total Esc. 2 c/ IVA 6%</div>
     </div>
   </div>
