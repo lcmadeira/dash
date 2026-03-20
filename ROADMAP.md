@@ -8,167 +8,147 @@
 
 ### Prioridade: **Crítica** ⛔ → ✅ **CONCLUÍDO**
 
-- [x] **Remover API Key do código cliente** — `TD_KEY` exposta removida. Substituída por `null` com verificação em runtime.
+- [x] **Remover API Key do código cliente** — `TD_KEY` exposta removida do código.
+      Substituída por `null` com comentários de segurança e verificação em runtime.
 - [x] **Desativar notificações de demo** — Controlada por flag `ENABLE_DEMO_NOTIFICATIONS = false`.
-- [x] **Automatizar datas hardcoded** — Sistema `REF_DATE` com `.full`, `.quarter`, `.prevQuarter`. Aplicado em Euribor e Imobiliário.
-- [x] **Consolidar media queries duplicadas** — 4 blocos `@media (max-width: 767px)` fundidos. −90 linhas.
+      Logs claros quando ativada em modo dev.
+- [x] **Automatizar datas hardcoded** — Sistema `REF_DATE` criado com:
+      - `REF_DATE.full` → mês atual (ex: "Mar 2026")
+      - `REF_DATE.quarter` → trimestre atual
+      - `REF_DATE.prevQuarter` → trimestre anterior (para INE)
+      - Aplicado em: Euribor, Imobiliário (cards principais)
+- [x] **Consolidar media queries duplicadas** — 4 blocos `@media (max-width: 767px)` fundidos
+      num único bloco organizado. −90 linhas de código duplicado.
+
+**Impacto**: Segurança, fiabilidade e manutenibilidade imediatas ✅
 
 **Data de conclusão**: 16/03/2026
+**Documentação**: Ver `CORRECOES_URGENTES.md` para detalhes completos
 
 ---
 
 ## 📱 1. Responsividade Mobile
 
-### Prioridade: **Alta** 🔴 → ✅ **CONCLUÍDO** (13/03/2026)
+### Prioridade: **Alta** 🔴 → ✅ **CONCLUÍDO**
 
-- [x] Breakpoints: Desktop `>1200px`, Tablet `768–1199px`, Mobile `<767px`, Small `<375px`
-- [x] Grid 4 → 2 → 1 colunas
-- [x] Touch targets mínimo 44×44px
-- [ ] Menu hamburger para configurações em mobile *(baixa prioridade)*
+- [x] Adicionar breakpoints CSS para diferentes dispositivos
+  - Desktop: `> 1200px` (atual)
+  - Tablet: `768px - 1199px`
+  - Mobile: `< 767px`
+  - Mobile Small: `< 375px`
+- [x] Ajustar grid de 4 colunas para:
+  - 2 colunas em tablet
+  - 1 coluna em mobile
+- [x] Otimizar tamanho de fontes para mobile
+- [x] Melhorar área de toque (touch targets mínimo 44x44px)
+- [ ] Testar gestos swipe para navegação *(baixa prioridade — dispensável em dashboard informacional)*
+- [ ] Menu hamburger para filtros/configurações em mobile
+
+**Impacto**: Tornar o painel utilizável em qualquer dispositivo ✅
+
+**Data de conclusão**: 13/03/2026
+**Documentação**: Ver `RESPONSIVIDADE.md` para detalhes completos
 
 ---
 
 ## ⚡ 2. Performance & Otimização
 
-### Prioridade: **Média** 🟡 → ✅ **CONCLUÍDO** (19/03/2026)
+### Prioridade: **Média** 🟡 → ✅ **CONCLUÍDO**
 
-- [x] Debounce & Throttle nos eventos de mousemove/resize
-- [x] Lazy loading com Intersection Observer (margem 50px)
-- [x] Cache TTL dinâmico por tipo de dado (10 tipos, prefixo `dash_v15_`)
-- [x] Batch updates com RequestAnimationFrame
+- [x] Implementar debounce nos eventos de mousemove
+- [x] Lazy loading para gráficos (Intersection Observer)
+- [x] Otimizar cache localStorage (TTL dinâmico, 10 tipos, prefixo `dash_v15_`)
+- [x] Reduzir re-renders desnecessários (Batch updates com RAF)
 - [x] Sistema de priorização de carregamentos (4 níveis)
-- [x] Performance monitoring com métricas automáticas
-- [x] **Stale-while-revalidate** — Eletricidade e Sismos mostram cache expirado com aviso de idade
+- [x] Performance monitoring com alertas para operações lentas
 
-**Impacto**: −66% tempo de carregamento, −62% CPU, −39% memória ✅
+**Impacto**: −66% tempo de carregamento, −62% uso de CPU, −39% memória ✅
+
+**Data de conclusão**: 13/03/2026
 
 ---
 
 ## ✨ 3. Novas Funcionalidades
 
 ### 3.1 Modo Claro/Escuro
-- [ ] Paleta de cores light mode
-- [ ] Toggle no header + `prefers-color-scheme`
-- [ ] Guardar preferência em localStorage
+- [ ] Criar paleta de cores para light mode
+- [ ] Toggle switch no header
+- [ ] Guardar preferência no localStorage
+- [ ] Detetar preferência do sistema (`prefers-color-scheme`)
 
-> ⚠️ Design denso — adiar para v2.0.
+> ⚠️ Dado o design muito denso do painel, o light mode exige trabalho cuidado. Adiar para v2.0.
 
-### 3.2 Personalização → ✅ **CONCLUÍDO** (13/03/2026)
-- [x] Painel de configurações com 3 tabs (Cards, Localização, Tickers)
-- [x] Toggle de visibilidade de **31 cards configuráveis** (via Settings)
-- [x] **Cabaz Alimentar** existe como card extra fixo (`data-card-id="cabaz"`) — fora do painel de Cards
-- [x] Drag & Drop para reordenar cards
-- [x] Seleção de localização (11 cidades IPMA)
-- [x] Gestão de tickers favoritos (até 10)
-- [x] Persistência em localStorage
+#### 3.2 Personalização → ✅ **CONCLUÍDO** (13/03/2026)
+- [x] Painel de configurações (modal com 3 tabs)
+- [x] Toggle visibilidade de cards (14 cards)
+- [x] Drag & Drop para reordenar
+- [x] Escolher localização preferida (21 cidades IPMA)
+- [x] Selecionar tickers favoritos (até 10, quick-add PSI 20)
 
-### 3.3 Notificações → ⚠️ **Implementado com limitações CORS**
-
+#### 3.3 Notificações → ⚠️ **Implementado com limitações CORS** (16/03/2026)
 - [x] Centro de notificações dropdown com badge animado
-- [x] 4 tabs de filtro (Todas, Sismos, Notícias, Energia)
-- [x] **Sismos USGS** — M≥3.0 últimas 24h, deduplicação via `notifId`
-- [x] **Breaking News** — keywords: urgente, breaking, última hora, alerta
-- [x] **Picos de Energia REE** — trigger ≥20% acima da média diária
-- [x] Toast popups temporários + persistência localStorage
-- [x] Marcar lidas / dispensar individualmente
-- [x] Função de monitorização periódica implementada (`startNotificationMonitoring()`), mas **desativada por default** (chamada comentada)
-- [ ] Expor toggle nas Settings + hardening (rate limits/erros) antes de ativar por defeito
-- [ ] Alertas meteorológicos (IPMA)
-- [ ] Modal de configuração de thresholds
+- [x] Integração Sismos USGS (M≥3.0, deduplicação por notifId)
+- [x] Integração Breaking News (keywords RSS)
+- [x] Integração Picos de Energia (≥20% acima da média)
+- [x] Toast popups + persistência localStorage
+- [ ] Monitoramento automático periódico — **bloqueado por CORS**
+  - Solução futura: Cloudflare Worker ou backend próprio
 
-**Limitação**: Monitoramento automático (dedicado) desativado. Funciona: verificação ao carregar + refresh manual (↺).
-> Nota: existe refresh periódico global (setInterval) a cada ~15 minutos; a rotina dedicada de 5 minutos (`startNotificationMonitoring`) está desativada por default.
-
-### 3.4 Exportar Dados
-- [x] Modal com 4 formatos (PNG, PDF, CSV, JSON) — base implementada
-- [ ] Melhorar CSV/JSON com dados estruturados reais
-- [ ] Export PNG limitado por iframes TradingView
-- [ ] Ao selecionar cards para export, detetar widgets/iframes (TradingView) e:
-  - marcar como “não exportável” (com tooltip/razão), ou
-  - exportar com placeholder + link para o card
-
----
-
-## 🎨 4. UX/UI
-
-### 4.1 Skeleton Screens → ✅ **CONCLUÍDO** (16/03/2026)
-- [x] 7 tipos: Weather, News, Table, Chart, KPIs, Generic, Cards
-- [x] Animação shimmer 1.5s, GPU-accelerated
-- [x] 10+ cards atualizados
-
-### 4.2 Tratamento de Erros → 🟡 **Parcialmente implementado**
-- [x] Stale-while-revalidate para Eletricidade e Sismos
-- [x] Mensagens de erro amigáveis (CORS, API key missing)
-- [x] Botão "Tentar novamente" nos erros de sismos
-- [ ] Fallback cache para restantes cards
-
-### 4.2.1 Labels de fonte (linha `.src`) → 🟡 **Pendente**
-- [ ] Alinhar texto de fonte com a implementação real (hoje há inconsistências no HTML base):
-  - PSI 20: `.src` diz Yahoo Finance, mas o fetch é Stooq CSV via proxy
-  - Market Stats (`mstats`): `.src` diz gold-api.com/EIA, mas o fetch é Stooq + Frankfurter + CoinGecko
-  - Euribor: `.src` diz EMMI, mas o fetch principal é BCE (EMMI fica como fallback)
-- [ ] Rever `.src` do card Eletricidade (garantir que não herda/repete a fonte do card anterior)
-
-### 4.3–4.4 Tooltips & Animações
-- [ ] Tooltips em termos técnicos (gCO₂/kWh, MW, Euribor, etc.)
-- [ ] Animação ↺ durante fetch
-- [ ] `prefers-reduced-motion`
+#### 3.4 Exportar Dados → ⚠️ **Base implementada** (16/03/2026)
+- [x] Modal de seleção com 4 formatos (PNG, PDF, CSV, JSON)
+- [ ] Export PNG/PDF fiável (limitado por iframes TradingView)
+- [ ] Relatório semanal/mensal
 
 ---
 
 ## 📊 5. Dados & APIs
 
-### Estado actual — Zero API keys necessárias ✅
+### Prioridade: **Média** 🟡
 
-| Card | Fonte | Tipo | API Key |
-|------|-------|------|---------|
-| Meteorologia | IPMA | Live | Não |
-| Combustíveis | API Aberta PT | Live | Não |
-| Cabaz Alimentar | DECO PROteste (manual + histórico local) | Manual | Não |
-| Petróleo | TradingView (Brent/WTI) | Live | Não |
-| Eletricidade | REE `apidatos.ree.es` `/pt/` | Live | Não |
-| Câmbios EUR | Frankfurter (BCE) | Live | Não |
-| Criptomoedas | CoinGecko | Live | Não |
-| Sismos | USGS | Live | Não |
-| Mercados Financeiros | TradingView (Advanced Chart) | Live | Não |
-| PSI 20 / Bolsa | Stooq CSV (via proxies CORS) | Live (com fallback) | Não |
-| Indicadores Mercado | Stooq + Frankfurter + CoinGecko | Live (com fallback) | Não |
-| Preços Agrícolas | Yahoo Finance + Stooq | Live | Não |
-| Fear & Greed | Alternative.me | Live | Não |
-| Recessão 10Y-2Y | FRED St. Louis | Live | Não |
-| Tráfego Aéreo | OpenSky Network | Live | Não |
-| Notícias | Google News RSS | Live | Não |
-| Geopolítica (RSS) | Crisis Group + outras fontes RSS | Live | Não |
-| Conflitos Globais | Dataset local (refs ACLED/CFR/UCDP) | Manual | Não |
-| Emissões CO₂ (PT) | DGEG/REN 2024 (dataset local) | Manual | Não |
-| Liberdade Imprensa/Democracia | RSF/EIU/Freedom House 2024 (dataset local) | Manual | Não |
-| Mapa de Calor | TradingView (Heatmap) | Live | Não |
-| Feriados | date.nager.at | Cache anual | Não |
-| Calendário Económico | **Gerado algoritmicamente** | Auto | Não |
-| **Euribor** | **BCE `data-api.ecb.europa.eu`** | **Live** | **Não** |
-| **Inflação PT/EU** | **Eurostat `PRC_HICP_MANR`** | **Live** | **Não** |
-| Imobiliário | INE API (via proxies) + fallback estático | Live (parcial) | Não |
-| Gás Natural EU | Stooq (TTF + hubs) | Live | Não |
-| Gás Natural PT | MIBGAS/ERSE (tarifas) | Manual | Não |
-| Exportações PT | INE/AICEP (dataset estático 2024) | Manual | Não |
-| Dívida Pública | Eurostat 2024 (dataset estático) | Manual | Não |
-| Salário mínimo/custo vida | DGERT/INE/Eurostat (dataset local) | Manual | Não |
-| Transportes PT | CP/Carris/Metro (dataset local) | Manual | Não |
+#### 5.1 Fontes de Dados
+- [x] **Gás Natural PT (MIBGAS estimado)** — TTF live (Stooq `tg.f`) + spread sazonal mensal
+      MIBGAS−TTF por mês. Sem fetch extra (reutiliza cache TTF). ✅ (20/03/2026)
+- [x] **Qualidade do Ar** — Open-Meteo / Copernicus CAMS, sem chave, CORS nativo.
+      AQI Europeu (EEA), PM2.5, PM10, NO₂, O₃, SO₂, UV Index, previsão 8h. ✅ (20/03/2026)
+- [ ] **Dados de barragens (níveis de água)** 🟡 — SNIRH (sem API JSON pública conhecida)
+- [ ] Índice UV e pólen *(UV coberto pelo card Qualidade do Ar)*
+- [ ] Tráfego em tempo real (Google Maps API — requer chave paga)
 
-### 5.1 Dados a automatizar (prioridade média)
-- [x] ~~**Inflação**~~ — ✅ Eurostat SDMX API (`PRC_HICP_MANR`) — **concluído 20/03/2026**
-- [x] **Imobiliário** — INE API live (via proxies CORS) + fallback estático (ref. Q3 2025)
-- [x] **Gás Natural (EU)** — TTF/hubs via Stooq (via proxies CORS)
-- [x] **Gás Natural (PT)** — automatizar MIBGAS spot + storage (AGSI+) e reduzir dependência de dados manuais
+#### 5.2 Automação de dados estáticos
+- [ ] **Euribor** — dados EMMI actualizados manualmente. Criar script de auto-update
+      via ECB SDMX API (CORS nativo: `data-api.ecb.europa.eu`)
+- [ ] **Inflação PT/EU** — dados INE/Eurostat actualizados manualmente.
+      Automatizar via Eurostat SDMX (`ec.europa.eu/eurostat/api/dissemination`)
+- [ ] **PSI20 constituintes** — fallbacks actualizados manualmente.
+      Stooq CSV já implementado; melhorar fiabilidade do fetch
 
-### 5.2 Novas fontes
-- [ ] **Qualidade do ar** 🟡 — OpenAQ (gratuita, sem chave)
-- [ ] **Barragens/SNIRH** 🟡 — dados.gov.pt (verificar formato)
-- [ ] Índice UV e pólen (IPMA endpoint)
+#### 5.3 Dados Históricos
+- [ ] Gráficos de tendência (7/30/90 dias) para mais cards
+- [ ] Comparação com períodos anteriores
 
-### 5.3 Energia
-- [ ] Histórico preços OMIE (7/30 dias) via apidatos.ree.es
-- [ ] Alertas de horários mais baratos (push)
+---
+
+## 🎨 4. UX/UI
+
+### Parcialmente Concluído ✅
+
+#### 4.1 Skeleton Screens → ✅ **CONCLUÍDO** (16/03/2026)
+- [x] 7 tipos: Weather, News, Table, Chart, KPIs, Generic, Cards
+- [x] 10 cards principais actualizados
+- [x] Animação shimmer (1.5s, 60fps, GPU-accelerated)
+
+#### 4.2 Tratamento de Erros
+- [ ] Mensagens de erro mais específicas com contexto
+- [ ] Botão "Tentar novamente" inline nos cards com erro
+- [ ] Toast notifications para erros não-críticos
+
+#### 4.3 Tooltips & Ajuda
+- [ ] Tooltips explicativos em termos técnicos (gCO₂/kWh, AQI, spread, etc.)
+- [ ] Ícone de ajuda (?) em métricas complexas
+
+#### 4.4 Animações & Micro-interações
+- [ ] Ícone ↺ a girar durante fetch activo
+- [ ] `prefers-reduced-motion` support ← fácil, vale a pena
 
 ---
 
@@ -178,41 +158,31 @@
 
 - [ ] Contraste WCAG AA compliance
 - [ ] `aria-labels` em elementos interativos
-- [ ] Navegação por teclado
-- [ ] `prefers-reduced-motion`
-- [ ] Suporte zoom 200%
+- [ ] Navegação completa por teclado
+- [ ] `prefers-reduced-motion` ← implementar junto com 4.4
 
 ---
 
 ## 🔧 7. Melhorias Técnicas
 
-### Prioridade: **Média** 🟡 *(ficheiro ~11 000 linhas, ~430 KB)*
+### Prioridade: **Média** 🟡 *(ficheiro com ~11 000 linhas)*
 
-> ⚠️ A manutenibilidade vai degradar. Modularização é o objetivo v1.2.0.
+> ⚠️ O `index.html` ultrapassa 430 KB num único ficheiro. Modularização é o objectivo do v1.2.0.
 
-- [ ] **Separar JS em módulos** (ES Modules) ← prioritário
-- [ ] **Extrair configurações** para `config.js` (TTLs, IDs cidade)
+- [ ] **Separar JS em módulos** (ES Modules) ← prioritário para v1.2.0
+- [ ] **Extrair configurações** para `config.js` (TTLs, IDs de cidade, spreads)
 - [ ] **Consolidar CSS** em ficheiro separado
-- [ ] Documentar código (JSDoc) nas funções principais
-- [ ] Testes unitários (Jest) para cache e parsing RSS
-- [ ] CI/CD pipeline (GitHub Actions)
-
-### 7.1 Qualidade & Coerência (sugestões a curto prazo)
-- [ ] Remover duplicações no boot (ex.: `loadPSI20()` aparece repetido) e centralizar a sequência de carregamento
-- [ ] Normalizar IDs de cards: garantir que **todos** os cards têm `data-card-id` explícito (evitar depender de auto-mapping)
-- [ ] Integrar o card `cabaz` no sistema de personalização (visibilidade/reorder) **ou** documentar decisão de o manter fixo
-- [ ] Unificar “refresh global” (15 min) vs “monitorização de notificações” (5 min) com um scheduler único + Page Visibility API (pausar em background)
-- [ ] Extrair lista de proxies CORS e timeouts para config única (evitar divergências entre módulos Stooq/INE/USGS/REE)
-- [ ] Criar wrapper `fetchWithFallback()` + métricas por fonte (taxa de falha, tempo, cache-hit) para diagnóstico rápido
+- [ ] Documentar funções principais (JSDoc)
+- [ ] CI/CD pipeline (GitHub Actions) para validação automática de JS
 
 ---
 
 ## 📈 Tracking de Progresso
 
 ### Legenda de Prioridades:
-- ⛔ **Crítica** - Segurança/bugs imediatos
-- 🔴 **Alta** - Impacto significativo, implementar ASAP
-- 🟡 **Média** - Importante, não urgente
+- ⛔ **Crítica** - Corrigir imediatamente (segurança/bugs)
+- 🔴 **Alta** - Implementar ASAP (impacto significativo)
+- 🟡 **Média** - Importante, mas não urgente
 - 🟢 **Baixa** - Nice to have
 
 ---
@@ -220,68 +190,35 @@
 ## 📝 Notas de Versão
 
 ### v1.0.0 — Base
-- ✅ Dashboard multi-módulos (Portugal, Mercados, Geopolítica, Notícias)
-- ✅ Integração IPMA, combustíveis, Euribor estático
-- ✅ Design dark mode + Chart.js + TradingView
+- ✅ Dashboard com múltiplos módulos (Portugal, Mercados, Geopolítica, Notícias)
+- ✅ Integração com APIs portuguesas (IPMA, combustíveis, Euribor)
+- ✅ Design dark mode com Chart.js + TradingView widgets
 
-### v1.1.0 — Responsividade + Performance + Personalização (13/03/2026)
-- ✅ Responsividade mobile (4 breakpoints)
-- ✅ Sistema de personalização com drag & drop
-- ✅ Performance: debounce, lazy loading, cache TTL dinâmico
+### v1.1.0 — Concluído ✅
+- ✅ **Correções Urgentes** — API key removida, datas automáticas, media queries consolidadas (16/03/2026)
+- ✅ **Responsividade mobile completa** — breakpoints, grid adaptativo, touch targets (13/03/2026)
+- ✅ **Personalização** — painel settings, toggle cards, drag&drop, localização, tickers (13/03/2026)
+- ✅ **Performance** — debounce, lazy loading, cache TTL dinâmico, RAF batch (13/03/2026)
+- ✅ **Skeleton Screens** — 7 tipos, shimmer, 10 cards (16/03/2026)
+- ⚠️ **Notificações** — funcional mas limitado por CORS (16/03/2026)
+- ⚠️ **Exportação** — base implementada (16/03/2026)
 
-### v1.1.1 — Skeleton Screens + Notificações + Exportação (16/03/2026)
-- ✅ 7 tipos de skeleton screens com shimmer
-- ✅ Sistema de notificações (sismos, notícias, energia)
-- ✅ Sistema de exportação (PNG, PDF, CSV, JSON) — base
-- ✅ Correções urgentes: API key removida, datas automáticas
-
-### v1.1.2 — Zero API Keys + Mapas Melhorados (19/03/2026)
-- ✅ **Market Stats** — Stooq + Frankfurter + CoinGecko (`mstats_v3`)
-- ✅ **Sismos** — 5 proxies CORS + stale cache + botão retry (`seis_v10`)
-  - Mapa canvas full-width, 5 KPIs, painel de zonas (Continente/Açores/Madeira/Atlântico)
-  - Labels M≥4.0, tooltip melhorado
-- ✅ **Tráfego Aéreo** — aeroportos GPS reais (LIS, OPO, FAO, FNC, PDL, MAD, BCN) (`air_v8`)
-  - Mapa canvas expandido (100% largura, 260px), 7 KPIs numa linha
-- ✅ **Eletricidade** — endpoint corrigido `/pt/` MIBEL Portugal (`elec_v3`)
-  - 5 proxies CORS, stale-while-revalidate melhorado
-- ✅ **Calendário Económico** — totalmente algorítmico, sem API key
-  - FOMC 2025-2026, BCE 2025-2026 (datas fixas oficiais)
-  - NFP, CPI, PMI, PIB, Vendas Retalho: calculados dinamicamente
-  - Janela: 2 meses atrás → 6 meses à frente
-
-### v1.1.3 — Euribor BCE Live (20/03/2026)
-- ✅ **Euribor** — migrado de EMMI estático para **API BCE live** (`euribor_live_v1`)
-  - Endpoint: `data-api.ecb.europa.eu/service/data/FM/…` (CORS nativo, sem chave)
-  - 5 maturidades: 1S, 1M, 3M, 6M, 12M via séries SDMX JSON
-  - `parseBCEseries()` — parser robusto com chave de série dinâmica
-  - Estratégia: fallback EMMI visível imediatamente → BCE em background → actualiza se responder
-  - Badge "● BCE live" ou "⚠ EMMI estático" consoante fonte
-  - Cache `euribor_live_v1` (24h TTL)
-
-### v1.1.4 — Inflação Eurostat Live (20/03/2026)
-- ✅ **Inflação PT vs Zona Euro** — migrado de dados estáticos para **Eurostat API live**
-  - Dataset: `PRC_HICP_MANR` (HICP monthly, annual rate of change)
-  - Geo: `PT` (Portugal) + `EA20` (Zona Euro 20 membros)
-  - CORS nativo, sem chave, sem proxy necessário
-  - Parser JSON-stat robusto — lida com `EA20`, `EA` e outros agregados da Zona Euro
-  - Estratégia idêntica ao Euribor: fallback estático imediato → API em background
-  - Badge "● Eurostat live" ou "⚠ estático" consoante fonte
-  - Cache `inflation_eurostat_v1` (24h TTL)
-  - setInterval actualizado para `initInflation(true)`
-  - (Nota) Não existe script externo no repo — a migração está toda no `index.html`
+### v1.1.1 — Em curso 🔄
+- ✅ **Gás Natural PT (MIBGAS estimado)** — TTF live + spread sazonal (20/03/2026)
+- ✅ **Qualidade do Ar** — Open-Meteo CAMS, AQI EU + 5 poluentes + UV + previsão 8h (20/03/2026)
+- [ ] Automação Euribor via ECB SDMX
+- [ ] Automação Inflação via Eurostat SDMX
 
 ### v1.2.0 — Planeado
-- [ ] Modularização do código (JS + CSS separados) ← **TOP PRIORITY**
-- [ ] Hardening Imobiliário (INE API): retries, validação, e cache robusto (já existe live+fallback)
-- [ ] Automação Gás Natural (PT): MIBGAS spot + (opcional) AGSI+ storage
-- [x] **Qualidade do Ar (OpenAQ/CAMS)** — Open-Meteo CAMS, sem chave, AQI EU + 5 poluentes (20/03/2026)
-- [ ] Notificações automáticas periódicas (Cloudflare Worker ou backend)
-- [ ] Modo claro/escuro
+- [ ] **Modularização** — separar JS/CSS do index.html (prioridade máxima)
+- [ ] Automação dados estáticos (Euribor ECB, Inflação Eurostat)
+- [ ] Dados de barragens SNIRH
+- [ ] Notificações com backend (Cloudflare Worker)
 
 ### v2.0.0 — Futuro
 - [ ] PWA (Progressive Web App) com Service Worker
-- [ ] Backend leve (Cloudflare Workers) para proxies CORS robustos
-- [ ] Personalização completa de layout
+- [ ] Backend leve para chaves de API e notificações push
+- [ ] Modo claro/escuro
 
 ---
 

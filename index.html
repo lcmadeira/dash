@@ -6140,21 +6140,38 @@ async function loadAirQuality(force=false) {
   /* Coordenadas baseadas na cidade seleccionada */
   const cityId = CFG.IPMA_CITY_ID || 1060300;
   const coords = AQ_CITY_COORDS[cityId] || AQ_CITY_COORDS[1060300];
-  const ck = `aq_v1_${cityId}`;
+  const ck = `aq_v2_${cityId}`;
 
   let data = force ? null : lsGet(ck);
 
   if (!data) {
     try {
+      /* Air Quality API só aceita hourly= (não current=) */
+      /* uv_index está em hourly mas não é poluente CAMS — usar via forecast API */
       const url = `https://air-quality-api.open-meteo.com/v1/air-quality`
         + `?latitude=${coords.lat}&longitude=${coords.lon}`
-        + `&current=european_aqi,pm10,pm2_5,no2,o3,so2,uv_index`
-        + `&hourly=european_aqi,pm2_5,pm10,no2`
-        + `&forecast_days=1&timezone=Europe%2FLisbon`;
+        + `&hourly=european_aqi,pm10,pm2_5,no2,o3,so2`
+        + `&forecast_days=1`;
 
       const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
-      if (!r.ok) throw new Error(`Open-Meteo AQ HTTP ${r.status}`);
+      if (!r.ok) {
+        const errTxt = await r.text().catch(()=>"");
+        throw new Error(`Open-Meteo AQ HTTP ${r.status}${errTxt?" · "+errTxt.slice(0,80):""}`);
+      }
       data = await r.json();
+
+      /* UV Index: buscar da API forecast (mesmo endpoint que IPMA usa internamente) */
+      try {
+        const uvUrl = `https://api.open-meteo.com/v1/forecast`
+          + `?latitude=${coords.lat}&longitude=${coords.lon}`
+          + `&hourly=uv_index&forecast_days=1&timezone=Europe%2FLisbon`;
+        const ru = await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
+        if (ru.ok) {
+          const ju = await ru.json();
+          if (ju.hourly?.uv_index) data._uv = ju.hourly.uv_index;
+        }
+      } catch {}
+
       lsSet(ck, data);
     } catch(e) {
       el.innerHTML = er(`Qualidade do ar: ${e.message}`);
@@ -6162,12 +6179,28 @@ async function loadAirQuality(force=false) {
     }
   }
 
-  const cur = data.current || {};
   const hourly = data.hourly || {};
-  const aqi = Math.round(cur.european_aqi || 0);
-  const info = aqiInfo(aqi);
   const now = new Date();
+  /* Determinar índice da hora actual no array hourly */
   const hh = now.getHours();
+  /* O array começa à 00:00 do dia de hoje */
+  const todayStr = now.toISOString().slice(0, 10);
+  let hIdx = hh; /* Por omissão, índice = hora actual */
+  if (hourly.time && hourly.time.length) {
+    const found = hourly.time.findIndex(t => t && t.startsWith(todayStr + `T${String(hh).padStart(2,"0")}`));
+    if (found >= 0) hIdx = found;
+  }
+
+  /* Valores actuais = hora do array */
+  const aqi    = Math.round(hourly.european_aqi?.[hIdx] ?? 0);
+  const pm25   = hourly.pm2_5?.[hIdx] ?? null;
+  const pm10   = hourly.pm10?.[hIdx]  ?? null;
+  const no2    = hourly.no2?.[hIdx]   ?? null;
+  const o3     = hourly.o3?.[hIdx]    ?? null;
+  const so2    = hourly.so2?.[hIdx]   ?? null;
+  const uv     = data._uv?.[hIdx]     ?? null;
+
+  const info = aqiInfo(aqi);
 
   /* Atualizar badge no header */
   const badge = $("aq-aqi-badge");
@@ -6179,33 +6212,32 @@ async function loadAirQuality(force=false) {
   }
 
   /* Previsão horária AQI (próximas 8h) */
-  const aqiForecast = (hourly.european_aqi || []).slice(0, 24);
-  const aqiNext8 = aqiForecast.slice(hh, hh + 8);
+  const aqiHourly = hourly.european_aqi || [];
+  const aqiNext8 = aqiHourly.slice(hIdx, hIdx + 8);
 
-  /* Poluentes grid */
-  const polsHtml = AQ_POLS.map(p => {
-    const val = cur[p.key];
+  /* Poluentes disponíveis */
+  const polMap = {pm2_5: pm25, pm10: pm10, no2: no2, o3: o3, so2: so2};
+  const polsHtml = AQ_POLS.filter(p => p.key !== "uv_index").map(p => {
+    const val = polMap[p.key];
     if (val == null) return "";
     const col = polColor(p.key, val);
-    const fmt = p.key === "uv_index" ? val.toFixed(1) : Math.round(val);
     return `<div class="aqi-pol">
       <div class="aqi-pol-lbl">${p.label}</div>
-      <div class="aqi-pol-val" style="color:${col}">${fmt}</div>
+      <div class="aqi-pol-val" style="color:${col}">${Math.round(val)}</div>
       <div class="aqi-pol-unit">${p.unit}</div>
     </div>`;
   }).join("");
 
-  /* Barras de poluentes */
+  /* Barras */
   const barsHtml = AQ_POLS.filter(p => p.key !== "uv_index").map(p => {
-    const val = cur[p.key];
+    const val = polMap[p.key];
     if (val == null) return "";
     const col = polColor(p.key, val);
     const bw = polBarW(p.key, val);
-    const fmt = Math.round(val);
     return `<div class="aqi-bar-row">
       <div class="aqi-bar-lbl">${p.label}</div>
       <div class="aqi-bar-bg"><div class="aqi-bar-fill" style="width:${bw}%;background:${col}"></div></div>
-      <div class="aqi-bar-val" style="color:${col}">${fmt} ${p.unit}</div>
+      <div class="aqi-bar-val" style="color:${col}">${Math.round(val)} ${p.unit}</div>
     </div>`;
   }).join("");
 
@@ -6219,12 +6251,16 @@ async function loadAirQuality(force=false) {
     </div>`;
   }).join("") : "";
 
-  /* UV level */
-  const uv = cur.uv_index || 0;
-  const uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
-  const uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
+  /* UV */
+  const uvLine = uv != null ? (() => {
+    const uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
+    const uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
+    return `<span style="font-size:.65rem;color:${uvCol};background:${uvCol}15;
+      border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">
+      ☀️ UV ${uv.toFixed(1)} · ${uvLabel}</span>`;
+  })() : "";
 
-  const updTime = cur.time ? new Date(cur.time).toLocaleTimeString("pt-PT", {hour:"2-digit",minute:"2-digit"}) : "--:--";
+  const updTime = now.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"});
 
   el.innerHTML = `
   <!-- Hero: AQI + cidade -->
