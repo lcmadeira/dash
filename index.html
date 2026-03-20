@@ -6140,25 +6140,40 @@ async function loadAirQuality(force=false) {
   /* Coordenadas baseadas na cidade seleccionada */
   const cityId = CFG.IPMA_CITY_ID || 1060300;
   const coords = AQ_CITY_COORDS[cityId] || AQ_CITY_COORDS[1060300];
-  const ck = `aq_v2_${cityId}`;
+  const ck = `aq_v3_${cityId}`;
 
   let data = force ? null : lsGet(ck);
 
   if (!data) {
     try {
-      /* Air Quality API só aceita hourly= (não current=) */
-      /* uv_index está em hourly mas não é poluente CAMS — usar via forecast API */
-      const url = `https://air-quality-api.open-meteo.com/v1/air-quality`
+      /* Air Quality API — tenta cams_global (cobertura mundial garantida)
+         O modelo cams_europe pode falhar com "SurfacePressureAndHeight"
+         em certas coordenadas ibéricas perto da costa ou interior */
+      const AQ_BASE = `https://air-quality-api.open-meteo.com/v1/air-quality`
         + `?latitude=${coords.lat}&longitude=${coords.lon}`
         + `&hourly=european_aqi,pm10,pm2_5,no2,o3,so2`
         + `&forecast_days=1`;
 
-      const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
-      if (!r.ok) {
-        const errTxt = await r.text().catch(()=>"");
-        throw new Error(`Open-Meteo AQ HTTP ${r.status}${errTxt?" · "+errTxt.slice(0,80):""}`);
+      let r = null;
+      /* Tentativa 1: sem domínio especificado (auto) */
+      try {
+        r = await fetch(AQ_BASE, {signal: AbortSignal.timeout(10000)});
+        if (!r.ok) r = null;
+      } catch { r = null; }
+
+      /* Tentativa 2: forçar cams_global */
+      if (!r) {
+        try {
+          r = await fetch(AQ_BASE + `&domains=cams_global`,
+            {signal: AbortSignal.timeout(10000)});
+          if (!r.ok) r = null;
+        } catch { r = null; }
       }
+
+      if (!r) throw new Error(`Open-Meteo AQ indisponível (tentativas esgotadas)`);
+
       data = await r.json();
+      if (data.error) throw new Error(`Open-Meteo AQ: ${data.reason||data.error}`);
 
       /* UV Index: buscar da API forecast (mesmo endpoint que IPMA usa internamente) */
       try {
