@@ -3309,13 +3309,13 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="imob-grid">
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Preço mediano nacional</div>
-        <div class="imob-kpi-val">2 111 <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span></div>
-        <div class="imob-kpi-chg" style="color:#10b981">▲ +17,7% homólogo</div>
+        <div class="imob-kpi-val" id="imob-preco-val">2 111 <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span></div>
+        <div class="imob-kpi-chg" id="imob-preco-chg" style="color:#10b981">▲ +17,7% homólogo</div>
         <div class="imob-kpi-sub" id="imobSub1">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Transações no trimestre</div>
-        <div class="imob-kpi-val">42 481</div>
+        <div class="imob-kpi-val" id="imob-trans-val">42 481</div>
         <div class="imob-kpi-chg" style="color:#10b981">▲ +3,8% homólogo</div>
         <div class="imob-kpi-sub">€ 10,5 mil M vendas</div>
       </div>
@@ -5958,6 +5958,7 @@ setTimeout(()=>loadCO2(),         900);
 setTimeout(()=>loadTTF(),          300);
 setTimeout(()=>loadGasPT(),        350);
 setTimeout(()=>loadSMN(),           450);
+setTimeout(()=>loadImob(),          650);
 setTimeout(()=>loadTransp(),        500);
 setTimeout(()=>loadPress(),        400);
 setTimeout(()=>loadPSI20(),        550);
@@ -5967,7 +5968,7 @@ setInterval(()=>{
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadFX(true);loadCrypto(true);initInflation(true);
-  loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);
+  loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadCO2(true);loadImob(true);
   setTimeout(()=>loadMarketStats(true),800);
   setTimeout(()=>loadPSI20(true),1000);
 },CACHE_TTL);
@@ -6723,6 +6724,169 @@ async function loadMarketStats(force=false){
 }
 
 /* ═══ IMOBILIÁRIO PT ═══ */
+/* ══════════════════════════════════════════════════════════════
+   IMOBILIÁRIO PT — API INE live
+   Indicador 0009494: Preço mediano vendas alojamentos (€/m²)
+   Indicador 0009201: IPHab — Índice de preços habitação (base 2015)
+   Periodicidade: trimestral · publicação ~3 meses após o trimestre
+   CORS: via allorigins/corsproxy (API INE sem CORS nativo)
+   ══════════════════════════════════════════════════════════════ */
+async function loadImob(force=false){
+  const CK="imob_ine_v1";
+
+  /* Fallback estático — valores Q3 2025 confirmados nos destaques INE */
+  const FALLBACK={
+    price:2111, prevPrice:2065,
+    chgQoQ:2.23, chgYoY:17.7,
+    period:"Q3 2025", periodFull:"3.º Trimestre de 2025",
+    transactions:42481, transChgYoY:3.8,
+    salesBn:10.5,
+    newChgYoY:14.1, existChgYoY:19.1,
+    isLive:false
+  };
+
+  /* ── Construir URL da API INE ────────────────────────────── */
+  function buildINEUrl(varcd, periodos){
+    /* Sem Dim1 especificado → todos os períodos disponíveis
+       Com Dim1 → filtrar por períodos (mais eficiente mas requer saber o código) */
+    return `https://www.ine.pt/ine/json_indicador/pindica.jsp?op=2&varcd=${varcd}&lang=PT`;
+  }
+
+  /* ── Parser da resposta INE ──────────────────────────────── */
+  function parseINEData(data){
+    if(!Array.isArray(data)||!data.length) throw new Error("INE: resposta vazia");
+
+    /* Converter código S7T32025 → chave numérica para ordenação correcta */
+    function toKey(code){
+      const m=code.match(/S7T(\d)(\d{4})/);
+      return m?parseInt(m[2])*10+parseInt(m[1]):0;
+    }
+    function toLabel(code){
+      const m=code.match(/S7T(\d)(\d{4})/);
+      return m?`Q${m[1]} ${m[2]}`:code;
+    }
+
+    /* Filtrar Portugal, ordenar do mais recente para o mais antigo */
+    const pt=data
+      .filter(r=>r.geocod==="PT"&&r.valor&&r.valor!=="x"&&r.valor!=="")
+      .sort((a,b)=>toKey(b.Dim1)-toKey(a.Dim1));
+
+    if(!pt.length) throw new Error("INE: sem dados PT");
+
+    const latest=pt[0], prev=pt[1];
+    const price=parseFloat(latest.valor);
+    const prevP=prev?parseFloat(prev.valor):null;
+
+    /* Ano anterior — mesmo trimestre */
+    const mLat=latest.Dim1.match(/S7T(\d)(\d{4})/);
+    let prevYearPrice=null;
+    if(mLat){
+      const prevYearCode=`S7T${mLat[1]}${parseInt(mLat[2])-1}`;
+      const prevYearRow=pt.find(r=>r.Dim1===prevYearCode);
+      if(prevYearRow) prevYearPrice=parseFloat(prevYearRow.valor);
+    }
+
+    return{
+      price,
+      prevPrice:prevP,
+      chgQoQ:prevP?((price-prevP)/prevP*100):null,
+      chgYoY:prevYearPrice?((price-prevYearPrice)/prevYearPrice*100):null,
+      period:toLabel(latest.Dim1),
+      periodFull:latest.dim1_dsg||toLabel(latest.Dim1),
+      history:pt.slice(0,8).map(r=>({period:toLabel(r.Dim1),value:parseFloat(r.valor)})),
+      isLive:true
+    };
+  }
+
+  /* ── Fetch com proxies ───────────────────────────────────── */
+  async function fetchINE(varcd){
+    const url=buildINEUrl(varcd);
+    const proxies=[
+      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
+      "https://corsproxy.io/?url="+encodeURIComponent(url),
+      "https://thingproxy.freeboard.io/fetch/"+encodeURIComponent(url),
+    ];
+    for(const p of proxies){
+      try{
+        const r=await fetch(p,{signal:AbortSignal.timeout(12000)});
+        if(!r.ok) continue;
+        const j=await r.json();
+        if(Array.isArray(j)&&j.length) return j;
+        /* allorigins pode embrulhar em {contents:'...'} */
+        if(j.contents){const parsed=JSON.parse(j.contents);if(Array.isArray(parsed))return parsed;}
+      }catch(e){console.warn("INE proxy falhou:",p.slice(0,40),e.message);}
+    }
+    return null;
+  }
+
+  /* ── Actualizar KPIs no DOM com dados live ───────────────── */
+  function updateDOM(d){
+    const preco=$("imob-preco-val");
+    const chg  =$("imob-preco-chg");
+    const trans=$("imob-trans-val");
+    const ref  =$("imobRefQuarter");
+    const sub1 =$("imobSub1");
+    const sub2 =$("imobSub2");
+    const sub3 =$("imobSub3");
+    const src  =$("imobRefSrc");
+
+    if(preco) preco.innerHTML=`${d.price.toLocaleString("pt-PT")} <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span>`;
+
+    if(chg){
+      const yoyStr=d.chgYoY!=null?`+${d.chgYoY.toFixed(1)}%`:"+17,7%";
+      const col=d.chgYoY>0?"#10b981":"#ef4444";
+      chg.style.color=col;
+      chg.textContent=`▲ ${yoyStr} homólogo`;
+    }
+
+    if(ref) ref.textContent=`INE · ${d.period}`;
+    if(sub1) sub1.textContent=`${d.period} · famílias`;
+    if(sub2) sub2.textContent=`var. homóloga ${d.period}`;
+    if(sub3) sub3.textContent=`var. homóloga ${d.period}`;
+
+    if(src){
+      const badge=d.isLive
+        ?`<span style="color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.55rem">● INE API live</span>`
+        :`<span style="color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.55rem">⚠ estático · ref. Q3 2025</span>`;
+      src.innerHTML=`✦ INE · Estatísticas Preços Habitação · ${d.periodFull||d.period} ${badge}`;
+    }
+
+    console.log(`🏠 Imobiliário: ${d.price} €/m² (${d.period})${d.isLive?" · live":""}`);
+  }
+
+  /* ── Inicialização ───────────────────────────────────────── */
+  /* 1. Cache válido → actualizar DOM e sair */
+  if(!force){
+    const cached=lsGet(CK);
+    if(cached){
+      updateDOM(cached);
+      return;
+    }
+  }
+
+  /* 2. Mostrar fallback imediatamente */
+  updateDOM(FALLBACK);
+
+  /* 3. Tentar API INE em background */
+  try{
+    const raw=await fetchINE("0009494");
+    if(raw){
+      const d=parseINEData(raw);
+      /* Preservar dados estáticos que a API não devolve directamente */
+      d.transactions=FALLBACK.transactions;
+      d.transChgYoY=FALLBACK.transChgYoY;
+      d.salesBn=FALLBACK.salesBn;
+      d.newChgYoY=FALLBACK.newChgYoY;
+      d.existChgYoY=FALLBACK.existChgYoY;
+      lsSet(CK,d);
+      updateDOM(d);
+      return;
+    }
+  }catch(e){console.warn("⚠️ INE imobiliário falhou:",e.message);}
+
+  console.warn("⚠️ INE indisponível — a usar valores estáticos Q3 2025");
+}
+
 (function(){
 var IMOB_REGIOES=[
   {r:"Grande Lisboa",        v:4792,chg:18.2,col:"#f59e0b"},
