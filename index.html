@@ -3254,7 +3254,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-r"><button class="rbtn" onclick="loadTTF(true)">↺</button></div>
     </div>
     <div id="ttf-body"></div>
-    <div class="src">✦ ICIS · GIE AGSI+ · Trading Economics · ref. 11 Mar 2026</div>
+    <div class="src">✦ Stooq · tg.f (Dutch TTF ICE) · live · hubs secundários ref. Mar 2026</div>
   </div>
 
   <!-- Gás Natural · Portugal -->
@@ -6818,12 +6818,28 @@ function loadTTF(force=false){
   const el=document.getElementById("ttf-body");
   if(!el) return;
 
-  /* Hubs europeus — preços spot ref. Mar 2026 (€/MWh)
-     Fontes: ICIS, Montel, EEX, GIE AGSI+ · Actualizar mensalmente */
-  const HUBS=[
-    {name:"TTF",    country:"🇳🇱",full:"Title Transfer Facility",
-     price:38.5,prev:40.2,col:"#3B82F6",
-     desc:"Hub de referência europeu (Holanda). Benchmark para contratos LNG e spot."},
+  /* ══════════════════════════════════════════════════════════
+     TTF live — Stooq CSV (tg.f = Dutch TTF Gas, EUR/MWh)
+     Fallback: Yahoo Finance TTF=F (requer conversão USD/MMBtu)
+     Hubs secundários: estáticos (sem fonte pública gratuita)
+     ══════════════════════════════════════════════════════════ */
+
+  const CK = "ttf_live_v1";
+
+  /* Histórico TTF mensal — actualizar ~1x/mês manualmente
+     (sem API pública com histórico gratuito) */
+  const TTF_HIST=[
+    ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
+    ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
+    ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
+    ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
+    ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
+    ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
+    ["Jan 26",47.8],["Fev 26",41.2],["Mar 26",38.5],
+  ];
+
+  /* Outros hubs europeus — estáticos, sem fonte pública gratuita */
+  const HUBS_STATIC=[
     {name:"NBP",    country:"🇬🇧",full:"National Balancing Point",
      price:36.8,prev:38.1,col:"#8B5CF6",
      desc:"Hub britânico. Spread vs TTF reflecte isolamento pós-Brexit."},
@@ -6841,18 +6857,7 @@ function loadTTF(force=false){
      desc:"Hub austríaco. Ponto de entrada do gás russo/azeri via Turquia."},
   ];
 
-  /* Histórico TTF mensal Jan 2024 → Mar 2026 */
-  const TTF_HIST=[
-    ["Jan 24",26.8],["Fev 24",27.4],["Mar 24",24.9],["Abr 24",29.3],
-    ["Mai 24",34.1],["Jun 24",36.8],["Jul 24",38.2],["Ago 24",37.6],
-    ["Set 24",36.4],["Out 24",39.8],["Nov 24",45.2],["Dez 24",47.8],
-    ["Jan 25",50.2],["Fev 25",48.6],["Mar 25",41.3],["Abr 25",36.8],
-    ["Mai 25",34.2],["Jun 25",32.8],["Jul 25",35.4],["Ago 25",37.1],
-    ["Set 25",40.2],["Out 25",42.8],["Nov 25",44.6],["Dez 25",46.3],
-    ["Jan 26",47.8],["Fev 26",41.2],["Mar 26",38.5],
-  ];
-
-  /* Reservas EU por país — ref. Mar 2026 (GIE AGSI+) */
+  /* Reservas EU — estáticas, actualizar mensalmente */
   const RESERVAS=[
     {c:"🇩🇪",name:"Alemanha",pct:30.2,col:"#EF4444"},
     {c:"🇮🇹",name:"Itália",  pct:34.1,col:"#F97316"},
@@ -6862,90 +6867,236 @@ function loadTTF(force=false){
     {c:"🇦🇹",name:"Áustria", pct:38.4,col:"#F59E0B"},
     {c:"🇵🇱",name:"Polónia", pct:51.2,col:"#10B981"},
   ];
-  const EU_AVG=35;
-  const EU_PREV=52; /* mesmo período ano anterior */
+  const EU_AVG=35, EU_PREV=52;
 
-  /* Sparkline TTF */
-  const vals=TTF_HIST.map(x=>x[1]);
-  const vmin=Math.min(...vals), vmax=Math.max(...vals), vrng=vmax-vmin||1;
-  const SW=200,SH=40;
-  const sx=i=>Math.round(i/(vals.length-1)*SW);
-  const sy=v=>Math.round(SH-(v-vmin)/vrng*(SH-4)+2);
-  const pts=vals.map((v,i)=>`${sx(i)},${sy(v)}`).join(" ");
-  const fill=pts+` ${SW},${SH+2} 0,${SH+2}`;
+  /* ── Fetch TTF via Stooq CSV (tg.f = EUR/MWh) ──────────── */
+  async function fetchTTFStooq(){
+    const url=`https://stooq.com/q/l/?s=tg.f&f=sd2t2ohlcv&h&e=csv`;
+    const proxies=[
+      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
+      "https://corsproxy.io/?url="+encodeURIComponent(url),
+      "https://api.allorigins.win/raw?url="+encodeURIComponent(
+        url.replace("stooq.com","stooq.pl")),
+    ];
+    for(const p of proxies){
+      try{
+        const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
+        if(!r.ok) continue;
+        const csv=await r.text();
+        const rows=csv.trim().split("\n");
+        if(rows.length<2) continue;
+        /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
+        const cols=rows[1].split(",");
+        const open =parseFloat(cols[3]);
+        const hi   =parseFloat(cols[4]);
+        const lo   =parseFloat(cols[5]);
+        const close=parseFloat(cols[6]);
+        if(!isNaN(close)&&close>0&&close<500) /* sanidade: TTF entre 0-500 €/MWh */
+          return {price:close,prev:open,hi,lo,
+                  chg:open?((close-open)/open*100):0,live:true,src:"Stooq"};
+      }catch{}
+    }
+    return null;
+  }
 
-  el.innerHTML=`
-  <!-- Header: TTF actual + contexto -->
-  <div style="display:flex;align-items:center;justify-content:space-between;
-       background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:10px">
-    <div>
-      <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-           letter-spacing:.5px;margin-bottom:2px">TTF Day-ahead · ref. Mar 2026</div>
-      <div style="display:flex;align-items:flex-end;gap:5px">
-        <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">38.5</div>
-        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
+  /* ── Fetch TTF via Yahoo Finance (TTF=F) ────────────────────
+     Yahoo cotado em EUR/MWh para TTF=F — confirmar unidade no resultado */
+  async function fetchTTFYahoo(){
+    const sym="TTF=F";
+    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1d`;
+    const proxies=[
+      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
+      "https://corsproxy.io/?url="+encodeURIComponent(url),
+    ];
+    for(const p of proxies){
+      try{
+        const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
+        if(!r.ok) continue;
+        const j=await r.json();
+        const meta=j?.chart?.result?.[0]?.meta;
+        if(!meta?.regularMarketPrice) continue;
+        const price=meta.regularMarketPrice;
+        const prev=meta.previousClose||meta.chartPreviousClose||price;
+        if(!isNaN(price)&&price>0&&price<500)
+          return {price,prev,hi:meta.regularMarketDayHigh||price,
+                  lo:meta.regularMarketDayLow||price,
+                  chg:prev?((price-prev)/prev*100):0,live:true,src:"Yahoo"};
+      }catch{}
+    }
+    return null;
+  }
+
+  /* ── Render com dados TTF (live ou estático) ─────────────── */
+  function render(ttfData, sourceLabel){
+    const ttfPrice = ttfData?.price ?? 38.5;
+    const ttfPrev  = ttfData?.prev  ?? 40.2;
+    const ttfHi    = ttfData?.hi    ?? ttfPrice*1.01;
+    const ttfLo    = ttfData?.lo    ?? ttfPrice*0.99;
+    const ttfChg   = ttfData?.chg   ?? ((ttfPrice-ttfPrev)/ttfPrev*100);
+    const isLive   = ttfData?.live  ?? false;
+
+    /* Sparkline TTF histórico */
+    const histWithLive = [...TTF_HIST];
+    /* Actualizar último ponto se temos preço live */
+    if(isLive && histWithLive.length>0){
+      histWithLive[histWithLive.length-1] = ["Hoje", ttfPrice];
+    }
+    const vals=histWithLive.map(x=>x[1]);
+    const vmin=Math.min(...vals), vmax=Math.max(...vals), vrng=vmax-vmin||1;
+    const SW=200,SH=40;
+    const sx=i=>Math.round(i/(vals.length-1)*SW);
+    const sy=v=>Math.round(SH-(v-vmin)/vrng*(SH-4)+2);
+    const pts=vals.map((v,i)=>`${sx(i)},${sy(v)}`).join(" ");
+    const fill=pts+` ${SW},${SH+2} 0,${SH+2}`;
+
+    const chgCol = ttfChg>=0?"#EF4444":"#10B981";
+    const chgArr = ttfChg>=0?"▲":"▼";
+
+    const sourceBadge = isLive
+      ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
+      : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. Mar 2026</span>`;
+
+    el.innerHTML=`
+    <!-- Header: TTF actual + sparkline -->
+    <div style="display:flex;align-items:center;justify-content:space-between;
+         background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+               letter-spacing:.5px">TTF Day-ahead · EUR/MWh</div>
+          ${sourceBadge}
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:5px">
+          <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
+            ${ttfPrice.toFixed(1)}</div>
+          <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
+        </div>
+        <div style="font-size:.68rem;font-weight:600;color:${chgCol};margin-top:2px">
+          ${chgArr} ${Math.abs(ttfChg).toFixed(1)}% vs fecho anterior
+        </div>
+        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);margin-top:2px">
+          H ${ttfHi.toFixed(1)} · L ${ttfLo.toFixed(1)} · ant. ${ttfPrev.toFixed(1)}
+        </div>
       </div>
-      <div style="font-size:.65rem;color:#10B981;margin-top:2px">
-        ▼ 4.2% vs mês anterior
+      <div style="text-align:right">
+        <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">
+          Jan 2024 → ${histWithLive[histWithLive.length-1][0]}
+        </div>
+        <svg width="${SW}" height="${SH+4}" style="display:block">
+          <defs><linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3B82F6" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+          </linearGradient></defs>
+          <polygon points="${fill}" fill="url(#tg2)"/>
+          <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="1.5"/>
+          <circle cx="${sx(vals.length-1)}" cy="${sy(vals[vals.length-1])}" r="3" fill="#3B82F6"/>
+        </svg>
       </div>
     </div>
-    <div style="text-align:right">
-      <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">Jan 2024 → Mar 2026</div>
-      <svg width="${SW}" height="${SH+4}" style="display:block">
-        <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#3B82F6" stop-opacity=".25"/>
-          <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
-        </linearGradient></defs>
-        <polygon points="${fill}" fill="url(#tg)"/>
-        <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="1.5"/>
-      </svg>
-    </div>
-  </div>
 
-  <!-- Tabela hubs -->
-  <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    🌍 Hubs europeus · spot
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
-    ${HUBS.map(hub=>{
-      const chg=((hub.price-hub.prev)/hub.prev*100);
-      const chgCol=chg>=0?"#EF4444":"#10B981";
-      return `<div style="background:var(--b2);border-radius:7px;padding:6px 8px;
-           border-left:3px solid ${hub.col}">
+    <!-- Tabela hubs (TTF live + restantes estáticos) -->
+    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+      🌍 Hubs europeus · spot
+      <span style="font-size:.52rem;font-weight:400;color:var(--t3)"> · TTF live · outros ref. Mar 2026</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
+      <!-- TTF com dados live -->
+      <div style="background:var(--b2);border-radius:7px;padding:6px 8px;
+           border-left:3px solid #3B82F6">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
-            <div style="font-size:.7rem;font-weight:700;color:${hub.col}">${hub.country} ${hub.name}</div>
-            <div style="font-size:.52rem;color:var(--t3);margin-top:1px">${hub.full}</div>
+            <div style="font-size:.7rem;font-weight:700;color:#3B82F6">🇳🇱 TTF</div>
+            <div style="font-size:.52rem;color:var(--t3);margin-top:1px">Title Transfer Facility</div>
           </div>
           <div style="text-align:right">
-            <div style="font-size:.75rem;font-weight:700;color:var(--text)">${hub.price.toFixed(1)}</div>
-            <div style="font-size:.54rem;color:${chgCol}">${chg>=0?"▲":"▼"}${Math.abs(chg).toFixed(1)}%</div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--text)">${ttfPrice.toFixed(1)}</div>
+            <div style="font-size:.54rem;color:${chgCol}">${chgArr}${Math.abs(ttfChg).toFixed(1)}%</div>
           </div>
         </div>
-      </div>`;
-    }).join("")}
-  </div>
-
-  <!-- Reservas EU -->
-  <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    🏭 Reservas de gás · EU · Mar 2026
-    <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
-  </div>
-  ${RESERVAS.map(r=>`
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-      <div style="min-width:22px;font-size:.75rem">${r.c}</div>
-      <div style="min-width:55px;font-size:.62rem;color:var(--t2)">${r.name}</div>
-      <div style="flex:1;background:var(--b2);border-radius:3px;height:7px;overflow:hidden">
-        <div style="width:${r.pct}%;height:100%;background:${r.col};border-radius:3px"></div>
       </div>
-      <div style="min-width:36px;text-align:right;font-size:.65rem;font-weight:600;
-           color:${r.col}">${r.pct}%</div>
-    </div>`).join("")}
-  <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
-    ⚠️ Reservas EU muito abaixo da média histórica. Meta: 90% até Nov 2026.
-    Contexto: suspensão exportações QatarEnergy (Mar 2026) pressionou preços.
-  </div>`;
+      <!-- Hubs estáticos -->
+      ${HUBS_STATIC.map(hub=>{
+        const hChg=((hub.price-hub.prev)/hub.prev*100);
+        const hCol=hChg>=0?"#EF4444":"#10B981";
+        return `<div style="background:var(--b2);border-radius:7px;padding:6px 8px;
+             border-left:3px solid ${hub.col}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:.7rem;font-weight:700;color:${hub.col}">${hub.country} ${hub.name}</div>
+              <div style="font-size:.52rem;color:var(--t3);margin-top:1px">${hub.full}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:.75rem;font-weight:700;color:var(--text)">${hub.price.toFixed(1)}</div>
+              <div style="font-size:.54rem;color:${hCol}">${hChg>=0?"▲":"▼"}${Math.abs(hChg).toFixed(1)}%</div>
+            </div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <!-- Reservas EU -->
+    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+      🏭 Reservas de gás · EU · ref. Mar 2026
+      <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
+    </div>
+    ${RESERVAS.map(r=>`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+        <div style="min-width:22px;font-size:.75rem">${r.c}</div>
+        <div style="min-width:55px;font-size:.62rem;color:var(--t2)">${r.name}</div>
+        <div style="flex:1;background:var(--b2);border-radius:3px;height:7px;overflow:hidden">
+          <div style="width:${r.pct}%;height:100%;background:${r.col};border-radius:3px"></div>
+        </div>
+        <div style="min-width:36px;text-align:right;font-size:.65rem;font-weight:600;
+             color:${r.col}">${r.pct}%</div>
+      </div>`).join("")}
+    <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
+      ⚠️ Reservas EU abaixo da média histórica. Meta: 90% até Nov 2026.
+    </div>`;
+  }
+
+  /* ── Inicialização: cache → fallback → fetch live ───────── */
+  async function init(){
+    /* 1. Cache válido */
+    if(!force){
+      const cached=lsGet(CK);
+      if(cached){
+        render(cached, cached.src||"Stooq");
+        console.log("🔥 TTF: cache ("+cached.price.toFixed(1)+" €/MWh)");
+        return;
+      }
+    }
+
+    /* 2. Mostrar estático imediatamente */
+    render(null, "");
+
+    /* 3. Tentar Stooq em background */
+    try{
+      const data = await fetchTTFStooq();
+      if(data){
+        lsSet(CK, data);
+        render(data, "Stooq");
+        console.log("✅ TTF Stooq live: "+data.price.toFixed(1)+" €/MWh ("+data.chg.toFixed(2)+"%)");
+        return;
+      }
+    }catch(e){ console.warn("TTF Stooq falhou:", e.message); }
+
+    /* 4. Fallback Yahoo Finance */
+    try{
+      const data = await fetchTTFYahoo();
+      if(data){
+        lsSet(CK, data);
+        render(data, "Yahoo");
+        console.log("✅ TTF Yahoo live: "+data.price.toFixed(1)+" €/MWh");
+        return;
+      }
+    }catch(e){ console.warn("TTF Yahoo falhou:", e.message); }
+
+    console.warn("⚠️ TTF: todas as fontes falharam, a usar valores estáticos");
+  }
+
+  init();
 }
+
 
 function loadGasPT(force=false){
   const el=document.getElementById("gaspt-body");
