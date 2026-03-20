@@ -274,7 +274,7 @@
 - [ ] Modularização do código (JS + CSS separados) ← **TOP PRIORITY**
 - [ ] Hardening Imobiliário (INE API): retries, validação, e cache robusto (já existe live+fallback)
 - [ ] Automação Gás Natural (PT): MIBGAS spot + (opcional) AGSI+ storage
-- [ ] Qualidade do ar (OpenAQ) — sem API key
+- [x] **Qualidade do Ar (OpenAQ/CAMS)** — Open-Meteo CAMS, sem chave, AQI EU + 5 poluentes (20/03/2026)
 - [ ] Notificações automáticas periódicas (Cloudflare Worker ou backend)
 - [ ] Modo claro/escuro
 
