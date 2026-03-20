@@ -159,7 +159,7 @@
 - [x] ~~**Inflação**~~ — ✅ Eurostat SDMX API (`PRC_HICP_MANR`) — **concluído 20/03/2026**
 - [x] **Imobiliário** — INE API live (via proxies CORS) + fallback estático (ref. Q3 2025)
 - [x] **Gás Natural (EU)** — TTF/hubs via Stooq (via proxies CORS)
-- [ ] **Gás Natural (PT)** — automatizar MIBGAS spot + storage (AGSI+) e reduzir dependência de dados manuais
+- [x] **Gás Natural (PT)** — automatizar MIBGAS spot + storage (AGSI+) e reduzir dependência de dados manuais
 
 ### 5.2 Novas fontes
 - [ ] **Qualidade do ar** 🟡 — OpenAQ (gratuita, sem chave)
