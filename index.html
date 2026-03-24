@@ -10862,23 +10862,56 @@ async function loadOrmuz(force=false){
   /* Bounding box: Estreito de Ormuz (Golfo Pérsico) */
   /* Lat: 24°N - 27°N, Lon: 56°E - 58°E */
   if(!d){
-    /* AISStream.io WebSocket data seria ideal, mas não é REST.
-       Usar AISHub API com bbox do Estreito de Ormuz */
     const URLS=[
-      /* AISHub API - bbox do Estreito de Ormuz */
-      /* NOTA: AISHub requer conta gratuita e compartilhar dados.
-         Como alternativa, usamos dados de fallback com estatísticas */
       "https://data.aishub.net/ws.php?username=PUBLIC&format=1&output=json&latmin=24&latmax=27&lonmin=56&lonmax=58",
     ];
     for(const url of URLS){
       try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
+        const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
         if(r.ok){
           const j=await r.json();
           if(j&&j.length>1){d={ts:Date.now(),vessels:j,live:true};lsSet(ck,d);break;}
         }
       }catch{}
     }
+  }
+
+  /* Fallback: Gerar tráfego em tempo-real simulado se API falhar */
+  if(!d || !d.live){
+    const now=Date.now(), min=Math.floor(now/60000);
+    const simulated=[];
+    /* Gerar ~45 navios baseados na média diária */
+    for(let i=0; i<45; i++){
+      const seed=(min+i*137)%1440; // semente baseada no minuto do dia
+      const progress=(seed/1440);
+      const isInbound=i%2===0;
+      
+      // Rota simplificada: do Mar da Arábia (58E, 24N) para o Golfo (54E, 26N)
+      let lat, lon, hdg;
+      if(isInbound){
+        lon=58 - progress*4.5;
+        lat=24.5 + Math.sin(progress*Math.PI)*0.8 + (i%5)*0.1;
+        hdg=290 + Math.sin(progress*Math.PI)*20;
+      } else {
+        lon=53.5 + progress*4.5;
+        lat=26.2 - Math.sin(progress*Math.PI)*1.1 + (i%5)*0.1;
+        hdg=110 - Math.sin(progress*Math.PI)*20;
+      }
+
+      const typeIdx=i%6;
+      const types=["tanker","lng","cargo","tanker","bulk","other"];
+      const names=["AL GHARIYA","OCEANIC","ARCTIC VOYAGER","SEA HERO","GRACE COSMOS","MSC AMBRA"];
+      simulated.push([
+        1000000+i, // MMSI
+        lat, lon,
+        12+(i%5), // speed
+        hdg,
+        names[i%names.length], // name
+        null,null,null,null,null,null,null,null,null,null,null,null,
+        types[typeIdx] // type
+      ]);
+    }
+    d={ts:now, vessels:[{}, ...simulated], live:true, isSimulated:true};
   }
 
   /* ── Dados estáticos de fallback ──
@@ -10939,6 +10972,8 @@ async function loadOrmuz(force=false){
     const total=vessels.length;
     const age=Math.round((Date.now()-d.ts)/60000);
 
+    const isSim=!!d.isSimulated;
+
     el.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
@@ -10969,9 +11004,10 @@ async function loadOrmuz(force=false){
            padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:220px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
-      <div style="position:absolute;top:6px;right:6px;background:#0EA5E922;border:1px solid #0EA5E944;
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:#0EA5E9">
-        🟢 Live · ${age}min
+      <div style="position:absolute;top:6px;right:6px;background:${isSim?'#F59E0B22':'#0EA5E922'};
+           border:1px solid ${isSim?'#F59E0B44':'#0EA5E944'};
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:${isSim?'#F59E0B':'#0EA5E9'}">
+        ● ${isSim?'Simulated':'Live'} · ${age}min
       </div>
     </div>
 
@@ -11130,6 +11166,17 @@ async function loadOrmuz(force=false){
               const dist=Math.hypot(px-mx,py-my);
               if(dist<10 && !hit){
                 hit={label:`<b>${port.name}</b><br>${port.country}`};
+              }
+            });
+
+            /* Verificar navios */
+            vessels.slice(0,50).forEach(v=>{
+              const [mmsi, lat, lon, spd, hdg, name] = v;
+              const [vx, vy] = proj(lat, lon);
+              const dist = Math.hypot(vx - mx, vy - my);
+              if (dist < 8 && !hit) {
+                const type = (v[18]||"Vessel").toUpperCase();
+                hit = { label: `<b>${name||mmsi}</b><br>${type}<br>${spd} kn · ${hdg}°` };
               }
             });
 
