@@ -66,7 +66,7 @@ button{font-family:var(--font);cursor:pointer}
 
 	/* Grid */
 	.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
-	.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.subgrid{grid-column:span 4}.r2{grid-row:span 2}
+	.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.r2{grid-row:span 2}
 
 	/* ══════════════════════════════════════════════════════════════
 	   RESPONSIVIDADE MOBILE
@@ -76,9 +76,9 @@ button{font-family:var(--font);cursor:pointer}
 @media (max-width: 1199px) {
   .wrap{padding:16px 12px 40px}
   
-  /* Grid de 4 → 2 colunas */
-  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .s2,.s3,.s4,.subgrid{grid-column:span 2}
+	  /* Grid de 4 → 2 colunas */
+	  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+	  .s2,.s3,.s4{grid-column:span 2}
   
   /* Header ajustado */
   .hdr{grid-template-columns:1fr;gap:12px;text-align:center}
@@ -96,9 +96,9 @@ button{font-family:var(--font);cursor:pointer}
 @media (max-width: 767px) {
   .wrap{padding:12px 10px 32px}
   
-  /* Grid 1 coluna */
-  .grid{grid-template-columns:1fr;gap:10px}
-  .s2,.s3,.s4,.subgrid,.r2{grid-column:span 1;grid-row:span 1}
+	  /* Grid 1 coluna */
+	  .grid{grid-template-columns:1fr;gap:10px}
+	  .s2,.s3,.s4,.r2{grid-column:span 1;grid-row:span 1}
   
   /* Header mobile */
   .hdr{
@@ -2281,14 +2281,14 @@ textarea.nta::placeholder{color:var(--t3)}
 /* ── Tablet (≤1280px): 2 colunas ── */
 @media(max-width:1280px){
   .grid{grid-template-columns:repeat(2,1fr)}
-	  .s3,.s4,.subgrid{grid-column:span 2}
+	  .s3,.s4{grid-column:span 2}
   .r2{grid-row:auto}
   .wrap{padding:16px 12px 40px}
 }
 /* ── Mobile grande (≤768px): 1-2 colunas ── */
 @media(max-width:768px){
   .grid{grid-template-columns:repeat(2,1fr)}
-	  .s2,.s3,.s4,.subgrid{grid-column:span 2}
+	  .s2,.s3,.s4{grid-column:span 2}
   .wrap{padding:12px 8px 32px}
   .card{padding:12px 14px}
   .hdr{grid-template-columns:1fr auto;gap:6px}
@@ -2304,7 +2304,7 @@ textarea.nta::placeholder{color:var(--t3)}
 /* ── Mobile pequeno (≤520px): 1 coluna ── */
 @media(max-width:520px){
   .grid{grid-template-columns:1fr}
-	  .s2,.s3,.s4,.subgrid{grid-column:span 1}
+	  .s2,.s3,.s4{grid-column:span 1}
   .hdr{grid-template-columns:1fr;gap:4px}
   .pills{justify-content:flex-start;flex-wrap:wrap}
   .card{padding:10px 12px}
@@ -2491,27 +2491,24 @@ textarea.nta::placeholder{color:var(--t3)}
 .cmap-conflict-type{font-family:var(--mono);font-size:.47rem;padding:1px 5px;border-radius:2px;border:1px solid;flex-shrink:0}
 .cmap-conflict-desc{font-family:var(--mono);font-size:.49rem;color:var(--t3);width:120px;flex-shrink:0;text-align:right}
 
-/* ── Correcções específicas mobile ── */
-@media(max-width:768px){
-  /* Mapas regionais: stack vertical */
-  #air-body > div:last-child > div[style*="flex"],
-  #seis-body > div:last-child > div[style*="flex"] { flex-direction:column }
-  /* Mapa: largura total em mobile */
-  #air-body canvas, #seis-body canvas { width:100%!important }
-  /* KPIs do tráfego: sempre 4 cols mesmo em mobile */
-  #air-body > div[style*="grid-template-columns:repeat(4"] { 
-    grid-template-columns:repeat(2,1fr)!important 
-  }
-  /* Cards do grid da Economia Real: garantir que sub-grids ficam full-width */
-  .grid.s4,.subgrid { grid-column:span 2!important }
-}
-@media(max-width:520px){
-  /* Em mobile pequeno, os flex layouts viram column */
-  [style*="display:flex"][style*="gap:12px"] { 
-    flex-direction:column 
-  }
-  .grid.s4,.subgrid { grid-column:span 1!important }
-}
+	/* ── Correcções específicas mobile ── */
+	@media(max-width:768px){
+	  /* Mapas regionais: stack vertical */
+	  #air-body > div:last-child > div[style*="flex"],
+	  #seis-body > div:last-child > div[style*="flex"] { flex-direction:column }
+	  /* Mapa: largura total em mobile */
+	  #air-body canvas, #seis-body canvas { width:100%!important }
+	  /* KPIs do tráfego: sempre 4 cols mesmo em mobile */
+	  #air-body > div[style*="grid-template-columns:repeat(4"] { 
+	    grid-template-columns:repeat(2,1fr)!important 
+	  }
+	}
+	@media(max-width:520px){
+	  /* Em mobile pequeno, os flex layouts viram column */
+	  [style*="display:flex"][style*="gap:12px"] { 
+	    flex-direction:column 
+	  }
+	}
 
 /* ══════════════════════════════════════════════════════════════
    MEDIA QUERIES - MOBILE CONSOLIDADO (< 768px)
@@ -3424,8 +3421,6 @@ textarea.nta::placeholder{color:var(--t3)}
      ════════════════════════════════════════════════════════════ -->
 
 <!-- ROW 1: Fear & Greed (s2) + Indicador Recessão (s2) -->
-<div class="grid subgrid">
-
   <div class="card s2" id="fng-card">
     <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F59E0B,#10B981)"></div>
     <div class="ch">
@@ -3449,11 +3444,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
   </div>
 
-</div><!-- /grid row1 -->
-
 <!-- ROW 2: Preços Agrícolas (full width s4) -->
-<div class="grid subgrid" style="margin-top:12px">
-
   <div class="card s4" id="agri-card">
     <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#10B981)"></div>
     <div class="ch">
@@ -3465,11 +3456,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
   </div>
 
-</div><!-- /grid row2 -->
-
 <!-- ROW 3: Exportações PT (s2) + Dívida Pública (s2) -->
-<div class="grid subgrid" style="margin-top:12px">
-
   <div class="card s2" id="exp-card">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),#EF4444)"></div>
     <div class="ch">
@@ -3498,11 +3485,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ Eurostat · General Government Debt · 2024 · % do PIB</div>
   </div>
 
-</div><!-- /grid row3 -->
-
 <!-- ROW 4: Tráfego Aéreo (s2) + Sismos (s2) -->
-<div class="grid subgrid" style="margin-top:12px">
-
   <div class="card s2" id="air-card">
     <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
     <div class="ch">
@@ -3525,11 +3508,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
   </div>
 
-</div><!-- /grid row4 -->
-
 <!-- ROW 4b: Estreito de Ormuz (s2) -->
-<div class="grid subgrid" style="margin-top:12px">
-
   <div class="card s2" id="ormuz-card">
     <div class="stripe" style="background:linear-gradient(90deg,#0EA5E9,#0284C7)"></div>
     <div class="ch">
@@ -3541,11 +3520,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ AIS data · Golfo Pérsico · Estreito de Ormuz</div>
   </div>
 
-</div><!-- /grid row4b -->
-
 <!-- ROW 5: Salário Mínimo & Custo de Vida (s2) + Transportes PT (s2) -->
-<div class="grid subgrid" style="margin-top:12px">
-
   <!-- Salário Mínimo & Custo de Vida -->
   <div class="card s2" id="smn-card">
     <div class="stripe" style="background:linear-gradient(180deg,#10B981,#3B82F6)"></div>
@@ -3569,8 +3544,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="transp-body"></div>
     <div class="src">✦ CP · Carris Metropolitana · Metro Lisboa/Porto · STCP</div>
   </div>
-
-</div><!-- /grid row5 -->
 
   <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
@@ -12517,21 +12490,6 @@ function resetSettings() {
   alert('Configurações restauradas! Recarregue a página para ver as alterações.');
 }
 
-function normalizeMainGridLayout() {
-  const mainGrid = document.getElementById('main-grid');
-  if (!mainGrid) return;
-
-  // Remover cabeçalhos de secção (zonas temáticas antigas)
-  mainGrid.querySelectorAll('.sec').forEach(el => el.remove());
-
-  // Flatten: mover cards que estejam dentro de subgrids para o main-grid
-  const nestedCards = Array.from(mainGrid.querySelectorAll('.grid.subgrid .card, .grid.subgrid .tv-chart-card'));
-  nestedCards.forEach(card => mainGrid.appendChild(card));
-
-  // Remover subgrids vazias/antigas
-  mainGrid.querySelectorAll('.grid.subgrid').forEach(el => el.remove());
-}
-
 function applySettings() {
   console.log('Aplicando configurações:', currentConfig);
   
@@ -12540,9 +12498,6 @@ function applySettings() {
     console.error('Container main-grid não encontrado!');
     return;
   }
-
-  // As secções fixas deixaram de existir: mostramos apenas os cards selecionados
-  normalizeMainGridLayout();
 
   // Construir índice dos cards no DOM (inclui TradingView chart)
   const allDomCards = Array.from(mainGrid.querySelectorAll('.card[data-card-id], .tv-chart-card[data-card-id]'));
