@@ -356,9 +356,11 @@ button{font-family:var(--font);cursor:pointer}
   max-width: 900px;
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   animation: slideUp .3s ease;
   box-shadow: 0 20px 60px rgba(0,0,0,.5);
 }
@@ -437,6 +439,9 @@ button{font-family:var(--font);cursor:pointer}
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* Seção dentro do painel */
@@ -485,6 +490,10 @@ button{font-family:var(--font);cursor:pointer}
   opacity: 0.5;
   cursor: grabbing;
 }
+.card-toggle-item.drag-over {
+  border-color: var(--accent);
+  background: var(--card);
+}
 .card-toggle-item:hover {
   border-color: var(--b2);
   background: var(--card);
@@ -511,6 +520,35 @@ button{font-family:var(--font);cursor:pointer}
   font-size: .65rem;
   color: var(--t3);
   font-family: var(--mono);
+}
+
+.card-order-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-order-btn {
+  width: 26px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--b);
+  background: var(--card);
+  color: var(--t2);
+  cursor: pointer;
+  line-height: 1;
+  font-size: .75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.card-order-btn:hover {
+  border-color: var(--b2);
+  background: var(--surface);
+}
+.card-order-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
 }
 
 /* Toggle switch */
@@ -3204,12 +3242,10 @@ textarea.nta::placeholder{color:var(--t3)}
 <!-- Barra de Relógios — Praças Financeiras -->
 <div class="mkt-bar" id="mkt-bar"></div>
 
-<div class="grid">
+<div class="grid" id="main-grid">
 
-
-
-<div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
-  <div class="card">
+<div class="sec" id="sec-portugal"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
+  <div class="card" id="card-weather">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
@@ -3236,7 +3272,7 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
 
-  <div class="card">
+  <div class="card" id="card-fuel">
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT</span>
@@ -3244,10 +3280,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
-
-
   <!-- Cabaz Alimentar DECO PROteste -->
-  <div class="card" data-card-id="cabaz">
+  <div class="card" id="card-cabaz">
     <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">🛒</div>
@@ -3261,78 +3295,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ DECO PROteste · 63 produtos essenciais · monitorização semanal (quartas-feiras) · desde Jan 2022</div>
   </div>
 
-  <!-- Modal de edição do cabaz -->
-  <div id="cabaz-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-       background:rgba(7,9,14,.92);backdrop-filter:blur(8px);z-index:9999;
-       align-items:center;justify-content:center;padding:20px">
-    <div style="background:var(--card);border:1px solid var(--b2);border-radius:12px;
-         max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--b);display:flex;
-           align-items:center;justify-content:space-between">
-        <div style="font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px">
-          🛒 Actualizar Cabaz Alimentar
-        </div>
-        <button onclick="closeCabazEditor()" style="background:var(--surface);border:1px solid var(--b);
-             border-radius:6px;padding:5px 9px;color:var(--t3);cursor:pointer;font-size:1.1rem">✕</button>
-      </div>
-      <div style="padding:22px">
-        <p style="font-size:.72rem;color:var(--t3);margin-bottom:14px;line-height:1.6">
-          Insere o valor do cabaz desta semana (publicado todas as <b style="color:var(--accent)">quartas-feiras</b>
-          pela DECO PROteste). Fonte:
-          <a href="https://www.deco.proteste.pt/familia-consumo/supermercado/noticias/precos-estao-aumentar-alimentos"
-             target="_blank" style="color:var(--blue)">deco.proteste.pt</a>
-        </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div>
-            <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
-                   text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
-              Valor do cabaz (€)
-            </label>
-            <input id="cabaz-input-valor" type="number" step="0.01" min="180" max="400"
-              placeholder="254.32"
-              style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
-                     color:var(--text);font-family:var(--mono);font-size:.9rem;padding:8px 12px;
-                     outline:none;transition:border-color .2s">
-          </div>
-          <div>
-            <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
-                   text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
-              Data da publicação
-            </label>
-            <input id="cabaz-input-data" type="date"
-              style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
-                     color:var(--text);font-family:var(--mono);font-size:.9rem;padding:8px 12px;
-                     outline:none;transition:border-color .2s">
-          </div>
-        </div>
-        <div style="margin-bottom:14px">
-          <label style="font-size:.65rem;color:var(--t3);font-family:var(--mono);
-                 text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
-            Nota opcional (produtos que mais subiram, etc.)
-          </label>
-          <input id="cabaz-input-nota" type="text" maxlength="120"
-            placeholder="Ex: Curgete +17%, ovos +6%"
-            style="width:100%;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);
-                   color:var(--text);font-family:var(--font);font-size:.75rem;padding:8px 12px;
-                   outline:none;transition:border-color .2s">
-        </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button onclick="closeCabazEditor()" style="padding:8px 16px;border-radius:var(--rs);
-               font-family:var(--mono);font-size:.65rem;font-weight:600;text-transform:uppercase;
-               cursor:pointer;background:var(--surface);border:1px solid var(--b);color:var(--t3)">
-            Cancelar
-          </button>
-          <button onclick="saveCabazEntry()" style="padding:8px 18px;border-radius:var(--rs);
-               font-family:var(--mono);font-size:.65rem;font-weight:600;text-transform:uppercase;
-               cursor:pointer;background:var(--accent);border:none;color:#07090E">
-            Guardar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
+  <div class="card" id="card-oil">
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">🛢️</div>
       <span class="ch-lbl">Petróleo · Brent &amp; WTI</span>
@@ -3356,10 +3319,8 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
   </div>
 
-  <!-- Gás Natural TTF -->
-  
   <!-- Gás Natural · Hubs Europeus -->
-  <div class="card">
+  <div class="card" id="card-gas-eu">
     <div class="stripe" style="background:#3B82F6"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F620">🔥</div>
@@ -3371,7 +3332,7 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
   <!-- Gás Natural · Portugal -->
-  <div class="card">
+  <div class="card" id="card-gas-pt">
     <div class="stripe" style="background:linear-gradient(180deg,#F97316,#3B82F6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#F9731620">🇵🇹</div>
@@ -3382,22 +3343,16 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
   </div>
 
-
-  <div class="card">
+  <div class="card" id="card-elec">
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
       <div class="ch-r"><button class="rbtn" onclick="loadElec(true)">↺</button></div></div>
     <div id="elec-body"></div>
   </div>
-
-
-  
-
-
   
   <!-- Qualidade do Ar · Portugal -->
-  <div class="card" id="airquality-card">
+  <div class="card" id="card-airquality">
     <div class="stripe" style="background:linear-gradient(90deg,#10B981,#06B6D4,#8B5CF6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">🌬️</div>
@@ -3408,11 +3363,11 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Open-Meteo · Copernicus CAMS · 11 km resolução · Sem chave API</div>
+    <div class="src">✦ Open-Meteo · Copernicus CAMS · 11 km resolution · Sem chave API</div>
   </div>
 
 <!-- Euribor estático EMMI -->
-  <div class="card s2">
+  <div class="card s2" id="card-euribor">
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📐</div>
@@ -3428,7 +3383,7 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
     <!-- Imobiliário PT -->
-  <div class="card s2" id="imob-card">
+  <div class="card s2" id="card-imob">
     <div class="stripe" style="background:linear-gradient(90deg,#10b981,#0ea5e9)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#10b98120">🏠</div>
@@ -11879,40 +11834,71 @@ const DEFAULT_CONFIG = {
   cards: [
     { id: 'weather',    name: 'Meteorologia & Feriados',  desc: 'Clima, previsão 5 dias e feriados PT',        visible: true, icon: '🌡️' },
     { id: 'fuel',       name: 'Combustíveis',              desc: 'Preços gasolina/gasóleo · API Aberta PT',     visible: true, icon: '⛽' },
+    { id: 'cabaz',      name: 'Cabaz Alimentar',           desc: '63 produtos essenciais · DECO PROteste',      visible: true, icon: '🛒' },
     { id: 'oil',        name: 'Petróleo',                  desc: 'Brent & WTI · TradingView live',              visible: true, icon: '🛢️' },
     { id: 'gas-eu',     name: 'Gás Natural EU',            desc: 'Hubs europeus · TTF, MIBGAS, NBP…',          visible: true, icon: '🔥' },
     { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS · Tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
     { id: 'elec',       name: 'Eletricidade',              desc: 'Spot MIBEL · mix energético · tarifas',      visible: true, icon: '⚡' },
+    { id: 'airquality', name: 'Qualidade do Ar',           desc: 'CAMS/Copernicus · 5 poluentes + UV',          visible: true, icon: '🌬️' },
     { id: 'euribor',    name: 'Euribor',                   desc: 'Taxas BCE live · spread bancário PT',        visible: true, icon: '📐' },
-    { id: 'imob',       name: 'Imobiliário',               desc: 'Mercado habitação Portugal · INE',           visible: true, icon: '🏠' },
-    { id: 'fng',        name: 'Fear & Greed',              desc: 'Índice sentimento cripto · Alternative.me',  visible: true, icon: '😰' },
-    { id: 'rec',        name: 'Indicador Recessão EUA',    desc: 'US 10Y-2Y Spread · FRED St. Louis',          visible: true, icon: '📉' },
-    { id: 'agri',       name: 'Preços Agrícolas',          desc: 'Futuros CBOT/ICE · Trigo, Milho, Soja…',    visible: true, icon: '🌾' },
-    { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP 2024',       visible: true, icon: '📦' },
+    { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
+    { id: 'fng',        name: 'Fear & Greed',              desc: 'Sentimento cripto · Alternative.me',          visible: true, icon: '😰' },
+    { id: 'rec',        name: 'Recessão EUA',              desc: 'US 10Y-2Y Spread · FRED St. Louis',          visible: true, icon: '📉' },
+    { id: 'agri',       name: 'Preços Agrícolas',          desc: 'Futuros CBOT/ICE · Commodities',             visible: true, icon: '🌾' },
+    { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP',            visible: true, icon: '📦' },
     { id: 'div',        name: 'Dívida Pública',            desc: '% PIB · Eurostat 2024',                      visible: true, icon: '🏛️' },
     { id: 'air',        name: 'Tráfego Aéreo',             desc: 'OpenSky Network · Lisboa live',              visible: true, icon: '✈️' },
-    { id: 'seis',       name: 'Sismos',                    desc: 'USGS · Ibéria + Açores · 7 dias',            visible: true, icon: '🌍' },
-    { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'AIS data · Tráfego marítimo · Golfo Pérsico', visible: true, icon: '🚢' },
-    { id: 'smn',        name: 'Salário Mínimo',            desc: 'SMN + custo de vida + IPC · PT',             visible: true, icon: '💼' },
-    { id: 'transp',     name: 'Transportes PT',            desc: 'CP, Metro, Passes, Horários PT',             visible: true, icon: '🚆' },
-    { id: 'finance',    name: 'Mercados Financeiros',      desc: 'TradingView Advanced Chart · live',          visible: true, icon: '📈' },
-    { id: 'psi20',      name: 'Bolsa Lisboa · PSI 20',     desc: 'Euronext Lisboa + bolsas europeias · Stooq', visible: true, icon: '🇵🇹' },
-    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500 / Crypto / ETFs · TradingView',      visible: true, icon: '🌡️' },
-    { id: 'fx',         name: 'Câmbio EUR',                desc: 'BCE Frankfurter API · 8 pares de moedas',    visible: true, icon: '💱' },
-    { id: 'crypto',     name: 'Criptomoedas',              desc: 'BTC, ETH, SOL… em EUR · CoinGecko',         visible: true, icon: '₿' },
-    { id: 'inf',        name: 'Inflação PT vs EU',         desc: 'INE · Eurostat · meta BCE 2%',               visible: true, icon: '📊' },
-    { id: 'mstats',     name: 'Indicadores de Mercado',    desc: 'VIX, Ouro, S&P 500, WTI, BTC · Stooq',      visible: true, icon: '🔭' },
-    { id: 'cal',        name: 'Calendário Económico',      desc: 'FOMC, BCE, NFP, CPI, INE · auto-gerado',     visible: true, icon: '📅' },
-    { id: 'conflicts',  name: 'Conflitos Globais',         desc: 'Mapa de conflitos activos · Mar 2026',       visible: true, icon: '🗺️' },
-    { id: 'geo',        name: 'Análise Geopolítica',       desc: 'RSS · Crisis Group · BBC World',             visible: true, icon: '🛰️' },
+    { id: 'seis',       name: 'Sismos',                    desc: 'Ibéria & Açores · USGS mag ≥ 0.5',           visible: true, icon: '🌍' },
+    { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'AIS data · Tráfego marítimo real/sim.',      visible: true, icon: '🚢' },
+    { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },
+    { id: 'transp',     name: 'Transportes PT',            desc: 'CP, Carris, Metro · Estado do serviço',     visible: true, icon: '🚆' },
+    { id: 'finance',    name: 'Gráfico de Mercados',       desc: 'TradingView Advanced Chart · Full width',     visible: true, icon: '📈' },
+    { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 constituíntes · Yahoo Finance',       visible: true, icon: '🇵🇹' },
+    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500, Crypto, ETFs · TradingView',        visible: true, icon: '🌡️' },
+    { id: 'fx',         name: 'Câmbio EUR',                desc: 'BCE · Taxas de conversão live',              visible: true, icon: '💱' },
+    { id: 'crypto',     name: 'Criptomoedas',              desc: 'BTC, ETH e Top Altcoins · CoinGecko',        visible: true, icon: '₿' },
+    { id: 'inf',        name: 'Inflação PT/EU',            desc: 'PRC_HICP · Eurostat auto-update',            visible: true, icon: '📊' },
+    { id: 'mstats',     name: 'Indicadores Mercado',       desc: '🔭 Gold, Commodities, Spread BCE',           visible: true, icon: '🔭' },
+    { id: 'cal',        name: 'Calendário Económico',      desc: 'Próximos eventos Fed/BCE/INE',               visible: true, icon: '📅' },
+    { id: 'conflicts',  name: 'Conflitos Globais',         desc: '🗺️ Mapa de tensão e guerras activas',         visible: true, icon: '🗺️' },
+    { id: 'geo',        name: 'Análise Geopolítica',       desc: '📡 Satélite e análise estratégica',          visible: true, icon: '🛰️' },
     { id: 'co2',        name: 'Emissões CO₂',              desc: 'Mix energético PT · DGEG/REN 2024',          visible: true, icon: '🌱' },
-    { id: 'press',      name: 'Liberdade de Imprensa',     desc: 'RSF 2024 · EIU Democracy Index',             visible: true, icon: '🗽' },
+    { id: 'press',      name: 'Liberdade Imprensa',        desc: 'RSF 2024 · Democracy Index',                 visible: true, icon: '🗽' },
     { id: 'news-pt',    name: 'Notícias Portugal',         desc: 'Google News RSS · PT · tempo real',          visible: true, icon: '📰' },
-    { id: 'news-world', name: 'Notícias Mundo',            desc: 'Google News RSS · Mundial · tempo real',     visible: true, icon: '🌍' },
+    { id: 'news-world', name: 'Notícias Mundo',            desc: 'Google News RSS · Mundo · tempo real',       visible: true, icon: '🌍' }
   ],
-  location: 'evora',
+  location: 'lisboa',
   tickers: ['BCP', 'EDP', 'GALP', 'JMT']
 };
+
+/**
+ * Sincroniza a configuração do utilizador com o DEFAULT_CONFIG
+ * Adiciona novos cards que tenham sido criados no código
+ */
+function syncDashboardConfig(userConfig) {
+  if (!userConfig || !userConfig.cards) return DEFAULT_CONFIG;
+  
+  const updatedCards = [...userConfig.cards];
+  const userCardIds = new Set(updatedCards.map(c => c.id));
+  
+  // Adicionar cards que existem no DEFAULT mas não no utilizador
+  DEFAULT_CONFIG.cards.forEach(defaultCard => {
+    if (!userCardIds.has(defaultCard.id)) {
+      console.log(`🆕 Sincronização: Adicionando novo card "${defaultCard.id}"`);
+      updatedCards.push({ ...defaultCard });
+    }
+  });
+  
+  // Atualizar nomes/descrições/ícones dos cards existentes (mantendo visibilidade)
+  updatedCards.forEach((card, index) => {
+    const dc = DEFAULT_CONFIG.cards.find(c => c.id === card.id);
+    if (dc) {
+      updatedCards[index] = { ...dc, visible: card.visible };
+    }
+  });
+  
+  return { ...userConfig, cards: updatedCards };
+}
 
 // Localizações disponíveis
 const LOCATIONS = [
@@ -11931,6 +11917,9 @@ const LOCATIONS = [
 
 // Estado atual (carregado do localStorage)
 let currentConfig = JSON.parse(localStorage.getItem('dashboardConfig')) || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+// Sincronizar com DEFAULT_CONFIG para garantir novos cards
+currentConfig = syncDashboardConfig(currentConfig);
 
 // Drag & Drop state
 let draggedElement = null;
@@ -12018,6 +12007,10 @@ function renderCardToggles() {
         <div class="card-toggle-name">${card.icon} ${card.name}</div>
         <div class="card-toggle-desc">${card.desc}</div>
       </div>
+      <div class="card-order-controls">
+        <button class="card-order-btn" ${index === 0 ? 'disabled' : ''} onclick="moveCard(${index}, -1)" title="Mover para cima">↑</button>
+        <button class="card-order-btn" ${index === currentConfig.cards.length - 1 ? 'disabled' : ''} onclick="moveCard(${index}, 1)" title="Mover para baixo">↓</button>
+      </div>
       <label class="toggle-switch">
         <input type="checkbox" ${card.visible ? 'checked' : ''} 
                onchange="toggleCardVisibility(${index})">
@@ -12028,6 +12021,8 @@ function renderCardToggles() {
     // Drag events
     div.addEventListener('dragstart', handleDragStart);
     div.addEventListener('dragend', handleDragEnd);
+    div.addEventListener('dragenter', handleDragEnter);
+    div.addEventListener('dragleave', handleDragLeave);
     div.addEventListener('dragover', handleDragOver);
     div.addEventListener('drop', handleDrop);
     
@@ -12049,6 +12044,16 @@ function handleDragEnd(e) {
   });
 }
 
+function handleDragEnter(e) {
+  if (this !== draggedElement) {
+    this.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(e) {
+  this.classList.remove('drag-over');
+}
+
 function handleDragOver(e) {
   if (e.preventDefault) {
     e.preventDefault();
@@ -12063,11 +12068,14 @@ function handleDrop(e) {
   }
   
   if (draggedElement !== this) {
-    const fromIndex = parseInt(draggedElement.dataset.index);
-    const toIndex = parseInt(this.dataset.index);
+    const fromIndex = Number.parseInt(draggedElement.dataset.index, 10);
+    let toIndex = Number.parseInt(this.dataset.index, 10);
+    if (!Number.isFinite(fromIndex) || !Number.isFinite(toIndex)) return false;
     
     // Reordenar array
     const item = currentConfig.cards.splice(fromIndex, 1)[0];
+    // Se arrastar para baixo, o índice destino muda após remover o item
+    if (fromIndex < toIndex) toIndex -= 1;
     currentConfig.cards.splice(toIndex, 0, item);
     
     // Re-renderizar
@@ -12079,6 +12087,14 @@ function handleDrop(e) {
 
 function toggleCardVisibility(index) {
   currentConfig.cards[index].visible = !currentConfig.cards[index].visible;
+}
+
+function moveCard(fromIndex, direction) {
+  const toIndex = fromIndex + direction;
+  if (toIndex < 0 || toIndex >= currentConfig.cards.length) return;
+  const item = currentConfig.cards.splice(fromIndex, 1)[0];
+  currentConfig.cards.splice(toIndex, 0, item);
+  renderCardToggles();
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -12458,37 +12474,42 @@ function resetSettings() {
 function applySettings() {
   console.log('Aplicando configurações:', currentConfig);
   
-  // Garantir que os cards têm IDs primeiro
-  const totalCards = document.querySelectorAll('.card').length;
-  const cardsWithId = document.querySelectorAll('.card[data-card-id]').length;
-  
-  console.log(`Cards total: ${totalCards}, com ID: ${cardsWithId}`);
-  
-  if (cardsWithId === 0 && totalCards > 0) {
-    console.warn('Nenhum card tem data-card-id! Executando auto-identificação...');
-    autoIdentifyCards();
+  const mainGrid = document.getElementById('main-grid');
+  if (!mainGrid) {
+    console.error('Container main-grid não encontrado!');
+    return;
   }
+
+  // Pegar todos os cards e secções atuais
+  const cards = Array.from(document.querySelectorAll('.card[data-card-id]'));
+  const sections = Array.from(document.querySelectorAll('.sec'));
   
   let applied = 0;
   
-  // Aplicar visibilidade dos cards
-  currentConfig.cards.forEach(card => {
-    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+  // 1. Aplicar visibilidade e mover para o fim do container para reordenar
+  currentConfig.cards.forEach(cardCfg => {
+    const cardEl = document.querySelector(`[data-card-id="${cardCfg.id}"]`);
     
-    if (cardElement) {
-      if (card.visible) {
-        cardElement.classList.remove('hidden');
+    if (cardEl) {
+      // Visibilidade
+      if (cardCfg.visible) {
+        cardEl.classList.remove('hidden');
+        cardEl.style.display = '';
+        // Reordenação: Mover para o final do container pai
+        // Como o container pai pode ser o mainGrid ou um subgrid, 
+        // temos de ter cuidado com a estrutura atual.
+        // Para simplificar e garantir a ordem global, movemos todos para o mainGrid
+        // mas mantemos as secções nos seus lugares originais se possível.
+        mainGrid.appendChild(cardEl);
       } else {
-        cardElement.classList.add('hidden');
+        cardEl.classList.add('hidden');
+        cardEl.style.display = 'none';
       }
       applied++;
-      console.log(`✓ Card ${card.id}: ${card.visible ? 'visível' : 'oculto'}`);
-    } else {
-      console.warn(`✗ Card não encontrado: ${card.id}`);
     }
   });
   
-  console.log(`${applied} configurações aplicadas de ${currentConfig.cards.length}`);
+  console.log(`${applied} cards processados.`);
 }
 
 
