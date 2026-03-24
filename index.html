@@ -3243,8 +3243,6 @@ textarea.nta::placeholder{color:var(--t3)}
 <div class="mkt-bar" id="mkt-bar"></div>
 
 <div class="grid" id="main-grid">
-
-<div class="sec" id="sec-portugal"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Portugal</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Energia · Preços · Feriados</span></div>
   <div class="card" id="card-weather">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
@@ -3428,10 +3426,6 @@ textarea.nta::placeholder{color:var(--t3)}
      SECÇÃO: Economia Real · Portugal & Mundo
      Cards: Fear&Greed · Recessão · Preços Agrícolas · Exportações PT · Dívida Pública
      ════════════════════════════════════════════════════════════ -->
-<div class="sec"><div class="sec-bar" style="background:#10B981"></div>
-  <span style="color:#10B981">Economia Real</span>
-  <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Sentimento · Commodities · Trabalho · Portugal</span>
-</div>
 
 <!-- ROW 1: Fear & Greed (s2) + Indicador Recessão (s2) -->
 <div class="grid subgrid">
@@ -3582,7 +3576,6 @@ textarea.nta::placeholder{color:var(--t3)}
 
 </div><!-- /grid row5 -->
 
-<div class="sec"><div class="sec-bar" style="background:var(--blue)"></div><span style="color:var(--blue)">Mercados Financeiros</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· TradingView · Tempo real</span></div>
   <!-- TradingView Advanced Chart s4 -->
   <div class="tv-chart-card s4">
     <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
@@ -3721,10 +3714,6 @@ textarea.nta::placeholder{color:var(--t3)}
 
 
   <!-- GEOPOLÍTICA -->
-  <div class="sec"><div class="sec-bar" style="background:#8B5CF6"></div>
-    <span style="color:#8B5CF6">Geopolítica</span>
-    <span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Conflitos · Análise · Liberdade · CO₂</span>
-  </div>
   <div class="card s2">
     <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
     <div class="ch">
@@ -3786,7 +3775,6 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="src">✦ RSF Press Freedom Index 2024 · EIU Democracy Index 2024 · Freedom House 2024</div>
   </div>
 
-<div class="sec"><div class="sec-bar" style="background:var(--accent)"></div><span style="color:var(--accent)">Notícias</span><span style="color:var(--t3);font-weight:500;letter-spacing:1px">· Portugal · Mundo</span></div>
   <div class="card s2">
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
@@ -12533,6 +12521,21 @@ function resetSettings() {
   alert('Configurações restauradas! Recarregue a página para ver as alterações.');
 }
 
+function normalizeMainGridLayout() {
+  const mainGrid = document.getElementById('main-grid');
+  if (!mainGrid) return;
+
+  // Remover cabeçalhos de secção (zonas temáticas antigas)
+  mainGrid.querySelectorAll('.sec').forEach(el => el.remove());
+
+  // Flatten: mover cards que estejam dentro de subgrids para o main-grid
+  const nestedCards = Array.from(mainGrid.querySelectorAll('.grid.subgrid .card, .grid.subgrid .tv-chart-card'));
+  nestedCards.forEach(card => mainGrid.appendChild(card));
+
+  // Remover subgrids vazias/antigas
+  mainGrid.querySelectorAll('.grid.subgrid').forEach(el => el.remove());
+}
+
 function applySettings() {
   console.log('Aplicando configurações:', currentConfig);
   
@@ -12542,36 +12545,47 @@ function applySettings() {
     return;
   }
 
-  // Pegar todos os cards e secções atuais
-  const cards = Array.from(document.querySelectorAll('.card[data-card-id]'));
-  const sections = Array.from(document.querySelectorAll('.sec'));
-  
-  let applied = 0;
-  
-  // 1. Aplicar visibilidade e mover para o fim do container para reordenar
-  currentConfig.cards.forEach(cardCfg => {
-    const cardEl = document.querySelector(`[data-card-id="${cardCfg.id}"]`);
-    
-    if (cardEl) {
-      // Visibilidade
-      if (cardCfg.visible) {
-        cardEl.classList.remove('hidden');
-        cardEl.style.display = '';
-        // Reordenação: Mover para o final do container pai
-        // Como o container pai pode ser o mainGrid ou um subgrid, 
-        // temos de ter cuidado com a estrutura atual.
-        // Para simplificar e garantir a ordem global, movemos todos para o mainGrid
-        // mas mantemos as secções nos seus lugares originais se possível.
-        mainGrid.appendChild(cardEl);
-      } else {
-        cardEl.classList.add('hidden');
-        cardEl.style.display = 'none';
-      }
-      applied++;
-    }
+  // As secções fixas deixaram de existir: mostramos apenas os cards selecionados
+  normalizeMainGridLayout();
+
+  // Construir índice dos cards no DOM (inclui TradingView chart)
+  const allDomCards = Array.from(mainGrid.querySelectorAll('.card[data-card-id], .tv-chart-card[data-card-id]'));
+  const cardById = new Map();
+  allDomCards.forEach(el => {
+    const id = el.dataset.cardId;
+    if (id && !cardById.has(id)) cardById.set(id, el);
   });
-  
-  console.log(`${applied} cards processados.`);
+
+  let processed = 0;
+  const configIds = new Set(currentConfig.cards.map(c => c.id));
+
+  // Reordenar e aplicar visibilidade pela ordem guardada
+  currentConfig.cards.forEach(cardCfg => {
+    const cardEl = cardById.get(cardCfg.id);
+    if (!cardEl) return;
+
+    mainGrid.appendChild(cardEl);
+
+    if (cardCfg.visible) {
+      cardEl.classList.remove('hidden');
+      cardEl.style.display = '';
+    } else {
+      cardEl.classList.add('hidden');
+      cardEl.style.display = 'none';
+    }
+    processed++;
+  });
+
+  // Garantir que cards fora do config (se existirem) continuam acessíveis
+  allDomCards.forEach(el => {
+    const id = el.dataset.cardId;
+    if (!id || configIds.has(id)) return;
+    el.classList.remove('hidden');
+    el.style.display = '';
+    mainGrid.appendChild(el);
+  });
+
+  console.log(`${processed} cards processados (ordem + visibilidade).`);
 }
 
 
