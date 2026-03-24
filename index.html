@@ -64,15 +64,13 @@ button{font-family:var(--font);cursor:pointer}
 .pill.err .dot{background:var(--red)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* Grid */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
-.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.subgrid{grid-column:span 4}.r2{grid-row:span 2}
-.sec{grid-column:span 4;font-family:var(--mono);font-size:.56rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:10px 0 5px;border-bottom:1px solid var(--b);margin-bottom:-4px;display:flex;align-items:center;gap:8px}
-.sec-bar{width:3px;height:13px;border-radius:2px;flex-shrink:0}
+	/* Grid */
+	.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+	.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.subgrid{grid-column:span 4}.r2{grid-row:span 2}
 
-/* ══════════════════════════════════════════════════════════════
-   RESPONSIVIDADE MOBILE
-   ══════════════════════════════════════════════════════════════ */
+	/* ══════════════════════════════════════════════════════════════
+	   RESPONSIVIDADE MOBILE
+	   ══════════════════════════════════════════════════════════════ */
 
 /* Tablet: 768px - 1199px */
 @media (max-width: 1199px) {
@@ -127,13 +125,11 @@ button{font-family:var(--font);cursor:pointer}
   .badge{font-size:.58rem;padding:2px 6px}
   .rbtn{font-size:.58rem;padding:2px 7px}
   
-  /* Seções */
-  .sec{font-size:.54rem;padding:8px 0 4px}
-  .sec-bar{width:2px;height:11px}
-  
-  /* Weather mobile */
-  .wx-top{flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:10px}
-  .wx-ico{font-size:2.5rem}
+	  /* Seções */
+	  
+	  /* Weather mobile */
+	  .wx-top{flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:10px}
+	  .wx-ico{font-size:2.5rem}
   .wx-temp{font-size:2.2rem}
   .wx-unit{font-size:1.1rem}
   .wx-desc{font-size:.8rem}
@@ -2285,14 +2281,14 @@ textarea.nta::placeholder{color:var(--t3)}
 /* ── Tablet (≤1280px): 2 colunas ── */
 @media(max-width:1280px){
   .grid{grid-template-columns:repeat(2,1fr)}
-  .s3,.s4,.sec,.subgrid{grid-column:span 2}
+	  .s3,.s4,.subgrid{grid-column:span 2}
   .r2{grid-row:auto}
   .wrap{padding:16px 12px 40px}
 }
 /* ── Mobile grande (≤768px): 1-2 colunas ── */
 @media(max-width:768px){
   .grid{grid-template-columns:repeat(2,1fr)}
-  .s2,.s3,.s4,.sec,.subgrid{grid-column:span 2}
+	  .s2,.s3,.s4,.subgrid{grid-column:span 2}
   .wrap{padding:12px 8px 32px}
   .card{padding:12px 14px}
   .hdr{grid-template-columns:1fr auto;gap:6px}
@@ -2308,7 +2304,7 @@ textarea.nta::placeholder{color:var(--t3)}
 /* ── Mobile pequeno (≤520px): 1 coluna ── */
 @media(max-width:520px){
   .grid{grid-template-columns:1fr}
-  .s2,.s3,.s4,.sec,.subgrid{grid-column:span 1}
+	  .s2,.s3,.s4,.subgrid{grid-column:span 1}
   .hdr{grid-template-columns:1fr;gap:4px}
   .pills{justify-content:flex-start;flex-wrap:wrap}
   .card{padding:10px 12px}
