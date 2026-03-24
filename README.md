@@ -10,6 +10,8 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
 - **Gráficos históricos (7/30/90 dias)** em alguns módulos (ex.: eletricidade, TTF, PSI20, câmbio e gás PT).
+- **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) e Marítimo (Estreito de Ormuz) com mapas interactivos em Canvas/TopoJSON.
+- **Simulação de Alta Fidelidade**: Tráfego marítimo dinâmico baseado no tempo real (UTC) para contornar limitações de APIs públicas de AIS.
 
 ## Stack / dependências
 
@@ -54,6 +56,7 @@ O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), in
 - **BCE/ECB (SDMX)** e **Eurostat** (séries macroeconómicas)
 - **CoinGecko**, **Stooq**, **Yahoo Finance** (mercados)
 - **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar)
+- **OpenSky Network** (tráfego aéreo) e **AISHub** (tráfego marítimo / fallback simulado)
 - **USGS** (sismos), **Google News RSS** + feeds de geopolítica
 
 Notas:
