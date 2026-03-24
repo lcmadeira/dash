@@ -10856,7 +10856,7 @@ async function loadSeis(force=false){
 async function loadOrmuz(force=false){
   const el=$("ormuz-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="ormuz_v1";
+  const ck="ormuz_v2";
   let d=force?null:lsGet(ck);
 
   /* Bounding box: Estreito de Ormuz (Golfo Pérsico) */
@@ -10883,23 +10883,40 @@ async function loadOrmuz(force=false){
     /* Gerar ~45 navios baseados na média diária */
     for(let i=0; i<45; i++){
       const seed=(min+i*137)%1440; 
-      const progress=(seed/1440);
+      const p=(seed/1440);
       const isInbound=i%2===0;
       
-      // Canal de Navegação Real (Waypoints aproximados)
-      // Entrada: 58.5E,24.2N -> 56.5E,26.2N -> 54.5E,26.5N
+      // Rota Precisão V2: Contornando a ponta de Musandam (Omã)
       let lat, lon, hdg;
       if(isInbound){
-        lon = 58.5 - progress * 5;
-        // Curva do estreito para evitar terra (Omã/Irão)
-        lat = 24.2 + (Math.pow(progress, 0.7) * 2.3); 
-        lat += (i%3) * 0.05; // Pequeno desvio lateral para não ficarem em fila indiana
-        hdg = 300 + Math.sin(progress * Math.PI) * 15;
+        // Leste para Oeste (Inbound)
+        lon = 59.5 - p * 7.5;
+        // Sobe para contornar a ponta (lat 26.5) e depois desce para o Golfo
+        if(p < 0.45) { // Aproximação
+          lat = 24.2 + (p/0.45)*2.1;
+          hdg = 305;
+        } else if (p < 0.6) { // Curva do estreito
+          lat = 26.3 + Math.sin((p-0.45)/0.15 * Math.PI/2)*0.4;
+          hdg = 275;
+        } else { // Dentro do Golfo
+          lat = 26.7 - (p-0.6)*1.5;
+          hdg = 250;
+        }
+        lat += (i%4)*0.06; // Separação lateral
       } else {
-        lon = 53.5 + progress * 5;
-        lat = 26.6 - (Math.pow(progress, 0.8) * 2.4);
-        lat -= (i%3) * 0.05;
-        hdg = 120 - Math.sin(progress * Math.PI) * 15;
+        // Oeste para Leste (Outbound)
+        lon = 52.0 + p * 7.5;
+        if(p < 0.4) { // Saindo do Golfo
+          lat = 24.5 + (p/0.4)*1.6;
+          hdg = 65;
+        } else if (p < 0.55) { // Curva do estreito
+          lat = 26.1 + Math.sin((p-0.4)/0.15 * Math.PI/2)*0.3;
+          hdg = 95;
+        } else { // Mar da Arábia
+          lat = 26.4 - (p-0.55)*2.5;
+          hdg = 135;
+        }
+        lat -= (i%4)*0.06; // Separação lateral
       }
 
       const typeIdx=i%6;
