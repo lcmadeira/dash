@@ -12211,10 +12211,12 @@ function autoIdentifyCards() {
   const cardMappings = [
     { text: 'Meteorologia',           id: 'weather' },
     { text: 'Combustíveis',           id: 'fuel' },
+    { text: 'Cabaz',                  id: 'cabaz' },
     { text: 'Petróleo',               id: 'oil' },
     { text: 'Gás Natural · Hubs',     id: 'gas-eu' },
     { text: 'Gás Natural · Portugal', id: 'gas-pt' },
     { text: 'Eletricidade',           id: 'elec' },
+    { text: 'Qualidade do Ar',        id: 'airquality' },
     { text: 'Euribor',                id: 'euribor' },
     { text: 'Imobiliário',            id: 'imob' },
     { text: 'Fear',                   id: 'fng' },
@@ -12224,6 +12226,7 @@ function autoIdentifyCards() {
     { text: 'Dívida',                 id: 'div' },
     { text: 'Tráfego Aéreo',          id: 'air' },
     { text: 'Sismos',                 id: 'seis' },
+    { text: 'Ormuz',                  id: 'ormuz' },
     { text: 'Salário Mínimo',         id: 'smn' },
     { text: 'Transportes',            id: 'transp' },
     { text: 'Mercados Financeiros',   id: 'finance' },
@@ -12242,8 +12245,8 @@ function autoIdentifyCards() {
     { text: 'Notícias · Mundo',       id: 'news-world' },
   ];
   
-  // Pegar todos os cards
-  const cards = document.querySelectorAll('.card');
+  // Pegar todos os cards (inclui TradingView Advanced Chart)
+  const cards = document.querySelectorAll('.card, .tv-chart-card');
   console.log(`Encontrados ${cards.length} cards`);
   
   let identified = 0;
@@ -12251,6 +12254,20 @@ function autoIdentifyCards() {
   cards.forEach(card => {
     // Já tem ID? Skip
     if (card.dataset.cardId) return;
+
+    // Preferir inferir pelo id do elemento quando existe
+    if (card.id) {
+      if (card.id.startsWith('card-')) {
+        card.dataset.cardId = card.id.slice('card-'.length);
+        identified++;
+        return;
+      }
+      if (card.id.endsWith('-card')) {
+        card.dataset.cardId = card.id.slice(0, -'-card'.length);
+        identified++;
+        return;
+      }
+    }
     
     // Procurar pelo texto do label
     const label = card.querySelector('.ch-lbl');
@@ -12274,6 +12291,50 @@ function autoIdentifyCards() {
   return identified;
 }
 
+function syncConfigWithDOMCards() {
+  const domCards = Array.from(document.querySelectorAll('.card[data-card-id], .tv-chart-card[data-card-id]'));
+  const domById = new Map();
+  domCards.forEach(el => {
+    const id = el.dataset.cardId;
+    if (!id || domById.has(id)) return;
+    domById.set(id, el);
+  });
+
+  const existing = Array.isArray(currentConfig?.cards) ? currentConfig.cards : [];
+  const seen = new Set();
+  const normalized = [];
+
+  // Mantém a ordem do utilizador (sem duplicados)
+  existing.forEach(card => {
+    if (!card || typeof card.id !== 'string') return;
+    if (seen.has(card.id)) return;
+    seen.add(card.id);
+    normalized.push({ ...card });
+  });
+
+  const getMetaFromDom = (el) => {
+    const icon = (el.querySelector('.ch-ico')?.textContent || '').trim();
+    const name = (el.querySelector('.ch-lbl')?.textContent || '').replace(/\s+/g, ' ').trim();
+    const src = (el.querySelector('.src, .tv-src')?.textContent || '').replace(/\s+/g, ' ').trim().replace(/^✦\s*/, '');
+    return {
+      icon: icon || '🧩',
+      name: name || 'Card',
+      desc: src ? src.slice(0, 110) : ''
+    };
+  };
+
+  // Garante que todos os cards presentes no DOM aparecem na personalização
+  domById.forEach((el, id) => {
+    if (seen.has(id)) return;
+    const meta = getMetaFromDom(el);
+    normalized.push({ id, visible: true, ...meta });
+    seen.add(id);
+  });
+
+  currentConfig = syncDashboardConfig({ ...currentConfig, cards: normalized });
+  localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
+}
+
 // ──────────────────────────────────────────────────────────────
 // INICIALIZAÇÃO
 // ──────────────────────────────────────────────────────────────
@@ -12287,6 +12348,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Auto-identificar cards
   perfMark('auto-identify-start');
   autoIdentifyCards();
+  syncConfigWithDOMCards();
   perfMeasure('Auto-identificação de cards', 'auto-identify-start');
   
   // Aplicar configurações salvas
