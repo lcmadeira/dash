@@ -2152,9 +2152,10 @@ textarea:focus-visible,
 .ch-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .ch-lbl{font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#E2E8F8}
 .ch-r{margin-left:auto;display:flex;align-items:center;gap:6px}
-.badge{font-family:var(--mono);font-size:.60rem;color:#7A85A0;padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
-.rbtn{background:none;border:1px solid var(--b);border-radius:5px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s}
+.badge{font-family:var(--mono);font-size:.60rem;color:#7A85A0;padding:2px 8px;border-radius:6px;border:1px solid var(--b);display:inline-flex;align-items:center;height:28px;line-height:1}
+.rbtn{background:none;border:1px solid var(--b);border-radius:6px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
+.rbtn.ico{width:28px;height:28px;padding:0;font-size:.78rem}
 
 /* Loader / Error */
 .ld{display:flex;align-items:center;justify-content:center;min-height:80px}
@@ -3261,7 +3262,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia & Feriados · PT</span>
       <div class="ch-r">
-        <button class="rbtn" id="wxhol-refresh" onclick="wxholRefresh()">↺</button>
+        <button class="rbtn ico" id="wxhol-refresh" onclick="wxholRefresh()" title="Atualizar">↺</button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:5px 0 8px">
@@ -3286,7 +3287,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderFuel(true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="renderFuel(true)" title="Atualizar">↺</button></div></div>
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
@@ -3298,7 +3299,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
         <button class="rbtn" id="cabaz-edit-btn" onclick="openCabazEditor()" title="Actualizar valor desta semana">✏️</button>
-        <button class="rbtn" onclick="renderCabaz()" title="Recarregar">↺</button>
+        <button class="rbtn ico" onclick="renderCabaz()" title="Atualizar">↺</button>
       </div>
     </div>
     <div id="cabaz-body"></div>
@@ -3335,7 +3336,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F620">🔥</div>
       <span class="ch-lbl">Gás Natural · Hubs Europeus</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadTTF(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadTTF(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="ttf-body"></div>
     <div class="src">✦ Stooq · tg.f (Dutch TTF ICE) · live · hubs secundários ref. Mar 2026</div>
@@ -3347,7 +3348,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F9731620">🇵🇹</div>
       <span class="ch-lbl">Gás Natural · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadGasPT(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadGasPT(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="gaspt-body"></div>
     <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
@@ -3357,7 +3358,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadElec(true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadElec(true)" title="Atualizar">↺</button></div></div>
     <div id="elec-body"></div>
   </div>
   
@@ -3369,7 +3370,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Qualidade do Ar · Portugal</span>
       <div class="ch-r">
         <span class="badge" id="aq-aqi-badge">AQI —</span>
-        <button class="rbtn" onclick="loadAirQuality(true)">↺</button>
+        <button class="rbtn ico" onclick="loadAirQuality(true)" title="Atualizar">↺</button>
       </div>
     </div>
     <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
@@ -3383,8 +3384,8 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-ico" style="background:var(--cd)">📐</div>
       <span class="ch-lbl">Euribor · Taxas de Referência</span>
       <div class="ch-r">
-        <button class="rbtn" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" title="Ver tendência">📊</button>
-        <button class="rbtn" onclick="initEuribor(true)" title="Recarregar Euribor do BCE">↺</button>
+        <button class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" title="Ver tendência">📊</button>
+        <button class="rbtn ico" onclick="initEuribor(true)" title="Atualizar">↺</button>
         <span class="badge" id="euriborRefDate">...</span>
       </div>
     </div>
@@ -3445,7 +3446,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">😰</div>
       <span class="ch-lbl">Fear &amp; Greed · Cripto</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadFng(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadFng(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="fng-body">
     </div>
@@ -3457,7 +3458,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">📉</div>
       <span class="ch-lbl">Indicador Recessão · EUA</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadRec(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadRec(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="rec-body" style="padding:6px 0"></div>
     <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
@@ -3469,7 +3470,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌾</div>
       <span class="ch-lbl">Preços Agrícolas · Commodities</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadAgri(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadAgri(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="agri-body" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:6px 0"></div>
     <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
@@ -3510,7 +3511,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">✈️</div>
       <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadAir(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadAir(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="air-body" style="padding:4px 0"></div>
     <div class="src">✦ OpenSky Network (live) · ANA Aeroportos 2024 (fallback)</div>
@@ -3521,7 +3522,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌍</div>
       <span class="ch-lbl">Sismos · Ibéria · Açores · 7 dias</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadSeis(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadSeis(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="seis-body" style="padding:4px 0"></div>
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
@@ -3533,7 +3534,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#0EA5E922">🚢</div>
       <span class="ch-lbl">Estreito de Ormuz · Tráfego Marítimo</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadOrmuz(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadOrmuz(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="ormuz-body" style="padding:4px 0"></div>
     <div class="src">✦ AIS data · Golfo Pérsico · Estreito de Ormuz</div>
@@ -3546,7 +3547,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">💼</div>
       <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadSMN(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadSMN(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="smn-body"></div>
     <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026</div>
@@ -3558,7 +3559,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF444420">🚆</div>
       <span class="ch-lbl">Transportes · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadTransp(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadTransp(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="transp-body"></div>
     <div class="src">✦ CP · Carris Metropolitana · Metro Lisboa/Porto · STCP</div>
@@ -3584,7 +3585,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Bolsa de Lisboa · PSI 20</span>
       <div class="ch-r">
         <span class="badge" style="color:#10B981;border-color:#10B98144;background:#10B98111">● Live</span>
-        <button class="rbtn" onclick="loadPSI20(true)">↺</button>
+        <button class="rbtn ico" onclick="loadPSI20(true)" title="Atualizar">↺</button>
       </div>
     </div>
     <div id="psi20-body"></div>
@@ -3631,7 +3632,7 @@ textarea.nta::placeholder{color:var(--t3)}
             oninput="renderFX()"
             style="width:60px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.7rem;padding:3px 6px;outline:none;text-align:right">
         </div>
-        <button class="rbtn" onclick="loadFX(true)">↺</button>
+        <button class="rbtn ico" onclick="loadFX(true)" title="Atualizar">↺</button>
       </div>
     </div>
     <div id="fx-body"><div class="ld"><div class="spin"></div></div></div>
@@ -3644,7 +3645,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadCrypto(true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadCrypto(true)" title="Atualizar">↺</button></div></div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
@@ -3657,7 +3658,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF575722">📊</div>
       <span class="ch-lbl">Inflação · PT vs Zona Euro</span>
-      <div class="ch-r"><button class="rbtn" onclick="renderInflation()">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="renderInflation()" title="Atualizar">↺</button></div>
     </div>
     <div id="inf-body"></div>
     <div class="src">✦ Eurostat · PRC_HICP_MANR · CORS nativo · sem chave · actualização automática</div>
@@ -3670,7 +3671,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadMarketStats(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadMarketStats(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ gold-api.com · EIA · Frankfurter BCE</div>
@@ -3682,7 +3683,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
       <div class="ch-r">
-        <button class="rbtn" onclick="loadAndRenderCalendar(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="loadAndRenderCalendar(true)" title="Atualizar">↺</button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:6px 0 8px">
@@ -3721,7 +3722,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
       <span class="ch-lbl">Análise Geopolítica</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadGeo(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadGeo(true)" title="Atualizar">↺</button></div>
     </div>
     <div class="geo-tabs">
       <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
@@ -3738,7 +3739,7 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="ch">
     <div class="ch-ico" style="background:#10B98122">🌱</div>
     <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal</span>
-    <div class="ch-r"><button class="rbtn" onclick="loadCO2(true)">↺</button></div>
+    <div class="ch-r"><button class="rbtn ico" onclick="loadCO2(true)" title="Atualizar">↺</button></div>
   </div>
   <div id="co2-body" style="padding:4px 0"></div>
   <div class="src">✦ DGEG · REN Relatório Anual 2024 · Intensidade carbónica gCO₂/kWh</div>
@@ -3750,7 +3751,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF620">🗽</div>
       <span class="ch-lbl">Liberdade de Imprensa · Democracia</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadPress(true)">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadPress(true)" title="Atualizar">↺</button></div>
     </div>
     <div id="press-body"></div>
     <div class="src">✦ RSF Press Freedom Index 2024 · EIU Democracy Index 2024 · Freedom House 2024</div>
@@ -3760,7 +3761,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
       <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('pt',true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadNews('pt',true)" title="Atualizar">↺</button></div></div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
@@ -3770,7 +3771,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
-      <div class="ch-r"><button class="rbtn" onclick="loadNews('world',true)">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="loadNews('world',true)" title="Atualizar">↺</button></div></div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
