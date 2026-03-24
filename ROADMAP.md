@@ -161,8 +161,10 @@
 ### Prioridade: **Baixa** 🟢
 
 - [ ] Contraste WCAG AA compliance
-- [ ] `aria-labels` em elementos interativos
-- [ ] Navegação completa por teclado
+- [x] `aria-*` base em modais/header (Export, Definições, Notificações)
+- [x] Focus visível (`:focus-visible`) para navegação por teclado
+- [x] Focus trap em modais (Tab/Shift+Tab não sai do diálogo)
+- [ ] Navegação completa por teclado (restante UI)
 - [ ] `prefers-reduced-motion` ← implementar junto com 4.4
 
 ---

@@ -47,6 +47,18 @@ a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 button{font-family:var(--font);cursor:pointer}
 
+/* ── A11y: foco consistente para teclado ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(233,165,32,.25);
+}
+
 /* ── Layout ── */
 .wrap{max-width:1520px;margin:0 auto;padding:20px 16px 48px;box-sizing:border-box}
 
@@ -1439,6 +1451,9 @@ button{font-family:var(--font);cursor:pointer}
   cursor: pointer;
   transition: all .2s;
   text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--font);
 }
 .export-option-item:hover {
   border-color: var(--b2);
@@ -1481,6 +1496,11 @@ button{font-family:var(--font);cursor:pointer}
   gap: 10px;
   cursor: pointer;
   transition: all .2s;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--font);
 }
 .export-card-item:hover {
   border-color: var(--b2);
@@ -2989,18 +3009,18 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
   <div class="hdr-right">
     <div class="pills" id="pills"></div>
-    <button class="export-btn" onclick="openExportModal()" title="Exportar Dados">
+    <button class="export-btn" id="exportOpenBtn" onclick="openExportModal()" title="Exportar Dados" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
       <span class="icon">📥</span>
       <span>Exportar</span>
     </button>
     <div style="position:relative">
-      <button class="notif-btn" onclick="toggleNotifications()" title="Notificações">
+      <button class="notif-btn" id="notifBtn" onclick="toggleNotifications()" title="Notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
         <span class="notif-icon">🔔</span>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
       
       <!-- Painel de notificações -->
-      <div class="notif-panel" id="notifPanel">
+      <div class="notif-panel" id="notifPanel" aria-hidden="true">
         <div class="notif-header">
           <div class="notif-title">Notificações</div>
           <div class="notif-actions">
@@ -3038,7 +3058,7 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
     </div>
-    <button class="settings-icon-btn" onclick="openSettings()" title="Configurações">
+    <button class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" title="Configurações" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
       <span class="settings-icon">⚙️</span>
     </button>
   </div>
@@ -3048,14 +3068,14 @@ textarea.nta::placeholder{color:var(--t3)}
 <div class="tv-tape-wrap"></div>
 
 <!-- ═══════════════════ PAINEL DE CONFIGURAÇÕES ═══════════════════ -->
-<div class="settings-overlay" id="settingsOverlay">
+<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="true" tabindex="-1">
   <div class="settings-panel">
     <div class="settings-header">
-      <div class="settings-title">
+      <div class="settings-title" id="settingsTitle">
         <span>⚙️</span>
         <span>Personalizar Painel</span>
       </div>
-      <button class="settings-close" onclick="closeSettings()">✕</button>
+      <button class="settings-close" type="button" onclick="closeSettings()" aria-label="Fechar definições">✕</button>
     </div>
 
     <div class="settings-tabs">
@@ -3137,14 +3157,14 @@ textarea.nta::placeholder{color:var(--t3)}
 </div>
 
 <!-- ═══════════════════ MODAL DE EXPORTAÇÃO ═══════════════════ -->
-<div class="export-modal" id="exportModal">
+<div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle" aria-hidden="true" tabindex="-1">
   <div class="export-modal-content">
     <div class="export-modal-header">
-      <div class="export-modal-title">
+      <div class="export-modal-title" id="exportModalTitle">
         <span>📥</span>
         <span>Exportar Dados</span>
       </div>
-      <button class="export-modal-close" onclick="closeExportModal()">✕</button>
+      <button class="export-modal-close" type="button" onclick="closeExportModal()" aria-label="Fechar exportação">✕</button>
     </div>
 
     <div class="export-modal-body">
@@ -3155,26 +3175,26 @@ textarea.nta::placeholder{color:var(--t3)}
           <span>Formato</span>
         </div>
         <div class="export-option-grid">
-          <div class="export-option-item selected" data-format="png" onclick="selectExportFormat(this, 'png')">
+          <button type="button" class="export-option-item selected" data-format="png" onclick="selectExportFormat(this, 'png')">
             <div class="export-option-icon">🖼️</div>
             <div class="export-option-label">Imagem</div>
             <div class="export-option-desc">PNG</div>
-          </div>
-          <div class="export-option-item" data-format="pdf" onclick="selectExportFormat(this, 'pdf')">
+          </button>
+          <button type="button" class="export-option-item" data-format="pdf" onclick="selectExportFormat(this, 'pdf')">
             <div class="export-option-icon">📕</div>
             <div class="export-option-label">PDF</div>
             <div class="export-option-desc">Documento</div>
-          </div>
-          <div class="export-option-item" data-format="csv" onclick="selectExportFormat(this, 'csv')">
+          </button>
+          <button type="button" class="export-option-item" data-format="csv" onclick="selectExportFormat(this, 'csv')">
             <div class="export-option-icon">📊</div>
             <div class="export-option-label">Dados</div>
             <div class="export-option-desc">CSV</div>
-          </div>
-          <div class="export-option-item" data-format="json" onclick="selectExportFormat(this, 'json')">
+          </button>
+          <button type="button" class="export-option-item" data-format="json" onclick="selectExportFormat(this, 'json')">
             <div class="export-option-icon">💾</div>
             <div class="export-option-label">JSON</div>
             <div class="export-option-desc">Estruturado</div>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -11867,12 +11887,16 @@ currentConfig = syncDashboardConfig(currentConfig);
 // Drag & Drop state
 let draggedElement = null;
 
+// A11y: restaurar foco ao fechar modais
+let lastFocusSettings = null;
+let lastFocusExport = null;
+
 // ──────────────────────────────────────────────────────────────
 // FUNÇÕES DE UI
 // ──────────────────────────────────────────────────────────────
 
 function openSettings() {
-  console.log('openSettings chamado!');
+  lastFocusSettings = document.activeElement;
   const overlay = document.getElementById('settingsOverlay');
   
   if (!overlay) {
@@ -11880,23 +11904,103 @@ function openSettings() {
     return;
   }
   
-  console.log('Overlay encontrado, abrindo...');
   overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  const btn = document.getElementById('settingsOpenBtn');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
   document.body.style.overflow = 'hidden';
   
   // Renderizar conteúdo
-  console.log('Renderizando conteúdo...');
   renderCardToggles();
   renderLocationGrid();
   renderTickerList();
-  console.log('Conteúdo renderizado!');
+
+  // Foco inicial (teclado)
+  const closeBtn = document.querySelector('.settings-close');
+  if (closeBtn) closeBtn.focus();
 }
 
 function closeSettings() {
   const overlay = document.getElementById('settingsOverlay');
   overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  const btn = document.getElementById('settingsOpenBtn');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
   document.body.style.overflow = '';
+
+  const target = lastFocusSettings || btn;
+  if (target && typeof target.focus === 'function') target.focus();
+  lastFocusSettings = null;
 }
+
+// ──────────────────────────────────────────────────────────────
+// A11y: Focus trap para modais (Tab não sai do diálogo)
+// ──────────────────────────────────────────────────────────────
+
+function getActiveDialogEl() {
+  const exportModal = document.getElementById('exportModal');
+  if (exportModal && exportModal.classList.contains('show')) return exportModal;
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if (settingsOverlay && settingsOverlay.classList.contains('show')) return settingsOverlay;
+  return null;
+}
+
+function getFocusableElements(container) {
+  if (!container) return [];
+  const selectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+
+  return Array.from(container.querySelectorAll(selectors))
+    .filter(el => {
+      if (!(el instanceof HTMLElement)) return false;
+      if (el.hasAttribute('disabled')) return false;
+      const style = window.getComputedStyle(el);
+      if (style.visibility === 'hidden' || style.display === 'none') return false;
+      return el.getClientRects().length > 0;
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const dialog = getActiveDialogEl();
+  if (!dialog) return;
+
+  const focusables = getFocusableElements(dialog);
+  if (focusables.length === 0) {
+    e.preventDefault();
+    dialog.focus();
+    return;
+  }
+
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  const active = document.activeElement;
+  const containsActive = active && dialog.contains(active);
+
+  if (!containsActive) {
+    e.preventDefault();
+    (e.shiftKey ? last : first).focus();
+    return;
+  }
+
+  if (e.shiftKey) {
+    if (active === first) {
+      e.preventDefault();
+      last.focus();
+    }
+  } else {
+    if (active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
 
 function switchSettingsTab(tabName, element) {
   // Desativar todos os tabs
@@ -12884,9 +12988,17 @@ function renderNotificationList() {
 // Toggle painel de notificações
 function toggleNotifications() {
   const panel = document.getElementById('notifPanel');
-  if (panel) {
-    panel.classList.toggle('show');
-  }
+  const isOpen = !!(panel && panel.classList.contains('show'));
+  setNotificationsOpen(!isOpen);
+}
+
+function setNotificationsOpen(open) {
+  const panel = document.getElementById('notifPanel');
+  const btn = document.getElementById('notifBtn');
+  if (!panel) return;
+  panel.classList.toggle('show', !!open);
+  panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 // Fechar ao clicar fora
@@ -12895,7 +13007,15 @@ document.addEventListener('click', (e) => {
   const btn = document.querySelector('.notif-btn');
   
   if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
-    panel.classList.remove('show');
+    setNotificationsOpen(false);
+  }
+});
+
+// ESC para fechar notificações
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const panel = document.getElementById('notifPanel');
+    if (panel && panel.classList.contains('show')) setNotificationsOpen(false);
   }
 });
 
@@ -12982,7 +13102,7 @@ function showToast(notif) {
   // Clicar no toast para abrir painel de notificações
   toast.onclick = (e) => {
     if (!e.target.classList.contains('toast-close')) {
-      toggleNotifications();
+      setNotificationsOpen(true);
       markAsRead(notif.id);
     }
   };
@@ -13200,6 +13320,7 @@ let exportState = {
 // ──────────────────────────────────────────────────────────────
 
 function openExportModal() {
+  lastFocusExport = document.activeElement;
   const modal = document.getElementById('exportModal');
   if (!modal) return;
   
@@ -13211,10 +13332,20 @@ function openExportModal() {
   
   // Listar cards disponíveis
   renderExportCardsList();
+  updateExportButton();
+  const toggleAllText = document.getElementById('toggleAllText');
+  if (toggleAllText) toggleAllText.textContent = 'Todos';
   
   // Abrir modal
   modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  const btn = document.getElementById('exportOpenBtn');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
   document.body.style.overflow = 'hidden';
+
+  // Foco inicial (teclado)
+  const closeBtn = modal.querySelector('.export-modal-close');
+  if (closeBtn) closeBtn.focus();
   
   console.log('📥 Modal de exportação aberto');
 }
@@ -13223,8 +13354,16 @@ function closeExportModal() {
   const modal = document.getElementById('exportModal');
   if (modal) {
     modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
   }
+
+  const btn = document.getElementById('exportOpenBtn');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+
+  const target = lastFocusExport || btn;
+  if (target && typeof target.focus === 'function') target.focus();
+  lastFocusExport = null;
   
   // Resetar progress
   const progress = document.getElementById('exportProgress');
@@ -13286,13 +13425,13 @@ function renderExportCardsList() {
   
   // Renderizar lista
   list.innerHTML = exportState.allCards.map(card => `
-    <div class="export-card-item" data-card-id="${card.id}" onclick="toggleCardSelection('${card.id}')">
+    <button type="button" class="export-card-item" data-card-id="${card.id}" onclick="toggleCardSelection('${card.id}')">
       <div class="export-card-checkbox"></div>
       <div class="export-card-info">
         <div class="export-card-name">${card.name}</div>
         <div class="export-card-desc">${card.id}</div>
       </div>
-    </div>
+    </button>
   `).join('');
   
   console.log(`📋 ${exportState.allCards.length} cards disponíveis para exportação`);
