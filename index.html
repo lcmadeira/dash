@@ -32,6 +32,7 @@
   --text:    #DDE3F0;
   --t2:      #C2CCDE;
   --t3:      #6E7A96;
+  --muted:   #7A85A0;
   --font:    'Plus Jakarta Sans', sans-serif;
   --mono:    'DM Mono', monospace;
   --r:       10px;
@@ -2152,7 +2153,7 @@ textarea:focus-visible,
 .ch-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .ch-lbl{font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#E2E8F8}
 .ch-r{margin-left:auto;display:flex;align-items:center;gap:6px}
-.badge{font-family:var(--mono);font-size:.60rem;color:#7A85A0;padding:2px 8px;border-radius:6px;border:1px solid var(--b);display:inline-flex;align-items:center;height:28px;line-height:1}
+.badge{font-family:var(--mono);font-size:.60rem;color:var(--muted);padding:2px 8px;border-radius:6px;border:1px solid var(--b);display:inline-flex;align-items:center;height:28px;line-height:1}
 .rbtn{background:none;border:1px solid var(--b);border-radius:6px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
 .rbtn.ico{width:28px;height:28px;padding:0;font-size:.78rem}
@@ -2162,7 +2163,17 @@ textarea:focus-visible,
 .spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{font-size:.73rem;color:var(--red);font-family:var(--mono);padding:12px 0;line-height:1.6}
-.src{font-family:var(--mono);font-size:.60rem;color:#7A85A0;margin-top:10px;padding-top:8px;border-top:1px solid var(--b);line-height:1.6}
+.src,.tv-src{font-family:var(--mono);font-size:.60rem;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--b);line-height:1.6}
+.tv-src{padding-left:18px;padding-right:18px;padding-bottom:10px;margin-top:0}
+
+/* Tabelas compactas */
+.tbl{width:100%;border-collapse:collapse;font-size:.62rem}
+.tbl th,.tbl td{padding:3px 4px}
+.tbl thead td{color:var(--t3);padding-top:2px;padding-bottom:2px}
+.tbl tbody td{border-top:1px solid var(--b)}
+.tbl td.r{text-align:right}
+.tbl td.pri{font-weight:600;color:#F59E0B}
+.tbl td.muted{color:var(--t2)}
 
 /* ── Weather ── */
 .wx-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
@@ -2356,7 +2367,6 @@ textarea.nta::placeholder{color:var(--t3)}
 .tv-chart-inner{height:520px;width:100%}
 .tv-chart-inner .tradingview-widget-container,.tv-chart-inner .tradingview-widget-container__widget{height:100%!important;width:100%!important}
 .tv-chart-inner .tradingview-widget-copyright,.tv-widget-wrap .tradingview-widget-copyright{display:none!important}
-.tv-src{padding:6px 18px 10px;font-family:var(--mono);font-size:.58rem;color:var(--t3);border-top:1px solid var(--b)}
 /* Oil tabs */
 .oil-tabs{display:flex;gap:6px;margin-bottom:10px}
 .oil-tab{font-family:var(--mono);font-size:.6rem;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .15s}
@@ -4208,7 +4218,7 @@ async function loadNews(scope,force=false){
           <span class="ni-time">${agoRSS(a.pubDate)}</span></div>
         <div class="ni-title">${a.title}</div>
       </div>`).join("")}</div>
-    <div class="src" style="margin-top:8px">✦ Google News RSS · ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} · Clica para ler</div>`;
+    <div class="src">✦ Google News RSS · ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} · Clica para ler</div>`;
   }catch(e){el.innerHTML=er(e.message);}
 }
 
@@ -5931,7 +5941,7 @@ function renderFX(date){
     </div>
   </div>
 
-  <div class="src" style="margin-top:8px">✦ BCE · ${date||""} · Frankfurter API · Taxa oficial de referência</div>`;
+  <div class="src">✦ BCE · ${date||""} · Frankfurter API · Taxa oficial de referência</div>`;
 
   try{
     FX_PAIRS.forEach(p=>{
@@ -9213,13 +9223,17 @@ function loadTransp(force){
       </div>
       <div>
         <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎟 Bilhetes c/ cartão 2025</div>
-        <table style="width:100%;border-collapse:collapse;font-size:.62rem">
-          <tr style="color:var(--t3)"><td style="padding:2px 4px">Operador</td><td style="padding:2px 4px;text-align:right">Simples</td><td style="padding:2px 4px;text-align:right">Diário</td></tr>
-          ${BILHETES.map(b=>`<tr style="border-top:1px solid var(--b)">
-            <td style="padding:3px 4px;color:var(--text)">${b.op}</td>
-            <td style="padding:3px 4px;text-align:right;font-weight:600;color:#F59E0B">${b.simples.toFixed(2)}€</td>
-            <td style="padding:3px 4px;text-align:right;color:var(--t2)">${b.diario?b.diario.toFixed(2)+"€":"—"}</td>
-          </tr>`).join("")}
+        <table class="tbl">
+          <thead>
+            <tr><td>Operador</td><td class="r">Simples</td><td class="r">Diário</td></tr>
+          </thead>
+          <tbody>
+            ${BILHETES.map(b=>`<tr>
+              <td style="color:var(--text)">${b.op}</td>
+              <td class="r pri">${b.simples.toFixed(2)}€</td>
+              <td class="r muted">${b.diario?b.diario.toFixed(2)+"€":"—"}</td>
+            </tr>`).join("")}
+          </tbody>
         </table>
         <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:8px 0 5px">🚂 Ligações CP · referência</div>
         ${LIGACOES.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 7px;background:var(--b2);border-radius:5px;margin-bottom:2px;border-left:2px solid ${l.col}">
