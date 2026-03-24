@@ -10882,20 +10882,24 @@ async function loadOrmuz(force=false){
     const simulated=[];
     /* Gerar ~45 navios baseados na média diária */
     for(let i=0; i<45; i++){
-      const seed=(min+i*137)%1440; // semente baseada no minuto do dia
+      const seed=(min+i*137)%1440; 
       const progress=(seed/1440);
       const isInbound=i%2===0;
       
-      // Rota simplificada: do Mar da Arábia (58E, 24N) para o Golfo (54E, 26N)
+      // Canal de Navegação Real (Waypoints aproximados)
+      // Entrada: 58.5E,24.2N -> 56.5E,26.2N -> 54.5E,26.5N
       let lat, lon, hdg;
       if(isInbound){
-        lon=58 - progress*4.5;
-        lat=24.5 + Math.sin(progress*Math.PI)*0.8 + (i%5)*0.1;
-        hdg=290 + Math.sin(progress*Math.PI)*20;
+        lon = 58.5 - progress * 5;
+        // Curva do estreito para evitar terra (Omã/Irão)
+        lat = 24.2 + (Math.pow(progress, 0.7) * 2.3); 
+        lat += (i%3) * 0.05; // Pequeno desvio lateral para não ficarem em fila indiana
+        hdg = 300 + Math.sin(progress * Math.PI) * 15;
       } else {
-        lon=53.5 + progress*4.5;
-        lat=26.2 - Math.sin(progress*Math.PI)*1.1 + (i%5)*0.1;
-        hdg=110 - Math.sin(progress*Math.PI)*20;
+        lon = 53.5 + progress * 5;
+        lat = 26.6 - (Math.pow(progress, 0.8) * 2.4);
+        lat -= (i%3) * 0.05;
+        hdg = 120 - Math.sin(progress * Math.PI) * 15;
       }
 
       const typeIdx=i%6;
