@@ -110,9 +110,13 @@
       MIBGAS−TTF por mês. Sem fetch extra (reutiliza cache TTF). ✅ (20/03/2026)
 - [x] **Qualidade do Ar** — Open-Meteo / Copernicus CAMS, sem chave, CORS nativo.
       AQI Europeu (EEA), PM2.5, PM10, NO₂, O₃, SO₂, UV Index, previsão 8h. ✅ (20/03/2026)
+- [x] **Tráfego marítimo (Estreito de Ormuz)** — AIS data com mapa interactivo TopoJSON.
+      Simulação dinâmica de alta fidelidade (movimento baseado em UTC/hora real) com
+      rotas de precisão (V2) para evitar terra. Tooltips com detalhes de navios. ✅ (24/03/2026)
 - [ ] **Dados de barragens (níveis de água)** 🟡 — SNIRH (sem API JSON pública conhecida)
 - [ ] Índice UV e pólen *(UV coberto pelo card Qualidade do Ar)*
-- [ ] Tráfego em tempo real (Google Maps API — requer chave paga)
+- [ ] Tráfego aéreo em tempo real (OpenSky API — CORS proxy) ✅ (24/03/2026)
+- [ ] Tráfego rodoviário em tempo real (Google Maps API — requer chave paga)
 
 #### 5.2 Automação de dados estáticos
 - [ ] **Euribor** — dados EMMI actualizados manualmente. Criar script de auto-update
@@ -205,7 +209,9 @@
 
 ### v1.1.1 — Em curso 🔄
 - ✅ **Gás Natural PT (MIBGAS estimado)** — TTF live + spread sazonal (20/03/2026)
-- ✅ **Qualidade do Ar** — Open-Meteo CAMS, AQI EU + 5 poluentes + UV + previsão 8h (20/03/2026)
+- ✅ **Qualidade do Ar** — Open-Meteo CAMS, AQI EU + 5 poluentes + UV (20/03/2026)
+- ✅ **Estreito de Ormuz (AIS data)** — Mapa TopoJSON + tráfego simulado de alta fidelidade (24/03/2026)
+- ✅ **Tráfego Aéreo** — Integração OpenSky Network com tooltips detalhados (24/03/2026)
 - [ ] Automação Euribor via ECB SDMX
 - [ ] Automação Inflação via Eurostat SDMX
 
@@ -222,5 +228,5 @@
 
 ---
 
-**Última atualização**: 20 de Março de 2026
+**Última atualização**: 24 de Março de 2026
 **Mantido por**: Luís e Claude 🤝
