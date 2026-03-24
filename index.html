@@ -3045,14 +3045,7 @@ textarea.nta::placeholder{color:var(--t3)}
 </header>
 
 <!-- TradingView Ticker Tape -->
-<div class="tv-tape-wrap">
-  <div class="tradingview-widget-container">
-    <div class="tradingview-widget-container__widget"></div>
-    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"description":"EUR/USD","proName":"FX_IDC:EURUSD"},{"description":"EUR/GBP","proName":"FX_IDC:EURGBP"},{"description":"EUR/JPY","proName":"FX_IDC:EURJPY"},{"description":"EUR/CHF","proName":"FX_IDC:EURCHF"},{"description":"EUR/BRL","proName":"FX_IDC:EURBRL"},{"description":"EUR/CNY","proName":"FX_IDC:EURCNY"},{"description":"S&P 500","proName":"FOREXCOM:SPXUSD"},{"description":"Nasdaq","proName":"FOREXCOM:NSXUSD"},{"description":"DAX","proName":"XETR:DAX"},{"description":"FTSE 100","proName":"FOREXCOM:UKXGBP"},{"description":"Ouro","proName":"FOREXCOM:XAUUSD"},{"description":"Prata","proName":"FOREXCOM:XAGUSD"},{"description":"Brent","proName":"OANDA:BCOUSD"},{"description":"WTI","proName":"OANDA:WTICOUSD"},{"description":"Gás Nat.","proName":"CAPITALCOM:NATURALGAS"},{"description":"BTC/USD","proName":"BITSTAMP:BTCUSD"},{"description":"ETH/USD","proName":"BITSTAMP:ETHUSD"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"pt"}
-    </script>
-  </div>
-</div>
+<div class="tv-tape-wrap"></div>
 
 <!-- ═══════════════════ PAINEL DE CONFIGURAÇÕES ═══════════════════ -->
 <div class="settings-overlay" id="settingsOverlay">
@@ -3546,21 +3539,14 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 
   <!-- TradingView Advanced Chart s4 -->
-  <div class="tv-chart-card s4">
-    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">📈</div>
-      <span class="ch-lbl">Mercados Financeiros</span>
-      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
-    <div class="tv-chart-inner">
-      <div class="tradingview-widget-container" style="height:100%;width:100%">
-        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-        {"autosize":true,"symbol":"EURONEXT:EDP","interval":"D","timezone":"Europe/Lisbon","theme":"dark","style":"1","locale":"pt","backgroundColor":"rgba(10,13,28,0)","gridColor":"rgba(24,29,48,1)","withdateranges":true,"hide_side_toolbar":false,"allow_symbol_change":true,"save_image":false,"watchlist":["EURONEXT:EDP","EURONEXT:GALP","EURONEXT:BCP","EURONEXT:JMT","EURONEXT:NOS","EURONEXT:SON","EURONEXT:RENE","EURONEXT:CTT","EURONEXT:NVG","FOREXCOM:SPXUSD","FOREXCOM:NSXUSD","XETR:DAX","FX_IDC:EURUSD","FX_IDC:EURGBP","FOREXCOM:XAUUSD","OANDA:BCOUSD","NYMEX:CL1!","BITSTAMP:BTCUSD","TVC:PT10Y"],"details":true,"hotlist":true,"calendar":false,"support_host":"https://www.tradingview.com"}
-        </script>
-      </div>
-    </div>
-    <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
-  </div>
+	  <div class="tv-chart-card s4">
+	    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
+	    <div class="ch"><div class="ch-ico" style="background:var(--ad)">📈</div>
+	      <span class="ch-lbl">Mercados Financeiros</span>
+	      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
+	    <div class="tv-chart-inner"></div>
+	    <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
+	  </div>
 
 
 
@@ -12345,6 +12331,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Aplicar configurações salvas
   applySettings();
+  applyLocationToCfg(currentConfig.location);
+  renderTvTickerTape(currentConfig.tickers);
+  renderTvAdvancedChart(currentConfig.tickers);
+  if (isCardVisible('weather')) wxholRefresh();
+  if (isCardVisible('airquality')) loadAirQuality(true);
   
   console.log('Sistema de personalização carregado!');
   
@@ -12447,11 +12438,207 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 2000);
 });
 
+function normalizeStr(s) {
+  return String(s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function arrayEqual(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function isCardVisible(cardId) {
+  const el = document.querySelector(`[data-card-id="${cardId}"]`);
+  if (!el) return false;
+  if (el.style.display === 'none') return false;
+  return !el.classList.contains('hidden');
+}
+
+function applyLocationToCfg(locationId) {
+  try {
+    if (!locationId || typeof locationId !== 'string') return;
+    const loc = LOCATIONS.find(l => l.id === locationId);
+    if (!loc) return;
+
+    // Mapear nome da cidade para IPMA_CITY_ID (usado por Meteorologia + Qualidade do Ar)
+    const want = normalizeStr(loc.name);
+    for (const [idStr, name] of Object.entries(IPMA_CITIES)) {
+      if (normalizeStr(name) === want) {
+        CFG.IPMA_CITY_ID = Number(idStr);
+        return;
+      }
+    }
+  } catch {}
+}
+
+function toTvSymbol(ticker) {
+  const t = String(ticker || '').trim().toUpperCase();
+  if (!t) return null;
+  if (t.includes(':')) return t;
+  return `EURONEXT:${t}`;
+}
+
+function renderTvTickerTape(tickers) {
+  const wrap = document.querySelector('.tv-tape-wrap');
+  if (!wrap) return;
+
+  const fav = (Array.isArray(tickers) ? tickers : [])
+    .map(t => toTvSymbol(t))
+    .filter(Boolean)
+    .map(sym => ({ description: sym.replace(/^.*:/, ''), proName: sym }));
+
+  const base = [
+    { description: 'EUR/USD', proName: 'FX_IDC:EURUSD' },
+    { description: 'EUR/GBP', proName: 'FX_IDC:EURGBP' },
+    { description: 'EUR/JPY', proName: 'FX_IDC:EURJPY' },
+    { description: 'EUR/CHF', proName: 'FX_IDC:EURCHF' },
+    { description: 'EUR/BRL', proName: 'FX_IDC:EURBRL' },
+    { description: 'EUR/CNY', proName: 'FX_IDC:EURCNY' },
+    { description: 'S&P 500', proName: 'FOREXCOM:SPXUSD' },
+    { description: 'Nasdaq', proName: 'FOREXCOM:NSXUSD' },
+    { description: 'DAX', proName: 'XETR:DAX' },
+    { description: 'FTSE 100', proName: 'FOREXCOM:UKXGBP' },
+    { description: 'Ouro', proName: 'FOREXCOM:XAUUSD' },
+    { description: 'Prata', proName: 'FOREXCOM:XAGUSD' },
+    { description: 'Brent', proName: 'OANDA:BCOUSD' },
+    { description: 'WTI', proName: 'OANDA:WTICOUSD' },
+    { description: 'Gás Nat.', proName: 'CAPITALCOM:NATURALGAS' },
+    { description: 'BTC/USD', proName: 'BITSTAMP:BTCUSD' },
+    { description: 'ETH/USD', proName: 'BITSTAMP:ETHUSD' }
+  ];
+
+  const seen = new Set();
+  const symbols = [...fav, ...base].filter(s => {
+    if (!s?.proName) return false;
+    if (seen.has(s.proName)) return false;
+    seen.add(s.proName);
+    return true;
+  });
+
+  const cfg = {
+    symbols,
+    showSymbolLogo: true,
+    isTransparent: true,
+    displayMode: 'adaptive',
+    colorTheme: 'dark',
+    locale: 'pt'
+  };
+
+  wrap.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'tradingview-widget-container';
+  const widget = document.createElement('div');
+  widget.className = 'tradingview-widget-container__widget';
+  container.appendChild(widget);
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
+  script.async = true;
+  script.text = JSON.stringify(cfg);
+  container.appendChild(script);
+  wrap.appendChild(container);
+}
+
+function renderTvAdvancedChart(tickers) {
+  const inner = document.querySelector('.tv-chart-inner');
+  if (!inner) return;
+
+  const favSyms = (Array.isArray(tickers) ? tickers : [])
+    .map(t => toTvSymbol(t))
+    .filter(Boolean);
+
+  const baseWatchlist = [
+    'EURONEXT:EDP','EURONEXT:GALP','EURONEXT:BCP','EURONEXT:JMT','EURONEXT:NOS','EURONEXT:SON','EURONEXT:RENE','EURONEXT:CTT','EURONEXT:NVG',
+    'FOREXCOM:SPXUSD','FOREXCOM:NSXUSD','XETR:DAX','FX_IDC:EURUSD','FX_IDC:EURGBP','FOREXCOM:XAUUSD','OANDA:BCOUSD','NYMEX:CL1!','BITSTAMP:BTCUSD','TVC:PT10Y'
+  ];
+
+  const seen = new Set();
+  const watchlist = [...favSyms, ...baseWatchlist].filter(s => {
+    if (!s) return false;
+    if (seen.has(s)) return false;
+    seen.add(s);
+    return true;
+  });
+
+  const cfg = {
+    autosize: true,
+    symbol: favSyms[0] || 'EURONEXT:EDP',
+    interval: 'D',
+    timezone: 'Europe/Lisbon',
+    theme: 'dark',
+    style: '1',
+    locale: 'pt',
+    backgroundColor: 'rgba(10,13,28,0)',
+    gridColor: 'rgba(24,29,48,1)',
+    withdateranges: true,
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    save_image: false,
+    watchlist,
+    details: true,
+    hotlist: true,
+    calendar: false,
+    support_host: 'https://www.tradingview.com'
+  };
+
+  inner.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'tradingview-widget-container';
+  container.style.height = '100%';
+  container.style.width = '100%';
+  const widget = document.createElement('div');
+  widget.className = 'tradingview-widget-container__widget';
+  widget.style.height = '100%';
+  widget.style.width = '100%';
+  container.appendChild(widget);
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.text = JSON.stringify(cfg);
+  container.appendChild(script);
+  inner.appendChild(container);
+}
+
+function applyConfigSideEffects(prevConfig, nextConfig) {
+  try {
+    const prevLoc = prevConfig?.location;
+    const nextLoc = nextConfig?.location;
+    if (prevLoc !== nextLoc) {
+      applyLocationToCfg(nextLoc);
+      if (isCardVisible('weather')) wxholRefresh();
+      if (isCardVisible('airquality')) loadAirQuality(true);
+    }
+
+    const prevTickers = Array.isArray(prevConfig?.tickers) ? prevConfig.tickers : [];
+    const nextTickers = Array.isArray(nextConfig?.tickers) ? nextConfig.tickers : [];
+    if (!arrayEqual(prevTickers, nextTickers)) {
+      renderTvTickerTape(nextTickers);
+      renderTvAdvancedChart(nextTickers);
+    }
+  } catch {}
+}
+
 function saveSettings() {
+  let prevConfig = null;
+  try {
+    const raw = localStorage.getItem('dashboardConfig');
+    prevConfig = raw ? JSON.parse(raw) : null;
+  } catch {}
+
   localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
   
   // Aplicar mudanças visualmente
   applySettings();
+  applyConfigSideEffects(prevConfig, currentConfig);
   
   // Feedback visual
   const saveBtn = document.querySelector('.settings-btn-save');
@@ -12464,11 +12651,6 @@ function saveSettings() {
       saveBtn.textContent = originalText;
       saveBtn.style.background = '';
       closeSettings();
-      
-      // Reload para aplicar mudanças completas (localização, tickers)
-      if (confirm('Recarregar página para aplicar todas as alterações?')) {
-        window.location.reload();
-      }
     }, 1000);
   }
 }
@@ -12508,7 +12690,12 @@ function applySettings() {
   });
 
   let processed = 0;
-  const configIds = new Set(currentConfig.cards.map(c => c.id));
+
+  // Esconder todos por omissão; depois aplicamos a ordem/visibilidade do config
+  allDomCards.forEach(el => {
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  });
 
   // Reordenar e aplicar visibilidade pela ordem guardada
   currentConfig.cards.forEach(cardCfg => {
@@ -12525,15 +12712,6 @@ function applySettings() {
       cardEl.style.display = 'none';
     }
     processed++;
-  });
-
-  // Garantir que cards fora do config (se existirem) continuam acessíveis
-  allDomCards.forEach(el => {
-    const id = el.dataset.cardId;
-    if (!id || configIds.has(id)) return;
-    el.classList.remove('hidden');
-    el.style.display = '';
-    mainGrid.appendChild(el);
   });
 
   console.log(`${processed} cards processados (ordem + visibilidade).`);
