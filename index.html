@@ -1248,26 +1248,31 @@ textarea:focus-visible,
 
 /* Botões de export nos cards */
 .export-btn {
-  background: var(--surface);
-  border: 1px solid var(--b);
-  border-radius: 5px;
-  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
   color: var(--t3);
   font-family: var(--mono);
-  font-size: .6rem;
-  transition: all .15s;
+  font-size: .65rem;
+  transition: all .25s ease;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .export-btn:hover {
+  background: var(--surface);
+  border-color: var(--b);
   color: var(--accent);
-  border-color: var(--accent);
-  background: var(--ad);
+  transform: scale(1.03);
+}
+.export-btn:active {
+  transform: scale(0.98);
 }
 .export-btn .icon {
-  font-size: .75rem;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 /* Dropdown de opções de export */
@@ -3027,6 +3032,7 @@ textarea.nta::placeholder{color:var(--t3)}
             <button class="notif-action-btn" onclick="markAllAsRead()">Marcar lidas</button>
             <button class="notif-action-btn" onclick="clearAllNotifications()">Limpar</button>
           </div>
+          <button class="notif-close" type="button" onclick="setNotificationsOpen(false)" aria-label="Fechar notificações">✕</button>
         </div>
         
         <div class="notif-tabs">
@@ -3075,7 +3081,7 @@ textarea.nta::placeholder{color:var(--t3)}
         <span>⚙️</span>
         <span>Personalizar Painel</span>
       </div>
-      <button class="settings-close" type="button" onclick="closeSettings()" aria-label="Fechar definições">✕</button>
+      <button class="settings-close" type="button" onclick="closeSettings()" aria-label="Fechar configurações">✕</button>
     </div>
 
     <div class="settings-tabs">
@@ -3259,7 +3265,7 @@ textarea.nta::placeholder{color:var(--t3)}
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:5px 0 8px">
-      <button class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Météo</button>
+      <button class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Tempo</button>
       <button class="rbtn"    id="wxhol-tab-res" onclick="switchWxHol('resumo',this)">📊 Resumo</button>
       <button class="rbtn"    id="wxhol-tab-hol" onclick="switchWxHol('feriados',this)">🗓 Feriados</button>
     </div>
