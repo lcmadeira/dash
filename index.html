@@ -4621,6 +4621,8 @@ async function fetchRSS(url){
 /* ── Fetch com Proxy CORS ── */
 async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
   const proxies = [
+    // Tentar direto primeiro (alguns endpoints já têm CORS nativo, ex.: MITECO/MINETUR)
+    url,
     ...(IS_LOCAL_DEV ? [localProxyUrl(url)] : []),
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`,
