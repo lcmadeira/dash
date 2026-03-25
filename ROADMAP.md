@@ -151,6 +151,7 @@
 - [ ] Ícone de ajuda (?) em métricas complexas
 
 #### 4.4 Animações & Micro-interações
+- [x] UI: Tabelas, footers, badges e actions padronizados ✅ (25/03/2026)
 - [ ] Ícone ↺ a girar durante fetch activo
 - [ ] `prefers-reduced-motion` support ← fácil, vale a pena
 
@@ -158,9 +159,9 @@
 
 ## ♿ 6. Acessibilidade
 
-### Prioridade: **Baixa** 🟢
+### Prioridade: **Baixa** 🟢 → ✅ **PARCIALMENTE CONCLUÍDO** (25/03/2026)
 
-- [ ] Contraste WCAG AA compliance
+- [x] Contraste WCAG AA compliance (verificado nas cores principais)
 - [x] `aria-*` base em modais/header (Export, Definições, Notificações)
 - [x] Focus visível (`:focus-visible`) para navegação por teclado
 - [x] Focus trap em modais (Tab/Shift+Tab não sai do diálogo)
@@ -176,6 +177,7 @@
 > ⚠️ O `index.html` ultrapassa 430 KB num único ficheiro. Modularização é o objectivo do v1.2.0.
 
 - [ ] **Separar JS em módulos** (ES Modules) ← prioritário para v1.2.0
+- [x] **Aplicar definições sem reload** (re-renderização dinâmica de cards) ✅ (25/03/2026)
 - [ ] **Extrair configurações** para `config.js` (TTLs, IDs de cidade, spreads)
 - [ ] **Consolidar CSS** em ficheiro separado
 - [ ] Documentar funções principais (JSDoc)
