@@ -224,6 +224,8 @@
 - ✅ **UX/UI avançada** — Scroll interno com header sticky em cards longos (25/03/2026)
 - ✅ **Feedback de Dados** — Badges de estado (Live/Cached/Error) e spinners de carregamento por card (25/03/2026)
 - ✅ **Personalização** — Pesquisa em tempo-real nos cards e preferências de conforto visual (25/03/2026)
+- ✅ **Combustíveis PT vs ES** — Comparação transfronteiriça, delta €/%, detalhe de postos e preferências (25/03/2026)
+- ✅ **CORS Engine** — Estratégia "Direct First" com fallback inteligente para proxies (25/03/2026)
 
 ### v1.2.0 — Planeado
 - [ ] **Modularização** — separar JS/CSS do index.html (prioridade máxima)

@@ -14,6 +14,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.
 - **Gráficos históricos (7/30/90 dias)** em alguns módulos (ex.: eletricidade, TTF, PSI20, câmbio e gás PT).
 - **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) e Marítimo (Estreito de Ormuz) com mapas interactivos em Canvas/TopoJSON.
+- **Combustíveis PT vs ES**: Comparação de preços entre Portugal e Espanha, com detalhe de postos, timestamps e preferências de combustível.
 - **Simulação de Alta Fidelidade**: Tráfego marítimo dinâmico baseado no tempo real (UTC) para contornar limitações de APIs públicas de AIS.
 
 ## Stack / dependências
@@ -21,6 +22,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **HTML + CSS + JS** num único ficheiro: `index.html`
 - **Chart.js** via CDN
 - **TradingView widgets** (ticker tape, advanced chart, heatmap)
+- **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
 - Sem build step / sem bundler
 
 ## Como executar
@@ -55,7 +57,7 @@ Por omissão, a chave da Twelve Data está **desativada** por segurança (`TD_KE
 O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), incluindo:
 
 - **IPMA** (meteorologia), **date.nager.at** (feriados)
-- **api.apiaberta.pt** (combustíveis)
+- **api.apiaberta.pt** (combustíveis PT) e **MITECO/MINETUR** (combustíveis ES)
 - **BCE/ECB (SDMX)** e **Eurostat** (séries macroeconómicas)
 - **CoinGecko**, **Stooq**, **Yahoo Finance** (mercados)
 - **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar)
