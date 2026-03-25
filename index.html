@@ -2372,6 +2372,31 @@ button:disabled{cursor:not-allowed}
 
 /* ── News ── */
 .news-wrap{max-height:290px;overflow-y:auto;padding-right:2px}
+.card.sticky-scroll{
+  max-height:min(70vh, 560px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.card.sticky-scroll .ch{
+  position:sticky;
+  top:0;
+  z-index:6;
+  padding:calc(var(--card-pad-y) + 2px) var(--card-pad-x) 12px;
+  margin:calc(-1 * var(--card-pad-y)) calc(-1 * var(--card-pad-x)) 14px;
+  border-bottom:1px solid var(--b);
+  background:linear-gradient(to bottom, transparent 0 2px, rgba(15,18,32,.92) 2px 100%);
+  backdrop-filter:blur(10px);
+}
+.card.sticky-scroll .news-wrap{
+  max-height:none;
+  overflow:visible;
+  padding-right:0;
+}
+.card.sticky-scroll .src,
+.card.sticky-scroll .tv-src{
+  padding-bottom:12px;
+}
 .ni{padding:9px 0;border-bottom:1px solid var(--b);cursor:pointer;transition:.15s}
 .ni:last-child{border-bottom:none;padding-bottom:0}
 .ni:hover .ni-title{color:var(--accent)}
@@ -4392,6 +4417,14 @@ function refreshAllCardStatuses() {
   } else {
     setCardStatus('cabaz', 'static', 'Manual', { title: 'Atualização manual' });
   }
+}
+
+function applyStickyScrollCards() {
+  // Cards com listas longas: scroll interno com header/actions sempre visíveis
+  ['news-pt', 'news-world', 'geo'].forEach(id => {
+    const el = getCardElById(id);
+    if (el) el.classList.add('sticky-scroll');
+  });
 }
 
 /* ── Dev proxy (local) ── */
@@ -13042,6 +13075,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTvTickerTape(currentConfig.tickers);
   renderTvAdvancedChart(currentConfig.tickers);
   refreshAllCardStatuses();
+  applyStickyScrollCards();
   setInterval(refreshAllCardStatuses, 30 * 1000);
   if (isCardVisible('weather')) wxholRefresh();
   if (isCardVisible('airquality')) loadAirQuality(true);
@@ -13389,6 +13423,7 @@ function applySettings() {
 
   // Conforto (independe do grid)
   try { applyComfortSettings(currentConfig.comfort); } catch {}
+  try { applyStickyScrollCards(); } catch {}
   
   const mainGrid = document.getElementById('main-grid');
   if (!mainGrid) {
