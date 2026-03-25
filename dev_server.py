@@ -16,6 +16,7 @@ from ipaddress import ip_address
 PORT = int(os.environ.get("PORT", "8000"))
 PROXY_CACHE_TTL_SEC = 300  # 5 min
 USER_AGENT = "dash-dev-proxy/1.0 (+local)"
+UPSTREAM_TIMEOUT_SEC = int(os.environ.get("PROXY_TIMEOUT", "25"))
 
 
 _cache: dict[str, tuple[float, dict[str, str], bytes]] = {}
@@ -87,12 +88,13 @@ class Handler(SimpleHTTPRequestHandler):
             target,
             headers={
                 "User-Agent": USER_AGENT,
-                "Accept": "*/*",
+                # Forward Accept from browser when available (useful for content negotiation).
+                "Accept": self.headers.get("Accept") or "*/*",
             },
             method="GET",
         )
         try:
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            with urllib.request.urlopen(req, timeout=UPSTREAM_TIMEOUT_SEC) as resp:
                 body = resp.read()
                 headers = {}
                 ct = resp.headers.get("Content-Type")
