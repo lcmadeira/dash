@@ -2300,6 +2300,34 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
 .rbtn.ico{width:28px;height:28px;padding:0;font-size:.78rem}
 
+/* ── Data Status Badge (por card) ── */
+.badge.card-status{
+  gap:6px;
+  color:var(--t2);
+  border-color:var(--b2);
+  background:rgba(24,29,48,.35);
+}
+.badge.card-status::before{
+  content:"";
+  width:6px;height:6px;border-radius:999px;
+  background:var(--t3);
+  display:inline-block;
+}
+.badge.card-status[data-state="idle"]{color:var(--t3);background:transparent;border-color:var(--b)}
+.badge.card-status[data-state="idle"]::before{background:var(--t3)}
+.badge.card-status[data-state="loading"]{color:var(--t2);border-color:#E9A52044;background:rgba(233,165,32,.08)}
+.badge.card-status[data-state="loading"]::before{background:var(--accent)}
+.badge.card-status[data-state="live"]{color:var(--green);border-color:#34C97A44;background:rgba(52,201,122,.08)}
+.badge.card-status[data-state="live"]::before{background:var(--green)}
+.badge.card-status[data-state="cache"]{color:#60A5FA;border-color:rgba(96,165,250,.35);background:rgba(96,165,250,.08)}
+.badge.card-status[data-state="cache"]::before{background:#60A5FA}
+.badge.card-status[data-state="stale"]{color:var(--orange);border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.08)}
+.badge.card-status[data-state="stale"]::before{background:var(--orange)}
+.badge.card-status[data-state="error"]{color:var(--red);border-color:rgba(239,87,87,.35);background:rgba(239,87,87,.08)}
+.badge.card-status[data-state="error"]::before{background:var(--red)}
+.badge.card-status[data-state="static"]{color:var(--purple);border-color:rgba(149,117,240,.35);background:rgba(149,117,240,.08)}
+.badge.card-status[data-state="static"]::before{background:var(--purple)}
+
 /* Loader / Error */
 .ld{display:flex;align-items:center;justify-content:center;min-height:80px}
 .spin{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
@@ -4079,6 +4107,7 @@ const PFX = "dash_v15_";
 const CACHE_TTL_MAP = {
   weather: 15 * 60 * 1000,      // 15 min
   ipma: 15 * 60 * 1000,
+  aq_: 30 * 60 * 1000,          // 30 min (air quality)
   rss: 10 * 60 * 1000,          // 10 min (notícias)
   news: 10 * 60 * 1000,
   finance: 5 * 60 * 1000,       // 5 min (bolsa)
@@ -4119,7 +4148,6 @@ function lsGet(k) {
     
     // Cache expirado?
     if (age >= ttl) {
-      localStorage.removeItem(PFX + k); // Limpar
       return null;
     }
     
@@ -4150,6 +4178,156 @@ function lsSet(k, d) {
       console.error('Não foi possível salvar no cache');
       return false;
     }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// DATA STATUS (Badges "Atualizado há X" / Live / Cache / Stale)
+// ──────────────────────────────────────────────────────────────
+
+function fmtAgeShort(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+  const s = Math.floor(ms / 1000);
+  if (s < 20) return 'agora';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h}h`;
+  const d = Math.floor(h / 24);
+  return `${d}d`;
+}
+
+function getCacheMeta(k) {
+  try {
+    const raw = localStorage.getItem(PFX + k);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const ts = Number(parsed?.ts);
+    if (!Number.isFinite(ts)) return null;
+    const ttl = getTTL(k);
+    const age = Date.now() - ts;
+    return { ts, ttl, age, expired: age >= ttl };
+  } catch {
+    return null;
+  }
+}
+
+function getCardElById(cardId) {
+  return document.querySelector(`[data-card-id="${cardId}"]`);
+}
+
+function ensureCardStatusEl(cardId) {
+  const card = getCardElById(cardId);
+  if (!card) return null;
+  const ch = card.querySelector('.ch');
+  if (!ch) return null;
+  let right = ch.querySelector('.ch-r');
+  if (!right) {
+    right = document.createElement('div');
+    right.className = 'ch-r';
+    ch.appendChild(right);
+  }
+  let el = right.querySelector(`.card-status[data-status-for="${cardId}"]`);
+  if (el) return el;
+
+  el = document.createElement('span');
+  el.className = 'badge card-status';
+  el.dataset.statusFor = cardId;
+  el.dataset.state = 'idle';
+  el.textContent = '—';
+  right.prepend(el);
+  return el;
+}
+
+function setCardStatus(cardId, state, text, meta = {}) {
+  const el = ensureCardStatusEl(cardId);
+  if (!el) return;
+  el.dataset.state = state || 'idle';
+  el.textContent = text || '—';
+  if (meta?.title) el.title = meta.title;
+}
+
+function refreshCardStatusFromCache(cardId, cacheKey) {
+  const meta = cacheKey ? getCacheMeta(cacheKey) : null;
+  if (!meta) {
+    setCardStatus(cardId, 'idle', '—', { title: 'Ainda sem dados em cache' });
+    return;
+  }
+  const ageLbl = fmtAgeShort(meta.age);
+  const t = new Date(meta.ts);
+  const title = `Atualizado há ${ageLbl} · ${t.toLocaleString('pt-PT')}`;
+  if (meta.expired) setCardStatus(cardId, 'stale', `Stale · há ${ageLbl}`, { title });
+  else setCardStatus(cardId, 'cache', `Cache · há ${ageLbl}`, { title });
+}
+
+function getCabazMeta() {
+  try {
+    let extra = [];
+    const s = localStorage.getItem(CABAZ_CK);
+    if (s) extra = JSON.parse(s) || [];
+    const lastBase = CABAZ_HIST_BASE?.[CABAZ_HIST_BASE.length - 1]?.[0];
+    const lastExtra = extra?.length ? extra.sort((a, b) => (a?.[0] > b?.[0] ? 1 : -1))[extra.length - 1]?.[0] : null;
+    const last = (lastExtra && lastBase) ? (lastExtra > lastBase ? lastExtra : lastBase) : (lastExtra || lastBase);
+    if (!last) return null;
+    const ts = new Date(`${last}T12:00:00`).getTime();
+    if (!Number.isFinite(ts)) return null;
+    const age = Date.now() - ts;
+    return { ts, age, label: last };
+  } catch {
+    return null;
+  }
+}
+
+function refreshAllCardStatuses() {
+  try {
+    const list = Array.isArray(currentConfig?.cards) ? currentConfig.cards : (Array.isArray(DEFAULT_CONFIG?.cards) ? DEFAULT_CONFIG.cards : []);
+    list.forEach(c => ensureCardStatusEl(c.id));
+  } catch {}
+
+  // Cards com live embutido (widgets)
+  ['oil', 'finance', 'heatmap'].forEach(id => {
+    setCardStatus(id, 'live', 'Live', { title: 'Widget live' });
+  });
+
+  // Cards baseados em cache PFX
+  const cityId = CFG?.IPMA_CITY_ID || 1060300;
+  const byId = {
+    weather: `ipma_${cityId}`,
+    airquality: `aq_v3_${cityId}`,
+    fuel: 'fuel',
+    'gas-eu': 'ttf_live_v1',
+    'gas-pt': 'ttf_live_v1',
+    elec: 'elec_v3',
+    euribor: 'euribor_live_v1',
+    imob: 'imob_ine_v1',
+    fng: 'fng_v4',
+    rec: 'rec_v5',
+    agri: 'agri_v3',
+    air: 'air_v8',
+    seis: 'seis_v10',
+    ormuz: 'ormuz_v2',
+    psi20: 'psi20_v2',
+    mstats: 'mstats_v3',
+    fx: 'fx',
+    crypto: 'cg',
+    geo: 'geo_v10',
+    'news-pt': 'rss_pt',
+    'news-world': 'rss_world',
+    co2: 'co2_ren_v1'
+  };
+
+  Object.entries(byId).forEach(([cardId, cacheKey]) => {
+    refreshCardStatusFromCache(cardId, cacheKey);
+  });
+
+  // Cabaz (manual / estático)
+  const cm = getCabazMeta();
+  if (cm) {
+    const ageLbl = fmtAgeShort(cm.age);
+    const t = new Date(cm.ts);
+    setCardStatus('cabaz', 'static', `Manual · há ${ageLbl}`, { title: `Última entrada: ${cm.label} · ${t.toLocaleDateString('pt-PT')}` });
+  } else {
+    setCardStatus('cabaz', 'static', 'Manual', { title: 'Atualização manual' });
   }
 }
 
@@ -12798,6 +12976,8 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLocationToCfg(currentConfig.location);
   renderTvTickerTape(currentConfig.tickers);
   renderTvAdvancedChart(currentConfig.tickers);
+  refreshAllCardStatuses();
+  setInterval(refreshAllCardStatuses, 30 * 1000);
   if (isCardVisible('weather')) wxholRefresh();
   if (isCardVisible('airquality')) loadAirQuality(true);
   
