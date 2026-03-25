@@ -6,10 +6,12 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 - **Cards modulares** (Portugal, Mercados Financeiros, Notícias e outros módulos do painel).
 - **Responsivo (mobile/tablet/desktop)** com grid adaptativo e touch targets.
-- **Personalização do painel**: mostrar/ocultar cards, **drag & drop** para ordenar, **localização** (cidades IPMA) e **tickers favoritos**.
+- **Skeleton Screens & Shimmer**: Carregamento visual fluido com animações GPU-accelerated (60fps).
+- **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers) aplicado em tempo-real **sem recarregar a página**.
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
-- **Acessibilidade (base)**: foco visível por teclado e modais com navegação por Tab (focus trap).
+- **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
+- **UI Consistente**: Padronização de tabelas, footers, badges de estado e micro-interações.
 - **Gráficos históricos (7/30/90 dias)** em alguns módulos (ex.: eletricidade, TTF, PSI20, câmbio e gás PT).
 - **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) e Marítimo (Estreito de Ormuz) com mapas interactivos em Canvas/TopoJSON.
 - **Simulação de Alta Fidelidade**: Tráfego marítimo dinâmico baseado no tempo real (UTC) para contornar limitações de APIs públicas de AIS.
