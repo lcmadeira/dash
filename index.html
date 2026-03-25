@@ -2299,6 +2299,11 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 .rbtn{background:none;border:1px solid var(--b);border-radius:6px;padding:3px 9px;color:var(--t3);font-family:var(--mono);font-size:.6rem;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .rbtn:hover{color:var(--text);border-color:var(--t2)}
 .rbtn.ico{width:28px;height:28px;padding:0;font-size:.78rem}
+.rbtn.ico.loading{cursor:wait;opacity:.9;border-color:#E9A52055;color:var(--accent)}
+.rbtn.ico.loading:hover{border-color:#E9A52055;color:var(--accent)}
+.refresh-glyph{display:inline-block}
+.rbtn.ico.loading .refresh-glyph{animation:spin .7s linear infinite}
+button:disabled{cursor:not-allowed}
 
 /* ── Data Status Badge (por card) ── */
 .badge.card-status{
@@ -3490,7 +3495,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia & Feriados · PT</span>
       <div class="ch-r">
-        <button class="rbtn ico" id="wxhol-refresh" onclick="wxholRefresh()" title="Atualizar">↺</button>
+        <button class="rbtn ico" id="wxhol-refresh" onclick="refreshCard('weather', getWeatherCacheKey, this, wxholRefresh)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:5px 0 8px">
@@ -3515,7 +3520,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--green)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="renderFuel(true)" title="Atualizar">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('fuel','fuel',this,renderFuel,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
@@ -3527,7 +3532,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
         <button class="rbtn" id="cabaz-edit-btn" onclick="openCabazEditor()" title="Actualizar valor desta semana">✏️</button>
-        <button class="rbtn ico" onclick="renderCabaz()" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('cabaz',null,this,renderCabaz)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="cabaz-body"></div>
@@ -3564,7 +3569,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F620">🔥</div>
       <span class="ch-lbl">Gás Natural · Hubs Europeus</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadTTF(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('gas-eu','ttf_live_v1',this,loadTTF,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="ttf-body"></div>
     <div class="src">✦ Stooq · tg.f (Dutch TTF ICE) · live · hubs secundários ref. Mar 2026</div>
@@ -3576,7 +3581,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F9731620">🇵🇹</div>
       <span class="ch-lbl">Gás Natural · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadGasPT(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('gas-pt','ttf_live_v1',this,loadGasPT,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="gaspt-body"></div>
     <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
@@ -3586,7 +3591,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadElec(true)" title="Atualizar">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('elec','elec_v3',this,loadElec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="elec-body"></div>
   </div>
   
@@ -3598,7 +3603,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Qualidade do Ar · Portugal</span>
       <div class="ch-r">
         <span class="badge" id="aq-aqi-badge">AQI —</span>
-        <button class="rbtn ico" onclick="loadAirQuality(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
@@ -3613,7 +3618,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Euribor · Taxas de Referência</span>
       <div class="ch-r">
         <button class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" title="Ver tendência">📊</button>
-        <button class="rbtn ico" onclick="initEuribor(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('euribor','euribor_live_v1',this,initEuribor,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
         <span class="badge" id="euriborRefDate">...</span>
       </div>
     </div>
@@ -3674,7 +3679,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">😰</div>
       <span class="ch-lbl">Fear &amp; Greed · Cripto</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadFng(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('fng','fng_v4',this,loadFng,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="fng-body">
     </div>
@@ -3686,7 +3691,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">📉</div>
       <span class="ch-lbl">Indicador Recessão · EUA</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadRec(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('rec','rec_v5',this,loadRec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="rec-body" style="padding:6px 0"></div>
     <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
@@ -3698,7 +3703,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌾</div>
       <span class="ch-lbl">Preços Agrícolas · Commodities</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadAgri(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('agri','agri_v3',this,loadAgri,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="agri-body" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:6px 0"></div>
     <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
@@ -3739,7 +3744,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">✈️</div>
       <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadAir(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('air','air_v8',this,loadAir,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="air-body" style="padding:4px 0"></div>
     <div class="src">✦ OpenSky Network (live) · ANA Aeroportos 2024 (fallback)</div>
@@ -3750,7 +3755,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌍</div>
       <span class="ch-lbl">Sismos · Ibéria · Açores · 7 dias</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadSeis(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('seis','seis_v10',this,loadSeis,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="seis-body" style="padding:4px 0"></div>
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
@@ -3762,7 +3767,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#0EA5E922">🚢</div>
       <span class="ch-lbl">Estreito de Ormuz · Tráfego Marítimo</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadOrmuz(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('ormuz','ormuz_v2',this,loadOrmuz,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="ormuz-body" style="padding:4px 0"></div>
     <div class="src">✦ AIS data · Golfo Pérsico · Estreito de Ormuz</div>
@@ -3775,7 +3780,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">💼</div>
       <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadSMN(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('smn',null,this,loadSMN,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="smn-body"></div>
     <div class="src">✦ DGERT · INE · Eurostat · ref. Jan 2026</div>
@@ -3787,7 +3792,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF444420">🚆</div>
       <span class="ch-lbl">Transportes · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadTransp(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('transp',null,this,loadTransp,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="transp-body"></div>
     <div class="src">✦ CP · Carris Metropolitana · Metro Lisboa/Porto · STCP</div>
@@ -3813,7 +3818,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <span class="ch-lbl">Bolsa de Lisboa · PSI 20</span>
       <div class="ch-r">
         <span class="badge" style="color:#10B981;border-color:#10B98144;background:#10B98111">● Live</span>
-        <button class="rbtn ico" onclick="loadPSI20(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('psi20','psi20_v2',this,loadPSI20,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="psi20-body"></div>
@@ -3860,7 +3865,7 @@ textarea.nta::placeholder{color:var(--t3)}
             oninput="renderFX()"
             style="width:60px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.7rem;padding:3px 6px;outline:none;text-align:right">
         </div>
-        <button class="rbtn ico" onclick="loadFX(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('fx','fx',this,loadFX,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="fx-body"><div class="ld"><div class="spin"></div></div></div>
@@ -3873,7 +3878,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadCrypto(true)" title="Atualizar">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('crypto','cg',this,loadCrypto,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
@@ -3886,7 +3891,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#EF575722">📊</div>
       <span class="ch-lbl">Inflação · PT vs Zona Euro</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="renderInflation()" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('inf',null,this,renderInflation)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="inf-body"></div>
     <div class="src">✦ Eurostat · PRC_HICP_MANR · CORS nativo · sem chave · actualização automática</div>
@@ -3899,7 +3904,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadMarketStats(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('mstats','mstats_v3',this,loadMarketStats,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ gold-api.com · EIA · Frankfurter BCE</div>
@@ -3911,7 +3916,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
       <div class="ch-r">
-        <button class="rbtn ico" onclick="loadAndRenderCalendar(true)" title="Atualizar">↺</button>
+        <button class="rbtn ico" onclick="refreshCard('cal',null,this,loadAndRenderCalendar,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:6px 0 8px">
@@ -3950,7 +3955,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
       <span class="ch-lbl">Análise Geopolítica</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadGeo(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('geo','geo_v10',this,loadGeo,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div class="geo-tabs">
       <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
@@ -3967,7 +3972,7 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="ch">
     <div class="ch-ico" style="background:#10B98122">🌱</div>
     <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal</span>
-    <div class="ch-r"><button class="rbtn ico" onclick="loadCO2(true)" title="Atualizar">↺</button></div>
+    <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('co2','co2_ren_v1',this,loadCO2,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
   </div>
   <div id="co2-body" style="padding:4px 0"></div>
   <div class="src">✦ DGEG · REN Relatório Anual 2024 · Intensidade carbónica gCO₂/kWh</div>
@@ -3979,7 +3984,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF620">🗽</div>
       <span class="ch-lbl">Liberdade de Imprensa · Democracia</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadPress(true)" title="Atualizar">↺</button></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('press',null,this,loadPress,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="press-body"></div>
     <div class="src">✦ RSF Press Freedom Index 2024 · EIU Democracy Index 2024 · Freedom House 2024</div>
@@ -3989,7 +3994,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
       <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadNews('pt',true)" title="Atualizar">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('news-pt','rss_pt',this,loadNews,'pt',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
@@ -3999,7 +4004,7 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="loadNews('world',true)" title="Atualizar">↺</button></div></div>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('news-world','rss_world',this,loadNews,'world',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
@@ -4242,6 +4247,7 @@ function ensureCardStatusEl(cardId) {
 function setCardStatus(cardId, state, text, meta = {}) {
   const el = ensureCardStatusEl(cardId);
   if (!el) return;
+  if (el.dataset.state === 'loading' && state !== 'loading' && !meta.force) return;
   el.dataset.state = state || 'idle';
   el.textContent = text || '—';
   if (meta?.title) el.title = meta.title;
@@ -4250,14 +4256,66 @@ function setCardStatus(cardId, state, text, meta = {}) {
 function refreshCardStatusFromCache(cardId, cacheKey) {
   const meta = cacheKey ? getCacheMeta(cacheKey) : null;
   if (!meta) {
-    setCardStatus(cardId, 'idle', '—', { title: 'Ainda sem dados em cache' });
+    setCardStatus(cardId, 'idle', '—', { title: 'Ainda sem dados em cache', force: true });
     return;
   }
   const ageLbl = fmtAgeShort(meta.age);
   const t = new Date(meta.ts);
   const title = `Atualizado há ${ageLbl} · ${t.toLocaleString('pt-PT')}`;
-  if (meta.expired) setCardStatus(cardId, 'stale', `Stale · há ${ageLbl}`, { title });
-  else setCardStatus(cardId, 'cache', `Cache · há ${ageLbl}`, { title });
+  if (meta.expired) setCardStatus(cardId, 'stale', `Stale · há ${ageLbl}`, { title, force: true });
+  else setCardStatus(cardId, 'cache', `Cache · há ${ageLbl}`, { title, force: true });
+}
+
+function getWeatherCacheKey() {
+  const id = CFG?.IPMA_CITY_ID || 1060300;
+  return `ipma_${id}`;
+}
+
+function getAirQualityCacheKey() {
+  const id = CFG?.IPMA_CITY_ID || 1060300;
+  return `aq_v3_${id}`;
+}
+
+async function refreshCard(cardId, cacheKeyOrFn, btn, fn, ...args) {
+  const getKey = () => (typeof cacheKeyOrFn === 'function' ? cacheKeyOrFn() : cacheKeyOrFn);
+  const keyBefore = getKey();
+
+  if (btn && btn.classList && btn.classList.contains('loading')) return;
+  if (btn && btn.classList) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btn.setAttribute('aria-disabled', 'true');
+  }
+
+  setCardStatus(cardId, 'loading', 'A atualizar…', { title: 'A atualizar…' });
+
+  let threw = false;
+  try {
+    await Promise.resolve(fn(...args));
+  } catch (e) {
+    threw = true;
+    setCardStatus(cardId, 'error', 'Erro', { title: (e && e.message) ? e.message : 'Erro ao atualizar' });
+    console.warn(`Refresh falhou (${cardId})`, e);
+  } finally {
+    if (btn && btn.classList) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      btn.removeAttribute('aria-disabled');
+    }
+
+    // Atualizar badge a partir de cache (ou manter erro por um momento)
+    const keyAfter = getKey() || keyBefore;
+    if (threw) {
+      setTimeout(() => {
+        if (keyAfter) refreshCardStatusFromCache(cardId, keyAfter);
+        else { setCardStatus(cardId, 'idle', '—', { force: true }); refreshAllCardStatuses(); }
+      }, 2500);
+      return;
+    }
+
+    if (keyAfter) refreshCardStatusFromCache(cardId, keyAfter);
+    else { setCardStatus(cardId, 'idle', '—', { force: true }); refreshAllCardStatuses(); }
+  }
 }
 
 function getCabazMeta() {
@@ -4287,6 +4345,11 @@ function refreshAllCardStatuses() {
   // Cards com live embutido (widgets)
   ['oil', 'finance', 'heatmap'].forEach(id => {
     setCardStatus(id, 'live', 'Live', { title: 'Widget live' });
+  });
+
+  // Cards com dados estáticos (sem fetch)
+  ['smn', 'transp', 'press'].forEach(id => {
+    setCardStatus(id, 'static', 'Estático', { title: 'Dados estáticos (sem fetch)' });
   });
 
   // Cards baseados em cache PFX
@@ -5535,9 +5598,11 @@ function switchWxHol(tab,btn){
 function wxholRefresh(){
   const active=document.querySelector("#wxhol-tab-wx.on")?"wx":
                 document.querySelector("#wxhol-tab-res.on")?"resumo":"feriados";
-  if(active==="wx") loadWeather(true);
-  else if(active==="resumo"){window._holLoaded=false;loadHolidays(true);}
-  else {window._holListLoaded=false;renderHolList();}
+  if(active==="wx") return loadWeather(true);
+  if(active==="resumo"){window._holLoaded=false;return loadHolidays(true);}
+  // feriados: garantir fetch antes de render
+  window._holListLoaded=false;
+  return loadHolidays(true).then(()=>{ window._holListLoaded=true; renderHolList(); });
 }
 
 function renderHolList(){
@@ -8770,7 +8835,7 @@ function loadTTF(force=false){
     console.warn("⚠️ TTF: todas as fontes falharam, a usar valores estáticos");
   }
 
-  init();
+  return init();
 }
 
 
