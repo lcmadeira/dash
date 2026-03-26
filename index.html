@@ -3535,6 +3535,45 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
 </div>
 
+<!-- ═══════════════════ MODAL: CABAZ ALIMENTAR (MANUAL) ═══════════════════ -->
+<div class="export-modal" id="cabaz-modal" role="dialog" aria-modal="true" aria-labelledby="cabazModalTitle" aria-hidden="true" tabindex="-1">
+  <div class="export-modal-content">
+    <div class="export-modal-header">
+      <div class="export-modal-title" id="cabazModalTitle">
+        <span>🛒</span>
+        <span>Cabaz Alimentar · Atualizar</span>
+      </div>
+      <button class="export-modal-close" type="button" onclick="closeCabazEditor()" aria-label="Fechar cabaz alimentar">✕</button>
+    </div>
+    <div class="export-modal-body">
+      <div style="display:grid;gap:12px">
+        <div>
+          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Data</div>
+          <input id="cabaz-input-data" type="date" class="ticker-input" style="width:100%">
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Valor (€)</div>
+          <input id="cabaz-input-valor" type="text" inputmode="decimal" class="ticker-input" placeholder="Ex: 237.87" style="width:100%">
+          <div style="margin-top:6px;font-size:.6rem;color:var(--t3);font-family:var(--mono);line-height:1.4">
+            Aceita vírgula ou ponto (ex: 237,87).
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Nota (opcional)</div>
+          <textarea id="cabaz-input-nota" class="ticker-input" rows="3" placeholder="Ex: Fonte/observações" style="width:100%;resize:vertical"></textarea>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.62rem;color:var(--t3);line-height:1.6">
+          Dica: a DECO PROteste publica o cabaz às quartas-feiras. Guarda aqui o valor da semana para manter o histórico.
+        </div>
+      </div>
+    </div>
+    <div class="export-modal-footer">
+      <button class="export-action-btn export-btn-cancel" type="button" onclick="closeCabazEditor()">Cancelar</button>
+      <button class="export-action-btn export-btn-export" type="button" onclick="saveCabazEntry()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ GRID ═══════════════════ -->
 <!-- Barra de Relógios — Praças Financeiras -->
 <div class="mkt-bar" id="mkt-bar"></div>
@@ -3586,7 +3625,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-ico" style="background:#10B98120">🛒</div>
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
-        <button class="rbtn" id="cabaz-edit-btn" onclick="openCabazEditor()" title="Actualizar valor desta semana">✏️</button>
+        <button class="rbtn" id="cabaz-edit-btn" type="button" onclick="openCabazEditor()" title="Actualizar valor desta semana" aria-haspopup="dialog" aria-controls="cabaz-modal" aria-expanded="false">✏️</button>
         <button class="rbtn ico" onclick="refreshCard('cabaz',null,this,renderCabaz)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
@@ -9446,25 +9485,25 @@ function loadGasPT(force=false){
   loadGasPTTrend(false).catch(()=>{});
 }
 
-/* ── PSI20 · dados ── actualizar fallbacks mensalmente */
-const PSI20_CONST=[
-  {sym:"edp.ls",    label:"EDP",              ico:"⚡", sector:"Energia",      col:"#3B82F6", fallback:4.12,  fChg:-0.9},
-  {sym:"galp.ls",   label:"Galp",             ico:"🛢️", sector:"Energia",      col:"#F59E0B", fallback:11.34, fChg: 0.4},
-  {sym:"jmt.ls",    label:"Jerónimo Martins", ico:"🛒", sector:"Distribuição", col:"#10B981", fallback:16.80, fChg:-1.2},
-  {sym:"bcp.ls",    label:"Millennium BCP",   ico:"🏦", sector:"Banca",        col:"#8B5CF6", fallback:0.338, fChg: 1.8},
-  {sym:"nos.ls",    label:"NOS",              ico:"📡", sector:"Telecom",      col:"#06B6D4", fallback:3.72,  fChg: 0.2},
-  {sym:"son.ls",    label:"Sonae",            ico:"🏪", sector:"Distribuição", col:"#F97316", fallback:0.845, fChg:-0.5},
-  {sym:"rene.ls",   label:"REN",              ico:"🔌", sector:"Energia",      col:"#22D3EE", fallback:2.49,  fChg: 0.0},
-  {sym:"ctt.ls",    label:"CTT",              ico:"📬", sector:"Serviços",     col:"#A855F7", fallback:5.84,  fChg: 1.1},
-];
-const EU_INDICES=[
-  {sym:"^psi20",    label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
-  {sym:"^dax",      label:"DAX",         flag:"🇩🇪", col:"#3B82F6", fallback:22890, fChg: 0.3},
-  {sym:"^cac",      label:"CAC 40",      flag:"🇫🇷", col:"#8B5CF6", fallback:8142,  fChg:-0.2},
-  {sym:"^ibex",     label:"IBEX 35",     flag:"🇪🇸", col:"#F59E0B", fallback:13120, fChg: 0.5},
-  {sym:"^ftse",     label:"FTSE 100",    flag:"🇬🇧", col:"#06B6D4", fallback:8540,  fChg: 0.1},
-  {sym:"^stoxx50e", label:"EURO STOXX",  flag:"🇪🇺", col:"#A855F7", fallback:5480,  fChg: 0.2},
-];
+	/* ── PSI20 · dados ── actualizar fallbacks mensalmente */
+	const PSI20_CONST=[
+	  {sym:"edp.ls",    yf:"EDP.LS",  label:"EDP",              ico:"⚡", sector:"Energia",      col:"#3B82F6", fallback:4.12,  fChg:-0.9},
+	  {sym:"galp.ls",   yf:"GALP.LS", label:"Galp",             ico:"🛢️", sector:"Energia",      col:"#F59E0B", fallback:11.34, fChg: 0.4},
+	  {sym:"jmt.ls",    yf:"JMT.LS",  label:"Jerónimo Martins", ico:"🛒", sector:"Distribuição", col:"#10B981", fallback:16.80, fChg:-1.2},
+	  {sym:"bcp.ls",    yf:"BCP.LS",  label:"Millennium BCP",   ico:"🏦", sector:"Banca",        col:"#8B5CF6", fallback:0.338, fChg: 1.8},
+	  {sym:"nos.ls",    yf:"NOS.LS",  label:"NOS",              ico:"📡", sector:"Telecom",      col:"#06B6D4", fallback:3.72,  fChg: 0.2},
+	  {sym:"son.ls",    yf:"SON.LS",  label:"Sonae",            ico:"🏪", sector:"Distribuição", col:"#F97316", fallback:0.845, fChg:-0.5},
+	  {sym:"rene.ls",   yf:"RENE.LS", label:"REN",              ico:"🔌", sector:"Energia",      col:"#22D3EE", fallback:2.49,  fChg: 0.0},
+	  {sym:"ctt.ls",    yf:"CTT.LS",  label:"CTT",              ico:"📬", sector:"Serviços",     col:"#A855F7", fallback:5.84,  fChg: 1.1},
+	];
+	const EU_INDICES=[
+	  {sym:"^psi20",    yf:"^PSI20",   label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
+	  {sym:"^dax",      yf:"^GDAXI",   label:"DAX",         flag:"🇩🇪", col:"#3B82F6", fallback:22890, fChg: 0.3},
+	  {sym:"^cac",      yf:"^FCHI",    label:"CAC 40",      flag:"🇫🇷", col:"#8B5CF6", fallback:8142,  fChg:-0.2},
+	  {sym:"^ibex",     yf:"^IBEX",    label:"IBEX 35",     flag:"🇪🇸", col:"#F59E0B", fallback:13120, fChg: 0.5},
+	  {sym:"^ftse",     yf:"^FTSE",    label:"FTSE 100",    flag:"🇬🇧", col:"#06B6D4", fallback:8540,  fChg: 0.1},
+	  {sym:"^stoxx50e", yf:"^STOXX50E",label:"EURO STOXX",  flag:"🇪🇺", col:"#A855F7", fallback:5480,  fChg: 0.2},
+	];
 
 const PSI20_TREND_PREF_KEY = 'psi20_trend_pref_v1';
 function getPSI20TrendPref() {
@@ -9531,46 +9570,65 @@ async function loadPSI20Trend(force = false) {
   }
 }
 
-async function loadPSI20(force=false){
-  const el=document.getElementById("psi20-body");
-  if(!el) return;
-  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;
+	async function loadPSI20(force=false){
+	  const el=document.getElementById("psi20-body");
+	  if(!el) return;
+	  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;
 
   const CK="psi20_v2";
-  let cache=force?null:lsGet(CK);
+	  let cache=force?null:lsGet(CK);
 
-  if(!cache){
-    /* Stooq CSV — mesmo padrão que loadAgri (funciona via allorigins) */
-    async function fetchStooq(sym){
-      const url=`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv`;
-      const proxies=[
-        "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-        "https://corsproxy.io/?url="+encodeURIComponent(url),
-      ];
-      for(const p of proxies){
-        try{
-          const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
-          if(!r.ok) continue;
-          const csv=await r.text();
-          const rows=csv.trim().split("\n");
-          if(rows.length<2) continue;
-          const cols=rows[1].split(",");
-          /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
-          const open =parseFloat(cols[3]);
-          const hi   =parseFloat(cols[4]);
-          const lo   =parseFloat(cols[5]);
-          const close=parseFloat(cols[6]);
-          const vol  =parseFloat(cols[7])||0;
-          if(!isNaN(close)&&close>0)
-            return {price:close,prev:open,hi,lo,vol,chg:open?((close-open)/open*100):0,live:true};
-        }catch{}
-      }
-      return null;
-    }
+	  if(!cache){
+	    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
 
-    /* Fetch paralelo de todos os símbolos */
-    const allSyms=[...EU_INDICES,...PSI20_CONST];
-    const results=await Promise.allSettled(allSyms.map(s=>fetchStooq(s.sym)));
+	    async function fetchYahoo(sym){
+	      if(!sym) return null;
+	      const url=`${YF}${encodeURIComponent(sym)}?range=5d&interval=1d&_=${Date.now()}`;
+	      try{
+	        const r=await fetchWithCORS(url, { cache: "no-store" }, 9000);
+	        const j=await r.json();
+	        const meta=j?.chart?.result?.[0]?.meta;
+	        const price=Number(meta?.regularMarketPrice);
+	        if(!Number.isFinite(price) || price<=0) return null;
+	        const prev=Number(meta?.previousClose ?? meta?.chartPreviousClose ?? price);
+	        const hi=Number(meta?.regularMarketDayHigh ?? price);
+	        const lo=Number(meta?.regularMarketDayLow ?? price);
+	        const vol=Number(meta?.regularMarketVolume ?? 0) || 0;
+	        const chg=(Number.isFinite(prev) && prev>0) ? ((price-prev)/prev*100) : 0;
+	        return {price,prev,hi,lo,vol,chg,live:true,src:"yahoo"};
+	      }catch{
+	        return null;
+	      }
+	    }
+
+	    /* Stooq CSV — fallback (por vezes só tem último fecho) */
+	    async function fetchStooq(sym){
+	      if(!sym) return null;
+	      const url=`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv&_=${Date.now()}`;
+	      try{
+	        const r=await fetchWithCORS(url, { cache: "no-store" }, 9000);
+	        if(!r.ok) return null;
+	        const csv=await r.text();
+	        const rows=csv.trim().split("\n");
+	        if(rows.length<2) return null;
+	        const cols=rows[1].split(",");
+	        /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
+	        const open =parseFloat(cols[3]);
+	        const hi   =parseFloat(cols[4]);
+	        const lo   =parseFloat(cols[5]);
+	        const close=parseFloat(cols[6]);
+	        const vol  =parseFloat(cols[7])||0;
+	        if(!isNaN(close)&&close>0){
+	          const prev = (!isNaN(open) && open>0) ? open : close;
+	          return {price:close,prev,hi,lo,vol,chg:prev?((close-prev)/prev*100):0,live:true,src:"stooq"};
+	        }
+	      }catch{}
+	      return null;
+	    }
+
+	    /* Fetch paralelo de todos os símbolos */
+	    const allSyms=[...EU_INDICES,...PSI20_CONST];
+	    const results=await Promise.allSettled(allSyms.map(s=>fetchYahoo(s.yf).then(v=>v||fetchStooq(s.sym))));
 
     const mkFallback=(s)=>({
       price:s.fallback,
@@ -9579,16 +9637,18 @@ async function loadPSI20(force=false){
       chg:s.fChg||0, vol:0, live:false
     });
 
-    const isLive=results.some(r=>r.value?.live);
+	    const isLive=results.some(r=>r.value?.live);
+	    const src=results.find(r=>r.value?.src)?.value?.src || null;
 
-    cache={
-      indices: EU_INDICES.map((s,i)=>results[i]?.value||mkFallback(s)),
-      stocks:  PSI20_CONST.map((s,i)=>results[EU_INDICES.length+i]?.value||mkFallback(s)),
-      live:    isLive,
-      ts:      Date.now()
-    };
-    if(isLive) lsSet(CK,cache);
-  }
+	    cache={
+	      indices: EU_INDICES.map((s,i)=>results[i]?.value||mkFallback(s)),
+	      stocks:  PSI20_CONST.map((s,i)=>results[EU_INDICES.length+i]?.value||mkFallback(s)),
+	      live:    isLive,
+	      src,
+	      ts:      Date.now()
+	    };
+	    if(isLive) lsSet(CK,cache);
+	  }
 
   const psi=cache.indices[0];
   try{ addToHistory('psi20_index', psi.price); }catch{}
@@ -9610,9 +9670,9 @@ async function loadPSI20(force=false){
     </svg>`;
   }
 
-  const liveTag=cache.live
-    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">● Stooq live</span>`
-    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ fallback Mar 2026</span>`;
+	  const liveTag=cache.live
+	    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">● ${(cache.src||"live").toString().toUpperCase()}</span>`
+	    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ fallback Mar 2026</span>`;
 
   el.innerHTML=`
   <!-- Hero PSI20 + bolsas numa linha -->
@@ -9697,10 +9757,10 @@ async function loadPSI20(force=false){
       </div>`;
     }).join("")}
   </div>
-  <div style="font-size:.52rem;color:var(--t3);margin-top:5px;line-height:1.4">
-    ✦ Stooq.com · stooq.com · Euronext Lisboa (.ls) · 
-    ${cache.live?"Dados do último fecho disponível":"Fallback: referência Mar 2026"}
-  </div>`;
+	  <div style="font-size:.52rem;color:var(--t3);margin-top:5px;line-height:1.4">
+	    ✦ ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq.com")} · Euronext Lisboa (.LS) · 
+	    ${cache.live?(cache.src==="yahoo"?"Dados do mercado (regularMarketPrice)":"Último fecho disponível"):"Fallback: referência Mar 2026"}
+	  </div>`;
 
   loadPSI20Trend(false).catch(()=>{});
 }
@@ -15422,10 +15482,16 @@ function renderCabaz(){
 }
 
 /* ── Modal de edição ── */
+let lastFocusCabaz = null;
+
 function openCabazEditor(){
+  lastFocusCabaz = document.activeElement;
   const modal=document.getElementById("cabaz-modal");
   if(!modal)return;
-  modal.style.display="flex";
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
+  const btn=document.getElementById("cabaz-edit-btn");
+  if(btn) btn.setAttribute("aria-expanded","true");
 
   /* Pré-preencher com data de hoje e valor actual */
   const hist=loadCabazHist();
@@ -15436,19 +15502,29 @@ function openCabazEditor(){
   if(inputData) inputData.value=today;
   if(inputValor) inputValor.value=cur?cur[1]:"";
   document.body.style.overflow="hidden";
+  if(inputValor) inputValor.focus();
 }
 
 function closeCabazEditor(){
   const modal=document.getElementById("cabaz-modal");
-  if(modal)modal.style.display="none";
+  if(modal){
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden","true");
+  }
   document.body.style.overflow="";
+  const btn=document.getElementById("cabaz-edit-btn");
+  if(btn) btn.setAttribute("aria-expanded","false");
+  const target=lastFocusCabaz||btn;
+  if(target && typeof target.focus==="function") target.focus();
+  lastFocusCabaz=null;
 }
 
 function saveCabazEntry(){
   const iso=document.getElementById("cabaz-input-data")?.value;
   const raw=document.getElementById("cabaz-input-valor")?.value;
   const nota=document.getElementById("cabaz-input-nota")?.value||"";
-  const valor=parseFloat(raw);
+  const s=(raw??"").toString().trim().replace(/[€\s]/g,"");
+  const valor=parseFloat(s.includes(",") && s.includes(".") ? s.replace(/\./g,"").replace(",",".") : s.replace(",","."));
 
   if(!iso||isNaN(valor)||valor<150||valor>600){
     alert("Insere uma data válida e um valor entre 150€ e 600€.");
@@ -15468,6 +15544,13 @@ function saveCabazEntry(){
     setTimeout(()=>{btn.textContent=orig;btn.style.color="";},2000);
   }
 }
+
+// ESC para fechar
+document.addEventListener("keydown",(e)=>{
+  if(e.key!=="Escape") return;
+  const modal=document.getElementById("cabaz-modal");
+  if(modal && modal.classList.contains("show")) closeCabazEditor();
+});
 
 /* Fechar modal ao clicar fora */
 document.getElementById("cabaz-modal")?.addEventListener("click",function(e){
