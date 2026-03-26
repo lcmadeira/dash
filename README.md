@@ -65,6 +65,7 @@ O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), in
 - **USGS** (sismos), **Google News RSS** + feeds de geopolítica
 
 Notas:
+
 - Alguns endpoints recorrem a **proxies CORS públicos** (ex.: `allorigins`, `corsproxy`, `thingproxy`) e podem falhar por indisponibilidade/limites.
 - Certas funcionalidades (ex.: notificações periódicas) estão condicionadas por CORS — ver `ROADMAP.md`.
 

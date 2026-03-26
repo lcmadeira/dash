@@ -71,6 +71,7 @@
 ## ✨ 3. Novas Funcionalidades
 
 ### 3.1 Modo Claro/Escuro
+
 - [ ] Criar paleta de cores para light mode
 - [ ] Toggle switch no header
 - [ ] Guardar preferência no localStorage
@@ -79,6 +80,7 @@
 > ⚠️ Dado o design muito denso do painel, o light mode exige trabalho cuidado. Adiar para v2.0.
 
 #### 3.2 Personalização → ✅ **CONCLUÍDO** (25/03/2026)
+
 - [x] Painel de configurações (modal com 3 tabs)
 - [x] Toggle visibilidade de cards (14 cards)
 - [x] Drag & Drop para reordenar
@@ -87,6 +89,7 @@
 - [x] Pesquisa em tempo-real nos cards e preferências de conforto (UI densa vs. relaxada)
 
 #### 3.3 Notificações → ⚠️ **Implementado com limitações CORS** (16/03/2026)
+
 - [x] Centro de notificações dropdown com badge animado
 - [x] Integração Sismos USGS (M≥3.0, deduplicação por notifId)
 - [x] Integração Breaking News (keywords RSS)
@@ -96,6 +99,7 @@
   - Solução futura: Cloudflare Worker ou backend próprio
 
 #### 3.4 Exportar Dados → ⚠️ **Base implementada** (16/03/2026)
+
 - [x] Modal de seleção com 4 formatos (PNG, PDF, CSV, JSON)
 - [ ] Export PNG/PDF fiável (limitado por iframes TradingView)
 - [ ] Relatório semanal/mensal
@@ -107,6 +111,7 @@
 ### Prioridade: **Média** 🟡
 
 #### 5.1 Fontes de Dados
+
 - [x] **Gás Natural PT (MIBGAS estimado)** — TTF live (Stooq `tg.f`) + spread sazonal mensal
       MIBGAS−TTF por mês. Sem fetch extra (reutiliza cache TTF). ✅ (20/03/2026)
 - [x] **Qualidade do Ar** — Open-Meteo / Copernicus CAMS, sem chave, CORS nativo.
@@ -120,6 +125,7 @@
 - [ ] Tráfego rodoviário em tempo real (Google Maps API — requer chave paga)
 
 #### 5.2 Automação de dados estáticos
+
 - [ ] **Euribor** — dados EMMI actualizados manualmente. Criar script de auto-update
       via ECB SDMX API (CORS nativo: `data-api.ecb.europa.eu`)
 - [ ] **Inflação PT/EU** — dados INE/Eurostat actualizados manualmente.
@@ -128,6 +134,7 @@
       Stooq CSV já implementado; melhorar fiabilidade do fetch
 
 #### 5.3 Dados Históricos
+
 - [ ] Gráficos de tendência (7/30/90 dias) para mais cards
 - [ ] Comparação com períodos anteriores
 
@@ -138,21 +145,25 @@
 ### Parcialmente Concluído ✅
 
 #### 4.1 Skeleton Screens → ✅ **CONCLUÍDO** (16/03/2026)
+
 - [x] 7 tipos: Weather, News, Table, Chart, KPIs, Generic, Cards
 - [x] 10 cards principais actualizados
 - [x] Animação shimmer (1.5s, 60fps, GPU-accelerated)
 
 #### 4.2 Tratamento de Erros
+
 - [x] Badges de estado de dados por card (Live, Cached, Error, Off) ✅ (25/03/2026)
 - [ ] Mensagens de erro mais específicas com contexto
 - [ ] Botão "Tentar novamente" inline nos cards com erro
 - [ ] Toast notifications para erros não-críticos
 
 #### 4.3 Tooltips & Ajuda
+
 - [ ] Tooltips explicativos em termos técnicos (gCO₂/kWh, AQI, spread, etc.)
 - [ ] Ícone de ajuda (?) em métricas complexas
 
 #### 4.4 Animações & Micro-interações
+
 - [x] UI: Tabelas, footers, badges e actions padronizados ✅ (25/03/2026)
 - [x] Scroll interno com header sticky em cards longos ✅ (25/03/2026)
 - [x] Feedback visual de carregamento (ícone ↺/spinner e lock de refresh) ✅ (25/03/2026)
@@ -190,7 +201,8 @@
 
 ## 📈 Tracking de Progresso
 
-### Legenda de Prioridades:
+### Legenda de Prioridades
+
 - ⛔ **Crítica** - Corrigir imediatamente (segurança/bugs)
 - 🔴 **Alta** - Implementar ASAP (impacto significativo)
 - 🟡 **Média** - Importante, mas não urgente
@@ -201,11 +213,13 @@
 ## 📝 Notas de Versão
 
 ### v1.0.0 — Base
+
 - ✅ Dashboard com múltiplos módulos (Portugal, Mercados, Geopolítica, Notícias)
 - ✅ Integração com APIs portuguesas (IPMA, combustíveis, Euribor)
 - ✅ Design dark mode com Chart.js + TradingView widgets
 
 ### v1.1.0 — Concluído ✅
+
 - ✅ **Correções Urgentes** — API key removida, datas automáticas, media queries consolidadas (16/03/2026)
 - ✅ **Responsividade mobile completa** — breakpoints, grid adaptativo, touch targets (13/03/2026)
 - ✅ **Personalização** — painel settings, toggle cards, drag&drop, localização, tickers (13/03/2026)
@@ -215,12 +229,14 @@
 - ⚠️ **Exportação** — base implementada (16/03/2026)
 
 ### v1.1.1 — Concluído ✅
+
 - ✅ **Gás Natural PT (MIBGAS estimado)** — TTF live + spread sazonal (20/03/2026)
 - ✅ **Qualidade do Ar** — Open-Meteo CAMS, AQI EU + 5 poluentes + UV (20/03/2026)
 - ✅ **Estreito de Ormuz (AIS data)** — Mapa TopoJSON + tráfego simulado de alta fidelidade (24/03/2026)
 - ✅ **Tráfego Aéreo** — Integração OpenSky Network com tooltips detalhados (24/03/2026)
 
 ### v1.1.2 — Concluído ✅
+
 - ✅ **UX/UI avançada** — Scroll interno com header sticky em cards longos (25/03/2026)
 - ✅ **Feedback de Dados** — Badges de estado (Live/Cached/Error) e spinners de carregamento por card (25/03/2026)
 - ✅ **Personalização** — Pesquisa em tempo-real nos cards e preferências de conforto visual (25/03/2026)
@@ -228,17 +244,19 @@
 - ✅ **CORS Engine** — Estratégia "Direct First" com fallback inteligente para proxies (25/03/2026)
 
 ### v1.2.0 — Planeado
+
 - [ ] **Modularização** — separar JS/CSS do index.html (prioridade máxima)
 - [ ] Automação dados estáticos (Euribor ECB, Inflação Eurostat)
 - [ ] Dados de barragens SNIRH
 - [ ] Notificações com backend (Cloudflare Worker)
 
 ### v2.0.0 — Futuro
+
 - [ ] PWA (Progressive Web App) com Service Worker
 - [ ] Backend leve para chaves de API e notificações push
 - [ ] Modo claro/escuro
 
 ---
 
-**Última atualização**: 25 de Março de 2026
-**Mantido por**: Luís e Claude 🤝
+**Última atualização**: 26 de Março de 2026
+**Mantido por**: LCMadeira
