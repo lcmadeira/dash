@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint-js:
+    name: Lint JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint (JS inline em index.html)
+        run: npx eslint index.html
+
+  lint-py:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Ruff check dev_server.py
+        run: ruff check dev_server.py
+
+  validate-html:
+    name: Validate HTML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: html-validate
+        run: npx html-validate index.html
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for hardcoded secrets
+        run: |
+          echo "=== Scanning for hardcoded API keys and secrets ==="
+          PATTERN='(TD_KEY|api[_-]?key|secret|token|password)\s*[:=]\s*["\x27][^"\x27]{8,}'
+          # Exclude comment lines (// or *) to avoid false positives
+          MATCHES=$(grep -rEn "$PATTERN" index.html dev_server.py 2>/dev/null | grep -vE ':[0-9]+:\s*(//|/\*|\*)')
+          if [ -n "$MATCHES" ]; then
+            echo "$MATCHES"
+            echo ""
+            echo "::error::Potential hardcoded secrets found. Review the matches above."
+            exit 1
+          else
+            echo "No hardcoded secrets detected."
+          fi
+
+  cdn-health:
+    name: CDN Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Chart.js CDN
+        run: |
+          STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js")
+          echo "Chart.js 4.4.1 → HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then exit 1; fi
+
+      - name: Check html2canvas CDN
+        run: |
+          STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
+          echo "html2canvas 1.4.1 → HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then exit 1; fi
+
+      - name: Check jspdf CDN
+        run: |
+          STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+          echo "jspdf 2.5.1 → HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then exit 1; fi
+
+      - name: Check Google Fonts
+        run: |
+          STATUS=$(curl -sI -o /dev/null -w "%{http_code}" "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap")
+          echo "Google Fonts → HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then exit 1; fi
+
+  file-size:
+    name: File Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check index.html size
+        run: |
+          MAX_KB=700
+          SIZE_KB=$(( $(stat -c%s index.html) / 1024 ))
+          echo "index.html: ${SIZE_KB}KB (limit: ${MAX_KB}KB)"
+          if [ "$SIZE_KB" -gt "$MAX_KB" ]; then
+            echo "::warning::index.html exceeded ${MAX_KB}KB — current: ${SIZE_KB}KB. Consider modularization."
+          fi

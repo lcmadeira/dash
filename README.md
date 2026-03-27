@@ -25,6 +25,13 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
 - Sem build step / sem bundler
 
+### Ferramentas de dev
+
+- **ESLint** + `eslint-plugin-html` — lint do JS inline em `index.html`
+- **html-validate** — validação estrutural e acessibilidade HTML
+- **Ruff** — lint de `dev_server.py`
+- **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
+
 ## Como executar
 
 Opção 1 (mais simples): abrir `index.html` no browser.
@@ -73,7 +80,34 @@ Notas:
 
 Ver `ROADMAP.md`.
 
+## CI/CD
+
+Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
+
+| Job | Descrição | Falha se... |
+|---|---|---|
+| `lint-js` | ESLint no JS inline do `index.html` | Erros de sintaxe ou `no-undef` |
+| `lint-py` | Ruff no `dev_server.py` | Erros de lint Python |
+| `validate-html` | html-validate na estrutura HTML | Erros estruturais ou acessibilidade |
+| `secret-scan` | Regex por API keys hardcoded no código | Encontrar secrets em código activo |
+| `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
+| `file-size` | Tamanho do `index.html` | Warning se > 700KB |
+
+### Executar lint localmente
+
+```bash
+npm install          # instalar dependências (uma vez)
+npm run lint         # ESLint
+npm run validate     # html-validate
+ruff check dev_server.py  # Ruff (requer Python)
+```
+
 ## Estrutura do repositório
 
 - `index.html` — aplicação (UI + lógica + integrações)
+- `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente
+- `package.json` — dev dependencies (ESLint, html-validate)
+- `eslint.config.js` — configuração ESLint (flat config)
+- `.htmlvalidate.json` — regras de validação HTML
+- `.github/workflows/ci.yml` — pipeline CI

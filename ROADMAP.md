@@ -188,14 +188,14 @@
 
 ### Prioridade: **Média** 🟡 *(ficheiro com ~11 000 linhas)*
 
-> ⚠️ O `index.html` ultrapassa 430 KB num único ficheiro. Modularização é o objectivo do v1.2.0.
+> ⚠️ O `index.html` ultrapassa 616 KB num único ficheiro. Modularização é o objectivo do v1.2.0.
 
 - [ ] **Separar JS em módulos** (ES Modules) ← prioritário para v1.2.0
 - [x] **Aplicar definições sem reload** (re-renderização dinâmica de cards) ✅ (25/03/2026)
 - [ ] **Extrair configurações** para `config.js` (TTLs, IDs de cidade, spreads)
 - [ ] **Consolidar CSS** em ficheiro separado
 - [ ] Documentar funções principais (JSDoc)
-- [ ] CI/CD pipeline (GitHub Actions) para validação automática de JS
+- [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
 
@@ -243,6 +243,17 @@
 - ✅ **Combustíveis PT vs ES** — Comparação transfronteiriça, delta €/%, detalhe de postos e preferências (25/03/2026)
 - ✅ **CORS Engine** — Estratégia "Direct First" com fallback inteligente para proxies (25/03/2026)
 
+### v1.1.3 — Concluído ✅
+
+- ✅ **CI/CD Pipeline** — GitHub Actions com 6 jobs (27/03/2026)
+  - ESLint + `eslint-plugin-html` para JS inline em `index.html`
+  - Ruff para lint de `dev_server.py`
+  - html-validate para estrutura e acessibilidade HTML
+  - Secret scan (regex por API keys hardcoded)
+  - CDN health check (Chart.js, html2canvas, jspdf, Google Fonts)
+  - File size warning (limite 700KB)
+- ✅ **Tooling** — `package.json`, `eslint.config.js` (flat config), `.htmlvalidate.json`
+
 ### v1.2.0 — Planeado
 
 - [ ] **Modularização** — separar JS/CSS do index.html (prioridade máxima)
@@ -258,5 +269,5 @@
 
 ---
 
-**Última atualização**: 26 de Março de 2026
+**Última atualização**: 27 de Março de 2026
 **Mantido por**: LCMadeira

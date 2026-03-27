@@ -1,0 +1,17 @@
+{
+  "name": "painel-pessoal",
+  "private": true,
+  "type": "module",
+  "version": "1.1.2",
+  "description": "Dashboard pessoal focado em Portugal",
+  "scripts": {
+    "lint": "eslint index.html",
+    "lint:py": "ruff check dev_server.py",
+    "validate": "html-validate index.html"
+  },
+  "devDependencies": {
+    "eslint": "^9.22.0",
+    "eslint-plugin-html": "^8.1.2",
+    "html-validate": "^8.24.0"
+  }
+}
