@@ -4519,23 +4519,43 @@ async function fetchViaLocalProxy(url, options = {}){
 }
 
 /* ── Fetch helpers (centralizado) ── */
-function buildFetchCandidates(url, sources = ["direct","local","allorigins","jina","corsproxy"]) {
+function isFetchDebugEnabled(){
+  try{
+    const qs = new URLSearchParams(location.search || "");
+    if (qs.has("debugFetch")) return (qs.get("debugFetch") || "1") !== "0";
+    const v = localStorage.getItem(PFX + "debug_fetch");
+    return v === "1" || v === "true";
+  }catch{
+    return false;
+  }
+}
+window.setFetchDebug = function setFetchDebug(on = true){
+  try{ localStorage.setItem(PFX + "debug_fetch", on ? "1" : "0"); }catch{}
+  console.log(`[fetch-debug] ${on ? "ON" : "OFF"} (persistido em localStorage)`);
+  return !!on;
+};
+
+function buildFetchPlan(url, sources = ["direct","local","allorigins","jina","corsproxy"]) {
   const src = (Array.isArray(sources) && sources.length)
     ? sources
     : ["direct","local","allorigins","jina","corsproxy"];
   const s = new Set(src);
   const out = [];
-  const add = (u) => { if (u && !out.includes(u)) out.push(u); };
-  if (s.has("direct")) add(url);
-  if (s.has("local") && IS_LOCAL_DEV) add(localProxyUrl(url));
-  if (s.has("allorigins")) add(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-  if (s.has("jina")) add(`https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`);
+  const add = (source, u) => { if (u && !out.some(x => x.url === u)) out.push({ source, url: u }); };
+  if (s.has("direct")) add("direct", url);
+  if (s.has("local") && IS_LOCAL_DEV) add("localproxy", localProxyUrl(url));
+  if (s.has("allorigins")) add("allorigins", `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+  if (s.has("jina")) add("jina", `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`);
   if (s.has("corsproxy")) {
     const enc = encodeURIComponent(url);
-    add(`https://corsproxy.io/?${enc}`);
-    add(`https://corsproxy.io/?url=${enc}`);
+    add("corsproxy", `https://corsproxy.io/?${enc}`);
+    add("corsproxy", `https://corsproxy.io/?url=${enc}`);
   }
   return out;
+}
+
+function buildFetchCandidates(url, sources) {
+  return buildFetchPlan(url, sources).map(x => x.url);
 }
 
 function withTimeoutOpts(options = {}, timeoutMs = 12000) {
@@ -4544,50 +4564,77 @@ function withTimeoutOpts(options = {}, timeoutMs = 12000) {
 }
 
 async function fetchFirstOk(url, options = {}, timeoutMs = 12000, sources, validate) {
-  const candidates = buildFetchCandidates(url, sources);
+  const plan = buildFetchPlan(url, sources);
   let lastErr = null;
-  for (const u of candidates) {
+  for (let i = 0; i < plan.length; i++) {
+    const step = plan[i];
+    const u = step.url;
     try {
+      if (isFetchDebugEnabled()) console.debug(`[fetch] try #${i+1}/${plan.length} ${step.source}`, url);
       const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
-      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      if (!r.ok) {
+        lastErr = new Error(`HTTP ${r.status}`);
+        if (isFetchDebugEnabled()) console.debug(`[fetch] fail ${step.source} HTTP ${r.status}`, url);
+        continue;
+      }
       if (validate && !(await validate(r))) { lastErr = new Error("validate"); continue; }
+      if (isFetchDebugEnabled()) console.info(`[fetch] ok ${step.source}`, url);
       return { r, usedUrl: u };
     } catch (e) {
       lastErr = e;
+      if (isFetchDebugEnabled()) console.debug(`[fetch] err ${step.source}`, url, e?.message || e);
     }
   }
   throw lastErr || new Error("Fetch indisponível");
 }
 
 async function fetchJsonFirstOk(url, options = {}, timeoutMs = 12000, sources, validateJson) {
-  const candidates = buildFetchCandidates(url, sources);
+  const plan = buildFetchPlan(url, sources);
   let lastErr = null;
-  for (const u of candidates) {
+  for (let i = 0; i < plan.length; i++) {
+    const step = plan[i];
+    const u = step.url;
     try {
+      if (isFetchDebugEnabled()) console.debug(`[fetch-json] try #${i+1}/${plan.length} ${step.source}`, url);
       const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
-      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      if (!r.ok) {
+        lastErr = new Error(`HTTP ${r.status}`);
+        if (isFetchDebugEnabled()) console.debug(`[fetch-json] fail ${step.source} HTTP ${r.status}`, url);
+        continue;
+      }
       const j = await r.json();
       if (validateJson && !validateJson(j)) { lastErr = new Error("validateJson"); continue; }
+      if (isFetchDebugEnabled()) console.info(`[fetch-json] ok ${step.source}`, url);
       return j;
     } catch (e) {
       lastErr = e;
+      if (isFetchDebugEnabled()) console.debug(`[fetch-json] err ${step.source}`, url, e?.message || e);
     }
   }
   throw lastErr || new Error("JSON indisponível");
 }
 
 async function fetchTextFirstOk(url, options = {}, timeoutMs = 12000, sources, validateText) {
-  const candidates = buildFetchCandidates(url, sources);
+  const plan = buildFetchPlan(url, sources);
   let lastErr = null;
-  for (const u of candidates) {
+  for (let i = 0; i < plan.length; i++) {
+    const step = plan[i];
+    const u = step.url;
     try {
+      if (isFetchDebugEnabled()) console.debug(`[fetch-text] try #${i+1}/${plan.length} ${step.source}`, url);
       const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
-      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      if (!r.ok) {
+        lastErr = new Error(`HTTP ${r.status}`);
+        if (isFetchDebugEnabled()) console.debug(`[fetch-text] fail ${step.source} HTTP ${r.status}`, url);
+        continue;
+      }
       const t = await r.text();
       if (validateText && !validateText(t)) { lastErr = new Error("validateText"); continue; }
+      if (isFetchDebugEnabled()) console.info(`[fetch-text] ok ${step.source}`, url);
       return t;
     } catch (e) {
       lastErr = e;
+      if (isFetchDebugEnabled()) console.debug(`[fetch-text] err ${step.source}`, url, e?.message || e);
     }
   }
   throw lastErr || new Error("Texto indisponível");
