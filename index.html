@@ -4111,9 +4111,10 @@ textarea.nta::placeholder{color:var(--t3)}
 <script src="src/fetch.js"></script>
 <script src="src/ui.js"></script>
 <script src="src/cards/elec.js"></script>
+<script src="src/cards/news.js"></script>
 <script src="src/cards/seis.js"></script>
 <script>
-/* global CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,GAS_TARIFAS,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadSeis */
+/* global CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,GAS_TARIFAS,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadNews,loadSeis */
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -4267,31 +4268,6 @@ async function loadWeather(force=false){
   }catch(e){$("wx-body").innerHTML=er(e.message);}
 }
 
-/* ── Google News RSS ── */
-async function fetchRSS(url){
-  const isGoogleNews = /(^|\/\/)news\.google\.com\//i.test(url);
-  // Jina pode responder 451 em alguns domínios (ex.: Google News).
-  const sources = isGoogleNews
-    ? ["direct","local","allorigins","corsproxy"]
-    : ["direct","local","allorigins","jina","corsproxy"];
-
-  const candidates = (buildFetchPlan(url, sources) || []).map(x => x.url);
-  let lastErr = null;
-  for (const u of candidates) {
-    try {
-      const r = await fetch(u, withTimeoutOpts({}, 12000));
-      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
-      const xml = await r.text();
-      const parsed = parseRSS(xml);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
-      lastErr = new Error("RSS vazio");
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr || new Error("RSS indisponível");
-}
-
 /* ── Fetch com Proxy CORS ── */
 async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
   // Tentar direto primeiro (alguns endpoints já têm CORS nativo); depois proxy local; depois proxies públicos.
@@ -4303,81 +4279,7 @@ async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
   );
   return r;
 }
-
-function parseRSS(xml){
-  const doc=new DOMParser().parseFromString(xml,"text/xml");
-  const items=[...doc.querySelectorAll("item")];if(!items.length)throw new Error("RSS vazio");
-  return items.map(el=>({
-    title:el.querySelector("title")?.textContent?.trim()||"—",
-    link:el.querySelector("link")?.textContent?.trim()||el.getElementsByTagName("link")[0]?.nextSibling?.nodeValue?.trim()||"#",
-    source:el.querySelector("source")?.textContent?.trim()||"—",
-    pubDate:el.querySelector("pubDate")?.textContent?.trim()||"",
-  }));
-}
-function agoRSS(s){if(!s)return"";try{const m=Math.floor((Date.now()-new Date(s))/60000);if(m<1)return"agora";if(m<60)return`há ${m}m`;const h=Math.floor(m/60);return h<24?`há ${h}h`:`há ${Math.floor(h/24)}d`;}catch{return"";}}
-async function loadNews(scope,force=false){
-  const isPT=scope==="pt",el=$(isPT?"news-pt":"news-world");
-  el.innerHTML=skeletonNews(8);const cKey=`rss_${scope}`;
-  try{
-    let arts=force?null:lsGet(cKey);
-    if(!arts){
-      const url=isPT
-        ?"https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT:pt"
-        :"https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
-      arts=(await fetchRSS(url)).slice(0,8);if(arts.length)lsSet(cKey,arts);
-    }
-    
-    // ──────────────────────────────────────────────────────────
-    // VERIFICAR NOTIFICAÇÕES DE BREAKING NEWS (só se temos dados)
-    // ──────────────────────────────────────────────────────────
-    if (notificationSettings.news.enabled && isPT && arts && arts.length > 0) {
-      // Keywords para breaking news
-      const breakingKeywords = [
-        'urgente', 'breaking', 'última hora', 'agora', 
-        'alerta', 'atenção', 'emergência', 'rápido'
-      ];
-      
-      arts.forEach(article => {
-        const title = (article.title || '').toLowerCase();
-        
-        // Verificar se tem keywords de breaking news
-        const isBreaking = breakingKeywords.some(kw => title.includes(kw));
-        
-        if (isBreaking) {
-          // Verificar se já notificámos
-          const notifId = `news-${article.link}`;
-          const exists = notifications.find(n => n.data?.notifId === notifId);
-          
-          if (!exists) {
-            addNotification(
-              'news',
-              article.title || 'Notícia importante',
-              article.source || 'Última hora',
-              'high',
-              { 
-                notifId,
-                url: article.link,
-                source: article.source 
-              }
-            );
-            
-            console.log(`📰 Nova notificação: ${article.title.substring(0, 50)}...`);
-          }
-        }
-      });
-    }
-    
-    if(!arts.length)throw new Error("Sem artigos");
-    el.innerHTML=`<div class="news-wrap">${arts.map(a=>`
-      <div class="ni" onclick="window.open('${a.link.replace(/'/g,"\\'")}','_blank')">
-        <div class="ni-meta"><span class="ni-src">${(a.source||"—").slice(0,24)}</span>
-          <span class="ni-tag ${isPT?"tpt":"twld"}">${isPT?"PT":"WORLD"}</span>
-          <span class="ni-time">${agoRSS(a.pubDate)}</span></div>
-        <div class="ni-title">${a.title}</div>
-      </div>`).join("")}</div>
-    <div class="src">✦ Google News RSS · ${new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})} · Clica para ler</div>`;
-  }catch(e){el.innerHTML=er(e.message);}
-}
+/* Notícias movidas para src/cards/news.js */
 
 /* ── Combustíveis — PT (API Aberta) + ES (MITECO/MINETUR) ── */
 const FUEL_SLUGS=[
