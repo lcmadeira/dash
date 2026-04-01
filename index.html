@@ -4493,7 +4493,7 @@ async function fetchRSS(url){
     ? ["direct","local","allorigins","corsproxy"]
     : ["direct","local","allorigins","jina","corsproxy"];
 
-  const candidates = buildFetchCandidates(url, sources);
+  const candidates = (buildFetchPlan(url, sources) || []).map(x => x.url);
   let lastErr = null;
   for (const u of candidates) {
     try {
