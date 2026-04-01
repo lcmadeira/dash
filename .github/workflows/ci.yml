@@ -66,7 +66,7 @@ jobs:
           echo "=== Scanning for hardcoded API keys and secrets ==="
           PATTERN='(TD_KEY|api[_-]?key|secret|token|password)\s*[:=]\s*["\x27][^"\x27]{8,}'
           # Exclude comment lines (// or *) to avoid false positives
-          MATCHES=$(grep -rEn "$PATTERN" index.html dev_server.py 2>/dev/null | grep -vE ':[0-9]+:\s*(//|/\*|\*)')
+          MATCHES=$(grep -rEn "$PATTERN" index.html dev_server.py 2>/dev/null | grep -vE ':[0-9]+:\s*(//|/\*|\*)' || true)
           if [ -n "$MATCHES" ]; then
             echo "$MATCHES"
             echo ""
