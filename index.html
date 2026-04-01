@@ -4147,7 +4147,10 @@ function tickMarkets(){
 
 const CFG = { 
   TD_KEY: null, // API key removida por segurança - adiciona a tua em config local
-  IPMA_CITY_ID: 1060300 
+  IPMA_CITY_ID: 1060300,
+  // Se estiveres a abrir via file:// (ou a servir sem /proxy), podes apontar para o dev_server.py
+  // Ex.: python3 dev_server.py  (porta default 8000)
+  LOCAL_PROXY_PORT: 8000
 };
 
 /* DATA DE REFERÊNCIA AUTOMÁTICA */
@@ -4498,9 +4501,18 @@ function applyStickyScrollCards() {
 }
 
 /* ── Dev proxy (local) ── */
-const IS_LOCAL_DEV = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const IS_LOCAL_DEV =
+  location.protocol === "file:" ||
+  location.hostname === "localhost" ||
+  location.hostname === "127.0.0.1";
 function localProxyUrl(url){
-  return `/proxy?url=${encodeURIComponent(url)}`;
+  const enc = encodeURIComponent(url);
+  // Em file:// não existe origin HTTP para /proxy; usar o dev_server.py em localhost.
+  if (location.protocol === "file:") {
+    const port = Number(CFG.LOCAL_PROXY_PORT || 8000);
+    return `http://localhost:${port}/proxy?url=${enc}`;
+  }
+  return `/proxy?url=${enc}`;
 }
 async function fetchViaLocalProxy(url, options = {}){
   return fetch(localProxyUrl(url), { ...options, signal: AbortSignal.timeout(12000) });
@@ -5115,7 +5127,7 @@ async function loadElecTrend(force = false) {
 	        async function fetchJson(full){
 	          const attempts = [
 	            () => fetch(full, { signal: AbortSignal.timeout(9000) }),
-	            () => (IS_LOCAL_DEV ? fetchViaLocalProxy(full) : Promise.reject(0)),
+	            () => fetchViaLocalProxy(full),
 	            () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
 	            () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
 	          ];
@@ -5215,13 +5227,12 @@ async function loadElecTrend(force = false) {
 
       async function fetchREEHours(d){
         const full = `${base}/en/datos/mercados/precios-mercados-tiempo-real?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`;
-        const attempts = IS_LOCAL_DEV
-          ? [() => fetchViaLocalProxy(full)]
-          : [
-              () => fetch(full, { signal: AbortSignal.timeout(9000) }),
-              () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-              () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-            ];
+        const attempts = [
+          () => fetchViaLocalProxy(full),
+          () => fetch(full, { signal: AbortSignal.timeout(9000) }),
+          () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+          () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
+        ];
         for (const attempt of attempts) {
           try{
             const r = await attempt();
@@ -5316,7 +5327,7 @@ async function loadElec(force=false){
         const full=base+path;
         const attempts=[
           ()=>fetch(full,{signal:AbortSignal.timeout(8000)}),
-          ()=>IS_LOCAL_DEV?fetchViaLocalProxy(full):Promise.reject(0),
+          ()=>fetchViaLocalProxy(full),
           ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),
                 {signal:AbortSignal.timeout(10000)}),
           ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(full),
@@ -7599,7 +7610,9 @@ async function loadAirQuality(force=false) {
         const uvUrl = `https://api.open-meteo.com/v1/forecast`
           + `?latitude=${coords.lat}&longitude=${coords.lon}`
           + `&hourly=uv_index&forecast_days=1&timezone=Europe%2FLisbon`;
-        const ru = IS_LOCAL_DEV ? await fetchViaLocalProxy(uvUrl, {signal: AbortSignal.timeout(8000)}) : await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
+        let ru = null;
+        try { ru = await fetchViaLocalProxy(uvUrl, {signal: AbortSignal.timeout(8000)}); } catch {}
+        if(!ru || !ru.ok) ru = await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
         if (ru.ok) {
           const ju = await ru.json();
           if (ju.hourly?.uv_index) data._uv = ju.hourly.uv_index;
@@ -11256,7 +11269,7 @@ async function loadSeis(force=false){
       /* 1. Directo */
       ()=>fetch(USGS_URL,{signal:AbortSignal.timeout(10000)}),
       /* 1b. Proxy local (dev) */
-      ()=>IS_LOCAL_DEV?fetchViaLocalProxy(USGS_URL):Promise.reject(0),
+      ()=>fetchViaLocalProxy(USGS_URL),
       /* 2. allorigins raw */
       ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(USGS_URL),
               {signal:AbortSignal.timeout(12000)}),
