@@ -188,9 +188,11 @@
 
 ### Prioridade: **Média** 🟡 *(ficheiro com ~11 000 linhas)*
 
-> ⚠️ O `index.html` ultrapassa 616 KB num único ficheiro. Modularização é o objectivo do v1.2.0.
+> ℹ️ O `index.html` continua grande (~566 KB / ~14k linhas), mas a modularização incremental já começou (v1.2.0).
 
-- [ ] **Separar JS em módulos** (ES Modules) ← prioritário para v1.2.0
+- [x] **Extrair infra comum** para `src/` (cache, fetch, UI status, core utils) ✅ (01/04/2026)
+- [x] **Extrair alguns cards** para `src/cards/` (ex.: eletricidade, sismos, notícias) ✅ (01/04/2026)
+- [ ] **Separar JS em módulos** (ES Modules) ← opcional; hoje usa scripts globais sem bundler
 - [x] **Aplicar definições sem reload** (re-renderização dinâmica de cards) ✅ (25/03/2026)
 - [ ] **Extrair configurações** para `config.js` (TTLs, IDs de cidade, spreads)
 - [ ] **Consolidar CSS** em ficheiro separado

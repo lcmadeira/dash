@@ -19,7 +19,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ## Stack / dependências
 
-- **HTML + CSS + JS** num único ficheiro: `index.html`
+- **Single-page** em `index.html` + helpers JS em `src/` (sem bundler / sem build step)
 - **Chart.js** via CDN
 - **TradingView widgets** (ticker tape, advanced chart, heatmap)
 - **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
@@ -27,7 +27,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ### Ferramentas de dev
 
-- **ESLint** + `eslint-plugin-html` — lint do JS inline em `index.html`
+- **ESLint** + `eslint-plugin-html` — lint do JS (principalmente `index.html`)
 - **html-validate** — validação estrutural e acessibilidade HTML
 - **Ruff** — lint de `dev_server.py`
 - **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
@@ -105,6 +105,7 @@ ruff check dev_server.py  # Ruff (requer Python)
 ## Estrutura do repositório
 
 - `index.html` — aplicação (UI + lógica + integrações)
+- `src/` — código extraído de `index.html` (cache/fetch/UI + cards)
 - `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente
 - `package.json` — dev dependencies (ESLint, html-validate)
