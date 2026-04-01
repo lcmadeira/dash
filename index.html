@@ -4518,6 +4518,81 @@ async function fetchViaLocalProxy(url, options = {}){
   return fetch(localProxyUrl(url), { ...options, signal: AbortSignal.timeout(12000) });
 }
 
+/* ── Fetch helpers (centralizado) ── */
+function buildFetchCandidates(url, sources = ["direct","local","allorigins","jina","corsproxy"]) {
+  const src = (Array.isArray(sources) && sources.length)
+    ? sources
+    : ["direct","local","allorigins","jina","corsproxy"];
+  const s = new Set(src);
+  const out = [];
+  const add = (u) => { if (u && !out.includes(u)) out.push(u); };
+  if (s.has("direct")) add(url);
+  if (s.has("local") && IS_LOCAL_DEV) add(localProxyUrl(url));
+  if (s.has("allorigins")) add(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+  if (s.has("jina")) add(`https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`);
+  if (s.has("corsproxy")) {
+    const enc = encodeURIComponent(url);
+    add(`https://corsproxy.io/?${enc}`);
+    add(`https://corsproxy.io/?url=${enc}`);
+  }
+  return out;
+}
+
+function withTimeoutOpts(options = {}, timeoutMs = 12000) {
+  const hasSignal = !!options.signal;
+  return { ...options, signal: hasSignal ? options.signal : AbortSignal.timeout(timeoutMs) };
+}
+
+async function fetchFirstOk(url, options = {}, timeoutMs = 12000, sources, validate) {
+  const candidates = buildFetchCandidates(url, sources);
+  let lastErr = null;
+  for (const u of candidates) {
+    try {
+      const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
+      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      if (validate && !(await validate(r))) { lastErr = new Error("validate"); continue; }
+      return { r, usedUrl: u };
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Fetch indisponível");
+}
+
+async function fetchJsonFirstOk(url, options = {}, timeoutMs = 12000, sources, validateJson) {
+  const candidates = buildFetchCandidates(url, sources);
+  let lastErr = null;
+  for (const u of candidates) {
+    try {
+      const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
+      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      const j = await r.json();
+      if (validateJson && !validateJson(j)) { lastErr = new Error("validateJson"); continue; }
+      return j;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("JSON indisponível");
+}
+
+async function fetchTextFirstOk(url, options = {}, timeoutMs = 12000, sources, validateText) {
+  const candidates = buildFetchCandidates(url, sources);
+  let lastErr = null;
+  for (const u of candidates) {
+    try {
+      const r = await fetch(u, withTimeoutOpts(options, timeoutMs));
+      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      const t = await r.text();
+      if (validateText && !validateText(t)) { lastErr = new Error("validateText"); continue; }
+      return t;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Texto indisponível");
+}
+
 function getStaleCache(key){
   try{
     const raw = localStorage.getItem(PFX + key);
@@ -4624,75 +4699,38 @@ async function loadWeather(force=false){
 /* ── Google News RSS ── */
 async function fetchRSS(url){
   const isGoogleNews = /(^|\/\/)news\.google\.com\//i.test(url);
-  const attempts = [];
+  // Jina pode responder 451 em alguns domínios (ex.: Google News).
+  const sources = isGoogleNews
+    ? ["direct","local","allorigins","corsproxy"]
+    : ["direct","local","allorigins","jina","corsproxy"];
 
-  /* Em localhost, usar proxy local primeiro (evita CORS e rate-limits de proxies públicos). */
-  if(IS_LOCAL_DEV){
-    attempts.push(async () => {
-      const r = await fetchViaLocalProxy(url);
-      if(!r.ok) throw new Error(`localproxy ${r.status}`);
-      return parseRSS(await r.text());
-    });
-  }
-
-  attempts.push(async () => {
-    const r = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, {
-      signal: AbortSignal.timeout(12000)
-    });
-    if(!r.ok) throw new Error(`allorigins ${r.status}`);
-    return parseRSS(await r.text());
-  });
-
-  /* Jina pode responder 451 em alguns domínios (ex.: Google News). */
-  if(!isGoogleNews){
-    attempts.push(async () => {
-      const r = await fetch(`https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`, {
-        signal: AbortSignal.timeout(12000)
-      });
-      if(!r.ok) throw new Error(`jina ${r.status}`);
-      return parseRSS(await r.text());
-    });
-  }
-
-  attempts.push(async () => {
-    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, {
-      signal: AbortSignal.timeout(12000)
-    });
-    if(!r.ok) throw new Error(`corsproxy ${r.status}`);
-    return parseRSS(await r.text());
-  });
-
+  const candidates = buildFetchCandidates(url, sources);
   let lastErr = null;
-  for (const attempt of attempts) {
-    try { return await attempt(); } catch (e) { lastErr = e; }
+  for (const u of candidates) {
+    try {
+      const r = await fetch(u, withTimeoutOpts({}, 12000));
+      if (!r.ok) { lastErr = new Error(`HTTP ${r.status}`); continue; }
+      const xml = await r.text();
+      const parsed = parseRSS(xml);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+      lastErr = new Error("RSS vazio");
+    } catch (e) {
+      lastErr = e;
+    }
   }
   throw lastErr || new Error("RSS indisponível");
 }
 
 /* ── Fetch com Proxy CORS ── */
 async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
-  const proxies = [
-    // Tentar direto primeiro (alguns endpoints já têm CORS nativo, ex.: MITECO/MINETUR)
+  // Tentar direto primeiro (alguns endpoints já têm CORS nativo); depois proxy local; depois proxies públicos.
+  const { r } = await fetchFirstOk(
     url,
-    ...(IS_LOCAL_DEV ? [localProxyUrl(url)] : []),
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`
-  ];
-  
-  for (const proxyUrl of proxies) {
-    try {
-      const r = await fetch(proxyUrl, { 
-        ...options,
-        signal: options.signal || AbortSignal.timeout(timeoutMs)
-      });
-      if (r.ok) return r;
-    } catch (e) {
-      continue;
-    }
-  }
-  
-  throw new Error('CORS: Todos os proxies falharam');
+    options,
+    timeoutMs,
+    ["direct","local","allorigins","jina","corsproxy"]
+  );
+  return r;
 }
 
 function parseRSS(xml){
@@ -5125,21 +5163,17 @@ async function loadElecTrend(force = false) {
 	        const fullHour = mkUrl("hour");
 
 	        async function fetchJson(full){
-	          const attempts = [
-	            () => fetch(full, { signal: AbortSignal.timeout(9000) }),
-	            () => fetchViaLocalProxy(full),
-	            () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-	            () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-	          ];
-	          for (const attempt of attempts) {
-	            try{
-	              const r = await attempt();
-	              if(!r.ok) continue;
-	              const j = await r.json();
-	              if (j && (j.included || j.data)) return j;
-	            }catch{}
+	          try{
+	            return await fetchJsonFirstOk(
+	              full,
+	              {},
+	              11000,
+	              ["direct","local","allorigins","corsproxy"],
+	              (j) => !!(j && (j.included || j.data))
+	            );
+	          }catch{
+	            return null;
 	          }
-	          return null;
 	        }
 
 	        /* Preferir day; se falhar (REE pode dar 500), usar hour e agregar para diário */
@@ -5227,21 +5261,17 @@ async function loadElecTrend(force = false) {
 
       async function fetchREEHours(d){
         const full = `${base}/en/datos/mercados/precios-mercados-tiempo-real?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`;
-        const attempts = [
-          () => fetchViaLocalProxy(full),
-          () => fetch(full, { signal: AbortSignal.timeout(9000) }),
-          () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-          () => fetch('https://corsproxy.io/?' + encodeURIComponent(full), { signal: AbortSignal.timeout(11000) }),
-        ];
-        for (const attempt of attempts) {
-          try{
-            const r = await attempt();
-            if(!r.ok) continue;
-            const j = await r.json();
-            if (j && (j.included || j.data)) return j;
-          }catch{}
+        try{
+          return await fetchJsonFirstOk(
+            full,
+            {},
+            11000,
+            ["direct","local","allorigins","corsproxy"],
+            (j) => !!(j && (j.included || j.data))
+          );
+        }catch{
+          return null;
         }
-        return null;
       }
 
       function pickSpotValues(json){
@@ -5325,23 +5355,17 @@ async function loadElec(force=false){
         /* MIBEL Portugal: usar locale /pt/ (não /en/ que dá preços ES) */
         const base="https://apidatos.ree.es";
         const full=base+path;
-        const attempts=[
-          ()=>fetch(full,{signal:AbortSignal.timeout(8000)}),
-          ()=>fetchViaLocalProxy(full),
-          ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(full),
-                {signal:AbortSignal.timeout(10000)}),
-          ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(full),
-                {signal:AbortSignal.timeout(10000)}),
-        ];
-        for(const attempt of attempts){
-          try{
-            const r=await attempt();
-            if(!r.ok) continue;
-            const j=await r.json();
-            if(j&&(j.included||j.data)) return j;
-          }catch{}
+        try{
+          return await fetchJsonFirstOk(
+            full,
+            {},
+            10000,
+            ["direct","local","allorigins","corsproxy"],
+            (j) => !!(j && (j.included || j.data))
+          );
+        }catch{
+          return null;
         }
-        return null;
       }
 
       const dates=[todayStr, yesterStr,
@@ -7573,25 +7597,12 @@ async function loadAirQuality(force=false) {
       });
 
       async function tryFetchJson(url){
-        const attempts = IS_LOCAL_DEV
-          ? [() => fetchViaLocalProxy(url), () => fetch(url, {signal: AbortSignal.timeout(10000)})]
-          : [() => fetch(url, {signal: AbortSignal.timeout(10000)})];
-
-        let last = null;
-        for(const a of attempts){
-          try{
-            const r = await a();
-            if(!r.ok){
-              const txt = await r.text().catch(()=> "");
-              last = new Error(`HTTP ${r.status}${txt?` · ${txt.slice(0,120)}`:""}`);
-              continue;
-            }
-            return await r.json();
-          }catch(e){
-            last = e;
-          }
-        }
-        throw last || new Error("Falha de rede");
+        return fetchJsonFirstOk(
+          url,
+          {},
+          10000,
+          ["local","direct"]
+        );
       }
 
       let lastErr = null;
@@ -11264,34 +11275,22 @@ async function loadSeis(force=false){
       +`&starttime=${start}&minlatitude=27&maxlatitude=45`
       +`&minlongitude=-32&maxlongitude=4&minmagnitude=0.5&orderby=time&limit=200`;
 
-    /* Tentar USGS directamente primeiro (funciona em alguns contextos) */
-    const ATTEMPTS=[
-      /* 1. Directo */
-      ()=>fetch(USGS_URL,{signal:AbortSignal.timeout(10000)}),
-      /* 1b. Proxy local (dev) */
-      ()=>fetchViaLocalProxy(USGS_URL),
-      /* 2. allorigins raw */
-      ()=>fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(USGS_URL),
-              {signal:AbortSignal.timeout(12000)}),
-      /* 3. corsproxy.io */
-      ()=>fetch("https://corsproxy.io/?"+encodeURIComponent(USGS_URL),
-              {signal:AbortSignal.timeout(12000)}),
-    ];
-
     let fetched=false;
-    for(const attempt of ATTEMPTS){
-      try{
-        const r=await attempt();
-        if(!r.ok) continue;
-        const j=await r.json();
-        const features=j.features||j?.metadata?.count!==undefined&&j.features||[];
-        if(Array.isArray(features)&&features.length>0){
-          d=features;
-          lsSet(ck,d);
-          fetched=true;
-          break;
-        }
-      }catch(e){ /* tentar próximo */ }
+    try{
+      const j = await fetchJsonFirstOk(
+        USGS_URL,
+        {},
+        12000,
+        ["direct","local","allorigins","corsproxy"],
+        (jj) => Array.isArray(jj?.features) && jj.features.length > 0
+      );
+      d = j.features || [];
+      if (d.length) {
+        lsSet(ck, d);
+        fetched = true;
+      }
+    }catch{
+      fetched = false;
     }
 
     if(!fetched){
