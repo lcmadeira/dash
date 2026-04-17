@@ -4145,7 +4145,7 @@ textarea.nta::placeholder{color:var(--t3)}
  <script src="src/cards/news.js"></script>
  <script src="src/cards/seis.js"></script>
 <script>
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,GAS_TARIFAS,IPMA_CITIES,IPMA_WX,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadNews,loadSeis,notifyNonCriticalError */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,IPMA_CITIES,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,fetchFirstOk,fetchJsonFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,loadElec,loadNews,loadSeis,notifyNonCriticalError */
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -4332,7 +4332,7 @@ function stGetAny(st, keys){
   if(!st||!keys?.length) return null;
   for(const k of keys){
     const v=st[k];
-    if(v!=null && String(v).trim()!=="") return v;
+    if(v !== null && v !== undefined && String(v).trim()!=="") return v;
   }
   // Fallback: match por normalização (caso a API devolva chaves "humanas" com espaços/acentos)
   try{
@@ -4344,7 +4344,7 @@ function stGetAny(st, keys){
         // Algumas respostas podem trazer variações / sufixos; aceitar "contains" para robustez.
         if(nk===w || nk.includes(w)){
           const v=st[k];
-          if(v!=null && String(v).trim()!=="") return v;
+          if(v !== null && v !== undefined && String(v).trim()!=="") return v;
         }
       }
     }
@@ -4352,7 +4352,7 @@ function stGetAny(st, keys){
   return null;
 }
 function parseESPrice(raw){
-  if(raw==null) return NaN;
+  if(raw === null || raw === undefined) return NaN;
   let s=String(raw).trim();
   if(!s || s==="0" || s==="0,000" || s==="0.000") return NaN;
   const lastComma=s.lastIndexOf(","), lastDot=s.lastIndexOf(".");
@@ -5696,7 +5696,7 @@ function parseEurostatInflation(json){
       const valPT = json.value[tIdx * nGeo + idxPT];
       const valEA = json.value[tIdx * nGeo + idxEA];
 
-      if(valPT == null || valEA == null) continue;
+      if(valPT === null || valPT === undefined || valEA === null || valEA === undefined) continue;
 
       /* Formatar "2025-09" → "Set 2025" */
       const [y, m] = period.split('-');
@@ -6294,7 +6294,7 @@ function estimateEuropeanAqiFromPols(pols) {
   /* Aproximação simples: mapear cada poluente para escala 0-100 e usar o pior caso. */
   function scoreFor(key, val) {
     const p = AQ_POLS.find(x => x.key === key);
-    if (!p || val == null || !Number.isFinite(val)) return null;
+    if (!p || val === null || val === undefined || !Number.isFinite(val)) return null;
     const v = Number(val);
     if (v <= p.good) return Math.round((v / p.good) * 20);
     if (v <= p.mod)  return Math.round(20 + ((v - p.good) / (p.mod - p.good)) * 40); // 20-60
@@ -6302,7 +6302,7 @@ function estimateEuropeanAqiFromPols(pols) {
     return 110;
   }
   const keys = ["pm2_5","pm10","no2","o3","so2"];
-  const scores = keys.map(k => scoreFor(k, pols[k])).filter(s => s != null);
+  const scores = keys.map(k => scoreFor(k, pols[k])).filter(s => s !== null && s !== undefined);
   if (!scores.length) return null;
   return Math.max(...scores);
 }
@@ -6408,7 +6408,7 @@ async function loadAirQuality(force=false) {
 
   const aqiLive = hourly.european_aqi?.[hIdx];
   const aqiEst = estimateEuropeanAqiFromPols(polMapNow);
-  const aqiIsEstimated = !(aqiLive != null && Number.isFinite(aqiLive));
+  const aqiIsEstimated = !(aqiLive !== null && aqiLive !== undefined && Number.isFinite(aqiLive));
   const aqi = Math.round(aqiIsEstimated ? (aqiEst ?? 0) : aqiLive);
   const pm25   = polMapNow.pm2_5;
   const pm10   = polMapNow.pm10;
@@ -6437,7 +6437,7 @@ async function loadAirQuality(force=false) {
   const polMap = {pm2_5: pm25, pm10: pm10, no2: no2, o3: o3, so2: so2};
   const polsHtml = AQ_POLS.filter(p => p.key !== "uv_index").map(p => {
     const val = polMap[p.key];
-    if (val == null) return "";
+    if (val === null || val === undefined) return "";
     const col = polColor(p.key, val);
     return `<div class="aqi-pol">
       <div class="aqi-pol-lbl">${p.label}</div>
@@ -6449,7 +6449,7 @@ async function loadAirQuality(force=false) {
   /* Barras */
   const barsHtml = AQ_POLS.filter(p => p.key !== "uv_index").map(p => {
     const val = polMap[p.key];
-    if (val == null) return "";
+    if (val === null || val === undefined) return "";
     const col = polColor(p.key, val);
     const bw = polBarW(p.key, val);
     return `<div class="aqi-bar-row">
@@ -6471,7 +6471,7 @@ async function loadAirQuality(force=false) {
 
   /* UV */
   let uvLabel = null, uvCol = null;
-  if (uv != null && Number.isFinite(uv)) {
+  if (uv !== null && uv !== undefined && Number.isFinite(uv)) {
     uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
     uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
   }
@@ -6577,7 +6577,7 @@ setInterval(()=>{
 /* ═══ MAPA CONFLITOS v2 ═══ */
 (function(){
 
-var C=[
+const C=[
   /* [nome, tipo, lat, lon, descrição, região] */
   ["Ucrânia","war",49.0,32.0,"Invasão russa — 3.º ano","Europa"],
   ["Gaza","war",31.4,34.4,"Israel–Hamas · ofensiva","Médio Oriente"],
@@ -6610,14 +6610,14 @@ var C=[
   ["Rússia–OTAN","nuclear",55.0,37.6,"Retórica nuclear","Europa"],
 ];
 
-var CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-var CR={war:8,high:6,tension:5,nuclear:6};
-var CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
+const CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
+const CR={war:8,high:6,tension:5,nuclear:6};
+const CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
 
 /* Projecção de Mercator simples: lon→x, lat→y para viewBox 1000×500 */
 function proj(lat,lon){
-    var x=(lon+180)/360*1000;
-    var y=(90-lat)/180*500;
+    const x=(lon+180)/360*1000;
+    const y=(90-lat)/180*500;
     return[Math.round(x),Math.round(Math.max(0,Math.min(500,y)))];
   }
 
@@ -6634,21 +6634,21 @@ if(!window._topoLoading) window._topoLoading = false;
 if(!window._topoCbs) window._topoCbs = [];
 
 function topo2geo(topo){
-    var name=Object.keys(topo.objects)[0]; /* "countries" ou "land" */
+    let name=Object.keys(topo.objects)[0]; /* "countries" ou "land" */
     /* Preferir "countries" se existir */
     if(topo.objects.countries)name="countries";
     else if(topo.objects.land)name="land";
-    var obj=topo.objects[name];
-    var arcs=topo.arcs;
-    var scale=topo.transform?topo.transform.scale:[1,1];
-    var translate=topo.transform?topo.transform.translate:[0,0];
+    const obj=topo.objects[name];
+    const arcs=topo.arcs;
+    const scale=topo.transform?topo.transform.scale:[1,1];
+    const translate=topo.transform?topo.transform.translate:[0,0];
 
     function decodeArc(idx){
-      var reversed=idx<0;
-      var arc=arcs[reversed?~idx:idx];
-      var coords=[];
-      var x=0,y=0;
-      for(var i=0;i<arc.length;i++){
+      const reversed=idx<0;
+      const arc=arcs[reversed?~idx:idx];
+      const coords=[];
+      let x=0,y=0;
+      for(let i=0;i<arc.length;i++){
         x+=arc[i][0]; y+=arc[i][1];
         coords.push([x*scale[0]+translate[0], y*scale[1]+translate[1]]);
       }
@@ -6664,7 +6664,7 @@ function topo2geo(topo){
       }
       if(geom.type==="Polygon"){
         return {type:"Polygon",coordinates:geom.arcs.map(function(ring){
-          var coords=[];
+          let coords=[];
           ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
           return coords;
         })};
@@ -6672,7 +6672,7 @@ function topo2geo(topo){
       if(geom.type==="MultiPolygon"){
         return {type:"MultiPolygon",coordinates:geom.arcs.map(function(poly){
           return poly.map(function(ring){
-            var coords=[];
+            let coords=[];
             ring.forEach(function(idx){coords=coords.concat(decodeArc(idx));});
             return coords;
           });
@@ -6681,7 +6681,7 @@ function topo2geo(topo){
       return {type:geom.type,coordinates:[]};
     }
 
-    var features=[];
+    const features=[];
     if(obj.type==="GeometryCollection"){
       obj.geometries.forEach(function(g){
         features.push({type:"Feature",geometry:decodeGeom(g),properties:g.properties||{}});
@@ -6699,7 +6699,7 @@ function loadTopoData(cb){
     .then(function(r){ return r.json(); })
     .then(function(topo){
       /* Usar topo2geo global */
-      var geo = topo2geo(topo);
+      const geo = topo2geo(topo);
       window._topoCache = geo;
       window._topoCbs.forEach(function(f){ f(window._topoCache); });
       window._topoCbs=[];
@@ -6709,51 +6709,51 @@ function loadTopoData(cb){
 
 /* ── Função genérica de desenho regional ── */
 function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
-  var canvas=document.getElementById(canvasId);
-  var tip=tipId?document.getElementById(tipId):null;
+  const canvas=document.getElementById(canvasId);
+  const tip=tipId?document.getElementById(tipId):null;
   if(!canvas) return;
   /* Dimensões: usar valores explícitos ou detectar do DOM */
-  var W0 = fixedW || canvas.parentElement&&canvas.parentElement.offsetWidth || canvas.offsetWidth || 190;
-  var H0 = fixedH || canvas.parentElement&&canvas.parentElement.offsetHeight || canvas.offsetHeight || 130;
+  const W0 = fixedW || canvas.parentElement&&canvas.parentElement.offsetWidth || canvas.offsetWidth || 190;
+  const H0 = fixedH || canvas.parentElement&&canvas.parentElement.offsetHeight || canvas.offsetHeight || 130;
   canvas.width  = W0;
   canvas.height = H0;
-  var ctx=canvas.getContext("2d");
+  const ctx=canvas.getContext("2d");
   opts=opts||{};
 
   function proj(lat,lon){
-    var padLon=(bbox.maxLon-bbox.minLon)*0.04;
-    var padLat=(bbox.maxLat-bbox.minLat)*0.04;
-    var x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
-    var y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
+    const padLon=(bbox.maxLon-bbox.minLon)*0.04;
+    const padLat=(bbox.maxLat-bbox.minLat)*0.04;
+    const x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
+    const y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
     return [x,y];
   }
 
   function draw(geo){
-    var W=canvas.width, H=canvas.height;
+    const W=canvas.width, H=canvas.height;
     /* Fundo */
     ctx.fillStyle=opts.bg||"#0a1020";
     ctx.fillRect(0,0,W,H);
 
     /* Países */
-    var features=geo.features;
-    for(var fi=0;fi<features.length;fi++){
-      var geom=features[fi].geometry;
+    const features=geo.features;
+    for(let fi=0;fi<features.length;fi++){
+      const geom=features[fi].geometry;
       if(!geom) continue;
-      var polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
-      for(var pi=0;pi<polys.length;pi++){
-        var rings=polys[pi];
+      const polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
+      for(let pi=0;pi<polys.length;pi++){
+        const rings=polys[pi];
         /* Verificar se este polígono intersecta a bbox */
-        var ring0=rings[0]; if(!ring0||!ring0.length) continue;
-        var inView=false;
+        const ring0=rings[0]; if(!ring0||!ring0.length) continue;
+        let inView=false;
         for(var ci=0;ci<ring0.length;ci+=5){
-          var lon=ring0[ci][0], lat=ring0[ci][1];
+          const lon=ring0[ci][0], lat=ring0[ci][1];
           if(lon>=bbox.minLon-5&&lon<=bbox.maxLon+5&&lat>=bbox.minLat-5&&lat<=bbox.maxLat+5){
             inView=true; break;
           }
         }
         if(!inView) continue;
-        for(var ri=0;ri<rings.length;ri++){
-          var ring=rings[ri];
+        for(let ri=0;ri<rings.length;ri++){
+          const ring=rings[ri];
           ctx.beginPath();
           for(var ci=0;ci<ring.length;ci++){
             var p=proj(ring[ci][1],ring[ci][0]);
@@ -6771,12 +6771,12 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
     }
 
     /* Pontos */
-    for(var di=0;di<dots.length;di++){
-      var d=dots[di];
+    for(let di=0;di<dots.length;di++){
+      const d=dots[di];
       var p=proj(d.lat,d.lon);
       if(p[0]<-10||p[0]>W+10||p[1]<-10||p[1]>H+10) continue;
       /* Glow */
-      var grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],d.r*3);
+      const grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],d.r*3);
       grd.addColorStop(0,d.col+"99");
       grd.addColorStop(1,d.col+"00");
       ctx.beginPath();
@@ -6798,7 +6798,7 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
     /* Etiquetas opcionais */
     if(opts.labels){
       opts.labels.forEach(function(l){
-        var p=proj(l.lat,l.lon);
+        const p=proj(l.lat,l.lon);
         ctx.font="9px monospace";
         ctx.fillStyle="rgba(110,122,150,0.8)";
         ctx.fillText(l.text,p[0]+4,p[1]+3);
@@ -6808,9 +6808,9 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
 
   /* Resize */
   function resize(){
-    var rect=canvas.getBoundingClientRect();
-    var w = Math.round(rect.width) || fixedW || 190;
-    var h2 = Math.round(rect.height) || fixedH || 130;
+    const rect=canvas.getBoundingClientRect();
+    const w = Math.round(rect.width) || fixedW || 190;
+    const h2 = Math.round(rect.height) || fixedH || 130;
     if(w>0 && h2>0){ canvas.width=w; canvas.height=h2; }
     if(window._topoCache) draw(window._topoCache);
   }
@@ -6818,13 +6818,13 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
   /* Tooltip */
   if(tip){
     canvas.addEventListener("mousemove",function(e){
-      var rect=canvas.getBoundingClientRect();
-      var mx=e.clientX-rect.left, my=e.clientY-rect.top;
-      var hit=null, minD=Infinity;
-      for(var di=0;di<dots.length;di++){
-        var d=dots[di];
-        var p=proj(d.lat,d.lon);
-        var dist=Math.sqrt((p[0]-mx)*(p[0]-mx)+(p[1]-my)*(p[1]-my));
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      let hit=null, minD=Infinity;
+      for(let di=0;di<dots.length;di++){
+        const d=dots[di];
+        const p=proj(d.lat,d.lon);
+        const dist=Math.sqrt((p[0]-mx)*(p[0]-mx)+(p[1]-my)*(p[1]-my));
         if(dist<Math.max(d.r+8,16)&&dist<minD){ minD=dist; hit=d; }
       }
       if(hit){
@@ -6860,14 +6860,14 @@ function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
 
 
 window.buildConflictMap=function(){
-  var wrap=document.getElementById("cmap-content");
+  const wrap=document.getElementById("cmap-content");
   if(!wrap)return;
   wrap.innerHTML='<canvas id="cmap-canvas" style="width:100%;height:100%;display:block;border-radius:6px"></canvas>'
     +'<div id="cmap-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;padding:6px 10px;border-radius:6px;font-size:.72rem;color:#DDE3F0;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:180px;line-height:1.4"></div>';
 
-  var canvas=document.getElementById("cmap-canvas");
-  var tip=document.getElementById("cmap-tip");
-  var ctx=canvas.getContext("2d");
+  const canvas=document.getElementById("cmap-canvas");
+  const tip=document.getElementById("cmap-tip");
+  const ctx=canvas.getContext("2d");
 
   /* Projecção equirectangular: lon[-180,180] lat[-90,90] → px */
   function proj(lat,lon,W,H){
@@ -6875,8 +6875,8 @@ window.buildConflictMap=function(){
   }
 
   function draw(geo){
-    var W=canvas.offsetWidth||860;
-    var H=canvas.offsetHeight||430;
+    const W=canvas.offsetWidth||860;
+    const H=canvas.offsetHeight||430;
     canvas.width=W; canvas.height=H;
 
     /* Fundo */
@@ -6896,18 +6896,18 @@ window.buildConflictMap=function(){
     }
 
     /* Países */
-    var features=geo.features;
-    for(var fi=0;fi<features.length;fi++){
-      var geom=features[fi].geometry;
+    const features=geo.features;
+    for(let fi=0;fi<features.length;fi++){
+      const geom=features[fi].geometry;
       if(!geom)continue;
-      var polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
+      const polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
       ctx.fillStyle="#1E2B4A";
       ctx.strokeStyle="#2A3660";
       ctx.lineWidth=0.5;
-      for(var pi=0;pi<polys.length;pi++){
-        var rings=polys[pi];
-        for(var ri=0;ri<rings.length;ri++){
-          var ring=rings[ri];
+      for(let pi=0;pi<polys.length;pi++){
+        const rings=polys[pi];
+        for(let ri=0;ri<rings.length;ri++){
+          const ring=rings[ri];
           ctx.beginPath();
           for(var ci=0;ci<ring.length;ci++){
             var p=proj(ring[ci][1],ring[ci][0],W,H);
@@ -6920,17 +6920,17 @@ window.buildConflictMap=function(){
     }
 
     /* Conflitos */
-    var COLORS={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-    var DOTS=[];
+    const COLORS={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
+    const DOTS=[];
     for(var ci=0;ci<C.length;ci++){
-      var c=C[ci];
+      const c=C[ci];
       var p=proj(c[2],c[3],W,H);
-      var col=COLORS[c[1]]||"#888";
-      var r=c[1]==="war"?7:c[1]==="high"?6:5;
+      const col=COLORS[c[1]]||"#888";
+      const r=c[1]==="war"?7:c[1]==="high"?6:5;
 
       /* Glow */
-      var GLOW={war:"rgba(239,68,68,0.3)",high:"rgba(245,158,11,0.3)",tension:"rgba(139,92,246,0.3)",nuclear:"rgba(59,130,246,0.3)"};
-      var grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],r*2.5);
+      const GLOW={war:"rgba(239,68,68,0.3)",high:"rgba(245,158,11,0.3)",tension:"rgba(139,92,246,0.3)",nuclear:"rgba(59,130,246,0.3)"};
+      const grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],r*2.5);
       grd.addColorStop(0,GLOW[c[1]]||"rgba(200,200,200,0.3)");
       grd.addColorStop(1,"rgba(0,0,0,0)");
       ctx.beginPath();ctx.arc(p[0],p[1],r*2.5,0,Math.PI*2);
@@ -6962,7 +6962,7 @@ window.buildConflictMap=function(){
     return DOTS;
   }
 
-  var DOTS_REF=[];
+  let DOTS_REF=[];
 
   function loadAndDraw(){
     /* Usar cache global se disponível */
@@ -6974,14 +6974,14 @@ window.buildConflictMap=function(){
     fetch("https://unpkg.com/world-atlas@2/countries-110m.json")
     .then(function(r){return r.json();})
     .then(function(topo){
-      var geojson=topo2geo(topo);
+      const geojson=topo2geo(topo);
       window._topoCache=geojson;
       DOTS_REF=draw(geojson);
       setupHover();
     })
     .catch(function(){
       /* Fallback: desenhar sem países (só fundo + pontos) */
-      var W=canvas.offsetWidth||860, H=canvas.offsetHeight||430;
+      const W=canvas.offsetWidth||860, H=canvas.offsetHeight||430;
       canvas.width=W; canvas.height=H;
       ctx.fillStyle="#0F1629"; ctx.fillRect(0,0,W,H);
       DOTS_REF=draw({features:[]});
@@ -6993,13 +6993,13 @@ window.buildConflictMap=function(){
 
 
   function setupHover(){
-    var rect=canvas.getBoundingClientRect();
+    const rect=canvas.getBoundingClientRect();
     canvas.addEventListener("mousemove",function(e){
-      var rx=e.clientX-canvas.getBoundingClientRect().left;
-      var ry=e.clientY-canvas.getBoundingClientRect().top;
-      var hit=null;
-      for(var i=0;i<DOTS_REF.length;i++){
-        var d=DOTS_REF[i];
+      const rx=e.clientX-canvas.getBoundingClientRect().left;
+      const ry=e.clientY-canvas.getBoundingClientRect().top;
+      let hit=null;
+      for(let i=0;i<DOTS_REF.length;i++){
+        const d=DOTS_REF[i];
         if(Math.hypot(rx-d.x,ry-d.y)<=d.r+2){hit=d;break;}
       }
       if(hit){
@@ -7015,7 +7015,7 @@ window.buildConflictMap=function(){
   }
 
   /* Redraw on resize */
-  var resizeTimer;
+  let resizeTimer;
   window.addEventListener("resize",function(){
     clearTimeout(resizeTimer);
     resizeTimer=setTimeout(function(){
@@ -7028,23 +7028,23 @@ window.buildConflictMap=function(){
 
 /* ── STATS ── */
 function buildStats(){
-  var wrap=document.getElementById("cmap-content");
+  const wrap=document.getElementById("cmap-content");
   if(!wrap)return;
 
-  var byType={war:0,high:0,tension:0,nuclear:0};
-  var byRegion={};
+  const byType={war:0,high:0,tension:0,nuclear:0};
+  const byRegion={};
   C.forEach(function(c){
     byType[c[1]]++;
     byRegion[c[5]]=(byRegion[c[5]]||0)+1;
   });
-  var total=C.length;
+  const total=C.length;
 
-  var regions=Object.entries(byRegion).sort(function(a,b){return b[1]-a[1];});
-  var maxR=regions[0][1];
+  const regions=Object.entries(byRegion).sort(function(a,b){return b[1]-a[1];});
+  const maxR=regions[0][1];
 
-  var regionColors={"Médio Oriente":"#ef4444","África":"#f59e0b","Ásia":"#8b5cf6","Europa":"#3b82f6","Américas":"#10b981"};
+  const regionColors={"Médio Oriente":"#ef4444","África":"#f59e0b","Ásia":"#8b5cf6","Europa":"#3b82f6","Américas":"#10b981"};
 
-  var html='<div class="cmap-stat-grid">';
+  let html='<div class="cmap-stat-grid">';
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:#ef4444">'+total+'</div><div class="cmap-stat-sub">activos · Mar 2026</div></div>';
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras activas</div><div class="cmap-stat-val" style="color:#ef4444">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Alta intensidade</div><div class="cmap-stat-val" style="color:#f59e0b">'+byType.high+'</div><div class="cmap-stat-sub">violência significativa</div></div>';
@@ -7053,7 +7053,7 @@ function buildStats(){
 
   html+='<div style="font-family:var(--mono);font-size:.5rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Distribuição por região</div>';
   regions.forEach(function(r){
-    var col=regionColors[r[0]]||"#6b7280";
+    const col=regionColors[r[0]]||"#6b7280";
     html+='<div class="cmap-region-row">'
       +'<div class="cmap-region-lbl">'+r[0]+'</div>'
       +'<div class="cmap-region-track"><div class="cmap-region-fill" style="width:'+Math.round(r[1]/maxR*100)+'%;background:'+col+'"></div></div>'
@@ -7062,7 +7062,7 @@ function buildStats(){
   });
 
   /* Índice de intensidade global */
-  var intensity=Math.round((byType.war*4+byType.nuclear*3+byType.high*2+byType.tension)/total*25);
+  const intensity=Math.round((byType.war*4+byType.nuclear*3+byType.high*2+byType.tension)/total*25);
   html+='<div style="margin-top:12px;padding:10px;background:var(--c2);border:1px solid var(--b);border-radius:var(--rs)">';
   html+='<div style="font-family:var(--mono);font-size:.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Índice de tensão global</div>';
   html+='<div style="display:flex;align-items:center;gap:10px">';
@@ -7079,15 +7079,15 @@ function buildStats(){
 
 /* ── LISTA ── */
 function buildLista(){
-  var wrap=document.getElementById("cmap-content");
+  const wrap=document.getElementById("cmap-content");
   if(!wrap)return;
-  var sorted=C.slice().sort(function(a,b){
-    var order={war:0,nuclear:1,high:2,tension:3};
+  const sorted=C.slice().sort(function(a,b){
+    const order={war:0,nuclear:1,high:2,tension:3};
     return order[a[1]]-order[b[1]];
   });
-  var html='<div class="cmap-conflict-list">';
+  let html='<div class="cmap-conflict-list">';
   sorted.forEach(function(c){
-    var col=CC[c[1]];
+    const col=CC[c[1]];
     html+='<div class="cmap-conflict-item">'
       +'<div class="cmap-conflict-dot" style="background:'+col+'"></div>'
       +'<div class="cmap-conflict-name">'+c[0]+'</div>'
@@ -7100,12 +7100,12 @@ function buildLista(){
 }
 
 /* ── TAB SWITCH ── */
-var CMAP_TAB="mapa";
+let CMAP_TAB="mapa";
 window.switchCmap=function(tab,btn){
   document.querySelectorAll(".cmap-tab").forEach(function(b){b.classList.remove("on");});
   if(btn)btn.classList.add("on");
   CMAP_TAB=tab;
-  var legend=document.getElementById("cmap-legend");
+  const legend=document.getElementById("cmap-legend");
   if(legend)legend.style.display=tab==="mapa"?"flex":"none";
   if(tab==="mapa")window.buildConflictMap();
   else if(tab==="stats")buildStats();
@@ -7126,36 +7126,36 @@ var GEO_FEEDS=[
 async function loadGeo(force){
  $("geo-body").innerHTML=skeletonGeneric(6);
  try{
-  var ck="geo_v10",cached=force?null:lsGet(ck);
+  let ck="geo_v10",cached=force?null:lsGet(ck);
   if(!cached){
-   var all=[];
-   for(var fi=0;fi<GEO_FEEDS.length;fi++){
-    var feed=GEO_FEEDS[fi],raw=null;
+   const all=[];
+   for(let fi=0;fi<GEO_FEEDS.length;fi++){
+    let feed=GEO_FEEDS[fi],raw=null;
     try{
      if(!feed.proxy){
-      try{var rd=await fetch(feed.url,{signal:AbortSignal.timeout(9000)});
-        if(rd.ok){var rt=await rd.text();if(rt.includes("<item>"))raw=rt;}
+      try{const rd=await fetch(feed.url,{signal:AbortSignal.timeout(9000)});
+        if(rd.ok){const rt=await rd.text();if(rt.includes("<item>"))raw=rt;}
       }catch(e){}
      }
      if(!raw){
-      var pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),
+      const pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),
                "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)];
-      for(var pi=0;pi<pxs.length&&!raw;pi++){
-       try{var rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(10000)});
-         if(rp.ok){var tp=await rp.text();if(tp.includes("<item>"))raw=tp;}
+      for(let pi=0;pi<pxs.length&&!raw;pi++){
+       try{const rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(10000)});
+         if(rp.ok){const tp=await rp.text();if(tp.includes("<item>"))raw=tp;}
        }catch(e){}
       }
      }
      if(!raw)continue;
-     var xml=new DOMParser().parseFromString(raw,"text/xml");
-     var items=xml.querySelectorAll("item");
-     for(var ii=0;ii<Math.min(items.length,8);ii++){
-      var it=items[ii];
-      var title=((it.querySelector("title")||{}).textContent||"")
+     const xml=new DOMParser().parseFromString(raw,"text/xml");
+     const items=xml.querySelectorAll("item");
+     for(let ii=0;ii<Math.min(items.length,8);ii++){
+      const it=items[ii];
+      const title=((it.querySelector("title")||{}).textContent||"")
         .replace(/CDATA/g,"").replace(/<[^>]+>/g,"").replace(/[\[\]!]/g,"").trim();
-      var link=((it.querySelector("link")||{}).textContent||"").trim();
-      var pub=((it.querySelector("pubDate")||{}).textContent||"");
-      var dt=pub?new Date(pub).getTime():Date.now()-(ii*3600000);
+      const link=((it.querySelector("link")||{}).textContent||"").trim();
+      const pub=((it.querySelector("pubDate")||{}).textContent||"");
+      const dt=pub?new Date(pub).getTime():Date.now()-(ii*3600000);
       if(title&&title.length>8)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
      }
     }catch(fe){console.warn("geo feed",feed.id,fe);}
@@ -7180,11 +7180,11 @@ function switchGeo(f,btn){
 }
 
 function renderGeo(){
- var items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
+ const items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
  if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
  $("geo-body").innerHTML=items.slice(0,10).map(function(it){
-  var ago=fmtAgo(it.dt);
-  var lnk=(it.link||"").replace(/'/g,"\'");
+  const ago=fmtAgo(it.dt);
+  const lnk=(it.link||"").replace(/'/g,"\'");
   return '<div class="geo-item" role="button" tabindex="0" aria-label="Abrir artigo '+it.label+': '+it.title.replace(/"/g,"&quot;")+'" onclick="window.open(\''+ lnk +'\')">'
    +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
    +'<div class="geo-title">'+it.title+'</div>'
@@ -7193,7 +7193,7 @@ function renderGeo(){
 }
 
 function fmtAgo(ts){
- var d=Math.floor((Date.now()-ts)/1000);
+ const d=Math.floor((Date.now()-ts)/1000);
  if(d<60)return"agora";if(d<3600)return Math.floor(d/60)+"min";
  if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
 }
@@ -7257,7 +7257,7 @@ async function loadMarketStats(force=false){
     :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26A0 sem dados live</span>`;
 
   function miniChg(chg){
-    if(chg==null) return `<span style="color:var(--t3);font-size:.58rem">\u2014</span>`;
+    if(chg === null || chg === undefined) return `<span style="color:var(--t3);font-size:.58rem">\u2014</span>`;
     const col=chg>=0?"#10B981":"#EF4444";
     const arr=chg>=0?"\u25b2":"\u25bc";
     return `<span style="font-family:var(--mono);font-size:.62rem;font-weight:600;color:${col}">${arr} ${Math.abs(chg).toFixed(2)}%</span>`;
@@ -7464,7 +7464,7 @@ async function loadImob(force=false){
 }
 
 (function(){
-var IMOB_REGIOES=[
+const IMOB_REGIOES=[
   {r:"Grande Lisboa",        v:4792,chg:18.2,col:"#f59e0b"},
   {r:"Algarve",              v:3556,chg:15.4,col:"#10b981"},
   {r:"R.A. Madeira",         v:3193,chg:14.8,col:"#0ea5e9"},
@@ -7475,19 +7475,19 @@ var IMOB_REGIOES=[
   {r:"Centro",               v:1320,chg: 9.1,col:"#a78bfa"},
   {r:"Norte (exc. Porto)",   v:1280,chg: 8.7,col:"#fb923c"},
 ];
-var IMOB_TREND=[
+const IMOB_TREND=[
   {q:"Q1 23",v:7.6},{q:"Q2 23",v:9.0},{q:"Q3 23",v:7.8},{q:"Q4 23",v:5.2},
   {q:"Q1 24",v:5.0},{q:"Q2 24",v:6.6},{q:"Q3 24",v:10.8},{q:"Q4 24",v:13.4},
   {q:"Q1 25",v:18.7},{q:"Q2 25",v:17.2},{q:"Q3 25",v:17.7},
 ];
-var IMOB_MUNIC=[
+const IMOB_MUNIC=[
   {m:"Lisboa",  v:4321,chg:16.1},{m:"Cascais",  v:3980,chg:18.4},
   {m:"Oeiras",  v:3640,chg:17.9},{m:"Porto",    v:3120,chg:22.1},
   {m:"Almada",  v:2540,chg:20.3},{m:"Braga",    v:2010,chg:19.8},
   {m:"Coimbra", v:1870,chg:15.2},{m:"Setúbal",  v:1750,chg:18.7},
   {m:"Funchal", v:2490,chg:13.5},{m:"Évora",    v:1480,chg:12.8},
 ];
-var IMOB_FILTER="regioes";
+let IMOB_FILTER="regioes";
 window.switchImob=function(f,btn){
   document.querySelectorAll(".imob-tab").forEach(function(b){b.classList.remove("on");});
   if(btn)btn.classList.add("on");
@@ -7495,13 +7495,13 @@ window.switchImob=function(f,btn){
 };
 function barColor(chg){return chg>=18?"#ef4444":chg>=15?"#f59e0b":chg>=10?"#10b981":"#0ea5e9";}
 function renderImob(){
-  var el=document.getElementById("imob-body");if(!el)return;
+  const el=document.getElementById("imob-body");if(!el)return;
   if(IMOB_FILTER==="regioes")renderRegioes(el);
   else if(IMOB_FILTER==="tendencia")renderTrend(el);
   else renderMunic(el);
 }
 function renderRegioes(el){
-  var max=IMOB_REGIOES[0].v;
+  const max=IMOB_REGIOES[0].v;
   el.innerHTML='<div class="imob-bar-wrap"><div class="imob-bar-title">Preço mediano €/m² por NUTS III (Q3 2025)</div>'
     +IMOB_REGIOES.map(function(r){
       return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.r+'</div>'
@@ -7510,18 +7510,18 @@ function renderRegioes(el){
     }).join("")+'</div>';
 }
 function renderTrend(el){
-  var W=el.offsetWidth||360,H=90,pad=30,bw=Math.max(2,Math.floor((W-pad*2)/IMOB_TREND.length)-3);
-  var vals=IMOB_TREND.map(function(t){return t.v;});
-  var minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals);
-  var yScale=function(v){return H-10-Math.round((v-minV)/(maxV-minV)*(H-20));};
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="imob-chart">';
+  const W=el.offsetWidth||360,H=90,pad=30,bw=Math.max(2,Math.floor((W-pad*2)/IMOB_TREND.length)-3);
+  const vals=IMOB_TREND.map(function(t){return t.v;});
+  const minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals);
+  const yScale=function(v){return H-10-Math.round((v-minV)/(maxV-minV)*(H-20));};
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="imob-chart">';
   [5,10,15,20].forEach(function(g){
-    var y=yScale(g);if(y<0||y>H)return;
+    const y=yScale(g);if(y<0||y>H)return;
     svg+='<line x1="'+pad+'" y1="'+y+'" x2="'+(W-10)+'" y2="'+y+'" stroke="#1e3260" stroke-width="0.5"/>';
     svg+='<text x="'+(pad-3)+'" y="'+(y+3)+'" font-size="6" fill="#4a5568" text-anchor="end">'+g+'%</text>';
   });
   IMOB_TREND.forEach(function(t,i){
-    var x=pad+i*(bw+3),y=yScale(t.v),barH=H-10-y,col=barColor(t.v);
+    const x=pad+i*(bw+3),y=yScale(t.v),barH=H-10-y,col=barColor(t.v);
     svg+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" opacity=".85" rx="1"/>';
     svg+='<text x="'+(x+bw/2)+'" y="'+(H-2)+'" font-size="5.5" fill="#6b7280" text-anchor="middle">'+t.q+'</text>';
     if(i===IMOB_TREND.length-1)
@@ -7531,10 +7531,10 @@ function renderTrend(el){
     +'<div style="font-family:var(--mono);font-size:.49rem;color:var(--t3);margin-top:4px">IPHab · Variação homóloga trimestral (%) · Fonte: INE</div>';
 }
 function renderMunic(el){
-  var max=IMOB_MUNIC[0].v;
+  const max=IMOB_MUNIC[0].v;
   el.innerHTML='<div class="imob-bar-wrap"><div class="imob-bar-title">Preço mediano €/m² — 12m até Q3 2025</div>'
     +IMOB_MUNIC.map(function(r){
-      var col=barColor(r.chg);
+      const col=barColor(r.chg);
       return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.m+'</div>'
         +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+Math.round(r.v/max*100)+'%;background:'+col+'"></div></div>'
         +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ <span style="color:'+col+'">+'+r.chg+'%</span></div></div>';
@@ -12534,7 +12534,7 @@ function openNotificationSettings() {
 // ══════════════════════════════════════════════════════════════
 
 // Verificar sismos
-let lastSeismicCheck = null;
+const lastSeismicCheck = null;
 
 function checkSeismicActivity(data) {
   if (!notificationSettings.sismos.enabled) return;
@@ -12686,7 +12686,7 @@ function startNotificationMonitoring() {
    SISTEMA DE EXPORTAÇÃO DE DADOS
    ══════════════════════════════════════════════════════════════ */
 
-let exportState = {
+const exportState = {
   format: 'png',
   selectedCards: [],
   allCards: []

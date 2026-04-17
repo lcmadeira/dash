@@ -88,6 +88,8 @@ export default [
         payload: "readonly",
         base: "readonly",
         buildConflictMap: "readonly",
+        fetchWithCORS: "readonly",
+        fetchStooqMulti: "readonly",
       },
     },
     rules: {
