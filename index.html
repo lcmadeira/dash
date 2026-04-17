@@ -5125,39 +5125,7 @@ async function loadHolidays(force=false){
      12M -> FM/M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA
    ══════════════════════════════════════════════════════════════ */
 
-/* Dados estaticos EMMI como fallback (actualizar se API falhar >1 mes) */
-var EURIBOR_FALLBACK={
-  updated:"10 Mar 2026",
-  rates:[
-    {term:"1S",  termFull:"1 Semana", val:1.888,prev:2.012,color:"#06B6D4",hipot:false,
-     desc:"Ref. overnight e swaps curtos"},
-    {term:"1M",  termFull:"1 M\u00eas",    val:1.951,prev:2.089,color:"#22D3EE",hipot:false,
-     desc:"Ref. produtos curtos, tesouraria"},
-    {term:"3M",  termFull:"3 Meses",  val:2.138,prev:2.503,color:"#3B82F6",hipot:true,
-     desc:"Cr\u00e9dito habita\u00e7\u00e3o revis\u00e3o trimestral"},
-    {term:"6M",  termFull:"6 Meses",  val:2.295,prev:2.415,color:"#8B5CF6",hipot:true,
-     desc:"Cr\u00e9dito habita\u00e7\u00e3o revis\u00e3o semestral"},
-    {term:"12M", termFull:"12 Meses", val:2.552,prev:2.350,color:"#A855F7",hipot:true,
-     desc:"Cr\u00e9dito habita\u00e7\u00e3o revis\u00e3o anual"},
-  ],
-  hist:[
-    ["Mar 26",2.138,2.295,2.552],["Fev 26",2.503,2.415,2.350],
-    ["Jan 26",2.612,2.534,2.478],["Dez 25",2.721,2.648,2.589],
-    ["Nov 25",2.869,2.784,2.718],["Out 25",3.054,2.954,2.871],
-    ["Set 25",3.124,3.018,2.936],["Ago 25",3.201,3.089,2.998],
-  ],
-  bce:{dep:2.00,refin:2.15,margLend:2.40},
-  peak:{val:4.160,date:"Out 2023"},
-  bceNext:{
-    date:"17 Abr 2026",expectativa:"Pausa",
-    probCorte:38,probPausa:58,probSubida:4,
-    nota:"Mercados divididos. BCE aguarda dados infla\u00e7\u00e3o Mar/Abr antes de decidir."
-  },
-  spreadBancario:{
-    min:0.70,max:1.50,tipico:1.10,
-    nota:"Spread m\u00e9dio do mercado PT em cr\u00e9dito habita\u00e7\u00e3o vari\u00e1vel"
-  }
-};
+/* Dados estaticos EMMI como fallback (ja centralizados em src/config.js) */
 
 /* Estado global — preenchido pela API ou pelo fallback */
 var EURIBOR_DATA=null;

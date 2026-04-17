@@ -28,18 +28,36 @@ const REF_DATE = {
 
 /* ── Euribor fallback (valores fixos quando API falha) ── */
 const EURIBOR_FALLBACK = {
-  updated: "dados fixos · 27 Mar 2026",
+  updated: "10 Mar 2026",
   rates: [
-    { term: "1S",  val: 2.853,  prev: 2.817 },
-    { term: "1M",  val: 2.421,  prev: 2.385 },
-    { term: "3M",  val: 2.582,  prev: 2.545 },
-    { term: "6M",  val: 2.684,  prev: 2.648 },
-    { term: "12M", val: 2.771,  prev: 2.734 }
+    { term: "1S",  termFull: "1 Semana", val: 1.888, prev: 2.012, color: "#06B6D4", hipot: false,
+     desc: "Ref. overnight e swaps curtos" },
+    { term: "1M",  termFull: "1 Mês",    val: 1.951, prev: 2.089, color: "#22D3EE", hipot: false,
+     desc: "Ref. produtos curtos, tesouraria" },
+    { term: "3M",  termFull: "3 Meses",  val: 2.138, prev: 2.503, color: "#3B82F6", hipot: true,
+     desc: "Crédito habitação revisão trimestral" },
+    { term: "6M",  termFull: "6 Meses",  val: 2.295, prev: 2.415, color: "#8B5CF6", hipot: true,
+     desc: "Crédito habitação revisão semestral" },
+    { term: "12M", termFull: "12 Meses", val: 2.552, prev: 2.350, color: "#A855F7", hipot: true,
+     desc: "Crédito habitação revisão anual" },
   ],
-  bce: "⏱ live indisponível",
-  peak: { val: 2.853, month: "Jan 2026" },
-  bceNext: "próxima sessão 14:30",
-  spreadBancario: { tipico: 1.20, minimo: 0.80, maximo: 2.50 }
+  hist: [
+    ["Mar 26", 2.138, 2.295, 2.552], ["Fev 26", 2.503, 2.415, 2.350],
+    ["Jan 26", 2.612, 2.534, 2.478], ["Dez 25", 2.721, 2.648, 2.589],
+    ["Nov 25", 2.869, 2.784, 2.718], ["Out 25", 3.054, 2.954, 2.871],
+    ["Set 25", 3.124, 3.018, 2.936], ["Ago 25", 3.201, 3.089, 2.998],
+  ],
+  bce: { dep: 2.00, refin: 2.15, margLend: 2.40 },
+  peak: { val: 4.160, date: "Out 2023" },
+  bceNext: {
+    date: "17 Abr 2026", expectativa: "Pausa",
+    probCorte: 38, probPausa: 58, probSubida: 4,
+    nota: "Mercados divididos. BCE aguarda dados inflação Mar/Abr antes de decidir."
+  },
+  spreadBancario: {
+    min: 0.70, max: 1.50, tipico: 1.10,
+    nota: "Spread médio do mercado PT em crédito habitação variável"
+  }
 };
 
 /* ── MIBGAS reference (spot mais recente) ── */
@@ -94,8 +112,7 @@ const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 // estes valores como globais clássicos acessíveis via `window`.
 window.CFG = CFG;
 window.REF_DATE = REF_DATE;
-// EURIBOR_FALLBACK kept as const in index.html (more detailed data)
-// window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
+window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
 window.MIBGAS_SPOT = MIBGAS_SPOT;
 window.MIBGAS_MONTHLY_SPREAD = MIBGAS_MONTHLY_SPREAD;
 window.GAS_TARIFAS = GAS_TARIFAS;
