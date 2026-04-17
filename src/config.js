@@ -94,7 +94,8 @@ const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 // estes valores como globais clássicos acessíveis via `window`.
 window.CFG = CFG;
 window.REF_DATE = REF_DATE;
-window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
+// EURIBOR_FALLBACK kept as const in index.html (more detailed data)
+// window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
 window.MIBGAS_SPOT = MIBGAS_SPOT;
 window.MIBGAS_MONTHLY_SPREAD = MIBGAS_MONTHLY_SPREAD;
 window.GAS_TARIFAS = GAS_TARIFAS;
