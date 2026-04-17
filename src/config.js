@@ -69,12 +69,27 @@ const MIBGAS_MONTHLY_SPREAD = {
   7: 5.0,  8: 5.4,  9: 4.8, 10: 4.2, 11: 3.6, 12: 3.0
 };
 
-/* ── Tarifas elétricas PT (ERSE 2025-2026) ── */
+/* ── Tarifas Gás Natural PT (ERSE 2025-2026) ── */
 const GAS_TARIFAS = {
-  redes: 0.0524,   // €/kWh — tarifa acesso redes (média)
-  totalEsc1: 0.1604, // €/kWh — tarifa total escalão 1 (4,6% IVA)
-  totalEsc2: 0.1589, // €/kWh — tarifa total escalão 2 (6% IVA)
-  termoFixo: 3.14   // €/mês — termo fixo (Simplex indexado)
+  /* Tarifa energia por escalão (kWh) */
+  esc1: { label: "Esc. 1 (≤10 GJ/a)", kwh: 0.0974, desc: "Baixo consumo" },
+  esc2: { label: "Esc. 2 (10-4000 GJ/a)", kwh: 0.0716, desc: "Consumo normal" },
+  /* Tarifa de acesso às redes (BTN) */
+  redes: 0.0821,
+  /* Custo total estimado BTN c/ IVA 6% */
+  totalEsc1: 0.1694 /* (0.0974+0.0821)*1.06 */,
+  totalEsc2: 0.1527 /* (0.0716+0.0821)*1.06 */,
+  /* Termo fixo mensal (capacidade) */
+  termoFixo: 3.42 /* €/mês */,
+  /* Ref MIBGAS spot Mar 2026 */
+  mibgasSpot: 57.3,
+  mibgasPrev: 46.2,
+  mibgas7d: [36.8, 38.2, 46.1, 54.8, 58.2, 56.4, 57.3],
+  /* TTF Day-ahead ref Mar 2026 */
+  ttfSpot: 48.2,
+  ttfPrev: 40.2,
+  /* Spread MIBGAS-TTF */
+  spread: 57.3 - 48.2,
 };
 
 /* ── IPMA — lista de cidades disponíveis ── */

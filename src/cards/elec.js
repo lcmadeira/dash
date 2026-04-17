@@ -21,31 +21,6 @@
   };
   window.ELEC_TARIFAS = ELEC_TARIFAS;
 
-  /* Tarifas Gás Natural ERSE 2025-2026 (€/kWh c/ redes, s/ IVA)
-     Fonte: ERSE Deliberação Tarifária Outubro 2025
-     Comercializador de último recurso (CUR) - EDP Comercial / Galp */
-  window.GAS_TARIFAS = {
-    /* Tarifa energia por escalão (kWh) */
-    esc1: { label: "Esc. 1 (≤10 GJ/a)", kwh: 0.0974, desc: "Baixo consumo" },
-    esc2: { label: "Esc. 2 (10-4000 GJ/a)", kwh: 0.0716, desc: "Consumo normal" },
-    /* Tarifa de acesso às redes (BTN) */
-    redes: 0.0821,
-    /* Custo total estimado BTN c/ IVA 6% */
-    totalEsc1: 0.1694 /* (0.0974+0.0821)*1.06 */,
-    totalEsc2: 0.1527 /* (0.0716+0.0821)*1.06 */,
-    /* Termo fixo mensal (capacidade) */
-    termoFixo: 3.42 /* €/mês */,
-    /* Ref MIBGAS spot Mar 2026 */
-    mibgasSpot: 57.3,
-    mibgasPrev: 46.2,
-    mibgas7d: [36.8, 38.2, 46.1, 54.8, 58.2, 56.4, 57.3],
-    /* TTF Day-ahead ref Mar 2026 */
-    ttfSpot: 48.2,
-    ttfPrev: 40.2,
-    /* Spread MIBGAS-TTF */
-    spread: 57.3 - 48.2,
-  };
-
   const ELEC_TREND_PREF_KEY = "elec_trend_pref_v1";
   function getElecTrendPref() {
     try {

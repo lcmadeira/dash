@@ -8079,7 +8079,7 @@ function loadGasPT(force=false){
      Tarifas ERSE: Deliberação Out 2025 (válidas até Out 2026)
      ══════════════════════════════════════════════════════════════ */
 
-  const G=GAS_TARIFAS;
+  const G=window.GAS_TARIFAS || {};
   const mes=new Date().getMonth();
   const spreadActual=GASPT_SPREAD_MENSAL[mes];
   const MESES=GASPT_MESES;
@@ -8092,22 +8092,24 @@ function loadGasPT(force=false){
   const isLive   =!!(ttfCache?.live);
 
   /* MIBGAS estimado */
+  const mibSpot = G.mibgasSpot || 50;
   const mibEst =ttfPrice!=null?+(ttfPrice+spreadActual).toFixed(2):null;
-  const mibPrev=ttfPrev !=null?+(ttfPrev +spreadActual).toFixed(2):G.mibgasSpot;
-  const mibRef =mibEst??G.mibgasSpot;
+  const mibPrev=ttfPrev !=null?+(ttfPrev +spreadActual).toFixed(2):(G.mibgasPrev || mibSpot);
+  const mibRef =mibEst??mibSpot;
   try{ if (Number.isFinite(mibRef)) addToHistory('gaspt_mibgas_est', mibRef); }catch{}
 
   /* Variações */
-  const mibChg=((mibRef-mibPrev)/mibPrev*100);
+  const mibChg=mibPrev ? ((mibRef-mibPrev)/mibPrev*100) : 0;
   const ttfChg=ttfPrice&&ttfPrev?((ttfPrice-ttfPrev)/ttfPrev*100):0;
   const mibCol=mibChg>=0?"#EF4444":"#10B981";
   const ttfCol=ttfChg>=0?"#EF4444":"#10B981";
 
   /* Sparkline 7 dias */
+  const mib7 = G.mibgas7d || [mibSpot, mibSpot, mibSpot, mibSpot, mibSpot, mibSpot, mibSpot];
   const spark7=isLive&&ttfPrice
-    ?G.mibgas7d.map(v=>+(v+spreadActual*0.95).toFixed(1))
-    :G.mibgas7d;
-  const wkChg=((mibRef-spark7[0])/spark7[0]*100);
+    ?mib7.map(v=>+(v+spreadActual*0.95).toFixed(1))
+    :mib7;
+  const wkChg=spark7[0] ? ((mibRef-spark7[0])/spark7[0]*100) : 0;
   const spread=ttfPrice?(mibRef-ttfPrice).toFixed(2):spreadActual.toFixed(2);
 
   const SW=120,SH=32;
