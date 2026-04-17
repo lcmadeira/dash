@@ -4,7 +4,10 @@ const CFG = {
   TD_KEY: null,
 
   // IPMA — cidade padrão (Lisboa)
-  IPMA_CITY_ID: 1110600
+  IPMA_CITY_ID: 1110600,
+
+  // Compatibilidade com fetch/proxy local em ambiente file://
+  LOCAL_PROXY_PORT: 8000
 };
 
 /* ── Datas de referência (automáticas) ── */
@@ -86,3 +89,16 @@ const IPMA_WX = {
 const IPMA_WIND = ["", "Fraco", "Fraco a mod.", "Moderado", "Forte", "Muito forte"];
 
 const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
+
+// Backward compatibility: o restante código e handlers inline ainda esperam
+// estes valores como globais clássicos acessíveis via `window`.
+window.CFG = CFG;
+window.REF_DATE = REF_DATE;
+window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
+window.MIBGAS_SPOT = MIBGAS_SPOT;
+window.MIBGAS_MONTHLY_SPREAD = MIBGAS_MONTHLY_SPREAD;
+window.GAS_TARIFAS = GAS_TARIFAS;
+window.IPMA_CITIES = IPMA_CITIES;
+window.IPMA_WX = IPMA_WX;
+window.IPMA_WIND = IPMA_WIND;
+window.wxIPMA = wxIPMA;

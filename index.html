@@ -4232,7 +4232,12 @@ async function loadWeather(force=false){
   try{
     const id=CFG.IPMA_CITY_ID,key=`ipma_${id}`;
     let data=force?null:lsGet(key);
-    if(!data){const r=await fetch(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`);if(!r.ok)throw new Error(`IPMA ${r.status}`);data=await r.json();lsSet(key,data);}
+    if(!data){
+      const { r } = await fetchFirstOk(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`, {}, 8000, ["direct", "allorigins"]);
+      if(!r.ok)throw new Error(`IPMA ${r.status}`);
+      data=await r.json();
+      lsSet(key,data);
+    }
     const city=IPMA_CITIES[id]||`#${id}`,days=data.data||[];
     if(!days.length)throw new Error("Sem dados");
     const t=days[0],[ico,desc]=wxIPMA(t.idWeatherType);
@@ -6007,10 +6012,11 @@ async function loadCrypto(force=false){
     if(!data){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
       const cgUrl=`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`;
-      let cgData=null;
-      try{const rc=await fetch(cgUrl,{signal:AbortSignal.timeout(7000),headers:{Accept:"application/json"}});if(rc.ok)cgData=await rc.json();}catch{}
-      if(!cgData){const rp=await fetch("https://corsproxy.io/?"+encodeURIComponent(cgUrl),{signal:AbortSignal.timeout(9000)});if(!rp.ok)throw new Error(`CoinGecko ${rp.status}`);cgData=await rp.json();}
-      const r={ok:true};data=cgData;
+      try{
+        const { r } = await fetchFirstOk(cgUrl, { headers: { Accept: "application/json" } }, 8000, ["direct", "allorigins"]);
+        if(r.ok)data=await r.json();
+      }catch{}
+      if(!data)throw new Error("Crypto fetch failed");
       lsSet("cg",data);
     }
     /* Snapshot diário (localStorage) */

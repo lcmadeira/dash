@@ -51,11 +51,16 @@
     };
     if (s.has("direct")) add("direct", url);
     if (s.has("local") && IS_LOCAL_DEV) add("localproxy", localProxyUrl(url));
-    if (s.has("allorigins")) add("allorigins", `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-    if (s.has("jina")) add("jina", `https://r.jina.ai/http://${url.replace(/^https?:\/\//, "")}`);
+    if (s.has("allorigins")) {
+      add("allorigins", `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+      add("allorigins2", `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    }
+    if (s.has("jina")) {
+      const u = url.replace(/^https?:\/\//, "");
+      add("jina", `https://r.jina.ai/http://${u}`);
+    }
     if (s.has("corsproxy")) {
       const enc = encodeURIComponent(url);
-      add("corsproxy", `https://corsproxy.io/?${enc}`);
       add("corsproxy", `https://corsproxy.io/?url=${enc}`);
     }
     return out;
