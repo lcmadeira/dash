@@ -194,7 +194,7 @@
 - [x] **Extrair alguns cards** para `src/cards/` (ex.: eletricidade, sismos, notícias) ✅ (01/04/2026)
 - [ ] **Separar JS em módulos** (ES Modules) ← opcional; hoje usa scripts globais sem bundler
 - [x] **Aplicar definições sem reload** (re-renderização dinâmica de cards) ✅ (25/03/2026)
-- [ ] **Extrair configurações** para `config.js` (TTLs, IDs de cidade, spreads)
+- [x] **Extrair configurações** para `config.js` (CFG, REF_DATE, EURIBOR_FALLBACK, GAS_TARIFAS, IPMA_*) ✅ (17/04/2026)
 - [ ] **Consolidar CSS** em ficheiro separado
 - [ ] Documentar funções principais (JSDoc)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
@@ -256,12 +256,18 @@
   - File size warning (limite 700KB)
 - ✅ **Tooling** — `package.json`, `eslint.config.js` (flat config), `.htmlvalidate.json`
 
-### v1.2.0 — Planeado
+### v1.2.0 — Concluído ✅
 
-- [ ] **Modularização** — separar JS/CSS do index.html (prioridade máxima)
-- [ ] Automação dados estáticos (Euribor ECB, Inflação Eurostat)
-- [ ] Dados de barragens SNIRH
-- [ ] Notificações com backend (Cloudflare Worker)
+- ✅ **Configuração centralizada** — extrai `CFG`, `REF_DATE`, `EURIBOR_FALLBACK`, `GAS_TARIFAS`, `IPMA_CITIES`, `IPMA_WX`, `IPMA_WIND`, `wxIPMA` para `src/config.js` (17/04/2026)
+  - Elimina duplicações e hardcoding no `index.html`
+  - Mantém backward compatibility via globals
+  - Facilita manutenção e futuras extensões
+
+### v1.2.1 — Planeado
+
+- [ ] **Consolidar CSS** em ficheiro separado
+- [ ] Documentar funções principais (JSDoc)
+- [ ] Separar JS em módulos (ES Modules) — opcional
 
 ### v2.0.0 — Futuro
 
@@ -271,5 +277,5 @@
 
 ---
 
-**Última atualização**: 27 de Março de 2026
+**Última atualização**: 17 de Abril de 2026
 **Mantido por**: LCMadeira
