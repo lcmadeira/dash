@@ -1,5 +1,35 @@
 /* dash UI/status helpers (loaded before index.html inline script) */
 (function () {
+  const CARD_LABELS = {
+    weather: "Meteorologia",
+    fuel: "Combustíveis",
+    cabaz: "Cabaz alimentar",
+    "gas-eu": "Gás natural Europa",
+    "gas-pt": "Gás natural Portugal",
+    elec: "Eletricidade",
+    airquality: "Qualidade do ar",
+    euribor: "Euribor",
+    imob: "Imobiliário",
+    fng: "Fear & Greed",
+    rec: "Curva de rendimentos",
+    agri: "Agro commodities",
+    air: "Tráfego aéreo",
+    seis: "Sismos",
+    ormuz: "Estreito de Ormuz",
+    smn: "Mobilidade",
+    transp: "Transportes",
+    psi20: "PSI20",
+    fx: "Câmbio",
+    crypto: "Criptomoedas",
+    inf: "Inflação",
+    mstats: "Market stats",
+    cal: "Calendário",
+    geo: "Geopolítica",
+    co2: "Emissões CO2",
+    press: "Liberdade de imprensa",
+    "news-pt": "Notícias Portugal",
+    "news-world": "Notícias mundo",
+  };
   function fmtAgeShort(ms) {
     if (!Number.isFinite(ms) || ms < 0) return "—";
     const s = Math.floor(ms / 1000);
@@ -50,9 +80,69 @@
     el.className = "badge card-status";
     el.dataset.statusFor = cardId;
     el.dataset.state = "idle";
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
+    el.setAttribute("aria-atomic", "true");
     el.textContent = "—";
     right.prepend(el);
     return el;
+  }
+
+  function getCardRefreshBtn(cardId) {
+    const card = getCardElById(cardId);
+    if (!card) return null;
+    return card.querySelector('.ch .ch-r button[aria-label="Atualizar"], .ch .ch-r button[aria-label^="Atualizar "], .ch .ch-r button[title="Atualizar"]');
+  }
+
+  function setInlineRetryButton(cardId, show) {
+    const card = getCardElById(cardId);
+    if (!card) return;
+    const right = card.querySelector(".ch .ch-r");
+    if (!right) return;
+
+    let btn = right.querySelector(`.card-inline-retry[data-retry-for="${cardId}"]`);
+    if (!show) {
+      if (btn) btn.remove();
+      return;
+    }
+
+    if (btn) return;
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rbtn card-inline-retry";
+    btn.dataset.retryFor = cardId;
+    btn.textContent = "Tentar novamente";
+    btn.title = "Voltar a tentar atualizar este card";
+    btn.setAttribute("aria-label", "Tentar novamente atualizar este card");
+    btn.onclick = () => {
+      const refreshBtn = getCardRefreshBtn(cardId);
+      if (refreshBtn) refreshBtn.click();
+      else console.warn(`Sem botão de refresh para ${cardId}`);
+    };
+    right.appendChild(btn);
+  }
+
+  function getStatusAssistiveText(cardId, state, text) {
+    const label = CARD_LABELS[cardId] || cardId || "card";
+    const visible = text || "sem estado";
+    if (state === "error") return `Erro ao atualizar dados do card ${label}. ${visible}.`;
+    if (state === "loading") return `A atualizar dados do card ${label}.`;
+    if (state === "stale") return `Dados desatualizados no card ${label}. ${visible}.`;
+    if (state === "cache") return `Dados em cache no card ${label}. ${visible}.`;
+    if (state === "live") return `Dados live no card ${label}.`;
+    if (state === "static") return `Dados estáticos no card ${label}.`;
+    return `Estado do card ${label}: ${visible}.`;
+  }
+
+  function enhanceRefreshButtonLabels() {
+    document.querySelectorAll('[data-card-id]').forEach((card) => {
+      const cardId = card.getAttribute("data-card-id");
+      const label = CARD_LABELS[cardId] || cardId || "card";
+      const refreshBtn = card.querySelector('.ch .ch-r button[aria-label="Atualizar"], .ch .ch-r button[title="Atualizar"]');
+      if (!refreshBtn) return;
+      refreshBtn.setAttribute("aria-label", `Atualizar ${label}`);
+      refreshBtn.removeAttribute("title");
+    });
   }
 
   function setCardStatus(cardId, state, text, meta = {}) {
@@ -60,11 +150,21 @@
     if (!el) return;
     if (el.dataset.state === "loading" && state !== "loading" && !meta.force) return;
     el.dataset.state = state || "idle";
-    el.textContent = text || "—";
+    const visibleText = text || "—";
+    el.textContent = visibleText;
+    const sr = document.createElement("span");
+    sr.className = "sr-only";
+    sr.textContent = ` ${getStatusAssistiveText(cardId, state || "idle", visibleText)}`;
+    el.appendChild(sr);
+    el.setAttribute("aria-label", getStatusAssistiveText(cardId, state || "idle", visibleText));
     if (meta?.title) el.title = meta.title;
+    setInlineRetryButton(cardId, state === "error");
   }
 
   function refreshCardStatusFromCache(cardId, cacheKey) {
+    const current = ensureCardStatusEl(cardId);
+    if (current?.dataset?.state === "error") return;
+
     const meta = cacheKey ? getCacheMeta(cacheKey) : null;
     if (!meta) {
       setCardStatus(cardId, "idle", "—", { title: "Ainda sem dados em cache", force: true });
@@ -106,6 +206,9 @@
     } catch (e) {
       threw = true;
       setCardStatus(cardId, "error", "Erro", { title: e?.message ? e.message : "Erro ao atualizar" });
+      if (typeof window.notifyNonCriticalError === "function") {
+        window.notifyNonCriticalError(`Atualização do card '${cardId}'`, e);
+      }
       console.warn(`Refresh falhou (${cardId})`, e);
     } finally {
       if (btn && btn.classList) {
@@ -115,16 +218,7 @@
       }
 
       const keyAfter = getKey() || keyBefore;
-      if (threw) {
-        setTimeout(() => {
-          if (keyAfter) refreshCardStatusFromCache(cardId, keyAfter);
-          else {
-            setCardStatus(cardId, "idle", "—", { force: true });
-            refreshAllCardStatuses();
-          }
-        }, 2500);
-        return;
-      }
+      if (threw) return;
 
       if (keyAfter) refreshCardStatusFromCache(cardId, keyAfter);
       else {
@@ -199,6 +293,7 @@
     };
 
     Object.entries(byId).forEach(([cardId, cacheKey]) => refreshCardStatusFromCache(cardId, cacheKey));
+    enhanceRefreshButtonLabels();
 
     const cm = getCabazMeta();
     if (cm) {
@@ -231,5 +326,6 @@
   window.getCabazMeta = getCabazMeta;
   window.refreshAllCardStatuses = refreshAllCardStatuses;
   window.applyStickyScrollCards = applyStickyScrollCards;
+  window.enhanceRefreshButtonLabels = enhanceRefreshButtonLabels;
 })();
 

@@ -67,6 +67,18 @@ a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 button{font-family:var(--font);cursor:pointer}
 
+.sr-only{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+
 /* ── A11y: foco consistente para teclado ── */
 a:focus-visible,
 button:focus-visible,
@@ -1381,6 +1393,18 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   border-left: 4px solid var(--green);
   background: linear-gradient(90deg, var(--gd) 0%, var(--card) 40%);
 }
+.toast.type-error {
+  border-left: 4px solid var(--red);
+  background: linear-gradient(90deg, var(--rd) 0%, var(--card) 40%);
+}
+.help-tip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;margin-left:4px;border-radius:50%;
+  border:1px solid var(--b2);color:var(--t3);font-family:var(--mono);
+  font-size:.55rem;line-height:1;cursor:help;vertical-align:middle;
+  background:var(--surface);
+}
+.help-tip:hover{color:var(--text);border-color:var(--t2)}
 
 /* Mobile adjustments */
 /* Será consolidado no bloco mobile unificado no final */
@@ -3218,7 +3242,7 @@ textarea.nta::placeholder{color:var(--t3)}
 </head>
 <body>
 <!-- Container de Toast Notifications -->
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="wrap">
 
@@ -3234,13 +3258,13 @@ textarea.nta::placeholder{color:var(--t3)}
   </div>
   <div class="hdr-right">
     <div class="pills" id="pills"></div>
-    <button class="export-btn" id="exportOpenBtn" onclick="openExportModal()" title="Exportar Dados" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
-      <span class="icon">📥</span>
+    <button class="export-btn" id="exportOpenBtn" onclick="openExportModal()" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
+      <span class="icon" aria-hidden="true">📥</span>
       <span>Exportar</span>
     </button>
     <div style="position:relative">
-      <button class="notif-btn" id="notifBtn" onclick="toggleNotifications()" title="Notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
-        <span class="notif-icon">🔔</span>
+      <button class="notif-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
+        <span class="notif-icon" aria-hidden="true">🔔</span>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
       
@@ -3284,8 +3308,8 @@ textarea.nta::placeholder{color:var(--t3)}
         </div>
       </div>
     </div>
-    <button class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" title="Configurações" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
-      <span class="settings-icon">⚙️</span>
+    <button class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" aria-label="Abrir configurações do painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
+      <span class="settings-icon" aria-hidden="true">⚙️</span>
     </button>
   </div>
 </header>
@@ -3513,7 +3537,7 @@ textarea.nta::placeholder{color:var(--t3)}
 </div>
 
 <!-- Toast de sucesso -->
-<div class="export-toast" id="exportToast">
+<div class="export-toast" id="exportToast" role="status" aria-live="polite" aria-atomic="true">
   <div class="export-toast-icon">✅</div>
   <div class="export-toast-message" id="exportToastMessage">Exportação concluída!</div>
 </div>
@@ -3625,7 +3649,7 @@ textarea.nta::placeholder{color:var(--t3)}
       <div class="ch-ico" style="background:#10B98120">🛒</div>
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
-        <button class="rbtn" id="cabaz-edit-btn" type="button" onclick="openCabazEditor()" title="Actualizar valor desta semana" aria-haspopup="dialog" aria-controls="cabaz-modal" aria-expanded="false">✏️</button>
+        <button class="rbtn" id="cabaz-edit-btn" type="button" onclick="openCabazEditor()" title="Actualizar valor desta semana" aria-label="Editar cabaz alimentar desta semana" aria-haspopup="dialog" aria-controls="cabaz-modal" aria-expanded="false"><span aria-hidden="true">✏️</span></button>
         <button class="rbtn ico" onclick="refreshCard('cabaz',null,this,renderCabaz)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
@@ -3694,7 +3718,9 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:linear-gradient(90deg,#10B981,#06B6D4,#8B5CF6)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">🌬️</div>
-      <span class="ch-lbl">Qualidade do Ar · Portugal</span>
+      <span class="ch-lbl">Qualidade do Ar · Portugal
+        <span class="help-tip" title="AQI Europeu (EEA): índice de 0 a 100+; quanto menor, melhor qualidade do ar.">?</span>
+      </span>
       <div class="ch-r">
         <span class="badge" id="aq-aqi-badge">AQI —</span>
         <button class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
@@ -3709,9 +3735,11 @@ textarea.nta::placeholder{color:var(--t3)}
     <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:var(--cd)">📐</div>
-      <span class="ch-lbl">Euribor · Taxas de Referência</span>
+      <span class="ch-lbl">Euribor · Taxas de Referência
+        <span class="help-tip" title="Euribor: taxa interbancária da Zona Euro usada em crédito habitação de taxa variável.">?</span>
+      </span>
       <div class="ch-r">
-        <button class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" title="Ver tendência">📊</button>
+        <button class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" aria-label="Ver tendência da Euribor 12 meses"><span aria-hidden="true">📊</span></button>
         <button class="rbtn ico" onclick="refreshCard('euribor','euribor_live_v1',this,initEuribor,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
         <span class="badge" id="euriborRefDate">...</span>
       </div>
@@ -4065,7 +4093,9 @@ textarea.nta::placeholder{color:var(--t3)}
   <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
   <div class="ch">
     <div class="ch-ico" style="background:#10B98122">🌱</div>
-    <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal</span>
+    <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal
+      <span class="help-tip" title="gCO2/kWh: gramas de CO2 emitidas por cada kWh produzido; menor valor indica eletricidade mais limpa.">?</span>
+    </span>
     <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('co2','co2_ren_v1',this,loadCO2,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
   </div>
   <div id="co2-body" style="padding:4px 0"></div>
@@ -4114,7 +4144,7 @@ textarea.nta::placeholder{color:var(--t3)}
 <script src="src/cards/news.js"></script>
 <script src="src/cards/seis.js"></script>
 <script>
-/* global CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,GAS_TARIFAS,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadNews,loadSeis */
+/* global CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,GAS_TARIFAS,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadNews,loadSeis,notifyNonCriticalError */
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -4265,7 +4295,7 @@ async function loadWeather(force=false){
           <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
         </div>`;}).join("")}</div>
       <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API</div>`;
-  }catch(e){$("wx-body").innerHTML=er(e.message);}
+  }catch(e){$("wx-body").innerHTML=er(e,{context:"Meteorologia IPMA",action:"clique em ↺ para atualizar"});notifyNonCriticalError("Meteorologia IPMA",e,"clique em ↺ para atualizar");}
 }
 
 /* ── Fetch com Proxy CORS ── */
@@ -4550,7 +4580,7 @@ async function renderFuel(force=false){
       </div>`;
     }).join("")}</div>
     <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${esLbl}</div>`;
-  }catch(e){$("fuel-body").innerHTML=er(e.message);}
+  }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }
 
 /* Eletricidade movida para src/cards/elec.js */
@@ -5098,7 +5128,8 @@ async function loadHolidays(force=false){
 `;
 
   }catch(e){
-    $("hol-body").innerHTML=er(e.message);
+    $("hol-body").innerHTML=er(e,{context:"Feriados",action:"volte a carregar ou mude de cidade"});
+    notifyNonCriticalError("Feriados",e,"volte a carregar ou mude de cidade");
   }
 }
 
@@ -5412,6 +5443,7 @@ function renderEuribor(){
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
     <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       \uD83C\uDFE0 Spread banc\u00e1rio PT \u00b7 cr\u00e9dito habita\u00e7\u00e3o vari\u00e1vel
+      <span class="help-tip" title="Spread bancário: margem fixa do banco somada à Euribor para calcular a TAN do crédito.">?</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:5px">
       ${[
@@ -5517,7 +5549,7 @@ async function loadFX(force=false){
     }
     fxRates=data.rates||{};
     renderFX(data.date);
-  }catch(e){$("fx-body").innerHTML=er(e.message);}
+  }catch(e){$("fx-body").innerHTML=er(e,{context:"Câmbio EUR",action:"clique em ↺ para recarregar as taxas"});notifyNonCriticalError("Câmbio EUR",e,"clique em ↺ para recarregar as taxas");}
 }
 function renderFX(date){
   const amt=parseFloat($("fx-amount")?.value||1)||1;
@@ -6057,7 +6089,7 @@ async function loadCrypto(force=false){
       </div>`;
 
     loadCryptoTrend(false).catch(()=>{});
-  }catch(e){$("crypto-body").innerHTML=er(e.message);}
+  }catch(e){$("crypto-body").innerHTML=er(e,{context:"Criptomoedas",action:"verifique ligação de rede e tente novamente"});notifyNonCriticalError("Criptomoedas",e,"verifique ligação de rede e tente novamente");}
 }
 
 /* ── Twelve Data — Indicadores ── */
@@ -6431,7 +6463,8 @@ async function loadAirQuality(force=false) {
 
       lsSet(ck, data);
     } catch(e) {
-      el.innerHTML = er(`Qualidade do ar: ${e.message}`);
+      el.innerHTML = er(e, { context: "Qualidade do ar", action: "clique em ↺ para nova tentativa" });
+      notifyNonCriticalError("Qualidade do ar", e, "clique em ↺ para nova tentativa");
       return;
     }
   }
@@ -6539,7 +6572,9 @@ async function loadAirQuality(force=false) {
       <div style="font-size:2.6rem;font-weight:900;color:${info.col};
            line-height:1;letter-spacing:-2px">${aqi}</div>
       <div style="font-size:.58rem;color:${info.col};font-weight:700;
-           text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU${aqiIsEstimated ? " (est.)" : ""}</div>
+           text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU${aqiIsEstimated ? " (est.)" : ""}
+        <span class="help-tip" title="AQI Europeu (EEA): índice agregado da poluição; menor valor representa melhor qualidade do ar.">?</span>
+      </div>
     </div>
     <div style="flex:1">
       <div style="font-size:.9rem;font-weight:700;color:${info.col}">
@@ -7216,9 +7251,10 @@ async function loadGeo(force){
   }
   GEO_DATA=cached;renderGeo();
  }catch(e){
-  $("geo-body").innerHTML=er(e.message)+"<div style='margin-top:8px'>"+GEO_FEEDS.map(function(f){
+  $("geo-body").innerHTML=er(e,{context:"Geopolítica",action:"clique em ↺ ou abra uma fonte em baixo"})+"<div style='margin-top:8px'>"+GEO_FEEDS.map(function(f){
    return "<div style='margin:3px 0;font-size:.62rem'>&rarr; <a href='"+f.url+"' target='_blank' style='color:"+f.color+"'>"+f.label+"</a></div>";
   }).join("")+"</div>";
+  notifyNonCriticalError("Geopolítica",e,"clique em ↺ ou abra uma fonte em baixo");
  }
 }
 
@@ -7234,7 +7270,7 @@ function renderGeo(){
  $("geo-body").innerHTML=items.slice(0,10).map(function(it){
   var ago=fmtAgo(it.dt);
   var lnk=(it.link||"").replace(/'/g,"\'");
-  return '<div class="geo-item" onclick="window.open(\''+ lnk +'\')">'
+  return '<div class="geo-item" role="button" tabindex="0" aria-label="Abrir artigo '+it.label+': '+it.title.replace(/"/g,"&quot;")+'" onclick="window.open(\''+ lnk +'\')">'
    +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
    +'<div class="geo-title">'+it.title+'</div>'
    +'<div class="geo-date">'+ago+'</div></div>';
@@ -8201,6 +8237,7 @@ function loadGasPT(force=false){
       </div>
       <div style="font-size:.62rem;color:#F59E0B;margin-top:1px">
         Spread MIBGAS\u2212TTF: +${spread} \u20ac/MWh
+        <span class="help-tip" title="Spread MIBGAS-TTF: diferença entre o preço ibérico estimado e o hub europeu TTF; reflete custos regionais.">?</span>
       </div>
     </div>
   </div>
@@ -9115,7 +9152,7 @@ async function loadFng(force){
       if(!r.ok)throw new Error("HTTP "+r.status);
       const j=await r.json();
       d=j.data; if(d?.length)lsSet(ck,d);
-    }catch(e){el.innerHTML=er(e.message);return;}
+    }catch(e){el.innerHTML=er(e,{context:"Fear & Greed",action:"tente novo refresh em alguns segundos"});notifyNonCriticalError("Fear & Greed",e,"tente novo refresh em alguns segundos");return;}
   }
   if(!d?.length)return;
 
@@ -10713,7 +10750,9 @@ async function loadCO2(force=false){
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
         <div style="font-size:1.6rem;font-weight:800;color:#10B981">${Math.round(co2Static)}</div>
-        <div style="font-size:.6rem;color:var(--t2)">gCO₂/kWh</div>
+        <div style="font-size:.6rem;color:var(--t2)">gCO₂/kWh
+          <span class="help-tip" title="Gramas de CO2 por kWh produzido; indicador de intensidade carbónica do sistema elétrico.">?</span>
+        </div>
         <div style="font-size:.58rem;color:var(--t3)">média 2024</div>
       </div>
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
@@ -12425,7 +12464,7 @@ function renderNotificationList() {
     const severityClass = `severity-${n.severity}`;
     
     return `
-      <div class="notif-item ${unreadClass} ${severityClass}" onclick="markAsRead('${n.id}')">
+      <div class="notif-item ${unreadClass} ${severityClass}" role="button" tabindex="0" aria-label="Abrir notificação ${n.type.toUpperCase()}: ${n.title.replace(/"/g, '&quot;')}" onclick="markAsRead('${n.id}')">
         <div class="notif-item-header">
           <div class="notif-item-icon">${icons[n.type] || '📌'}</div>
           <div class="notif-item-content">
@@ -12537,7 +12576,7 @@ function showToast(notif) {
   toast.className = `toast type-${notif.type}`;
   toast.innerHTML = `
     <div class="toast-progress"></div>
-    <div class="toast-icon">${icons[notif.type] || '📌'}</div>
+    <div class="toast-icon" aria-hidden="true">${icons[notif.type] || '📌'}</div>
     <div class="toast-content">
       <div class="toast-title">${notif.title}</div>
       <div class="toast-message">${notif.description}</div>

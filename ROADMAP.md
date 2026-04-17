@@ -153,21 +153,21 @@
 #### 4.2 Tratamento de Erros
 
 - [x] Badges de estado de dados por card (Live, Cached, Error, Off) ✅ (25/03/2026)
-- [ ] Mensagens de erro mais específicas com contexto
-- [ ] Botão "Tentar novamente" inline nos cards com erro
-- [ ] Toast notifications para erros não-críticos
+- [x] Mensagens de erro mais específicas com contexto ✅
+- [x] Botão "Tentar novamente" inline nos cards com erro ✅
+- [x] Toast notifications para erros não-críticos ✅
 
 #### 4.3 Tooltips & Ajuda
 
-- [ ] Tooltips explicativos em termos técnicos (gCO₂/kWh, AQI, spread, etc.)
-- [ ] Ícone de ajuda (?) em métricas complexas
+- [x] Tooltips explicativos em termos técnicos (gCO₂/kWh, AQI, spread, etc.) ✅
+- [x] Ícone de ajuda (?) em métricas complexas ✅
 
 #### 4.4 Animações & Micro-interações
 
 - [x] UI: Tabelas, footers, badges e actions padronizados ✅ (25/03/2026)
 - [x] Scroll interno com header sticky em cards longos ✅ (25/03/2026)
 - [x] Feedback visual de carregamento (ícone ↺/spinner e lock de refresh) ✅ (25/03/2026)
-- [ ] `prefers-reduced-motion` support ← fácil, vale a pena
+- [x] `prefers-reduced-motion` support ✅ (implementado em `index.html`)
 
 ---
 
@@ -179,8 +179,8 @@
 - [x] `aria-*` base em modais/header (Export, Definições, Notificações)
 - [x] Focus visível (`:focus-visible`) para navegação por teclado
 - [x] Focus trap em modais (Tab/Shift+Tab não sai do diálogo)
-- [ ] Navegação completa por teclado (restante UI)
-- [ ] `prefers-reduced-motion` ← implementar junto com 4.4
+- [x] Navegação completa por teclado (restante UI) ✅
+- [x] `prefers-reduced-motion` ✅ (implementado junto com 4.4)
 
 ---
 
