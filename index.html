@@ -4136,13 +4136,14 @@ textarea.nta::placeholder{color:var(--t3)}
 
 </div><!-- /grid -->
 </div><!-- /wrap -->
-<script src="src/core.js"></script>
-<script src="src/cache.js"></script>
-<script src="src/fetch.js"></script>
-<script src="src/ui.js"></script>
-<script src="src/cards/elec.js"></script>
-<script src="src/cards/news.js"></script>
-<script src="src/cards/seis.js"></script>
+ <script src="src/config.js"></script>
+ <script src="src/core.js"></script>
+ <script src="src/cache.js"></script>
+ <script src="src/fetch.js"></script>
+ <script src="src/ui.js"></script>
+ <script src="src/cards/elec.js"></script>
+ <script src="src/cards/news.js"></script>
+ <script src="src/cards/seis.js"></script>
 <script>
 /* global CACHE_TTL,PFX,CACHE_TTL_MAP,getTTL,getStaleCache,cleanOldCacheSync,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,withTimeoutOpts,buildFetchPlan,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,setFetchDebug,fmtAgeShort,getCacheMeta,getCardElById,ensureCardStatusEl,setCardStatus,refreshCardStatusFromCache,getWeatherCacheKey,getAirQualityCacheKey,refreshCard,getCabazMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,DAY_NAMES_LONG,MONTH_NAMES,GAS_TARIFAS,getElecTrendPref,setElecTrendPref,setElecTrendDays,loadElecTrend,loadElec,loadNews,loadSeis,notifyNonCriticalError */
 /* ── Relógios das Praças Financeiras ── */
@@ -4177,43 +4178,7 @@ function tickMarkets(){
   }).join("");
 }
 
-/* CONFIG */
-// ⚠️ SEGURANÇA: Nunca commitar API keys ao repositório
-// Para usar a API Twelve Data, adiciona a tua chave aqui:
-// const CFG = { TD_KEY: "TUA_CHAVE_AQUI", IPMA_CITY_ID: 1060300 };
-// Ou melhor ainda: usa variáveis de ambiente ou ficheiro .env não versionado
 
-const CFG = { 
-  TD_KEY: null, // API key removida por segurança - adiciona a tua em config local
-  IPMA_CITY_ID: 1060300,
-  // Se estiveres a abrir via file:// (ou a servir sem /proxy), podes apontar para o dev_server.py
-  // Ex.: python3 dev_server.py  (porta default 8000)
-  LOCAL_PROXY_PORT: 8000
-};
-
-/* DATA DE REFERÊNCIA AUTOMÁTICA */
-// Gera automaticamente a data atual para substituir hardcoded "Mar 2026"
-const REF_DATE = {
-  // Mês atual em português (abreviado)
-  monthShort: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'][new Date().getMonth()],
-  // Ano atual
-  year: new Date().getFullYear(),
-  // String formatada "Mar 2026"
-  get full() { return `${this.monthShort} ${this.year}` },
-  // Trimestre atual (Q1-Q4)
-  get quarter() { 
-    const q = Math.floor(new Date().getMonth() / 3) + 1;
-    return `Q${q} ${this.year}`;
-  },
-  // Trimestre anterior
-  get prevQuarter() {
-    const currentQ = Math.floor(new Date().getMonth() / 3) + 1;
-    if (currentQ === 1) return `Q4 ${this.year - 1}`;
-    return `Q${currentQ - 1} ${this.year}`;
-  }
-};
-
-console.log(`📅 Data de referência: ${REF_DATE.full} / ${REF_DATE.quarter}`);
 
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -4262,10 +4227,7 @@ function switchHmap(key,btn){
 }
 
 /* ── IPMA Meteorologia ── */
-const IPMA_CITIES={1010500:"Aveiro",1020500:"Beja",1030300:"Braga",1030800:"Bragança",1040200:"Castelo Branco",1050200:"Coimbra",1060300:"Évora",1070500:"Faro",1080500:"Guarda",1100900:"Leiria",1110600:"Lisboa",1121400:"Portalegre",1131200:"Porto",1141600:"Santarém",1151200:"Setúbal",1151300:"Sines",1160900:"Viana do Castelo",1171400:"Vila Real",1182300:"Viseu",2310300:"Funchal",2320100:"Ponta Delgada"};
-const IPMA_WX={1:["☀️","Céu limpo"],2:["🌤️","Pouco nublado"],3:["⛅","Parcialmente nublado"],4:["🌥️","Nublado"],5:["☁️","Muito nublado"],6:["🌧️","Aguaceiros"],7:["🌧️","Chuva"],8:["⛈️","Trovoada"],9:["❄️","Neve"],10:["🌫️","Nevoeiro"],11:["🌦️","Aguaceiros fracos"],12:["🌦️","Aguaceiros moderados"],13:["🌧️","Aguaceiros fortes"],14:["⛈️","Trovoada com chuva"],15:["🌬️","Vento forte"],16:["🌡️","Calor intenso"],17:["❄️","Granizo"],18:["🌩️","Trovoada"],19:["🌨️","Aguaceiros de neve"],22:["🌦️","Chuva fraca"],23:["🌧️","Chuva e trovoada"],25:["🌧️","Chuva e vento forte"],26:["🌬️","Neblina"],28:["☁️","Céu encoberto"]};
-const IPMA_WIND=["","Fraco","Fraco a mod.","Moderado","Forte","Muito forte"];
-const wxIPMA=id=>IPMA_WX[id]||["🌤️","—"];
+const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 async function loadWeather(force=false){
   $("wx-body").innerHTML=skeletonWeather();
   try{
