@@ -4264,17 +4264,6 @@ async function loadWeather(force=false){
   }catch(e){$("wx-body").innerHTML=er(e,{context:"Meteorologia IPMA",action:"clique em ↺ para atualizar"});notifyNonCriticalError("Meteorologia IPMA",e,"clique em ↺ para atualizar");}
 }
 
-/* ── Fetch com Proxy CORS ── */
-async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
-  // Tentar direto primeiro (alguns endpoints já têm CORS nativo); depois proxy local; depois proxies públicos.
-  const { r } = await fetchFirstOk(
-    url,
-    options,
-    timeoutMs,
-    ["direct","local","allorigins","jina","corsproxy"]
-  );
-  return r;
-}
 /* Notícias movidas para src/cards/news.js */
 
 /* ── Combustíveis — PT (API Aberta) + ES (MITECO/MINETUR) ── */
@@ -4720,39 +4709,31 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
   }
 
   const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`;
-  const proxies = [
-    ...(IS_LOCAL_DEV ? [localProxyUrl(url)] : []),
-    "https://r.jina.ai/http://" + url.replace(/^https?:\/\//, ""),
-    "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-    "https://api.allorigins.win/raw?url=" + encodeURIComponent(url.replace("stooq.com", "stooq.pl")),
-    "https://corsproxy.io/?url=" + encodeURIComponent(url),
-  ];
+  try {
+    const r = await fetchWithCORS(url, {}, 11000);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const csv = (await r.text()).trim();
+    const lines = csv.split("\n").filter(Boolean);
+    if (lines.length < 5) throw new Error("CSV inválido");
 
-  for (const p of proxies) {
-    try {
-      const r = await fetch(p, { signal: AbortSignal.timeout(11000) });
-      if (!r.ok) continue;
-      const csv = (await r.text()).trim();
-      const lines = csv.split("\n").filter(Boolean);
-      if (lines.length < 5) continue;
+    const out = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",");
+      const date = (cols[0] || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      const close = Number(cols[4]);
+      if (!Number.isFinite(close)) continue;
+      out.push({ date, timestamp: Date.parse(date), value: close });
+    }
+    out.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-      const out = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(",");
-        const date = (cols[0] || "").trim();
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-        const close = Number(cols[4]);
-        if (!Number.isFinite(close)) continue;
-        out.push({ date, timestamp: Date.parse(date), value: close });
-      }
-      out.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-      const sliced = _lastN(out, maxDays);
-      if (sliced.length >= 10) {
-        lsSet(cacheKey, sliced);
-        return sliced;
-      }
-    } catch {}
+    const sliced = _lastN(out, maxDays);
+    if (sliced.length >= 10) {
+      lsSet(cacheKey, sliced);
+      return sliced;
+    }
+  } catch (e) {
+    console.warn("[fetchStooqDailySeries] failed", e);
   }
 
   throw new Error("Stooq histórico indisponível");
@@ -6564,24 +6545,23 @@ initEuribor();
 setTimeout(()=>{renderExp();renderDiv();},50);
 loadElec();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
-setTimeout(()=>loadFX(),         400);
-setTimeout(()=>loadMarketStats(), 800);
-setTimeout(()=>loadPSI20(),        550);
-setTimeout(()=>loadCrypto(),      600);
-setTimeout(()=>loadFng(),         500);
-setTimeout(()=>loadAgri(),       1000);
-setTimeout(()=>loadRec(),        1200);
-setTimeout(()=>loadSeis(),        700);
-setTimeout(()=>loadAir(),        1500);
-setTimeout(()=>loadOrmuz(),      1800);
-setTimeout(()=>loadCO2(),         900);
-setTimeout(()=>loadTTF(),          300);
-setTimeout(()=>loadGasPT(),        350);
-setTimeout(()=>loadSMN(),           450);
-setTimeout(()=>loadImob(),          650);
-setTimeout(()=>loadTransp(),        500);
-setTimeout(()=>loadPress(),        400);
-setTimeout(()=>loadPSI20(),        550);
+setTimeout(()=>loadFX(),          500);
+setTimeout(()=>loadTTF(),         800);
+setTimeout(()=>loadGasPT(),       900);
+setTimeout(()=>loadMarketStats(), 1200);
+setTimeout(()=>loadPSI20(),       1800);
+setTimeout(()=>loadCrypto(),      2200);
+setTimeout(()=>loadFng(),         2500);
+setTimeout(()=>loadAgri(),        3000);
+setTimeout(()=>loadSeis(),        3300);
+setTimeout(()=>loadRec(),         3600);
+setTimeout(()=>loadAir(),         4000);
+setTimeout(()=>loadOrmuz(),       4300);
+setTimeout(()=>loadCO2(),         4600);
+setTimeout(()=>loadSMN(),         5000);
+setTimeout(()=>loadImob(),        5300);
+setTimeout(()=>loadTransp(),      5600);
+setTimeout(()=>loadPress(),       6000);
 
 setInterval(()=>{
   loadWeather();
@@ -6589,9 +6569,9 @@ setInterval(()=>{
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadAirQuality(true);loadFX(true);loadCrypto(true);initInflation(true);
   loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadOrmuz(true);loadCO2(true);loadImob(true);
-  setTimeout(()=>loadMarketStats(true),800);
+  setTimeout(()=>loadMarketStats(true),1500);
   renderCabaz();
-  setTimeout(()=>loadPSI20(true),1000);
+  setTimeout(()=>loadPSI20(true),3000);
 },CACHE_TTL);
 
 /* ═══ MAPA CONFLITOS v2 ═══ */
@@ -7247,34 +7227,8 @@ async function loadMarketStats(force=false){
       {sym:"ng.f", label:"Gás Nat.",  sub:"USD / MMBtu · NYMEX",  col:"#3B82F6",       unit:"$", dec:3},
     ];
 
-    async function fetchStooqStat(sym){
-      const url=`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv`;
-      const proxies=[
-        "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-        "https://corsproxy.io/?url="+encodeURIComponent(url),
-      ];
-      for(const p of proxies){
-        try{
-          const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
-          if(!r.ok) continue;
-          const csv=await r.text();
-          const rows=csv.trim().split("\n");
-          if(rows.length<2) continue;
-          const cols=rows[1].split(",");
-          /* CSV Stooq: Symbol,Date,Time,Open,High,Low,Close,Volume */
-          const open =parseFloat(cols[3]);
-          const close=parseFloat(cols[6]);
-          const hi   =parseFloat(cols[4]);
-          const lo   =parseFloat(cols[5]);
-          if(!isNaN(close)&&close>0)
-            return {price:close,prev:open,hi,lo,
-                    chg:open?((close-open)/open*100):0,live:true};
-        }catch{}
-      }
-      return null;
-    }
-
-    const results=await Promise.allSettled(STOOQ_SYMS.map(s=>fetchStooqStat(s.sym)));
+    /* Batch Stooq: Reduz significativamente o número de pedidos a proxies */
+    const stooqResults = await fetchStooqMulti(STOOQ_SYMS.map(s => s.sym));
 
     let usdEur=null;
     const fxCache=lsGet("fx");
@@ -7285,9 +7239,9 @@ async function loadMarketStats(force=false){
     if(cgCache?.bitcoin?.eur) btcEur=cgCache.bitcoin.eur;
 
     cache={
-      items: STOOQ_SYMS.map((s,i)=>{
-        const v=results[i];
-        return {...s,data:(v.status==="fulfilled"&&v.value)?v.value:null};
+      items: STOOQ_SYMS.map((s)=>{
+        const v=stooqResults[s.sym.toLowerCase()];
+        return {...s,data:v||null};
       }),
       usdEur,btcEur,ts:Date.now()
     };
@@ -8398,34 +8352,25 @@ async function loadPSI20Trend(force = false) {
 	      }
 	    }
 
-	    /* Stooq CSV — fallback (por vezes só tem último fecho) */
-	    async function fetchStooq(sym){
-	      if(!sym) return null;
-	      const url=`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv&_=${Date.now()}`;
-	      try{
-	        const r=await fetchWithCORS(url, { cache: "no-store" }, 9000);
-	        if(!r.ok) return null;
-	        const csv=await r.text();
-	        const rows=csv.trim().split("\n");
-	        if(rows.length<2) return null;
-	        const cols=rows[1].split(",");
-	        /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
-	        const open =parseFloat(cols[3]);
-	        const hi   =parseFloat(cols[4]);
-	        const lo   =parseFloat(cols[5]);
-	        const close=parseFloat(cols[6]);
-	        const vol  =parseFloat(cols[7])||0;
-	        if(!isNaN(close)&&close>0){
-	          const prev = (!isNaN(open) && open>0) ? open : close;
-	          return {price:close,prev,hi,lo,vol,chg:prev?((close-prev)/prev*100):0,live:true,src:"stooq"};
-	        }
-	      }catch{}
-	      return null;
-	    }
-
 	    /* Fetch paralelo de todos os símbolos */
 	    const allSyms=[...EU_INDICES,...PSI20_CONST];
-	    const results=await Promise.allSettled(allSyms.map(s=>fetchYahoo(s.yf).then(v=>v||fetchStooq(s.sym))));
+	    
+	    /* Tentar Yahoo primeiro (paralelo, individual pois v8 chart não suporta multi-batch bem para OHLC) */
+	    const yahooRes = await Promise.allSettled(allSyms.map(s => fetchYahoo(s.yf)));
+	    
+	    /* Identificar o que falhou no Yahoo e precisa de fallback Stooq */
+	    const needsStooq = allSyms.filter((s, i) => yahooRes[i].status !== 'fulfilled' || !yahooRes[i].value);
+	    let stooqResults = {};
+	    
+	    if (needsStooq.length > 0) {
+	      /* Batch Stooq: Reduz significativamente o número de pedidos a proxies */
+	      stooqResults = await fetchStooqMulti(needsStooq.map(s => s.sym));
+	    }
+
+	    const results = allSyms.map((s, i) => {
+	      if (yahooRes[i].status === 'fulfilled' && yahooRes[i].value) return yahooRes[i].value;
+	      return stooqResults[s.sym.toLowerCase()] || null;
+	    });
 
     const mkFallback=(s)=>({
       price:s.fallback,
@@ -8434,12 +8379,12 @@ async function loadPSI20Trend(force = false) {
       chg:s.fChg||0, vol:0, live:false
     });
 
-	    const isLive=results.some(r=>r.value?.live);
-	    const src=results.find(r=>r.value?.src)?.value?.src || null;
+	    const isLive=results.some(r=>r?.live);
+	    const src=results.find(r=>r?.src)?.src || null;
 
 	    cache={
-	      indices: EU_INDICES.map((s,i)=>results[i]?.value||mkFallback(s)),
-	      stocks:  PSI20_CONST.map((s,i)=>results[EU_INDICES.length+i]?.value||mkFallback(s)),
+	      indices: EU_INDICES.map((s,i)=>results[i]||mkFallback(s)),
+	      stocks:  PSI20_CONST.map((s,i)=>results[EU_INDICES.length+i]||mkFallback(s)),
 	      live:    isLive,
 	      src,
 	      ts:      Date.now()

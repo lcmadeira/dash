@@ -82,6 +82,10 @@
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch] fail ${step.source} HTTP ${r.status}`, url);
+          if (r.status === 429) {
+            if (isFetchDebugEnabled()) console.warn(`[fetch] rate limited by ${step.source}, cooling down...`);
+            await new Promise((resolve) => setTimeout(resolve, 600)); // Pequena pausa se houver 429
+          }
           continue;
         }
         if (validate && !(await validate(r))) {
@@ -96,6 +100,56 @@
       }
     }
     throw lastErr || new Error("Fetch indisponível");
+  }
+
+  async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
+    const { r } = await fetchFirstOk(url, options, timeoutMs, ["direct", "local", "allorigins", "jina", "corsproxy"]);
+    return r;
+  }
+
+  async function fetchStooqMulti(symbols) {
+    if (!Array.isArray(symbols) || !symbols.length) return {};
+    const symStr = symbols.map(s => encodeURIComponent(s)).join("+");
+    const url = `https://stooq.com/q/l/?s=${symStr}&f=sd2t2ohlcv&h&e=csv&_=${Date.now()}`;
+
+    try {
+      const r = await fetchWithCORS(url, { cache: "no-store" }, 10000);
+      if (!r.ok) return {};
+      const csv = await r.text();
+      const lines = csv.trim().split("\n");
+      if (lines.length < 2) return {};
+
+      const results = {};
+      /* Header: Symbol,Date,Time,Open,High,Low,Close,Volume */
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(",");
+        if (cols.length < 7) continue;
+        const s = cols[0].toLowerCase();
+        const open = parseFloat(cols[3]);
+        const hi = parseFloat(cols[4]);
+        const lo = parseFloat(cols[5]);
+        const close = parseFloat(cols[6]);
+        const vol = parseFloat(cols[7]) || 0;
+
+        if (!isNaN(close) && close > 0) {
+          const prev = (!isNaN(open) && open > 0) ? open : close;
+          results[s] = {
+            price: close,
+            prev,
+            hi,
+            lo,
+            vol,
+            chg: prev ? ((close - prev) / prev * 100) : 0,
+            live: true,
+            src: "stooq"
+          };
+        }
+      }
+      return results;
+    } catch (e) {
+      console.warn("[fetchStooqMulti] failed", e);
+      return {};
+    }
   }
 
   async function fetchJsonFirstOk(url, options = {}, timeoutMs = 12000, sources, validateJson) {
@@ -162,5 +216,7 @@
   window.fetchFirstOk = fetchFirstOk;
   window.fetchJsonFirstOk = fetchJsonFirstOk;
   window.fetchTextFirstOk = fetchTextFirstOk;
+  window.fetchWithCORS = fetchWithCORS;
+  window.fetchStooqMulti = fetchStooqMulti;
 })();
 
