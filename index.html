@@ -4227,7 +4227,6 @@ function switchHmap(key,btn){
 }
 
 /* ── IPMA Meteorologia ── */
-const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 async function loadWeather(force=false){
   $("wx-body").innerHTML=skeletonWeather();
   try{

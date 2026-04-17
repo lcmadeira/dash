@@ -84,3 +84,5 @@ const IPMA_WX = {
 };
 
 const IPMA_WIND = ["", "Fraco", "Fraco a mod.", "Moderado", "Forte", "Muito forte"];
+
+const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
