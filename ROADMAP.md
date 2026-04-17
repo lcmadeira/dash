@@ -259,7 +259,8 @@
 ### v1.2.0 — Concluído ✅
 
 - ✅ **Configuração centralizada** — extrai `CFG`, `REF_DATE`, `EURIBOR_FALLBACK`, `GAS_TARIFAS`, `IPMA_CITIES`, `IPMA_WX`, `IPMA_WIND`, `wxIPMA` para `src/config.js` (17/04/2026)
-  - Elimina duplicações e hardcoding no `index.html`
+  - Elimina duplicações e hardcoding no `index.html` (resolveu colisão `EURIBOR_FALLBACK`)
+  - Resolve 24 erros de linting (`no-undef`) no `index.html`
   - Mantém backward compatibility via globals
   - Facilita manutenção e futuras extensões
 
