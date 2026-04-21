@@ -39,30 +39,51 @@
     return !!on;
   };
 
-  function buildFetchPlan(url, sources = ["direct", "local", "allorigins", "jina", "corsproxy"]) {
-    const src =
-      Array.isArray(sources) && sources.length
-        ? sources
-        : ["direct", "local", "allorigins", "jina", "corsproxy"];
-    const s = new Set(src);
+  function buildFetchPlan(url, sources) {
+    const isCorsHost = (u) => {
+      const h = new URL(u).hostname;
+      return h.includes("stooq") || h.includes("apambiente") || h.includes("ecb.europa.eu") || h.includes("eurostat");
+    };
+
     const out = [];
     const add = (source, u) => {
       if (u && !out.some((x) => x.url === u)) out.push({ source, url: u });
     };
-    if (s.has("direct")) add("direct", url);
-    if (s.has("local") && IS_LOCAL_DEV) add("localproxy", localProxyUrl(url));
+
+    /* Determinar fontes padrão se não fornecidas */
+    const s = new Set(Array.isArray(sources) && sources.length ? sources : ["direct", "local", "allorigins", "corsproxy", "codetabs"]);
+
+    /* 1. Direct (só se local ou se o host permitir CORS nativo ou se for forçado) */
+    if (s.has("direct") && (IS_LOCAL_DEV || !isCorsHost(url))) {
+      add("direct", url);
+    }
+
+    /* 2. Local Proxy (só em dev) */
+    if (s.has("local") && IS_LOCAL_DEV) {
+      add("localproxy", localProxyUrl(url));
+    }
+
+    /* 3. AllOrigins (Muito estável, mas tem rate limits) */
     if (s.has("allorigins")) {
       add("allorigins", `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
-      add("allorigins2", `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
     }
+
+    /* 4. CorsProxy.io (Rápido e fiável) */
+    if (s.has("corsproxy")) {
+      add("corsproxy", `https://corsproxy.io/?url=${encodeURIComponent(url)}`);
+    }
+
+    /* 5. CodeTabs (Boa alternativa) */
+    if (s.has("codetabs")) {
+      add("codetabs", `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`);
+    }
+
+    /* 6. Jina (Fallback para conteúdo denso) */
     if (s.has("jina")) {
       const u = url.replace(/^https?:\/\//, "");
       add("jina", `https://r.jina.ai/http://${u}`);
     }
-    if (s.has("corsproxy")) {
-      const enc = encodeURIComponent(url);
-      add("corsproxy", `https://corsproxy.io/?url=${enc}`);
-    }
+
     return out;
   }
 
@@ -71,27 +92,42 @@
     return { ...options, signal: hasSignal ? options.signal : AbortSignal.timeout(timeoutMs) };
   }
 
+  /* Cache de proxies em "cool down" por 1 minuto se derem 429 */
+  const proxyCoolDown = new Map();
+
   async function fetchFirstOk(url, options = {}, timeoutMs = 12000, sources, validate) {
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
+    const now = Date.now();
+
     for (let i = 0; i < plan.length; i++) {
       const step = plan[i];
+      
+      /* Saltar se estiver em cooldown */
+      if (proxyCoolDown.has(step.source) && now < proxyCoolDown.get(step.source)) {
+        continue;
+      }
+
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch] try #${i + 1}/${plan.length} ${step.source}`, url);
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
-        if (!r.ok) {
-          lastErr = new Error(`HTTP ${r.status}`);
-          if (isFetchDebugEnabled()) console.debug(`[fetch] fail ${step.source} HTTP ${r.status}`, url);
-          if (r.status === 429) {
-            if (isFetchDebugEnabled()) console.warn(`[fetch] rate limited by ${step.source}, cooling down...`);
-            await new Promise((resolve) => setTimeout(resolve, 600)); // Pequena pausa se houver 429
-          }
+        
+        if (r.status === 429) {
+          proxyCoolDown.set(step.source, now + 60000); // 1 minuto de pausa
+          if (isFetchDebugEnabled()) console.warn(`[fetch] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
+
+        if (!r.ok) {
+          lastErr = new Error(`HTTP ${r.status}`);
+          continue;
+        }
+        
         if (validate && !(await validate(r))) {
           lastErr = new Error("validate");
           continue;
         }
+        
         if (isFetchDebugEnabled()) console.info(`[fetch] ok ${step.source}`, url);
         return { r, usedUrl: step.url };
       } catch (e) {
@@ -99,11 +135,11 @@
         if (isFetchDebugEnabled()) console.debug(`[fetch] err ${step.source}`, url, e?.message || e);
       }
     }
-    throw lastErr || new Error("Fetch indisponível");
+    throw lastErr || new Error("Fetch indisponível (todos os proxies falharam)");
   }
 
   async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
-    const { r } = await fetchFirstOk(url, options, timeoutMs, ["direct", "local", "allorigins", "jina", "corsproxy"]);
+    const { r } = await fetchFirstOk(url, options, timeoutMs);
     return r;
   }
 
