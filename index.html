@@ -4160,7 +4160,7 @@ textarea.nta::placeholder{color:var(--t3)}
  <script src="src/cards/seis.js"></script>
  <script src="src/cards/dams.js"></script>
 <script>
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,fetchFirstOk,fetchJsonFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError */
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -5492,22 +5492,21 @@ let fxRates={};
 async function loadFX(force=false){
   $("fx-body").innerHTML=skeletonKPIs(6);
   try{
-    let data=force?null:lsGet("fx");
-    if(!data){
-      const syms=FX_PAIRS.map(p=>p.code).join(",");
-      let fxOk=false;
-      try{
-        const r=await fetch("https://api.frankfurter.dev/v1/latest?base=EUR",{signal:AbortSignal.timeout(6000)});
-        if(r.ok){const j=await r.json();data={rates:j.rates,date:j.date};fxOk=true;}
-      }catch{}
-      if(!fxOk){
-        const r2=await fetch("https://open.er-api.com/v6/latest/EUR",{signal:AbortSignal.timeout(8000)});
-        if(!r2.ok)throw new Error("Câmbio indisponível");
-        const j2=await r2.json();
-        data={rates:j2.rates,date:""};
+    let data = force ? null : lsGet("fx");
+    if (!data) {
+      try {
+        const j = await fetchJsonFirstOk("https://api.frankfurter.dev/v1/latest?base=EUR", {}, 6000);
+        data = { rates: j.rates, date: j.date };
+      } catch (e) {
+        console.warn("⚠️ Frankfurter falhou, a tentar fallback:", e.message);
+        try {
+          const j2 = await fetchJsonFirstOk("https://open.er-api.com/v6/latest/EUR", {}, 8000);
+          data = { rates: j2.rates, date: "" };
+        } catch (e2) {
+          throw new Error("Câmbio indisponível");
+        }
       }
-      if(!data)throw new Error("Sem dados de câmbio");
-      lsSet("fx",data);
+      if (data) lsSet("fx", data);
     }
     fxRates=data.rates||{};
     renderFX(data.date);
