@@ -4464,12 +4464,12 @@ async function renderFuel(force=false){
     syncFuelDeltaBtn();
     // PT
     let pt=force?null:lsGet("fuel");
-    if(!pt){
-      const r=await fetch("https://api.apiaberta.pt/v1/fuel/prices");
-      if(!r.ok)throw new Error(`PT HTTP ${r.status}`);
-      const j=await r.json();
-      pt=j.data||j;
-      lsSet("fuel",pt);
+    try {
+      const j = await fetchJsonFirstOk("https://api.apiaberta.pt/v1/fuel/prices", {}, 12000);
+      pt = j.data || j;
+      if (pt) lsSet("fuel", pt);
+    } catch(e) {
+      console.warn("⚠️ Fuel API falhou:", e.message);
     }
     const ptBy={};pt.forEach(f=>ptBy[f.fuel_slug]=f);
 
@@ -4725,11 +4725,11 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
 
   const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`;
   try {
-    const r = await fetchWithCORS(url, {}, 11000);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const csv = (await r.text()).trim();
-    const lines = csv.split("\n").filter(Boolean);
-    if (lines.length < 5) throw new Error("CSV inválido");
+    const csv = await fetchTextFirstOk(url, {}, 11000);
+    if (!csv || csv.length < 20 || csv.includes("<!DOCTYPE html>")) {
+      throw new Error("CSV inválido ou página de erro recebida");
+    }
+    const lines = csv.trim().split("\n").filter(Boolean);
 
     const out = [];
     for (let i = 1; i < lines.length; i++) {
@@ -4836,11 +4836,12 @@ async function loadHolidays(force=false){
   try{
     const year=new Date().getFullYear(), ck=`hols_${year}`;
     let hols=force?null:lsGet(ck);
-    if(!hols){
-      const r=await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PT`);
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      hols=await r.json();
-      lsSet(ck,hols);
+    try {
+      const url = `https://date.nager.at/api/v3/PublicHolidays/${year}/PT`;
+      hols = await fetchJsonFirstOk(url, {}, 10000);
+      if (hols) lsSet(ck, hols);
+    } catch(e) {
+      console.warn("⚠️ Holidays API falhou:", e.message);
     }
 
     const today=new Date(); today.setHours(0,0,0,0);
@@ -7416,23 +7417,19 @@ async function loadImob(force=false){
 
   /* ── Fetch com proxies ───────────────────────────────────── */
   async function fetchINE(varcd){
-    const url=buildINEUrl(varcd);
-    const proxies=[
-      ...(IS_LOCAL_DEV?[localProxyUrl(url)]:[]),
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-      "https://corsproxy.io/?url="+encodeURIComponent(url),
-    ];
-    for(const p of proxies){
-      try{
-        const r=await fetch(p,{signal:AbortSignal.timeout(12000)});
-        if(!r.ok) continue;
-        const j=await r.json();
-        if(Array.isArray(j)&&j.length) return j;
-        /* allorigins pode embrulhar em {contents:'...'} */
-        if(j.contents){const parsed=JSON.parse(j.contents);if(Array.isArray(parsed))return parsed;}
-      }catch(e){console.warn("INE proxy falhou:",p.slice(0,40),e.message);}
+    const url = buildINEUrl(varcd);
+    try {
+      const j = await fetchJsonFirstOk(url, {}, 14000);
+      if(Array.isArray(j) && j.length) return j;
+      if(j.contents) {
+        const parsed = JSON.parse(j.contents);
+        if(Array.isArray(parsed)) return parsed;
+      }
+      return j;
+    } catch(e) {
+      console.warn("⚠️ INE falhou:", e.message);
+      return null;
     }
-    return null;
   }
 
   /* ── Actualizar KPIs no DOM com dados live ───────────────── */
@@ -9589,18 +9586,15 @@ async function loadAir(force=false){
   const ck="air_v8";
   let d=force?null:lsGet(ck);
   if(!d){
-    const URLS=[
-      "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5",
-      "https://corsproxy.io/?url=https://opensky-network.org/api/states/all?lamin=36%26lomin=-12%26lamax=44%26lomax=-5",
-      "https://api.allorigins.win/raw?url="+encodeURIComponent("https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5")
-    ];
-    for(const url of URLS){
-      try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
-        if(!r.ok)continue;
-        const j=await r.json();
-        if(j.states?.length){d={ts:Date.now(),states:j.states,live:true};lsSet(ck,d);break;}
-      }catch{}
+    try {
+      const url = "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5";
+      const j = await fetchJsonFirstOk(url, {}, 14000);
+      if(j && j.states?.length){
+        d={ts:Date.now(),states:j.states,live:true};
+        lsSet(ck,d);
+      }
+    } catch(e) {
+      console.warn("⚠️ OpenSky falhou:", e.message);
     }
   }
 
@@ -10002,17 +9996,15 @@ async function loadOrmuz(force=false){
   /* Bounding box: Estreito de Ormuz (Golfo Pérsico) */
   /* Lat: 24°N - 27°N, Lon: 56°E - 58°E */
   if(!d){
-    const URLS=[
-      "https://data.aishub.net/ws.php?username=PUBLIC&format=1&output=json&latmin=24&latmax=27&lonmin=56&lonmax=58",
-    ];
-    for(const url of URLS){
-      try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
-        if(r.ok){
-          const j=await r.json();
-          if(j&&j.length>1){d={ts:Date.now(),vessels:j,live:true};lsSet(ck,d);break;}
-        }
-      }catch{}
+    try {
+      const url = "https://data.aishub.net/ws.php?username=PUBLIC&format=1&output=json&latmin=24&latmax=27&lonmin=56&lonmax=58";
+      const j = await fetchJsonFirstOk(url, {}, 10000);
+      if(j && j.length > 1){
+        d={ts:Date.now(),vessels:j,live:true};
+        lsSet(ck,d);
+      }
+    } catch(e) {
+      console.warn("⚠️ AISHub falhou:", e.message);
     }
   }
 
@@ -10593,21 +10585,16 @@ async function loadCO2(force=false){
   let d=force?null:lsGet(ck);
 
   if(!d){
-    /* Tentar REN DataHub — API pública PT, sem chave */
-    const ENDPOINTS=[
-      /* REN endpoint de produção por fonte */
-      "https://datahub.ren.pt/service/renewable/",
-      /* Fallback: ENTSO-E via proxy */
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(
-        "https://datahub.ren.pt/service/renewable/")
-    ];
-    for(const url of ENDPOINTS){
-      try{
-        const r=await fetch(url,{signal:AbortSignal.timeout(9000)});
-        if(r.ok){const j=await r.json();if(j&&(j.value||j.data||Array.isArray(j))){d={src:"ren",raw:j};break;}}
-      }catch{}
+    try {
+      const url = "https://datahub.ren.pt/service/renewable/";
+      const j = await fetchJsonFirstOk(url, {}, 10000);
+      if(j && (j.value || j.data || Array.isArray(j))){
+        d={src:"ren", raw:j};
+        lsSet(ck, d);
+      }
+    } catch(e) {
+      console.warn("⚠️ REN DataHub falhou:", e.message);
     }
-    if(d)lsSet(ck,d);
   }
 
   /* Dados estáticos PT 2024 (DGEG/REN Relatório Anual) — sempre disponíveis */

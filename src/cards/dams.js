@@ -26,13 +26,18 @@ async function loadDams(force = false) {
       
       for (const t of tables) {
         const txt = t.textContent;
-        if (txt.includes("Bacia") && txt.includes("%") && txt.includes("Média")) {
+        /* Ser mais flexível na procura da tabela: pode ter nomes de bacias conhecidos */
+        const hasBasinKeywords = ["Douro", "Tejo", "Guadiana", "Cávado"].some(k => txt.includes(k));
+        if ((txt.includes("Bacia") || hasBasinKeywords) && txt.includes("%")) {
           targetTable = t;
           break;
         }
       }
 
-      if (!targetTable) throw new Error("Tabela de dados não encontrada no HTML");
+      if (!targetTable) {
+        console.debug("Dams: HTML structure:", html.slice(0, 500));
+        throw new Error("Tabela de dados não encontrada no HTML");
+      }
 
       const rows = Array.from(targetTable.querySelectorAll("tr")).filter(r => {
         const c = r.cells;

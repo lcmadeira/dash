@@ -41,8 +41,10 @@
 
   function buildFetchPlan(url, sources) {
     const isCorsHost = (u) => {
-      const h = new URL(u).hostname;
-      return h.includes("stooq") || h.includes("apambiente") || h.includes("ecb.europa.eu") || h.includes("eurostat");
+      const h = new URL(u).hostname.toLowerCase();
+      return h.includes("stooq") || h.includes("apambiente") || h.includes("ecb.europa.eu") || 
+             h.includes("eurostat") || h.includes("opensky-network") || h.includes("aishub") || 
+             h.includes("ren.pt") || h.includes("usgs.gov") || h.includes("ine.pt") || h.includes("coingecko");
     };
 
     const out = [];
