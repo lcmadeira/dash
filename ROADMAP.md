@@ -269,7 +269,15 @@
 - ✅ **Centralização de Mercado** — PSI20 e Inflação movidos para `config.js` com fallbacks robustos e otimização de fetch (21/04/2026)
 - ✅ **Modularização** — Redução de mais ~150 linhas de código hardcoded no `index.html`
 
-### v1.2.2 — Planeado
+### v1.2.2 — Concluído ✅
+
+- ✅ **Fetch resilience** — Sistema de proxy com rotação automática, fallback allorigins e 429 cooldown (21/04/2026)
+- ✅ **Parser robusto para barragens** — Enhanced error handling para SNIRH com deduplicação e retry (21/04/2026)
+- ✅ **Otimização Stooq** — Request batching e staggered startup para evitar rate limiting (21/04/2026)
+- ✅ **Lint fixes** — `no-var`, `prefer-const`, `eqeqeq` e limpeza de globals (21/04/2026)
+- ✅ **ECB Key Rates parser** — Limpeza de `loadFX` e resolução de erros de lint (21/04/2026)
+
+### v1.2.3 — Planeado
 
 - [ ] **Consolidar CSS** em ficheiro separado
 - [ ] Documentar funções principais (JSDoc)
@@ -283,5 +291,5 @@
 
 ---
 
-**Última atualização**: 17 de Abril de 2026
+**Última atualização**: 21 de Abril de 2026
 **Mantido por**: LCMadeira

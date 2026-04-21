@@ -16,6 +16,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) e Marítimo (Estreito de Ormuz) com mapas interactivos em Canvas/TopoJSON.
 - **Combustíveis PT vs ES**: Comparação de preços entre Portugal e Espanha, com detalhe de postos, timestamps e preferências de combustível.
 - **Simulação de Alta Fidelidade**: Tráfego marítimo dinâmico baseado no tempo real (UTC) para contornar limitações de APIs públicas de AIS.
+- **Dados de Barragens**: Níveis de água por bacia hidrográfica via SNIRH/APA.
 
 ## Stack / dependências
 
