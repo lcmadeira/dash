@@ -3715,21 +3715,35 @@ textarea.nta::placeholder{color:var(--t3)}
   
   <!-- Qualidade do Ar · Portugal -->
   <div class="card" id="card-airquality">
-    <div class="stripe" style="background:linear-gradient(90deg,#10B981,#06B6D4,#8B5CF6)"></div>
-    <div class="ch">
-      <div class="ch-ico" style="background:#10B98120">🌬️</div>
-      <span class="ch-lbl">Qualidade do Ar · Portugal
-        <span class="help-tip" title="AQI Europeu (EEA): índice de 0 a 100+; quanto menor, melhor qualidade do ar.">?</span>
-      </span>
-      <div class="ch-r">
-        <span class="badge" id="aq-aqi-badge">AQI —</span>
-        <button class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
-      </div>
-    </div>
-    <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
-    <div class="src">✦ Open-Meteo · Copernicus CAMS · 11 km resolution · Sem chave API</div>
+   <div class="stripe" style="background:linear-gradient(90deg,#10B981,#06B6D4,#8B5CF6)"></div>
+   <div class="ch">
+     <div class="ch-ico" style="background:#10B98120">🌬️</div>
+     <span class="ch-lbl">Qualidade do Ar · Portugal
+       <span class="help-tip" title="AQI Europeu (EEA): índice de 0 a 100+; quanto menor, melhor qualidade do ar.">?</span>
+     </span>
+     <div class="ch-r">
+       <span class="badge" id="aq-aqi-badge">AQI —</span>
+       <button class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+     </div>
+   </div>
+   <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
+   <div class="src">✦ Open-Meteo · Copernicus CAMS · 11 km resolution · Sem chave API</div>
   </div>
 
+  <!-- Barragens · Portugal (SNIRH) -->
+  <div class="card s2" id="card-dams">
+   <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
+   <div class="ch">
+     <div class="ch-ico" style="background:#3B82F620">💧</div>
+     <span class="ch-lbl">Barragens · Armazenamento
+       <span class="help-tip" title="Dados do SNIRH: percentagem de volume armazenado por bacia hidrográfica em relação à capacidade total.">?</span>
+     </span>
+     <div class="ch-r">
+       <button class="rbtn ico" onclick="refreshCard('dams','dams_v1',this,loadDams,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+     </div>
+   </div>
+   <div id="dams-body"></div>
+  </div>
 <!-- Euribor estático EMMI -->
   <div class="card s2" id="card-euribor">
     <div class="stripe" style="background:var(--cyan)"></div>
@@ -4144,8 +4158,9 @@ textarea.nta::placeholder{color:var(--t3)}
  <script src="src/cards/elec.js"></script>
  <script src="src/cards/news.js"></script>
  <script src="src/cards/seis.js"></script>
+ <script src="src/cards/dams.js"></script>
 <script>
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,IPMA_CITIES,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,fetchFirstOk,fetchJsonFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,loadElec,loadNews,loadSeis,notifyNonCriticalError */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,IPMA_WIND,wxIPMA,CACHE_TTL,PFX,lsGet,lsSet,IS_LOCAL_DEV,localProxyUrl,fetchViaLocalProxy,fetchFirstOk,fetchJsonFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,DAY_NAMES,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError */
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -5146,13 +5161,42 @@ function fmtBCEperiod(p){
   return`${months[parseInt(m)-1]} ${y.slice(2)}`;
 }
 
-/* ── Fetch de uma serie Euribor da API BCE ───────────────────── */
-async function fetchBCEseries(seriesKey,nObs=9){
-  const url=`https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT0.MM.${seriesKey}.HSTA`
-           +`?format=jsondata&lastNObservations=${nObs}`;
-  const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
-  if(!r.ok)throw new Error(`BCE HTTP ${r.status}`);
+/* ── Fetch de uma serie BCE (formato generico) ───────────────── */
+async function fetchBCEseries(fullKey, nObs=9){
+  /* Se a chave nao for completa (ex: EURIBOR1YD_), assumir prefixo Euribor Mensal */
+  const key = fullKey.includes('.') ? fullKey : `M.U2.EUR.RT0.MM.${fullKey}.HSTA`;
+  const url = `https://data-api.ecb.europa.eu/service/data/FM/${key}`
+            + `?format=jsondata&lastNObservations=${nObs}`;
+  const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+  if(!r.ok) throw new Error(`BCE HTTP ${r.status}`);
   return parseBCEseries(await r.json());
+}
+
+/* ── Buscar taxas oficiais do BCE (Key Rates) ────────────────── */
+async function fetchBCEKeyRates(){
+  /* DFR (Deposito), MRR (Refinanciamento), MLF (Cedencia) */
+  const key = "D.U2.EUR.4F.KR.DF+MRR_FR+MLFR.LEV";
+  const url = `https://data-api.ecb.europa.eu/service/data/FM/${key}?format=jsondata&lastNObservations=1`;
+  const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+  if(!r.ok) return null;
+  const json = await r.json();
+  const ds = json.dataSets[0].series;
+  
+  /* Mapeamento manual baseado na posicao das dimensoes (simplificado) */
+  /* Nota: O formato JSON-stat seria mais robusto, mas mantemos o parser existente */
+  const findVal = (kPart) => {
+    const sKey = Object.keys(ds).find(k => k.includes(kPart));
+    if(!sKey) return null;
+    const obs = ds[sKey].observations;
+    const firstObs = Object.values(obs)[0];
+    return firstObs ? parseFloat(parseFloat(firstObs[0]).toFixed(2)) : null;
+  };
+
+  return {
+    dep:   findVal(".DF.")     ?? EURIBOR_FALLBACK.bce.dep,
+    refin: findVal(".MRR_FR.") ?? EURIBOR_FALLBACK.bce.refin,
+    margLend: findVal(".MLFR.") ?? EURIBOR_FALLBACK.bce.margLend
+  };
 }
 
 /* ── Carregar todas as maturidades em paralelo ───────────────── */
@@ -5170,49 +5214,51 @@ async function loadEuriborFromBCE(){
      desc:"Cr\u00e9dito habita\u00e7\u00e3o revis\u00e3o anual"},
   ];
 
-  const results=await Promise.all(
-    SERIES.map(s=>fetchBCEseries(s.key,9).catch(()=>null))
-  );
+  /* Carregar Euribor e Key Rates em paralelo */
+  const [euriborRes, keyRates] = await Promise.all([
+    Promise.all(SERIES.map(s => fetchBCEseries(s.key, 9).catch(() => null))),
+    fetchBCEKeyRates().catch(() => null)
+  ]);
 
-  const r3m=results[2],r12m=results[4];
-  if(!r3m||!r12m||r3m.length<2||r12m.length<2)
+  const r3m = euriborRes[2], r12m = euriborRes[4];
+  if(!r3m || !r12m || r3m.length < 2 || r12m.length < 2)
     throw new Error("Dados BCE insuficientes");
 
-  const rates=SERIES.map((s,i)=>{
-    const rows=results[i];
-    if(!rows||rows.length<2) return EURIBOR_FALLBACK.rates.find(r=>r.term===s.term);
-    const latest=rows[rows.length-1];
-    const prev  =rows[rows.length-2];
-    return{
-      term:s.term,termFull:s.termFull,
-      val:parseFloat(latest.value.toFixed(3)),
-      prev:parseFloat(prev.value.toFixed(3)),
-      color:s.color,hipot:s.hipot,desc:s.desc,
+  const rates = SERIES.map((s, i) => {
+    const rows = euriborRes[i];
+    if(!rows || rows.length < 2) return EURIBOR_FALLBACK.rates.find(r => r.term === s.term);
+    const latest = rows[rows.length - 1];
+    const prev   = rows[rows.length - 2];
+    return {
+      term: s.term, termFull: s.termFull,
+      val: parseFloat(latest.value.toFixed(3)),
+      prev: parseFloat(prev.value.toFixed(3)),
+      color: s.color, hipot: s.hipot, desc: s.desc,
     };
   });
 
-  const hist3m =results[2]||[];
-  const hist6m =results[3]||[];
-  const hist12m=results[4]||[];
-  const hist=hist3m.slice(-8).map(row=>{
-    const p=row.period;
-    const v6m =hist6m .find(r=>r.period===p)?.value??null;
-    const v12m=hist12m.find(r=>r.period===p)?.value??null;
-    return[fmtBCEperiod(p),row.value,v6m,v12m];
-  }).filter(r=>r[1]!==null);
+  const hist3m  = euriborRes[2] || [];
+  const hist6m  = euriborRes[3] || [];
+  const hist12m = euriborRes[4] || [];
+  const hist = hist3m.slice(-8).map(row => {
+    const p = row.period;
+    const v6m  = hist6m.find(r => r.period === p)?.value ?? null;
+    const v12m = hist12m.find(r => r.period === p)?.value ?? null;
+    return [fmtBCEperiod(p), row.value, v6m, v12m];
+  }).filter(r => r[1] !== null);
 
-  const latestPeriod=hist3m[hist3m.length-1]?.period||"";
-  const updatedDate=latestPeriod
-    ?new Date(latestPeriod+"-15").toLocaleDateString("pt-PT",{month:"short",year:"numeric"})
-    :"BCE live";
+  const latestPeriod = hist3m[hist3m.length - 1]?.period || "";
+  const updatedDate = latestPeriod
+    ? new Date(latestPeriod + "-15").toLocaleDateString("pt-PT", {month: "short", year: "numeric"})
+    : "BCE live";
 
-  return{
-    updated:updatedDate,rates,hist,
-    bce:EURIBOR_FALLBACK.bce,
-    peak:EURIBOR_FALLBACK.peak,
-    bceNext:EURIBOR_FALLBACK.bceNext,
-    spreadBancario:EURIBOR_FALLBACK.spreadBancario,
-    _source:"bce_live",
+  return {
+    updated: updatedDate, rates, hist,
+    bce: keyRates || EURIBOR_FALLBACK.bce,
+    peak: EURIBOR_FALLBACK.peak,
+    bceNext: EURIBOR_FALLBACK.bceNext,
+    spreadBancario: EURIBOR_FALLBACK.spreadBancario,
+    _source: "bce_live",
   };
 }
 
@@ -5643,15 +5689,7 @@ async function loadFXTrend(force = false) {
    Estratégia: fallback estático imediato → Eurostat em background
    ══════════════════════════════════════════════════════════════ */
 
-/* Dados estáticos como fallback (actualizar se API falhar >2 meses) */
-const INFLATION_FALLBACK=[
-  {m:"Fev 2026",pt:2.4,eu:2.3},
-  {m:"Jan 2026",pt:2.6,eu:2.5},
-  {m:"Dez 2025",pt:2.2,eu:2.4},
-  {m:"Nov 2025",pt:1.9,eu:2.3},
-  {m:"Out 2025",pt:1.8,eu:2.3},
-  {m:"Set 2025",pt:1.2,eu:1.7},
-];
+/* Dados estáticos como fallback (config em src/config.js) */
 
 /* Estado global — preenchido pela API ou pelo fallback */
 let INFLATION_DATA = null;
@@ -6544,6 +6582,7 @@ renderInflation();
 initEuribor();
 setTimeout(()=>{renderExp();renderDiv();},50);
 loadElec();
+loadDams();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);
 setTimeout(()=>loadFX(),          500);
 setTimeout(()=>loadTTF(),         800);
@@ -6567,7 +6606,8 @@ setInterval(()=>{
   loadWeather();
   loadNews("pt",true);loadNews("world",true);
   renderFuel();loadHolidays();
-  loadElec();loadGeo();loadAirQuality(true);loadFX(true);loadCrypto(true);initInflation(true);
+  loadElec();loadGeo();loadAirQuality(true);loadDams(true);loadFX(true);loadCrypto(true);initInflation(true);
+
   loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadOrmuz(true);loadCO2(true);loadImob(true);
   setTimeout(()=>loadMarketStats(true),1500);
   renderCabaz();
@@ -8236,25 +8276,7 @@ function loadGasPT(force=false){
   loadGasPTTrend(false).catch(()=>{});
 }
 
-	/* ── PSI20 · dados ── actualizar fallbacks mensalmente */
-	const PSI20_CONST=[
-	  {sym:"edp.ls",    yf:"EDP.LS",  label:"EDP",              ico:"⚡", sector:"Energia",      col:"#3B82F6", fallback:4.12,  fChg:-0.9},
-	  {sym:"galp.ls",   yf:"GALP.LS", label:"Galp",             ico:"🛢️", sector:"Energia",      col:"#F59E0B", fallback:11.34, fChg: 0.4},
-	  {sym:"jmt.ls",    yf:"JMT.LS",  label:"Jerónimo Martins", ico:"🛒", sector:"Distribuição", col:"#10B981", fallback:16.80, fChg:-1.2},
-	  {sym:"bcp.ls",    yf:"BCP.LS",  label:"Millennium BCP",   ico:"🏦", sector:"Banca",        col:"#8B5CF6", fallback:0.338, fChg: 1.8},
-	  {sym:"nos.ls",    yf:"NOS.LS",  label:"NOS",              ico:"📡", sector:"Telecom",      col:"#06B6D4", fallback:3.72,  fChg: 0.2},
-	  {sym:"son.ls",    yf:"SON.LS",  label:"Sonae",            ico:"🏪", sector:"Distribuição", col:"#F97316", fallback:0.845, fChg:-0.5},
-	  {sym:"rene.ls",   yf:"RENE.LS", label:"REN",              ico:"🔌", sector:"Energia",      col:"#22D3EE", fallback:2.49,  fChg: 0.0},
-	  {sym:"ctt.ls",    yf:"CTT.LS",  label:"CTT",              ico:"📬", sector:"Serviços",     col:"#A855F7", fallback:5.84,  fChg: 1.1},
-	];
-	const EU_INDICES=[
-	  {sym:"^psi20",    yf:"^PSI20",   label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
-	  {sym:"^dax",      yf:"^GDAXI",   label:"DAX",         flag:"🇩🇪", col:"#3B82F6", fallback:22890, fChg: 0.3},
-	  {sym:"^cac",      yf:"^FCHI",    label:"CAC 40",      flag:"🇫🇷", col:"#8B5CF6", fallback:8142,  fChg:-0.2},
-	  {sym:"^ibex",     yf:"^IBEX",    label:"IBEX 35",     flag:"🇪🇸", col:"#F59E0B", fallback:13120, fChg: 0.5},
-	  {sym:"^ftse",     yf:"^FTSE",    label:"FTSE 100",    flag:"🇬🇧", col:"#06B6D4", fallback:8540,  fChg: 0.1},
-	  {sym:"^stoxx50e", yf:"^STOXX50E",label:"EURO STOXX",  flag:"🇪🇺", col:"#A855F7", fallback:5480,  fChg: 0.2},
-	];
+	/* ── PSI20 · dados ── (config em src/config.js) */
 
 const PSI20_TREND_PREF_KEY = 'psi20_trend_pref_v1';
 function getPSI20TrendPref() {
@@ -8326,10 +8348,17 @@ async function loadPSI20Trend(force = false) {
 	  if(!el) return;
 	  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;
 
-  const CK="psi20_v2";
+    const CK="psi20_v2";
 	  let cache=force?null:lsGet(CK);
 
-	  if(!cache){
+    /* Verificar se mercado está fechado (Lisboa: Fim de semana) */
+    const now = new Date();
+    const isWeekend = (now.getDay() === 0 || now.getDay() === 6);
+    
+    /* Se tivermos cache válida de hoje/ontem e for fim de semana, não forçar fetch */
+    if (!force && isWeekend && cache && (Date.now() - cache.ts < 48 * 3600000)) {
+      console.log("📈 PSI20: Mercado fechado (fim-de-semana), a usar cache.");
+    } else if (!cache) {
 	    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
 
 	    async function fetchYahoo(sym){
@@ -8354,16 +8383,11 @@ async function loadPSI20Trend(force = false) {
 
 	    /* Fetch paralelo de todos os símbolos */
 	    const allSyms=[...EU_INDICES,...PSI20_CONST];
-	    
-	    /* Tentar Yahoo primeiro (paralelo, individual pois v8 chart não suporta multi-batch bem para OHLC) */
 	    const yahooRes = await Promise.allSettled(allSyms.map(s => fetchYahoo(s.yf)));
 	    
-	    /* Identificar o que falhou no Yahoo e precisa de fallback Stooq */
 	    const needsStooq = allSyms.filter((s, i) => yahooRes[i].status !== 'fulfilled' || !yahooRes[i].value);
 	    let stooqResults = {};
-	    
 	    if (needsStooq.length > 0) {
-	      /* Batch Stooq: Reduz significativamente o número de pedidos a proxies */
 	      stooqResults = await fetchStooqMulti(needsStooq.map(s => s.sym));
 	    }
 
@@ -8372,12 +8396,12 @@ async function loadPSI20Trend(force = false) {
 	      return stooqResults[s.sym.toLowerCase()] || null;
 	    });
 
-    const mkFallback=(s)=>({
-      price:s.fallback,
-      prev:s.fallback/(1+(s.fChg||0)/100),
-      hi:s.fallback*1.005, lo:s.fallback*0.995,
-      chg:s.fChg||0, vol:0, live:false
-    });
+      const mkFallback=(s)=>({
+        price:s.fallback,
+        prev:s.fallback/(1+(s.fChg||0)/100),
+        hi:s.fallback*1.005, lo:s.fallback*0.995,
+        chg:s.fChg||0, vol:0, live:false
+      });
 
 	    const isLive=results.some(r=>r?.live);
 	    const src=results.find(r=>r?.src)?.src || null;
@@ -8399,50 +8423,41 @@ async function loadPSI20Trend(force = false) {
   const psiArr=psiChg>=0?"▲":"▼";
   const trendPref = getPSI20TrendPref();
 
-  /* Sparkline simples baseado em hi/lo/open/close do dia */
-  function miniBar(chg, w=50, h=20){
+  function miniBar(chg, w=48, h=22){
     const col=chg>=0?"#10B981":"#EF4444";
-    const pct=Math.min(Math.abs(chg)/3*100,100); /* normaliza em 3% max */
-    return `<svg width="${w}" height="${h}">
-      <rect x="0" y="${h/2}" width="${w}" height="1" fill="var(--b)"/>
+    const pct=Math.min(Math.abs(chg)/3*100,100);
+    return `<svg width="${w}" height="${h}" style="flex-shrink:0">
+      <rect x="0" y="${h/2}" width="${w}" height="1" fill="var(--b)" opacity=".3"/>
       ${chg>=0
         ?`<rect x="${w/2}" y="${h/2-h*pct/200}" width="${w*pct/200}" height="${h*pct/200}" fill="${col}" opacity=".8" rx="1"/>`
         :`<rect x="${w/2-w*pct/200}" y="${h/2}" width="${w*pct/200}" height="${h*pct/200}" fill="${col}" opacity=".8" rx="1"/>`}
-      <circle cx="${chg>=0?w/2+w*pct/200:w/2-w*pct/200}" cy="${h/2}" r="2" fill="${col}"/>
+      <circle cx="${chg>=0?w/2+w*pct/200:w/2-w*pct/200}" cy="${h/2}" r="1.5" fill="${col}"/>
     </svg>`;
   }
 
-	  const liveTag=cache.live
-	    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">● ${(cache.src||"live").toString().toUpperCase()}</span>`
-	    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ fallback Mar 2026</span>`;
+  const liveTag=cache.live
+    ? `<span class="badge live">● ${(cache.src||"live").toUpperCase()}</span>`
+    : `<span class="badge warn">⚠ FALLBACK ${REF_DATE.full.toUpperCase()}</span>`;
 
   el.innerHTML=`
-  <!-- Hero PSI20 + bolsas numa linha -->
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-bottom:8px;align-items:start">
-
-    <!-- PSI20 hero -->
-    <div style="background:var(--b2);border-radius:10px;padding:10px 14px;
-         min-width:160px;border-left:4px solid #10B981">
-      <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;
-           letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
-      <div style="font-size:2rem;font-weight:900;color:#10B981;
-           line-height:1;letter-spacing:-1px">${psi.price.toFixed(0)}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">
-        ${psiArr} ${Math.abs(psiChg).toFixed(2)}%</div>
+    <div style="background:var(--b2);border-radius:10px;padding:10px 14px;min-width:160px;border-left:4px solid #10B981">
+      <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
+      <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.price.toFixed(0)}</div>
+      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psiArr} ${Math.abs(psiChg).toFixed(2)}%</div>
       <div style="display:flex;gap:8px;margin-top:4px;font-size:.55rem;color:var(--t3)">
         <span>H <b style="color:var(--t2)">${psi.hi.toFixed(0)}</b></span>
         <span>L <b style="color:var(--t2)">${psi.lo.toFixed(0)}</b></span>
       </div>
-      <div style="margin-top:4px">${liveTag}</div>
+      <div style="margin-top:5px">${liveTag}</div>
     </div>
 
-    <!-- Bolsas europeias grid -->
     <div>
       <div style="font-size:.58rem;font-weight:700;color:var(--t2);margin-bottom:4px">🌍 Bolsas europeias</div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px">
         ${EU_INDICES.slice(1).map((idx,i)=>{
           const q=cache.indices[i+1];
-          const c=q.chg>=0?"#10B981":"#EF4444";
+          const c=q.chg>=0?"var(--green)":"var(--red)";
           return `<div style="background:var(--b2);border-radius:6px;padding:5px 6px;text-align:center">
             <div style="font-size:.85rem">${idx.flag}</div>
             <div style="font-size:.58rem;font-weight:700;color:${idx.col};white-space:nowrap">${idx.label}</div>
@@ -8464,26 +8479,20 @@ async function loadPSI20Trend(force = false) {
         <button class="rbtn ${trendPref.days===90?'on':''}" data-days="90" onclick="setPSI20TrendDays(90)">90D</button>
       </div>
     </div>
-    <div style="height:120px">
-      <canvas id="psi20TrendCanvas"></canvas>
-    </div>
+    <div style="height:120px"><canvas id="psi20TrendCanvas"></canvas></div>
   </div>
 
-  <!-- Constituintes PSI20 -->
-  <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    🏢 Constituintes · cotações do dia</div>
+  <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">🏢 Constituintes · cotações do dia</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
     ${PSI20_CONST.map((s,i)=>{
       const q=cache.stocks[i];
-      const c=q.chg>=0?"#10B981":"#EF4444";
-      const bg=q.chg>=0?"#10B98110":"#EF444410";
-      return `<div style="background:${bg};border-radius:7px;padding:7px 8px;
-           border:1px solid ${c}22">
+      const c=q.chg>=0?"var(--green)":"var(--red)";
+      const bg=q.chg>=0?"#10B98108":"#EF444408";
+      return `<div style="background:${bg};border-radius:7px;padding:7px 8px;border:1px solid ${c}15">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
           <span style="font-size:.9rem">${s.ico}</span>
           <div style="flex:1">
-            <div style="font-size:.62rem;font-weight:700;color:var(--text);
-                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.label}</div>
+            <div style="font-size:.62rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.label}</div>
             <div style="font-size:.5rem;color:var(--t3)">${s.sector}</div>
           </div>
         </div>
@@ -8491,19 +8500,20 @@ async function loadPSI20Trend(force = false) {
           <div>
             <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${s.col}">
               ${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€</div>
-            <div style="font-size:.6rem;font-weight:600;color:${c}">
-              ${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
+            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
           </div>
-          ${miniBar(q.chg,48,22)}
+          ${miniBar(q.chg)}
         </div>
       </div>`;
     }).join("")}
   </div>
-	  <div style="font-size:.52rem;color:var(--t3);margin-top:5px;line-height:1.4">
-	    ✦ ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq.com")} · Euronext Lisboa (.LS) · 
-	    ${cache.live?(cache.src==="yahoo"?"Dados do mercado (regularMarketPrice)":"Último fecho disponível"):"Fallback: referência Mar 2026"}
-	  </div>`;
+  <div style="font-size:.52rem;color:var(--t3);margin-top:6px;line-height:1.4">
+    ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
+    ${cache.live?(cache.src==="yahoo"?"Dados em tempo-real (atraso 15m)":"Último fecho disponível"):"Dados estáticos (fallback "+REF_DATE.full+")"}
+  </div>`;
 
+  loadPSI20Trend(false).catch(()=>{});
+}
   loadPSI20Trend(false).catch(()=>{});
 }
 
@@ -11019,6 +11029,7 @@ const DEFAULT_CONFIG = {
     { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS · Tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
     { id: 'elec',       name: 'Eletricidade',              desc: 'Spot MIBEL · mix energético · tarifas',      visible: true, icon: '⚡' },
     { id: 'airquality', name: 'Qualidade do Ar',           desc: 'CAMS/Copernicus · 5 poluentes + UV',          visible: true, icon: '🌬️' },
+    { id: 'dams',       name: 'Barragens',                 desc: 'Armazenamento bacias · SNIRH/APA',           visible: true, icon: '💧' },
     { id: 'euribor',    name: 'Euribor',                   desc: 'Taxas BCE live · spread bancário PT',        visible: true, icon: '📐' },
     { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
     { id: 'fng',        name: 'Fear & Greed',              desc: 'Sentimento cripto · Alternative.me',          visible: true, icon: '😰' },
@@ -11614,6 +11625,7 @@ function autoIdentifyCards() {
     { text: 'Gás Natural · Portugal', id: 'gas-pt' },
     { text: 'Eletricidade',           id: 'elec' },
     { text: 'Qualidade do Ar',        id: 'airquality' },
+    { text: 'Barragens',              id: 'dams' },
     { text: 'Euribor',                id: 'euribor' },
     { text: 'Imobiliário',            id: 'imob' },
     { text: 'Fear',                   id: 'fng' },

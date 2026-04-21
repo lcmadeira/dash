@@ -119,19 +119,17 @@
 - [x] **Tráfego marítimo (Estreito de Ormuz)** — AIS data com mapa interactivo TopoJSON.
       Simulação dinâmica de alta fidelidade (movimento baseado em UTC/hora real) com
       rotas de precisão (V2) para evitar terra. Tooltips com detalhes de navios. ✅ (24/03/2026)
-- [ ] **Dados de barragens (níveis de água)** 🟡 — SNIRH (sem API JSON pública conhecida)
+- [x] **Dados de barragens (níveis de água)** — SNIRH com parser automático via `src/cards/dams.js`. ✅ (21/04/2026)
 - [ ] Índice UV e pólen *(UV coberto pelo card Qualidade do Ar)*
 - [x] Tráfego aéreo em tempo real (OpenSky API — CORS proxy) ✅ (24/03/2026)
 - [ ] Tráfego rodoviário em tempo real (Google Maps API — requer chave paga)
 
 #### 5.2 Automação de dados estáticos
 
-- [ ] **Euribor** — dados EMMI actualizados manualmente. Criar script de auto-update
-      via ECB SDMX API (CORS nativo: `data-api.ecb.europa.eu`)
-- [ ] **Inflação PT/EU** — dados INE/Eurostat actualizados manualmente.
-      Automatizar via Eurostat SDMX (`ec.europa.eu/eurostat/api/dissemination`)
-- [ ] **PSI20 constituintes** — fallbacks actualizados manualmente.
-      Stooq CSV já implementado; melhorar fiabilidade do fetch
+- [x] **Euribor** — taxas oficiais do BCE (DFR, MRO, MLF) automatizadas via ECB SDMX API. ✅ (21/04/2026)
+- [x] **Inflação PT/EU** — fallbacks centralizados e automação Eurostat validada. ✅ (21/04/2026)
+- [x] **PSI20 constituintes** — centralizados em `config.js` e fetch otimizado (weekend check). ✅ (21/04/2026)
+- [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos
 
@@ -264,7 +262,14 @@
   - Mantém backward compatibility via globals
   - Facilita manutenção e futuras extensões
 
-### v1.2.1 — Planeado
+### v1.2.1 — Concluído ✅
+
+- ✅ **Automação de dados** — Taxas oficiais do BCE (Key Rates) integradas via SDMX API (21/04/2026)
+- ✅ **Card de Barragens (SNIRH)** — Novo módulo `dams.js` com monitorização de armazenamento por bacia (21/04/2026)
+- ✅ **Centralização de Mercado** — PSI20 e Inflação movidos para `config.js` com fallbacks robustos e otimização de fetch (21/04/2026)
+- ✅ **Modularização** — Redução de mais ~150 linhas de código hardcoded no `index.html`
+
+### v1.2.2 — Planeado
 
 - [ ] **Consolidar CSS** em ficheiro separado
 - [ ] Documentar funções principais (JSDoc)

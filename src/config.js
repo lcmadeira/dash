@@ -119,6 +119,38 @@ const IPMA_WX = {
   26: ["🌬️",  "Neblina"],     28: ["☁️",   "Céu encoberto"]
 };
 
+/* ── PSI20 · constituintes (actualizar fallbacks mensalmente) ── */
+const PSI20_CONST = [
+  {sym:"edp.ls",    yf:"EDP.LS",  label:"EDP",              ico:"⚡", sector:"Energia",      col:"#3B82F6", fallback:4.12,  fChg:-0.9},
+  {sym:"galp.ls",   yf:"GALP.LS", label:"Galp",             ico:"🛢️", sector:"Energia",      col:"#F59E0B", fallback:11.34, fChg: 0.4},
+  {sym:"jmt.ls",    yf:"JMT.LS",  label:"Jerónimo Martins", ico:"🛒", sector:"Distribuição", col:"#10B981", fallback:16.80, fChg:-1.2},
+  {sym:"bcp.ls",    yf:"BCP.LS",  label:"Millennium BCP",   ico:"🏦", sector:"Banca",        col:"#8B5CF6", fallback:0.338, fChg: 1.8},
+  {sym:"nos.ls",    yf:"NOS.LS",  label:"NOS",              ico:"📡", sector:"Telecom",      col:"#06B6D4", fallback:3.72,  fChg: 0.2},
+  {sym:"son.ls",    yf:"SON.LS",  label:"Sonae",            ico:"🏪", sector:"Distribuição", col:"#F97316", fallback:0.845, fChg:-0.5},
+  {sym:"rene.ls",   yf:"RENE.LS", label:"REN",              ico:"🔌", sector:"Energia",      col:"#22D3EE", fallback:2.49,  fChg: 0.0},
+  {sym:"ctt.ls",    yf:"CTT.LS",  label:"CTT",              ico:"📬", sector:"Serviços",     col:"#A855F7", fallback:5.84,  fChg: 1.1},
+];
+
+/* ── Índices Europeus ── */
+const EU_INDICES = [
+  {sym:"^psi20",    yf:"^PSI20",   label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
+  {sym:"^dax",      yf:"^GDAXI",   label:"DAX",         flag:"🇩🇪", col:"#3B82F6", fallback:22890, fChg: 0.3},
+  {sym:"^cac",      yf:"^FCHI",    label:"CAC 40",      flag:"🇫🇷", col:"#8B5CF6", fallback:8142,  fChg:-0.2},
+  {sym:"^ibex",     yf:"^IBEX",    label:"IBEX 35",     flag:"🇪🇸", col:"#F59E0B", fallback:13120, fChg: 0.5},
+  {sym:"^ftse",     yf:"^FTSE",    label:"FTSE 100",    flag:"🇬🇧", col:"#06B6D4", fallback:8540,  fChg: 0.1},
+  {sym:"^stoxx50e", yf:"^STOXX50E",label:"EURO STOXX",  flag:"🇪🇺", col:"#A855F7", fallback:5480,  fChg: 0.2},
+];
+
+/* ── Inflação fallback (estático se API falhar) ── */
+const INFLATION_FALLBACK = [
+  {m:"Fev 2026",pt:2.4,eu:2.3},
+  {m:"Jan 2026",pt:2.6,eu:2.5},
+  {m:"Dez 2025",pt:2.2,eu:2.4},
+  {m:"Nov 2025",pt:1.9,eu:2.3},
+  {m:"Out 2025",pt:1.8,eu:2.3},
+  {m:"Set 2025",pt:1.2,eu:1.7},
+];
+
 const IPMA_WIND = ["", "Fraco", "Fraco a mod.", "Moderado", "Forte", "Muito forte"];
 
 const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
@@ -135,3 +167,6 @@ window.IPMA_CITIES = IPMA_CITIES;
 window.IPMA_WX = IPMA_WX;
 window.IPMA_WIND = IPMA_WIND;
 window.wxIPMA = wxIPMA;
+window.PSI20_CONST = PSI20_CONST;
+window.EU_INDICES = EU_INDICES;
+window.INFLATION_FALLBACK = INFLATION_FALLBACK;
