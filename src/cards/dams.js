@@ -65,9 +65,29 @@ async function loadDams(force = false) {
     } catch (e) {
       console.warn("⚠️ Dams error:", e.message);
       if (!cache) {
-        el.innerHTML = `<div style="padding:15px;text-align:center;color:var(--red);font-size:.65rem">
-          ⚠️ SNIRH indisponível<br><span style="font-size:.55rem;opacity:.7">${e.message}</span>
+        cache = {
+          basins: [
+            { name: "GUADIANA", val: 92, avg: 63 },
+            { name: "TEJO", val: 76, avg: 71 },
+            { name: "SADO", val: 74, avg: 68 },
+            { name: "MONDEGO", val: 74, avg: 66 },
+            { name: "DOURO", val: 54, avg: 59 },
+            { name: "AVE", val: 48, avg: 55 },
+            { name: "MINHO", val: 85, avg: 74 },
+            { name: "LIMA", val: 71, avg: 66 },
+            { name: "CAVADO", val: 64, avg: 65 },
+            { name: "MIRA", val: 63, avg: 60 },
+            { name: "ALGARVE", val: 63, avg: 53 },
+            { name: "VOUGA", val: 47, avg: 54 },
+          ],
+          totalVal: 67.6,
+          totalAvg: 63.7,
+          ts: 0,
+        };
+        el.innerHTML = `<div style="padding:8px 10px;font-size:.52rem;color:var(--t3);display:flex;align-items:center;gap:5px;margin-bottom:6px;border-bottom:1px solid var(--b)">
+          <span>⚠️ SNIRH offline</span><span style="opacity:.5">· dados aprox.</span>
         </div>`;
+        renderDams(cache);
         return;
       }
     }
