@@ -10,29 +10,47 @@ async function loadDams(force = false) {
   if (!cache) {
     el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${window.ld()}</div>`;
     try {
-      /* URL do Resumo por Bacia do SNIRH */
       const url = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
-      /* fetchWithCORS já tenta allorigins, corsproxy, etc. */
+      /* Tentar obter o HTML via proxy */
       const r = await window.fetchWithCORS(url, { cache: "no-store" }, 15000);
       const html = await r.text();
 
+      if (!html || html.length < 500) throw new Error("Resposta do servidor insuficiente");
+
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
-      /* No SNIRH, a tabela de resumo bacias costuma ser a classe txt */
-      const rows = Array.from(doc.querySelectorAll("table.txt tr")).filter(r => r.cells.length >= 4 && !r.textContent.includes("Bacia"));
+      
+      /* Procurar todas as tabelas e encontrar a que tem os dados das bacias */
+      const tables = Array.from(doc.querySelectorAll("table"));
+      let targetTable = null;
+      
+      for (const t of tables) {
+        const txt = t.textContent;
+        if (txt.includes("Bacia") && txt.includes("%") && txt.includes("Média")) {
+          targetTable = t;
+          break;
+        }
+      }
+
+      if (!targetTable) throw new Error("Tabela de dados não encontrada no HTML");
+
+      const rows = Array.from(targetTable.querySelectorAll("tr")).filter(r => {
+        const c = r.cells;
+        return c.length >= 4 && !r.textContent.includes("Bacia") && !isNaN(parseFloat(c[2].textContent.replace(",", ".")));
+      });
 
       const basins = [];
       rows.forEach(row => {
         const cols = row.querySelectorAll("td");
-        const name = cols[0].textContent.trim();
+        const name = cols[0].textContent.trim().replace(/\s+/g, " ");
         const val = parseFloat(cols[2].textContent.replace(",", "."));
         const avg = parseFloat(cols[3].textContent.replace(",", "."));
-        if (!isNaN(val) && name) {
+        if (!isNaN(val) && name && name.length > 2) {
           basins.push({ name, val, avg });
         }
       });
 
-      if (basins.length === 0) throw new Error("Dados não encontrados no SNIRH");
+      if (basins.length === 0) throw new Error("Não foi possível extrair dados das bacias");
 
       const totalVal = basins.reduce((a, b) => a + b.val, 0) / basins.length;
       const totalAvg = basins.reduce((a, b) => a + b.avg, 0) / basins.length;
