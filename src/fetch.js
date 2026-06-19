@@ -42,8 +42,8 @@
   function buildFetchPlan(url, sources) {
     const isCorsHost = (u) => {
       const h = new URL(u).hostname.toLowerCase();
-      return h.includes("stooq") || h.includes("apambiente") || h.includes("ecb.europa.eu") || 
-             h.includes("eurostat") || h.includes("opensky-network") || h.includes("aishub") || 
+      return h.includes("stooq") || h.includes("news.google.com") || h.includes("apambiente") || h.includes("ecb.europa.eu") ||
+             h.includes("eurostat") || h.includes("opensky-network") || h.includes("aishub") ||
              h.includes("ren.pt") || h.includes("usgs.gov") || h.includes("ine.pt") || h.includes("coingecko");
     };
 
@@ -89,6 +89,10 @@
     return out;
   }
 
+  function isDefinitiveHttpError(status) {
+    return status === 400 || status === 404;
+  }
+
   function withTimeoutOpts(options = {}, timeoutMs = 12000) {
     const hasSignal = !!options.signal;
     return { ...options, signal: hasSignal ? options.signal : AbortSignal.timeout(timeoutMs) };
@@ -122,6 +126,7 @@
 
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
+          if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
           continue;
         }
         
@@ -151,7 +156,16 @@
     const url = `https://stooq.com/q/l/?s=${symStr}&f=sd2t2ohlcv&h&e=csv&_=${Date.now()}`;
 
     try {
-      const r = await fetchWithCORS(url, { cache: "no-store" }, 10000);
+      const { r } = await fetchFirstOk(
+        url,
+        { cache: "no-store" },
+        10000,
+        ["local", "allorigins"],
+        async (res) => {
+          const text = await res.clone().text();
+          return text.includes("Symbol,Date,Time") && !text.includes("<!DOCTYPE html>");
+        },
+      );
       if (!r.ok) return {};
       const csv = await r.text();
       const lines = csv.trim().split("\n");
@@ -185,7 +199,7 @@
       }
       return results;
     } catch (e) {
-      console.warn("[fetchStooqMulti] failed", e);
+      if (isFetchDebugEnabled()) console.warn("[fetchStooqMulti] failed", e);
       return {};
     }
   }
@@ -201,6 +215,7 @@
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-json] fail ${step.source} HTTP ${r.status}`, url);
+          if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
           continue;
         }
         const j = await r.json();
@@ -229,6 +244,7 @@
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-text] fail ${step.source} HTTP ${r.status}`, url);
+          if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
           continue;
         }
         const t = await r.text();
@@ -257,4 +273,3 @@
   window.fetchWithCORS = fetchWithCORS;
   window.fetchStooqMulti = fetchStooqMulti;
 })();
-

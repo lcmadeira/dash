@@ -31,7 +31,7 @@
   async function fetchRSS(url) {
     const isGoogleNews = /(^|\/\/)news\.google\.com\//i.test(url);
     const sources = isGoogleNews
-      ? ["direct", "local", "allorigins", "corsproxy"]
+      ? ["local", "jina", "allorigins"]
       : ["direct", "local", "allorigins", "jina", "corsproxy"];
 
     const candidates = (buildFetchPlan(url, sources) || []).map((x) => x.url);
@@ -102,26 +102,34 @@
       }
 
       if (!arts.length) throw new Error("Sem artigos");
-      el.innerHTML = `<div class="news-wrap">${arts
-        .map(
-          (a) => `
+      el.innerHTML = renderNewsItems(arts, isPT);
+    } catch (e) {
+      const stale = lsGet(cKey);
+      if (Array.isArray(stale) && stale.length) {
+        el.innerHTML = renderNewsItems(stale.slice(0, 8), isPT, true);
+        return;
+      }
+      el.innerHTML = er(e.message);
+    }
+  }
+
+  function renderNewsItems(arts, isPT, stale = false) {
+    return `<div class="news-wrap">${arts
+      .map(
+        (a) => `
         <div class="ni" onclick="window.open('${a.link.replace(/'/g, "\\'")}','_blank')">
           <div class="ni-meta"><span class="ni-src">${(a.source || "—").slice(0, 24)}</span>
             <span class="ni-tag ${isPT ? "tpt" : "twld"}">${isPT ? "PT" : "WORLD"}</span>
             <span class="ni-time">${agoRSS(a.pubDate)}</span></div>
           <div class="ni-title">${a.title}</div>
         </div>`,
-        )
-        .join("")}</div>
-      <div class="src">✦ Google News RSS · ${new Date().toLocaleTimeString("pt-PT", {
+      )
+      .join("")}</div>
+      <div class="src">✦ Google News RSS · ${stale ? "cache" : new Date().toLocaleTimeString("pt-PT", {
         hour: "2-digit",
         minute: "2-digit",
       })} · Clica para ler</div>`;
-    } catch (e) {
-      el.innerHTML = er(e.message);
-    }
   }
 
   window.loadNews = loadNews;
 })();
-

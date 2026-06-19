@@ -276,10 +276,17 @@
               `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`,
           ),
         );
-        const mixFetch = fetchREE(
-          `/en/datos/generacion/estructura-generacion` +
-            `?start_date=${todayStr}T00:00&end_date=${todayStr}T23:59&time_trunc=hour`,
-        );
+        const mixFetch = (async () => {
+          const mixDates = [todayStr, yesterStr];
+          for (const d of mixDates) {
+            const data = await fetchREE(
+              `/en/datos/generacion/estructura-generacion` +
+                `?start_date=${d}T00:00&end_date=${d}T23:59&time_trunc=hour`,
+            );
+            if (data) return data;
+          }
+          return null;
+        })();
 
         const [todayData, yesterData, tomorrowData, mixData] = await Promise.all([...fetches, mixFetch]);
 
@@ -674,4 +681,3 @@
   window.loadElecTrend = loadElecTrend;
   window.loadElec = loadElec;
 })();
-
