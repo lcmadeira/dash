@@ -4725,7 +4725,13 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
 
   const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`;
   try {
-    const csv = await fetchTextFirstOk(url, {}, 11000);
+    const csv = await fetchTextFirstOk(
+      url,
+      {},
+      11000,
+      ["local", "allorigins"],
+      (text) => !!text && text.includes("Date,Open,High,Low,Close") && !text.includes("<!DOCTYPE html>"),
+    );
     if (!csv || csv.length < 20 || csv.includes("<!DOCTYPE html>")) {
       throw new Error("CSV inválido ou página de erro recebida");
     }
@@ -4747,9 +4753,7 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
       lsSet(cacheKey, sliced);
       return sliced;
     }
-  } catch (e) {
-    console.warn("[fetchStooqDailySeries] failed", e);
-  }
+  } catch {}
 
   throw new Error("Stooq histórico indisponível");
 }
@@ -5127,6 +5131,16 @@ async function loadHolidays(force=false){
 /* Estado global — preenchido pela API ou pelo fallback */
 var EURIBOR_DATA=null;
 
+function isBceEuriborLiveEnabled(){
+  try {
+    const qs = new URLSearchParams(location.search || "");
+    if (qs.has("liveEuribor")) return (qs.get("liveEuribor") || "1") !== "0";
+    return localStorage.getItem(PFX + "live_euribor_bce") === "1";
+  } catch {
+    return false;
+  }
+}
+
 /* ── Parser SDMX JSON (formato BCE) ──────────────────────────── */
 function parseBCEseries(json){
   try{
@@ -5460,6 +5474,11 @@ async function initEuribor(force=false){
   EURIBOR_DATA=EURIBOR_FALLBACK;
   if(ref) ref.textContent=EURIBOR_FALLBACK.updated;
   renderEuribor();
+
+  if(!isBceEuriborLiveEnabled()){
+    console.log("📐 Euribor: fallback EMMI (BCE live desativado)");
+    return;
+  }
 
   /* 3. Tentar BCE em background e actualizar se responder */
   try{
@@ -7724,17 +7743,16 @@ function loadTTF(force=false){
   /* ── Fetch TTF via Stooq CSV (tg.f = EUR/MWh) ──────────── */
   async function fetchTTFStooq(){
     const url=`https://stooq.com/q/l/?s=tg.f&f=sd2t2ohlcv&h&e=csv`;
-    const proxies=[
-      ...(IS_LOCAL_DEV?[localProxyUrl(url)]:[]),
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-      "https://corsproxy.io/?url="+encodeURIComponent(url),
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(url.replace("stooq.com","stooq.pl")),
-    ];
-    for(const p of proxies){
+    const candidates=[url, url.replace("stooq.com","stooq.pl")];
+    for(const candidate of candidates){
       try{
-        const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
-        if(!r.ok) continue;
-        const csv=await r.text();
+        const csv=await fetchTextFirstOk(
+          candidate,
+          {},
+          9000,
+          ["local", "allorigins"],
+          (text) => !!text && text.includes("Symbol,Date,Time") && !text.includes("<!DOCTYPE html>"),
+        );
         const rows=csv.trim().split("\n");
         if(rows.length<2) continue;
         /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
@@ -9586,11 +9604,13 @@ async function loadAir(force=false){
   let d=force?null:lsGet(ck);
   if(!d){
     try {
-      const url = "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5";
-      const j = await fetchJsonFirstOk(url, {}, 14000);
-      if(j && j.states?.length){
-        d={ts:Date.now(),states:j.states,live:true};
-        lsSet(ck,d);
+      if (IS_LOCAL_DEV) {
+        const url = "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5";
+        const j = await fetchJsonFirstOk(url, {}, 14000, ["local"], (jj) => Array.isArray(jj?.states));
+        if(j && j.states?.length){
+          d={ts:Date.now(),states:j.states,live:true};
+          lsSet(ck,d);
+        }
       }
     } catch(e) {
       console.warn("⚠️ OpenSky falhou:", e.message);
@@ -10585,11 +10605,13 @@ async function loadCO2(force=false){
 
   if(!d){
     try {
-      const url = "https://datahub.ren.pt/service/renewable/";
-      const j = await fetchJsonFirstOk(url, {}, 10000);
-      if(j && (j.value || j.data || Array.isArray(j))){
-        d={src:"ren", raw:j};
-        lsSet(ck, d);
+      if (IS_LOCAL_DEV) {
+        const url = "https://datahub.ren.pt/service/renewable/";
+        const j = await fetchJsonFirstOk(url, {}, 10000, ["local"]);
+        if(j && (j.value || j.data || Array.isArray(j))){
+          d={src:"ren", raw:j};
+          lsSet(ck, d);
+        }
       }
     } catch(e) {
       console.warn("⚠️ REN DataHub falhou:", e.message);
