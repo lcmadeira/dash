@@ -4,13 +4,12 @@ from __future__ import annotations
 import json
 import os
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from ipaddress import ip_address
-
 
 PORT = int(os.environ.get("PORT", "8000"))
 PROXY_CACHE_TTL_SEC = 300  # 5 min
@@ -29,14 +28,14 @@ def _is_private_host(hostname: str) -> bool:
     try:
         ip = ip_address(h)
         return ip.is_private or ip.is_loopback or ip.is_link_local
-    except Exception:
+    except ValueError:
         return False
 
 
 def _validate_target(url: str) -> tuple[bool, str]:
     try:
         parsed = urllib.parse.urlparse(url)
-    except Exception:
+    except ValueError:
         return False, "URL inválido"
     if parsed.scheme not in {"http", "https"}:
         return False, "Apenas http/https são permitidos"
@@ -105,14 +104,14 @@ class Handler(SimpleHTTPRequestHandler):
             # Forward upstream status/body as-is (so the browser sees 4xx/5xx instead of 502)
             try:
                 body = e.read()
-            except Exception:
+            except OSError:
                 body = b""
             headers = {}
             ct = getattr(e, "headers", None) and e.headers.get("Content-Type")
             if ct:
                 headers["Content-Type"] = ct
             self._send_bytes(body, headers=headers, status=int(getattr(e, "code", 502) or 502))
-        except Exception as e:
+        except (OSError, TimeoutError, urllib.error.URLError) as e:
             self._send_json({"ok": False, "error": str(e)}, status=HTTPStatus.BAD_GATEWAY)
 
     def _send_bytes(self, body: bytes, headers: dict[str, str] | None = None, status: int = 200) -> None:
