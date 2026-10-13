@@ -112,3 +112,30 @@ test("market stats card replaces its cached global entry point without redeclara
   assert.equal(typeof context.loadMarketStats, "function");
   assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_MARKET_STATS() {}", context));
 });
+
+test("real estate card keeps its entry points and renders selected tabs", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const IMOB_REGIOES = ["cached app"];', context);
+
+  const tabs = [
+    { classList: { classes: new Set(["on"]), remove(name) { this.classes.delete(name); }, add(name) { this.classes.add(name); } } },
+    { classList: { classes: new Set(), remove(name) { this.classes.delete(name); }, add(name) { this.classes.add(name); } } },
+  ];
+  const body = { offsetWidth: 360, innerHTML: "" };
+  context.setTimeout = () => 0;
+  context.document = {
+    addEventListener() {},
+    querySelectorAll: () => tabs,
+    getElementById: id => id === "imob-body" ? body : null,
+  };
+
+  const source = await readFile("src/cards/real-estate.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadImob, "function");
+  context.switchImob("municipios", tabs[1]);
+  assert.match(body.innerHTML, /Lisboa/);
+  assert.equal(tabs[0].classList.classes.has("on"), false);
+  assert.equal(tabs[1].classList.classes.has("on"), true);
+  assert.doesNotThrow(() => vm.runInContext("const APP_IMOB_REGIOES = IMOB_REGIOES;", context));
+});
