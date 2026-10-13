@@ -1626,15 +1626,18 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   background: var(--ad);
 }
 .export-option-icon {
+  display: block;
   font-size: 1.5rem;
   margin-bottom: 6px;
 }
 .export-option-label {
+  display: block;
   font-size: .7rem;
   font-weight: 600;
   margin-bottom: 2px;
 }
 .export-option-desc {
+  display: block;
   font-size: .6rem;
   color: var(--t3);
   font-family: var(--mono);

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css?v=20261013-2"/>
 </head>
 <body>
 <!-- Container de Toast Notifications -->
@@ -27,12 +27,12 @@
   </div>
   <div class="hdr-right">
     <div class="pills" id="pills"></div>
-    <button class="export-btn" id="exportOpenBtn" onclick="openExportModal()" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
+    <button type="button" class="export-btn" id="exportOpenBtn" onclick="openExportModal()" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
       <span class="icon" aria-hidden="true">📥</span>
       <span>Exportar</span>
     </button>
     <div style="position:relative">
-      <button class="notif-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
+      <button type="button" class="notif-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
         <span class="notif-icon" aria-hidden="true">🔔</span>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
@@ -42,23 +42,23 @@
         <div class="notif-header">
           <div class="notif-title">Notificações</div>
           <div class="notif-actions">
-            <button class="notif-action-btn" onclick="markAllAsRead()">Marcar lidas</button>
-            <button class="notif-action-btn" onclick="clearAllNotifications()">Limpar</button>
+            <button type="button" class="notif-action-btn" onclick="markAllAsRead()">Marcar lidas</button>
+            <button type="button" class="notif-action-btn" onclick="clearAllNotifications()">Limpar</button>
           </div>
           <button class="notif-close" type="button" onclick="setNotificationsOpen(false)" aria-label="Fechar notificações">✕</button>
         </div>
         
         <div class="notif-tabs">
-          <button class="notif-tab active" onclick="filterNotifications('all')">
+          <button type="button" class="notif-tab active" onclick="filterNotifications('all')">
             Todas<span class="notif-tab-badge" id="notifAllCount">0</span>
           </button>
-          <button class="notif-tab" onclick="filterNotifications('sismos')">
+          <button type="button" class="notif-tab" onclick="filterNotifications('sismos')">
             Sismos<span class="notif-tab-badge" id="notifSismosCount">0</span>
           </button>
-          <button class="notif-tab" onclick="filterNotifications('news')">
+          <button type="button" class="notif-tab" onclick="filterNotifications('news')">
             Notícias<span class="notif-tab-badge" id="notifNewsCount">0</span>
           </button>
-          <button class="notif-tab" onclick="filterNotifications('energy')">
+          <button type="button" class="notif-tab" onclick="filterNotifications('energy')">
             Energia<span class="notif-tab-badge" id="notifEnergyCount">0</span>
           </button>
         </div>
@@ -71,13 +71,13 @@
         </div>
         
         <div class="notif-footer">
-          <button class="notif-footer-btn" onclick="openNotificationSettings()">
+          <button type="button" class="notif-footer-btn" onclick="openNotificationSettings()">
             Configurar notificações
           </button>
         </div>
       </div>
     </div>
-    <button class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" aria-label="Abrir configurações do painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
+    <button type="button" class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" aria-label="Abrir configurações do painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
       <span class="settings-icon" aria-hidden="true">⚙️</span>
     </button>
   </div>
@@ -98,10 +98,10 @@
     </div>
 
     <div class="settings-tabs">
-      <button class="settings-tab active" onclick="switchSettingsTab('cards', this)">Cards</button>
-      <button class="settings-tab" onclick="switchSettingsTab('location', this)">Localização</button>
-      <button class="settings-tab" onclick="switchSettingsTab('tickers', this)">Tickers</button>
-      <button class="settings-tab" onclick="switchSettingsTab('comfort', this)">Conforto</button>
+      <button type="button" class="settings-tab active" onclick="switchSettingsTab('cards', this)">Cards</button>
+      <button type="button" class="settings-tab" onclick="switchSettingsTab('location', this)">Localização</button>
+      <button type="button" class="settings-tab" onclick="switchSettingsTab('tickers', this)">Tickers</button>
+      <button type="button" class="settings-tab" onclick="switchSettingsTab('comfort', this)">Conforto</button>
     </div>
 
     <div class="settings-body">
@@ -120,6 +120,7 @@
             class="card-search-input"
             id="cardSearchInput"
             placeholder="Pesquisar cards…"
+            aria-label="Pesquisar cards nas configurações"
             autocomplete="off"
             spellcheck="false"
           />
@@ -159,18 +160,18 @@
             placeholder="Ticker (ex: BCP, EDP, GALP...)"
             maxlength="10"
           />
-          <button class="ticker-add-btn" onclick="addTicker()">Adicionar</button>
+          <button type="button" class="ticker-add-btn" onclick="addTicker()">Adicionar</button>
         </div>
 
         <div class="ticker-suggestions">
-          <button class="ticker-suggestion" onclick="quickAddTicker('BCP')">BCP</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('EDP')">EDP</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('GALP')">GALP</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('JMT')">J.MARTINS</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('NOS')">NOS</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('REN')">REN</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('CTT')">CTT</button>
-          <button class="ticker-suggestion" onclick="quickAddTicker('SONAE')">SONAE</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('BCP')">BCP</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('EDP')">EDP</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('GALP')">GALP</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('JMT')">J.MARTINS</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('NOS')">NOS</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('REN')">REN</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('CTT')">CTT</button>
+          <button type="button" class="ticker-suggestion" onclick="quickAddTicker('SONAE')">SONAE</button>
         </div>
 
         <div class="ticker-list" id="tickerList"></div>
@@ -213,10 +214,10 @@
     </div>
 
     <div class="settings-footer">
-      <button class="settings-btn-action settings-btn-reset" onclick="resetSettings()">
+      <button type="button" class="settings-btn-action settings-btn-reset" onclick="resetSettings()">
         Restaurar Padrão
       </button>
-      <button class="settings-btn-action settings-btn-save" onclick="saveSettings()">
+      <button type="button" class="settings-btn-action settings-btn-save" onclick="saveSettings()">
         Guardar Alterações
       </button>
     </div>
@@ -243,24 +244,24 @@
         </div>
         <div class="export-option-grid">
           <button type="button" class="export-option-item selected" data-format="png" onclick="selectExportFormat(this, 'png')">
-            <div class="export-option-icon">🖼️</div>
-            <div class="export-option-label">Imagem</div>
-            <div class="export-option-desc">PNG</div>
+            <span class="export-option-icon">🖼️</span>
+            <span class="export-option-label">Imagem</span>
+            <span class="export-option-desc">PNG</span>
           </button>
           <button type="button" class="export-option-item" data-format="pdf" onclick="selectExportFormat(this, 'pdf')">
-            <div class="export-option-icon">📕</div>
-            <div class="export-option-label">PDF</div>
-            <div class="export-option-desc">Documento</div>
+            <span class="export-option-icon">📕</span>
+            <span class="export-option-label">PDF</span>
+            <span class="export-option-desc">Documento</span>
           </button>
           <button type="button" class="export-option-item" data-format="csv" onclick="selectExportFormat(this, 'csv')">
-            <div class="export-option-icon">📊</div>
-            <div class="export-option-label">Dados</div>
-            <div class="export-option-desc">CSV</div>
+            <span class="export-option-icon">📊</span>
+            <span class="export-option-label">Dados</span>
+            <span class="export-option-desc">CSV</span>
           </button>
           <button type="button" class="export-option-item" data-format="json" onclick="selectExportFormat(this, 'json')">
-            <div class="export-option-icon">💾</div>
-            <div class="export-option-label">JSON</div>
-            <div class="export-option-desc">Estruturado</div>
+            <span class="export-option-icon">💾</span>
+            <span class="export-option-label">JSON</span>
+            <span class="export-option-desc">Estruturado</span>
           </button>
         </div>
       </div>
@@ -270,7 +271,7 @@
         <div class="export-option-title">
           <span>📌</span>
           <span>Cards para Exportar</span>
-          <button class="rbtn" style="margin-left:auto" onclick="toggleAllCards()">
+          <button type="button" class="rbtn" style="margin-left:auto" onclick="toggleAllCards()">
             <span id="toggleAllText">Todos</span>
           </button>
         </div>
@@ -295,10 +296,10 @@
     </div>
 
     <div class="export-modal-footer">
-      <button class="export-action-btn export-btn-cancel" onclick="closeExportModal()">
+      <button type="button" class="export-action-btn export-btn-cancel" onclick="closeExportModal()">
         Cancelar
       </button>
-      <button class="export-action-btn export-btn-export" id="exportBtn" onclick="executeExport()">
+      <button type="button" class="export-action-btn export-btn-export" id="exportBtn" onclick="executeExport()">
         Exportar
       </button>
     </div>
@@ -323,7 +324,7 @@
     </div>
     <div class="export-modal-body" id="fuelModalBody"></div>
     <div class="export-modal-footer">
-      <button class="export-action-btn export-btn-cancel" onclick="closeFuelModal()">Fechar</button>
+      <button type="button" class="export-action-btn export-btn-cancel" onclick="closeFuelModal()">Fechar</button>
     </div>
   </div>
 </div>
@@ -378,13 +379,13 @@
       <div class="ch-ico" style="background:var(--ad)">🌡️</div>
       <span class="ch-lbl">Meteorologia & Feriados · PT</span>
       <div class="ch-r">
-        <button class="rbtn ico" id="wxhol-refresh" onclick="refreshCard('weather', getWeatherCacheKey, this, wxholRefresh)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" id="wxhol-refresh" onclick="refreshCard('weather', getWeatherCacheKey, this, wxholRefresh)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:5px 0 8px">
-      <button class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Tempo</button>
-      <button class="rbtn"    id="wxhol-tab-res" onclick="switchWxHol('resumo',this)">📊 Resumo</button>
-      <button class="rbtn"    id="wxhol-tab-hol" onclick="switchWxHol('feriados',this)">🗓 Feriados</button>
+      <button type="button" class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Tempo</button>
+      <button type="button" class="rbtn"    id="wxhol-tab-res" onclick="switchWxHol('resumo',this)">📊 Resumo</button>
+      <button type="button" class="rbtn"    id="wxhol-tab-hol" onclick="switchWxHol('feriados',this)">🗓 Feriados</button>
     </div>
     <div id="wxhol-wx">
       <div id="wx-body"><div class="ld"><div class="spin"></div></div></div>
@@ -404,9 +405,9 @@
     <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
       <span class="ch-lbl">Combustíveis · PT vs ES</span>
       <div class="ch-r">
-        <button class="rbtn" id="fuelDetailBtn" onclick="openFuelModal()" title="Detalhe (postos / timestamps)" aria-haspopup="dialog" aria-controls="fuelModal" aria-expanded="false">Detalhe</button>
-        <button class="rbtn" id="fuelDeltaBtn" onclick="toggleFuelDeltaMode()" title="Alternar Δ entre € e %" aria-label="Alternar delta">Δ€</button>
-        <button class="rbtn ico" onclick="refreshCard('fuel','fuel',this,renderFuel,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn" id="fuelDetailBtn" onclick="openFuelModal()" title="Detalhe (postos / timestamps)" aria-haspopup="dialog" aria-controls="fuelModal" aria-expanded="false">Detalhe</button>
+        <button type="button" class="rbtn" id="fuelDeltaBtn" onclick="toggleFuelDeltaMode()" title="Alternar Δ entre € e %" aria-label="Alternar delta">Δ€</button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('fuel','fuel',this,renderFuel,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div></div>
     <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
   </div>
@@ -419,7 +420,7 @@
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
         <button class="rbtn" id="cabaz-edit-btn" type="button" onclick="openCabazEditor()" title="Actualizar valor desta semana" aria-label="Editar cabaz alimentar desta semana" aria-haspopup="dialog" aria-controls="cabaz-modal" aria-expanded="false"><span aria-hidden="true">✏️</span></button>
-        <button class="rbtn ico" onclick="refreshCard('cabaz',null,this,renderCabaz)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('cabaz',null,this,renderCabaz)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="cabaz-body"></div>
@@ -432,8 +433,8 @@
       <span class="ch-lbl">Petróleo · Brent &amp; WTI</span>
       <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
     <div class="oil-tabs">
-      <button class="oil-tab on" onclick="switchOil('brent',this)">Brent</button>
-      <button class="oil-tab"   onclick="switchOil('wti',this)">WTI</button>
+      <button type="button" class="oil-tab on" onclick="switchOil('brent',this)">Brent</button>
+      <button type="button" class="oil-tab"   onclick="switchOil('wti',this)">WTI</button>
     </div>
     <div id="oil-brent" class="tv-widget-wrap">
       <template data-tradingview-widget data-height="210">
@@ -460,7 +461,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F620">🔥</div>
       <span class="ch-lbl">Gás Natural · Hubs Europeus</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('gas-eu','ttf_live_v1',this,loadTTF,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-eu','ttf_live_v1',this,loadTTF,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="ttf-body"></div>
     <div class="src">✦ Stooq · tg.f (Dutch TTF ICE) · live · hubs secundários ref. Set 2026</div>
@@ -472,7 +473,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#F9731620">🇵🇹</div>
       <span class="ch-lbl">Gás Natural · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('gas-pt','ttf_live_v1',this,loadGasPT,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-pt','ttf_live_v1',this,loadGasPT,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="gaspt-body"></div>
     <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
@@ -482,7 +483,7 @@
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('elec','elec_v3',this,loadElec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('elec','elec_v3',this,loadElec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="elec-body"></div>
   </div>
   
@@ -496,7 +497,7 @@
      </span>
      <div class="ch-r">
        <span class="badge" id="aq-aqi-badge">AQI —</span>
-       <button class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+       <button type="button" class="rbtn ico" onclick="refreshCard('airquality',getAirQualityCacheKey,this,loadAirQuality,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
      </div>
    </div>
    <div id="aq-body"><div class="ld"><div class="spin"></div></div></div>
@@ -512,7 +513,7 @@
        <span class="help-tip" title="Dados do SNIRH: percentagem de volume armazenado por bacia hidrográfica em relação à capacidade total.">?</span>
      </span>
      <div class="ch-r">
-       <button class="rbtn ico" onclick="refreshCard('dams','dams_v1',this,loadDams,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+       <button type="button" class="rbtn ico" onclick="refreshCard('dams','dams_v1',this,loadDams,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
      </div>
    </div>
    <div id="dams-body"></div>
@@ -526,8 +527,8 @@
         <span class="help-tip" title="Euribor: taxa interbancária da Zona Euro usada em crédito habitação de taxa variável.">?</span>
       </span>
       <div class="ch-r">
-        <button class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" aria-label="Ver tendência da Euribor 12 meses"><span aria-hidden="true">📊</span></button>
-        <button class="rbtn ico" onclick="refreshCard('euribor','euribor_live_v1',this,initEuribor,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" onclick="showTrendModal('Euribor 12M - Tendência', 'euribor_12m', {label:'Euribor 12M',borderColor:'#A855F7',unit:'%',decimals:3})" style="margin-right:4px" aria-label="Ver tendência da Euribor 12 meses"><span aria-hidden="true">📊</span></button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('euribor','euribor_live_v1',this,initEuribor,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
         <span class="badge" id="euriborRefDate">...</span>
       </div>
     </div>
@@ -568,9 +569,9 @@
       </div>
     </div>
     <div class="imob-tabs">
-      <button class="imob-tab on" onclick="switchImob('regioes',this)">Regiões</button>
-      <button class="imob-tab"    onclick="switchImob('tendencia',this)">Tendência IPHab</button>
-      <button class="imob-tab"    onclick="switchImob('municipios',this)">Municípios</button>
+      <button type="button" class="imob-tab on" onclick="switchImob('regioes',this)">Regiões</button>
+      <button type="button" class="imob-tab"    onclick="switchImob('tendencia',this)">Tendência IPHab</button>
+      <button type="button" class="imob-tab"    onclick="switchImob('municipios',this)">Municípios</button>
     </div>
     <div id="imob-body"></div>
     <div class="src" id="imobRefSrc">...</div>
@@ -588,7 +589,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#EF444422">😰</div>
       <span class="ch-lbl">Fear &amp; Greed · Cripto</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('fng','fng_v4',this,loadFng,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('fng','fng_v4',this,loadFng,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="fng-body">
     </div>
@@ -600,7 +601,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">📉</div>
       <span class="ch-lbl">Indicador Recessão · EUA</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('rec','rec_v5',this,loadRec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('rec','rec_v5',this,loadRec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="rec-body" style="padding:6px 0"></div>
     <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
@@ -612,7 +613,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌾</div>
       <span class="ch-lbl">Preços Agrícolas · Commodities</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('agri','agri_v3',this,loadAgri,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('agri','agri_v3',this,loadAgri,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="agri-body" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:6px 0"></div>
     <div class="src">✦ Yahoo Finance · Futuros CBOT/ICE · ZW · ZC · ZS · KC · SB · CT</div>
@@ -625,8 +626,8 @@
       <div class="ch-ico" style="background:var(--ad)">📦</div>
       <span class="ch-lbl">Exportações · Portugal</span>
       <div class="ch-r">
-        <button class="rbtn on" onclick="switchExp('destinos',this)">Destinos</button>
-        <button class="rbtn" onclick="switchExp('produtos',this)">Produtos</button>
+        <button type="button" class="rbtn on" onclick="switchExp('destinos',this)">Destinos</button>
+        <button type="button" class="rbtn" onclick="switchExp('produtos',this)">Produtos</button>
       </div>
     </div>
     <div id="exp-body"></div>
@@ -639,8 +640,8 @@
       <div class="ch-ico" style="background:#EF444422">🏛️</div>
       <span class="ch-lbl">Dívida Pública · % PIB</span>
       <div class="ch-r">
-        <button class="rbtn on" onclick="switchDiv('bar',this)">Países</button>
-        <button class="rbtn" onclick="switchDiv('trend',this)">Evolução PT</button>
+        <button type="button" class="rbtn on" onclick="switchDiv('bar',this)">Países</button>
+        <button type="button" class="rbtn" onclick="switchDiv('trend',this)">Evolução PT</button>
       </div>
     </div>
     <div id="div-body"></div>
@@ -653,7 +654,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#3B82F622">✈️</div>
       <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('air','air_v8',this,loadAir,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('air','air_v8',this,loadAir,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="air-body" style="padding:4px 0"></div>
     <div class="src">✦ OpenSky Network (live) · ANA Aeroportos 2024 (fallback)</div>
@@ -664,7 +665,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#F59E0B22">🌍</div>
       <span class="ch-lbl">Sismos · Ibéria · Açores · 7 dias</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('seis','seis_v10',this,loadSeis,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('seis','seis_v10',this,loadSeis,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="seis-body" style="padding:4px 0"></div>
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
@@ -676,7 +677,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#0EA5E922">🚢</div>
       <span class="ch-lbl">Estreito de Ormuz · Tráfego Marítimo</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('ormuz','ormuz_v2',this,loadOrmuz,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('ormuz','ormuz_v2',this,loadOrmuz,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="ormuz-body" style="padding:4px 0"></div>
     <div class="src">✦ AIS data · Golfo Pérsico · Estreito de Ormuz</div>
@@ -689,7 +690,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#10B98120">💼</div>
       <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('smn',null,this,loadSMN,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('smn',null,this,loadSMN,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="smn-body"></div>
     <div class="src">✦ <a href="https://diariodarepublica.pt/dr/detalhe/decreto-lei/139-2025-992879809" target="_blank" rel="noopener noreferrer">RMMG legal: Decreto-Lei n.º 139/2025</a> · <a href="https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20260130-2" target="_blank" rel="noopener noreferrer">Eurostat, salários mínimos jan. 2026</a></div>
@@ -701,7 +702,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#EF444420">🚆</div>
       <span class="ch-lbl">Transportes · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('transp',null,this,loadTransp,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('transp',null,this,loadTransp,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="transp-body"></div>
     <div class="src">✦ CP · Carris Metropolitana · Metro Lisboa/Porto · STCP</div>
@@ -727,7 +728,7 @@
       <span class="ch-lbl">Bolsa de Lisboa · PSI 20</span>
       <div class="ch-r">
         <span class="badge" style="color:#10B981;border-color:#10B98144;background:#10B98111">● Live</span>
-        <button class="rbtn ico" onclick="refreshCard('psi20','psi20_v2',this,loadPSI20,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('psi20','psi20_v2',this,loadPSI20,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="psi20-body"></div>
@@ -742,9 +743,9 @@
       <span class="ch-lbl">Mapa de Calor · Mercados</span>
       <div class="ch-r" style="display:flex;align-items:center;gap:6px">
         <div id="hmap-tabs">
-          <button class="psi-tab on" onclick="switchHmap('sp500',this)">S&amp;P 500</button>
-          <button class="psi-tab" onclick="switchHmap('crypto',this)">Crypto</button>
-          <button class="psi-tab" onclick="switchHmap('etf',this)">ETFs</button>
+          <button type="button" class="psi-tab on" onclick="switchHmap('sp500',this)">S&amp;P 500</button>
+          <button type="button" class="psi-tab" onclick="switchHmap('crypto',this)">Crypto</button>
+          <button type="button" class="psi-tab" onclick="switchHmap('etf',this)">ETFs</button>
         </div>
         <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
       </div>
@@ -765,10 +766,11 @@
         <div style="display:flex;align-items:center;gap:5px">
           <span style="font-family:var(--mono);font-size:.58rem;color:var(--t2)">1 EUR =</span>
           <input id="fx-amount" type="number" value="1" min="0.01" step="any"
+            aria-label="Montante em euros a converter"
             oninput="renderFX()"
             style="width:60px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.7rem;padding:3px 6px;outline:none;text-align:right">
         </div>
-        <button class="rbtn ico" onclick="refreshCard('fx','fx',this,loadFX,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('fx','fx',this,loadFX,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div id="fx-body"><div class="ld"><div class="spin"></div></div></div>
@@ -781,7 +783,7 @@
     <div class="stripe" style="background:var(--orange)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('crypto','cg',this,loadCrypto,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('crypto','cg',this,loadCrypto,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ CoinGecko · Preços em EUR · Variação 24h</div>
   </div>
@@ -794,7 +796,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#EF575722">📊</div>
       <span class="ch-lbl">Inflação harmonizada · Portugal vs Zona Euro</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('inf',null,this,initInflation,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('inf',null,this,initInflation,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="inf-body"></div>
     <div class="src">✦ <a href="https://webinq.ine.pt/" target="_blank" rel="noopener noreferrer">INE</a> · <a href="https://ec.europa.eu/eurostat/web/products-euro-indicators/w/2-02102026-ap" target="_blank" rel="noopener noreferrer">Eurostat · IHPC</a> · atualização automática; setembro em estimativa rápida</div>
@@ -807,7 +809,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:var(--pd)">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('mstats','mstats_v3',this,loadMarketStats,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('mstats','mstats_v3',this,loadMarketStats,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="mstats-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ gold-api.com · EIA · Frankfurter BCE</div>
@@ -819,12 +821,12 @@
     <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
       <div class="ch-r">
-        <button class="rbtn ico" onclick="refreshCard('cal',null,this,loadAndRenderCalendar,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
+        <button type="button" class="rbtn ico" onclick="refreshCard('cal',null,this,loadAndRenderCalendar,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
     <div style="display:flex;gap:4px;margin:6px 0 8px">
-      <button class="rbtn on" id="cal-tab-up" onclick="switchCal('upcoming',this)">Próximos</button>
-      <button class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
+      <button type="button" class="rbtn on" id="cal-tab-up" onclick="switchCal('upcoming',this)">Próximos</button>
+      <button type="button" class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
     </div>
     <div id="cal-body"></div>
     <div class="src">✦ Fed · BCE · INE · BLS · Eurostat · Calendário automático sem API key</div>
@@ -840,9 +842,9 @@
       <div class="ch-r"><a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none">↗</a></div>
     </div>
     <div class="cmap-tabs">
-      <button class="cmap-tab on" onclick="switchCmap('mapa',this)">Mapa</button>
-      <button class="cmap-tab"    onclick="switchCmap('stats',this)">Estatísticas</button>
-      <button class="cmap-tab"    onclick="switchCmap('lista',this)">Lista</button>
+      <button type="button" class="cmap-tab on" onclick="switchCmap('mapa',this)">Mapa</button>
+      <button type="button" class="cmap-tab"    onclick="switchCmap('stats',this)">Estatísticas</button>
+      <button type="button" class="cmap-tab"    onclick="switchCmap('lista',this)">Lista</button>
     </div>
     <div id="cmap-content"></div>
     <div class="cmap-legend" id="cmap-legend">
@@ -858,13 +860,13 @@
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
       <span class="ch-lbl">Análise Geopolítica</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('geo','geo_v10',this,loadGeo,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('geo','geo_v10',this,loadGeo,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div class="geo-tabs">
-      <button class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
-      <button class="geo-tab"    onclick="switchGeo('icg',this)">Crisis Group</button>
-      <button class="geo-tab"    onclick="switchGeo('gpf',this)">Geop. Futures</button>
-      <button class="geo-tab"    onclick="switchGeo('fa',this)">BBC World</button>
+      <button type="button" class="geo-tab on" onclick="switchGeo('all',this)">Todos</button>
+      <button type="button" class="geo-tab"    onclick="switchGeo('icg',this)">Crisis Group</button>
+      <button type="button" class="geo-tab"    onclick="switchGeo('gpf',this)">Geop. Futures</button>
+      <button type="button" class="geo-tab"    onclick="switchGeo('fa',this)">BBC World</button>
     </div>
     <div id="geo-body"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Crisis Group · Geopolitical Futures · Foreign Affairs · RSS</div>
@@ -877,7 +879,7 @@
     <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal
       <span class="help-tip" title="gCO2/kWh: gramas de CO2 emitidas por cada kWh produzido; menor valor indica eletricidade mais limpa.">?</span>
     </span>
-    <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('co2','co2_ren_v1',this,loadCO2,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+    <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('co2','co2_ren_v1',this,loadCO2,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
   </div>
   <div id="co2-body" style="padding:4px 0"></div>
   <div class="src">✦ DGEG · REN Relatório Anual 2024 · Intensidade carbónica gCO₂/kWh</div>
@@ -889,7 +891,7 @@
     <div class="ch">
       <div class="ch-ico" style="background:#8B5CF620">🗽</div>
       <span class="ch-lbl">Liberdade de Imprensa · Democracia</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('press',null,this,loadPress,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('press',null,this,loadPress,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="press-body"></div>
     <div class="src">✦ RSF World Press Freedom Index 2026 · <a href="https://rsf.org/en/index" target="_blank" rel="noopener noreferrer">classificação e metodologia</a> · EIU Democracy Index 2024 (série histórica; <a href="https://www.eiu.com/n/democracy-index-2024/" target="_blank" rel="noopener noreferrer">fonte</a>) · <a href="https://www.eiu.com/n/campaigns/democracy-index-2025/" target="_blank" rel="noopener noreferrer">edição EIU 2025</a></div>
@@ -899,7 +901,7 @@
     <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
       <span class="ch-lbl">Notícias · Portugal</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('news-pt','rss_pt',this,loadNews,'pt',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('news-pt','rss_pt',this,loadNews,'pt',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
@@ -909,7 +911,7 @@
     <div class="stripe" style="background:var(--blue)"></div>
     <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('news-world','rss_world',this,loadNews,'world',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
+      <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('news-world','rss_world',this,loadNews,'world',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
     <div class="src">✦ Google News RSS · Sem limites · Clica para ler</div>
   </div>
