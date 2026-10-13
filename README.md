@@ -97,7 +97,7 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 ### Executar lint localmente
 
 ```bash
-npm install          # instalar dependências (uma vez)
+npm ci --no-bin-links  # instalar versões fixadas no package-lock.json
 npm run lint         # ESLint
 npm run validate     # html-validate
 ruff check dev_server.py  # Ruff (requer Python)

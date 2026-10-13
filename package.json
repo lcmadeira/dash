@@ -5,9 +5,9 @@
   "version": "1.1.2",
   "description": "Dashboard pessoal focado em Portugal",
   "scripts": {
-    "lint": "eslint index.html",
+    "lint": "node ./node_modules/eslint/bin/eslint.js index.html",
     "lint:py": "ruff check dev_server.py",
-    "validate": "html-validate index.html"
+    "validate": "node ./node_modules/html-validate/bin/html-validate.js index.html"
   },
   "devDependencies": {
     "eslint": "^9.22.0",
