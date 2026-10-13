@@ -550,3 +550,30 @@ test("inflation parser uses JSON-stat dimension strides and EA21 for 2026", asyn
   assert.doesNotMatch(body.innerHTML, /Jan 2026[\s\S]*?1\.7%/);
   assert.doesNotThrow(() => vm.runInContext("const APP_INFLATION = INFLATION_FALLBACK;", context));
 });
+
+test("Euribor card ignores an incomplete cache and renders the configured fallback", async () => {
+  const body = { innerHTML: "" };
+  const context = vm.createContext({
+    AbortSignal,
+    Date,
+    Intl,
+    PFX: "dash_",
+    URLSearchParams,
+    console: { log() {}, warn() {} },
+    document: { getElementById: id => id === "euri-body" ? body : null },
+    location: { search: "" },
+    localStorage: { getItem: () => null },
+    addToHistory() {},
+    lsGet: () => ({ updated: "cache corrompida" }),
+    lsSet() {},
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  vm.runInContext(await readFile("src/cards/euribor.js", "utf8"), context);
+  await context.initEuribor();
+
+  assert.match(body.innerHTML, /EMMI estático/);
+  assert.match(body.innerHTML, /2\.682/);
+  assert.doesNotMatch(body.innerHTML, /NaN|undefined/);
+});

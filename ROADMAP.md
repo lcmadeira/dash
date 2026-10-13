@@ -210,6 +210,7 @@
 - [x] **Extrair o card de exportações** para `src/cards/exports.js`, com validação segura das vistas disponíveis ✅ (13/10/2026)
 - [x] **Extrair o card de dívida pública** para `src/cards/public-debt.js` e corrigir o intervalo temporal do gráfico para 2014–2024 ✅ (13/10/2026)
 - [x] **Extrair o indicador de recessão** para `src/cards/recession.js`, validar o cache e clarificar as unidades e a mensagem do indicador ✅ (13/10/2026)
+- [x] **Extrair o card Euribor** para `src/cards/euribor.js` e validar os dados em cache antes de os renderizar ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **Extrair o tráfego marítimo de Ormuz** para `src/cards/ormuz.js`, expirar AIS após 15 minutos, validar coordenadas e escapar tooltips ✅ (13/10/2026)
 - [x] **Extrair o card de emissões CO₂** para `src/cards/co2.js`, remover a consulta REN sem efeito e identificar o ano da comparação europeia ✅ (13/10/2026)
@@ -324,6 +325,7 @@
 - ✅ **Liberdade de imprensa modularizada** — card movido para `src/cards/press.js`; classificação RSF atualizada para 2026, scores expostos e dados EIU/global/regional de 2024 identificados como históricos (13/10/2026)
 - ✅ **Salário mínimo modularizado e comparável** — valores UE atualizados para Eurostat jan. 2026; conversão portuguesa de 14 para 12 pagamentos explicitada e estimativas de custo de vida/IPC sem base comparável removidas (13/10/2026)
 - ✅ **Inflação modularizada e corrigida** — cache válido já não entra em recursão; comparação passa a usar IHPC em ambos os lados e a composição Eurostat EA20/EA21, com fallback atualizado para setembro de 2026 (13/10/2026)
+- ✅ **Euribor modularizada e resiliente** — card movido para `src/cards/euribor.js`; cache incompleto ou inválido recua para o fallback EMMI e regressão coberta por teste (13/10/2026)
 
 ### Próximas melhorias
 
