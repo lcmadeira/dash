@@ -210,6 +210,7 @@
 - [x] **Extrair o card de exportações** para `src/cards/exports.js`, com validação segura das vistas disponíveis ✅ (13/10/2026)
 - [x] **Extrair o card de dívida pública** para `src/cards/public-debt.js` e corrigir o intervalo temporal do gráfico para 2014–2024 ✅ (13/10/2026)
 - [x] **Extrair o indicador de recessão** para `src/cards/recession.js`, validar o cache e clarificar as unidades e a mensagem do indicador ✅ (13/10/2026)
+- [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -313,6 +314,7 @@
 - ✅ **Exportações modularizadas** — dados e vistas por destino/produto movidos para `src/cards/exports.js`; seleção inválida não altera a vista atual (13/10/2026)
 - ✅ **Dívida pública modularizada** — dados comparativos e gráfico movidos para `src/cards/public-debt.js`; intervalo temporal atualizado para corresponder aos dados de 2014–2024 (13/10/2026)
 - ✅ **Indicador de recessão modularizado** — preferências, leitura FRED e gráfico movidos para `src/cards/recession.js`; cache inválido recupera para fallback e as mensagens referem-se apenas ao spread 10Y–2Y (13/10/2026)
+- ✅ **Tráfego aéreo modularizado** — painel OpenSky e mapa movidos para `src/cards/air-traffic.js`; conteúdo externo escapado, aeroportos fora da área removidos da legenda e Coimbra alinhada com o AIP NAV Portugal (13/10/2026)
 
 ### Próximas melhorias
 

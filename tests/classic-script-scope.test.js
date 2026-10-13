@@ -273,3 +273,47 @@ test("recession card describes spread readings precisely and recovers from inval
   assert.doesNotMatch(body.innerHTML, /mercados não sinalizam recessão iminente/);
   assert.doesNotThrow(() => vm.runInContext('const APP_REC_PREF = REC_TREND_PREF_KEY;', context));
 });
+
+test("air traffic card escapes OpenSky text and lists only airports on the map", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const AIRPORTS = ["cached app"]; function loadAir() {}', context);
+
+  const body = { innerHTML: "" };
+  const tip = { style: {} };
+  const canvasContext = {
+    fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, closePath() {},
+    fill() {}, arc() {}, save() {}, translate() {}, rotate() {}, restore() {}, fillText() {},
+    createRadialGradient() { return { addColorStop() {} }; },
+  };
+  const canvas = {
+    parentElement: { offsetWidth: 600 },
+    getBoundingClientRect: () => ({ width: 600, height: 260, left: 0, top: 0 }),
+    getContext: () => canvasContext,
+  };
+  const now = Math.floor(Date.now() / 1000);
+  const states = [
+    ["abc123", '<img src=x onerror="alert(1)">', "<svg/onload=alert(2)>", now, now, -8.47, 40.15, 8000, false, 200, 90, 1],
+    ["def456", "TAP123", "Portugal", now, now, -8.4, 40, null, true, 0, null, null],
+  ];
+  context.document = {
+    getElementById: id => ({ "air-body": body, "air-map-canvas": canvas, "air-map-tip": tip })[id] || null,
+  };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.lsGet = () => ({ live: true, ts: Date.now(), states });
+  context.IS_LOCAL_DEV = false;
+  context.window._topoCache = { features: [] };
+
+  const source = await readFile("src/cards/air-traffic.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadAir, "function");
+  await context.loadAir();
+  assert.match(body.innerHTML, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.match(body.innerHTML, /&lt;svg\/onload=alert\(2\)&gt;/);
+  assert.doesNotMatch(body.innerHTML, /<img src=x/);
+  assert.match(body.innerHTML, /CBP/);
+  assert.doesNotMatch(body.innerHTML, />COR</);
+  assert.doesNotMatch(body.innerHTML, />PDL</);
+  assert.doesNotThrow(() => vm.runInContext("const APP_AIRPORTS = AIRPORTS;", context));
+});
