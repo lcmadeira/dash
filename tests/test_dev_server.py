@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import socket
 import unittest
 from unittest.mock import patch
@@ -38,8 +40,9 @@ class ProxyTargetValidationTests(unittest.TestCase):
         response = {}
 
         class FakeHandler:
-            headers = {"Origin": "https://attacker.example"}
-            path = "/proxy?url=https://example.com/data"
+            def __init__(self):
+                self.headers = {"Origin": "https://attacker.example"}
+                self.path = "/proxy?url=https://example.com/data"
 
             def _send_json(self, payload, status=200):
                 response["payload"] = payload
