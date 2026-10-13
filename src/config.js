@@ -143,14 +143,12 @@ const EU_INDICES = [
 
 /* ── Inflação fallback (estático se API falhar) ── */
 const INFLATION_FALLBACK = [
-  {m:"Ago 2026",pt:3.3,eu:2.8},
-  {m:"Jul 2026",pt:3.0,eu:2.6},
-  {m:"Jun 2026",pt:2.8,eu:2.5},
-  {m:"Mai 2026",pt:2.7,eu:2.4},
-  {m:"Abr 2026",pt:2.5,eu:2.4},
-  {m:"Mar 2026",pt:2.3,eu:2.4},
-  {m:"Fev 2026",pt:2.4,eu:2.3},
-  {m:"Jan 2026",pt:2.6,eu:2.5},
+  {m:"Set 2026",pt:3.6,eu:3.8},
+  {m:"Ago 2026",pt:3.6,eu:3.2},
+  {m:"Jul 2026",pt:3.6,eu:2.9},
+  {m:"Jun 2026",pt:3.1,eu:2.8},
+  {m:"Mai 2026",pt:3.1,eu:3.2},
+  {m:"Abr 2026",pt:3.3,eu:3.0},
 ];
 
 const IPMA_WIND = ["", "Fraco", "Fraco a mod.", "Moderado", "Forte", "Muito forte"];

@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -862,199 +862,14 @@ async function loadFXTrend(force = false) {
 /* ══════════════════════════════════════════════════════════════
    INFLAÇÃO — Eurostat API Statistics (CORS nativo, sem chave)
    Dataset : PRC_HICP_MANR (HICP monthly, annual rate of change)
-   Geo     : PT (Portugal) + EA20 (Zona Euro 20)
+   Geo     : PT (Portugal) + EA20/EA21 (composição vigente da Zona Euro)
    Coicop  : CP00 (todos os itens — índice geral)
    URL base: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/
    Estratégia: fallback estático imediato → Eurostat em background
    ══════════════════════════════════════════════════════════════ */
 
-/* Dados estáticos como fallback (config em src/config.js) */
-
-/* Estado global — preenchido pela API ou pelo fallback */
-let INFLATION_DATA = null;
-let INFLATION_SOURCE = 'static'; // 'static' | 'eurostat_live'
-
-/* ── Parser JSON-stat do Eurostat ────────────────────────────── */
-function parseEurostatInflation(json){
-  try{
-    /* JSON-stat: json.value é um objecto {idx: valor}
-       json.dimension.time.category.index mapeia período → idx */
-    const dimTime  = json.dimension.time  || json.dimension.TIME_PERIOD;
-    const dimGeo   = json.dimension.geo   || json.dimension.GEO;
-
-    if(!dimTime || !dimGeo) throw new Error('Dimensões em falta');
-
-    const timeIndex = dimTime.category.index;   // {"2025-09": 0, ...}
-    const geoIndex  = dimGeo.category.index;    // {"PT": 0, "EA20": 1}
-
-    /* Número de períodos e geos */
-    const nTime = Object.keys(timeIndex).length;
-    const nGeo  = Object.keys(geoIndex).length;
-
-    /* Obter índice de PT e EA20 */
-    const idxPT  = geoIndex['PT']  ?? geoIndex['pt'];
-    const idxEA  = geoIndex['EA20'] ?? geoIndex['EA'] ??
-                   Object.entries(geoIndex).find(([k])=>k.startsWith('EA'))?.[1];
-
-    if(idxPT === undefined || idxEA === undefined)
-      throw new Error(`Geo não encontrado (PT=${idxPT}, EA=${idxEA})`);
-
-    /* Meses em português abreviado */
-    const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun',
-                   'Jul','Ago','Set','Out','Nov','Dez'];
-
-    /* Ordenar períodos do mais recente para o mais antigo */
-    const sortedPeriods = Object.entries(timeIndex)
-      .sort((a,b) => b[0].localeCompare(a[0])); // desc
-
-    const rows = [];
-    for(const [period, tIdx] of sortedPeriods){
-      /* Valor na matriz: posição = tIdx * nGeo + geoIdx */
-      const valPT = json.value[tIdx * nGeo + idxPT];
-      const valEA = json.value[tIdx * nGeo + idxEA];
-
-      if(valPT === null || valPT === undefined || valEA === null || valEA === undefined) continue;
-
-      /* Formatar "2025-09" → "Set 2025" */
-      const [y, m] = period.split('-');
-      const label  = `${MESES[parseInt(m)-1]} ${y}`;
-
-      rows.push({m: label, pt: parseFloat(valPT.toFixed(1)),
-                              eu: parseFloat(valEA.toFixed(1))});
-    }
-
-    if(rows.length < 3) throw new Error('Dados insuficientes: ' + rows.length);
-    return rows.slice(0, 8); // máx 8 meses
-  } catch(e){
-    console.warn('parseEurostatInflation:', e.message);
-    return null;
-  }
-}
-
-/* ── Fetch Eurostat em background ──────────────────────────── */
-async function fetchEurostatInflation(){
-  const BASE = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/PRC_HICP_MANR';
-  const PARAMS = '?geo=PT&geo=EA20&coicop=CP00&lastTimePeriod=8&lang=en';
-  const url = BASE + PARAMS;
-
-  /* Tentar directo primeiro (CORS nativo do Eurostat) */
-  const attempts = [
-    () => fetch(url, {signal: AbortSignal.timeout(9000)}),
-    () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-                {signal: AbortSignal.timeout(11000)}),
-    () => fetch('https://corsproxy.io/?' + encodeURIComponent(url),
-                {signal: AbortSignal.timeout(11000)}),
-  ];
-
-  for(const attempt of attempts){
-    try{
-      const r = await attempt();
-      if(!r.ok) continue;
-      const json = await r.json();
-      const rows = parseEurostatInflation(json);
-      if(rows && rows.length >= 3) return rows;
-    } catch(e){ /* tentar próximo */ }
-  }
-  return null;
-}
-
-/* ── Ponto de entrada: cache → fallback imediato → Eurostat bg ─ */
-async function initInflation(force=false){
-  const CK = 'inflation_eurostat_v1';
-
-  /* 1. Cache válido → mostrar e sair */
-  if(!force){
-    const cached = lsGet(CK);
-    if(cached){
-      INFLATION_DATA   = cached.rows;
-      INFLATION_SOURCE = cached.source || 'eurostat_live';
-      initInflation();
-      console.log('📊 Inflação: cache local (' + INFLATION_DATA[0].m + ')');
-      return;
-    }
-  }
-
-  /* 2. Mostrar fallback IMEDIATAMENTE */
-  INFLATION_DATA   = INFLATION_FALLBACK;
-  INFLATION_SOURCE = 'static';
-  renderInflation();
-
-  /* 3. Tentar Eurostat em background */
-  try{
-    console.log('📊 Inflação: a actualizar do Eurostat...');
-    const rows = await fetchEurostatInflation();
-    if(rows){
-      INFLATION_DATA   = rows;
-      INFLATION_SOURCE = 'eurostat_live';
-      lsSet(CK, {rows, source: 'eurostat_live'});
-      renderInflation();
-      console.log('✅ Inflação Eurostat actualizada:', rows[0].m);
-    } else {
-      console.warn('⚠️ Eurostat inflação indisponível, a usar fallback estático');
-    }
-  } catch(e){
-    console.warn('⚠️ Eurostat inflação erro:', e.message);
-  }
-}
-
-/* ── Render ─────────────────────────────────────────────────── */
-function renderInflation(){
-  const el = $('inf-body');
-  if(!el) return;
-
-  /* Usar dados globais ou fallback de emergência */
-  const data = INFLATION_DATA || INFLATION_FALLBACK;
-  const source = INFLATION_SOURCE || 'static';
-
-  const l    = data[0];
-  const maxV = Math.max(...data.map(d => Math.max(d.pt, d.eu))) * 1.1;
-  const ptC  = 'var(--accent)', euC = 'var(--blue)';
-
-  const sourceTag = source === 'eurostat_live'
-    ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat live · ${data[0].m}</span>`
-    : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
-
-  el.innerHTML = `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>
-    <div class="inf-hero">
-      <div class="inf-block">
-        <div class="inf-flag">🇵🇹</div>
-        <div class="inf-val" style="color:${ptC}">${l.pt.toFixed(1)}<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl">Portugal · IPC</div>
-        <div class="inf-lbl">${l.m}</div>
-      </div>
-      <div class="inf-sep"></div>
-      <div class="inf-block">
-        <div class="inf-flag">🇪🇺</div>
-        <div class="inf-val" style="color:${euC}">${l.eu.toFixed(1)}<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl">Zona Euro · IHPC</div>
-        <div class="inf-lbl">${l.m}</div>
-      </div>
-      <div class="inf-sep"></div>
-      <div class="inf-block">
-        <div class="inf-flag" style="font-size:.75rem;margin-bottom:5px">Meta BCE</div>
-        <div class="inf-val" style="color:var(--green);font-size:1.35rem">2.0<span style="font-size:.8rem">%</span></div>
-        <div class="inf-lbl" style="color:${l.eu<=2.2?'var(--green)':'var(--red)'}">${l.eu<=2.2?'✓ próximo':'▲ acima'} da meta</div>
-        <div class="inf-lbl">&nbsp;</div>
-      </div>
-    </div>
-    <div class="inf-hist">${data.map(d=>{
-      const bp=Math.round((d.pt/maxV)*100), be=Math.round((d.eu/maxV)*100);
-      return `<div class="inf-row">
-        <div class="inf-row-lbl">${d.m}</div>
-        <div class="inf-bar-wrap">
-          <div class="inf-bar-pt" style="width:${bp}%;background:${ptC}"></div>
-          <div class="inf-bar-eu" style="width:${be}%;background:${euC}"></div>
-        </div>
-        <div class="inf-row-pt" style="color:${ptC}">${d.pt.toFixed(1)}%</div>
-        <div class="inf-row-eu" style="color:${euC}">${d.eu.toFixed(1)}%</div>
-      </div>`;
-    }).join('')}</div>
-    <div style="display:flex;gap:14px;margin-top:8px">
-      <span style="font-family:var(--mono);font-size:.56rem;color:${ptC}">▬ Portugal</span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${euC}">▬ Zona Euro</span>
-    </div>`;
-}
+/* Dados estáticos como fallback definidos em src/config.js. */
+/* Inflação Portugal/UE movida para src/cards/inflation.js */
 
 /* ── CoinGecko Crypto ── */
 const CRYPTO_IDS=[
@@ -1273,6 +1088,7 @@ setTimeout(()=>loadAir(),         4000);
 setTimeout(()=>loadOrmuz(),       4300);
 setTimeout(()=>loadCO2(),         4600);
 setTimeout(()=>loadSMN(),         5000);
+setTimeout(()=>initInflation(),   5500);
 setTimeout(()=>loadImob(),        5300);
 setTimeout(()=>loadTransp(),      5600);
 setTimeout(()=>loadPress(),       6000);

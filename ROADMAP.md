@@ -323,6 +323,7 @@
 - ✅ **Transportes modularizados** — tarifas urbanas atualizadas para 2026; removidos preços interurbanos fixos desatualizados e o estado operacional hardcoded (13/10/2026)
 - ✅ **Liberdade de imprensa modularizada** — card movido para `src/cards/press.js`; classificação RSF atualizada para 2026, scores expostos e dados EIU/global/regional de 2024 identificados como históricos (13/10/2026)
 - ✅ **Salário mínimo modularizado e comparável** — valores UE atualizados para Eurostat jan. 2026; conversão portuguesa de 14 para 12 pagamentos explicitada e estimativas de custo de vida/IPC sem base comparável removidas (13/10/2026)
+- ✅ **Inflação modularizada e corrigida** — cache válido já não entra em recursão; comparação passa a usar IHPC em ambos os lados e a composição Eurostat EA20/EA21, com fallback atualizado para setembro de 2026 (13/10/2026)
 
 ### Próximas melhorias
 

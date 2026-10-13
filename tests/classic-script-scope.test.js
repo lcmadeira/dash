@@ -462,3 +462,91 @@ test("minimum wage card uses comparable 2026 Eurostat amounts and explains Portu
   assert.doesNotMatch(body.innerHTML, /custo de vida estimado|IPC por categoria/);
   assert.doesNotThrow(() => vm.runInContext("const APP_SMN_HIST = SMN_HIST; const APP_SMN_EU = SMN_EU;", context));
 });
+
+test("inflation card renders a valid cache without recursively invoking its loader", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  let fetchCalls = 0;
+  let requestedCacheKey = "";
+  context.$ = () => body;
+  context.INFLATION_FALLBACK = [{ m: "Set 2026", pt: 3.6, eu: 3.8 }];
+  context.lsGet = key => {
+    requestedCacheKey = key;
+    return {
+    source: "eurostat_live",
+    rows: [
+      { m: "Set 2026", pt: 3.6, eu: 3.8 },
+      { m: "Ago 2026", pt: 3.6, eu: 3.2 },
+      { m: "Jul 2026", pt: 3.6, eu: 2.9 },
+    ],
+    };
+  };
+  context.lsSet = () => {};
+  context.fetch = async () => {
+    fetchCalls++;
+    throw new Error("unexpected network request");
+  };
+  context.AbortSignal = { timeout: () => undefined };
+  context.console = { log() {}, warn() {} };
+
+  const source = await readFile("src/cards/inflation.js", "utf8");
+  vm.runInContext(source, context);
+  await context.initInflation();
+
+  assert.match(body.innerHTML, /Portugal · IHPC/);
+  assert.match(body.innerHTML, /Eurostat · Set 2026/);
+  assert.match(body.innerHTML, /estimativas rápidas do INE/);
+  assert.equal(fetchCalls, 0);
+  assert.equal(requestedCacheKey, "inflation_eurostat_v2");
+});
+
+test("inflation parser uses JSON-stat dimension strides and EA21 for 2026", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  const periods = ["2025-12", "2026-01", "2026-08", "2026-09"];
+  const countries = ["PT", "EA20", "EA21"];
+  const values = {};
+  const rowsByCountry = {
+    PT: [1.9, 2.0, 3.6, 3.6],
+    EA20: [2.0, 1.7, 3.1, 3.7],
+    EA21: [2.0, 2.1, 3.2, 3.8],
+  };
+  countries.forEach((country, geoIndex) => {
+    periods.forEach((_, timeIndex) => {
+      values[geoIndex * periods.length + timeIndex] = rowsByCountry[country][timeIndex];
+    });
+  });
+  const responseData = {
+    id: ["geo", "time"],
+    size: [countries.length, periods.length],
+    dimension: {
+      geo: { category: { index: Object.fromEntries(countries.map((country, index) => [country, index])) } },
+      time: { category: { index: Object.fromEntries(periods.map((period, index) => [period, index])) } },
+    },
+    value: values,
+  };
+
+  context.$ = () => body;
+  context.INFLATION_FALLBACK = [{ m: "Set 2026", pt: 3.6, eu: 3.8 }];
+  context.lsGet = () => null;
+  context.lsSet = () => {};
+  context.fetch = async url => ({
+    ok: true,
+    async json() {
+      assert.match(url, /geo=EA21/);
+      return responseData;
+    },
+  });
+  context.AbortSignal = { timeout: () => undefined };
+  context.console = { log() {}, warn() {} };
+
+  const source = await readFile("src/cards/inflation.js", "utf8");
+  vm.runInContext(source, context);
+  await context.initInflation(true);
+
+  assert.match(body.innerHTML, /3\.6<span/);
+  assert.match(body.innerHTML, /3\.8<span/);
+  assert.match(body.innerHTML, /Jan 2026[\s\S]*?2\.1%/);
+  assert.doesNotMatch(body.innerHTML, /Jan 2026[\s\S]*?1\.7%/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_INFLATION = INFLATION_FALLBACK;", context));
+});

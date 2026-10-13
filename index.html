@@ -795,11 +795,11 @@
     <div class="stripe" style="background:var(--red)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#EF575722">📊</div>
-      <span class="ch-lbl">Inflação · PT vs Zona Euro</span>
-      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('inf',null,this,renderInflation)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
+      <span class="ch-lbl">Inflação harmonizada · Portugal vs Zona Euro</span>
+      <div class="ch-r"><button class="rbtn ico" onclick="refreshCard('inf',null,this,initInflation,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="inf-body"></div>
-    <div class="src">✦ Eurostat · PRC_HICP_MANR · CORS nativo · sem chave · actualização automática</div>
+    <div class="src">✦ <a href="https://webinq.ine.pt/" target="_blank" rel="noopener noreferrer">INE</a> · <a href="https://ec.europa.eu/eurostat/web/products-euro-indicators/w/2-02102026-ap" target="_blank" rel="noopener noreferrer">Eurostat · IHPC</a> · atualização automática; setembro em estimativa rápida</div>
   </div>
 
 
@@ -945,6 +945,7 @@
  <script src="src/cards/transport.js"></script>
  <script src="src/cards/press.js"></script>
  <script src="src/cards/smn.js"></script>
+ <script src="src/cards/inflation.js"></script>
  <script src="src/widgets/economic-calendar.js"></script>
  <script src="src/widgets/market-clock.js"></script>
 <script src="src/app.js"></script>
