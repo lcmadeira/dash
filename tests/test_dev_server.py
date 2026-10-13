@@ -1,3 +1,4 @@
+import socket
 import unittest
 from unittest.mock import patch
 
@@ -6,7 +7,16 @@ import dev_server
 
 class ProxyTargetValidationTests(unittest.TestCase):
     def test_allows_public_http_targets(self):
-        self.assertEqual(dev_server._validate_target("https://example.com/data"), (True, ""))
+        public_record = (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 0))
+        with patch("dev_server.socket.getaddrinfo", return_value=[public_record]):
+            self.assertEqual(dev_server._validate_target("https://example.com/data"), (True, ""))
+
+    def test_rejects_public_hostname_resolving_to_private_or_unknown_hosts(self):
+        private_record = (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.1.2.3", 0))
+        with patch("dev_server.socket.getaddrinfo", return_value=[private_record]):
+            self.assertFalse(dev_server._validate_target("https://public-looking.example/data")[0])
+        with patch("dev_server.socket.getaddrinfo", side_effect=socket.gaierror("DNS unavailable")):
+            self.assertFalse(dev_server._validate_target("https://unresolved.example/data")[0])
 
     def test_rejects_local_targets_and_non_http_schemes(self):
         self.assertFalse(dev_server._validate_target("http://127.0.0.1:8000/")[0])
@@ -23,6 +33,21 @@ class ProxyTargetValidationTests(unittest.TestCase):
         self.assertTrue(dev_server._is_allowed_origin(f"http://localhost:{dev_server.PORT}"))
         self.assertFalse(dev_server._is_allowed_origin("https://attacker.example"))
         self.assertFalse(dev_server._is_allowed_origin(f"http://localhost.evil:{dev_server.PORT}"))
+
+    def test_proxy_endpoint_rejects_remote_origins_before_fetching(self):
+        response = {}
+
+        class FakeHandler:
+            headers = {"Origin": "https://attacker.example"}
+            path = "/proxy?url=https://example.com/data"
+
+            def _send_json(self, payload, status=200):
+                response["payload"] = payload
+                response["status"] = status
+
+        dev_server.Handler._handle_proxy(FakeHandler())
+        self.assertEqual(response["status"], 403)
+        self.assertEqual(response["payload"]["error"], "Origem não permitida")
 
     def test_redirect_handler_rejects_private_redirects(self):
         handler = dev_server.SafeRedirectHandler()

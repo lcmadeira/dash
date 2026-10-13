@@ -52,7 +52,7 @@ Opção 3 (recomendado se apanhares erros de CORS/429 em proxies públicos):
 python3 dev_server.py
 ```
 
-Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
+Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais, rejeita nomes DNS sem endereços públicos e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
 
 ## Credenciais de APIs
 

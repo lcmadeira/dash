@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.parse
@@ -21,15 +22,22 @@ _cache: dict[str, tuple[float, dict[str, str], bytes]] = {}
 
 
 def _is_private_host(hostname: str) -> bool:
-    h = (hostname or "").strip().lower()
-    if h in {"localhost", "127.0.0.1", "::1"}:
+    host = (hostname or "").strip().lower().rstrip(".")
+    if host == "localhost":
         return True
-    # Best-effort: block raw IPs in private ranges
+
     try:
-        ip = ip_address(h)
-        return ip.is_private or ip.is_loopback or ip.is_link_local
+        addresses = [ip_address(host)]
     except ValueError:
-        return False
+        try:
+            records = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+            addresses = [ip_address(record[4][0]) for record in records]
+        except (OSError, ValueError):
+            return True
+        if not addresses:
+            return True
+
+    return any(not address.is_global for address in addresses)
 
 
 def _validate_target(url: str) -> tuple[bool, str]:
@@ -51,7 +59,7 @@ def _validate_target(url: str) -> tuple[bool, str]:
         return False, "Porta inválida"
     host = parsed.hostname
     if _is_private_host(host):
-        return False, "Host privado/local não permitido"
+        return False, "Host privado/local ou sem resolução DNS pública"
     return True, ""
 
 
