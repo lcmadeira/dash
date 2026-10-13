@@ -872,3 +872,55 @@ test("fetch helpers stop proxy retries when the caller aborts", async () => {
   await context.fetchViaLocalProxy("https://example.com/data", { signal: controller.signal });
   assert.equal(receivedOptions.signal, controller.signal);
 });
+
+test("JSON and text fetch helpers share proxy cooldowns after HTTP 429", async () => {
+  const requests = [];
+  let rateLimitAllOrigins = true;
+  let rateLimitCorsproxy = false;
+  const context = vm.createContext({
+    AbortSignal,
+    URL,
+    URLSearchParams,
+    Date,
+    Map,
+    Set,
+    console: { log() {}, warn() {}, debug() {}, info() {} },
+    location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+    localStorage: { getItem: () => null, setItem() {} },
+    fetch: async url => {
+      requests.push(url);
+      if (rateLimitAllOrigins && url.startsWith("https://api.allorigins.win/")) {
+        rateLimitAllOrigins = false;
+        return { status: 429, ok: false };
+      }
+      if (rateLimitCorsproxy && url.startsWith("https://corsproxy.io/")) {
+        rateLimitCorsproxy = false;
+        return { status: 429, ok: false };
+      }
+      return {
+        status: 200,
+        ok: true,
+        async json() { return { success: true }; },
+        async text() { return "success"; },
+      };
+    },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  const sources = ["allorigins", "corsproxy", "codetabs"];
+  assert.deepEqual(await context.fetchJsonFirstOk("https://example.com/data", {}, 100, sources), { success: true });
+  assert.equal(requests.length, 2);
+  assert.ok(requests[0].startsWith("https://api.allorigins.win/"));
+  assert.ok(requests[1].startsWith("https://corsproxy.io/"));
+
+  rateLimitCorsproxy = true;
+  assert.equal(await context.fetchTextFirstOk("https://example.com/data", {}, 100, sources), "success");
+  assert.equal(requests.length, 4);
+  assert.ok(requests[2].startsWith("https://corsproxy.io/"));
+  assert.ok(requests[3].startsWith("https://api.codetabs.com/"));
+
+  assert.deepEqual(await context.fetchJsonFirstOk("https://example.com/data", {}, 100, sources), { success: true });
+  assert.equal(requests.length, 5);
+  assert.ok(requests[4].startsWith("https://api.codetabs.com/"));
+});

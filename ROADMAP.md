@@ -217,6 +217,7 @@
 - [x] **Remover a configuração pública da chave Twelve Data** e o cliente inativo; uma integração futura exige endpoint no servidor ✅ (13/10/2026)
 - [x] **Validar envelopes da cache local** e rejeitar timestamps futuros/malformados; teste cobre leitura, recuperação stale e limpeza ✅ (13/10/2026)
 - [x] **Respeitar cancelamento nos pedidos com fallback**; pedidos abortados deixam de tentar proxies e o proxy local preserva o `AbortSignal` do chamador ✅ (13/10/2026)
+- [x] **Partilhar o cooldown HTTP 429** entre pedidos genéricos, JSON e texto, evitando repetir chamadas a proxies limitados ✅ (13/10/2026)
 - [x] **Extrair o card geopolítico** para `src/cards/geopolitics.js`, escapar conteúdo RSS e aceitar apenas links HTTPS seguros ✅ (13/10/2026)
 - [x] **Extrair o card Euribor** para `src/cards/euribor.js` e validar os dados em cache antes de os renderizar ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
@@ -343,6 +344,7 @@
 - ✅ **Credencial Twelve Data removida do cliente** — `tdGet` não tinha chamadas; removida a chave pública e documentada a necessidade de backend para futura integração (13/10/2026)
 - ✅ **Cache local endurecida** — leituras rejeitam registos com timestamps no futuro ou envelopes incompletos; a limpeza remove entradas inválidas e stale sem timestamp (13/10/2026)
 - ✅ **Cancelamento HTTP respeitado** — helpers de fetch terminam retries quando o chamador aborta e `fetchViaLocalProxy` conserva o sinal recebido (13/10/2026)
+- ✅ **Cooldown de proxies unificado** — fetch JSON/texto respeita `429` e partilha o período de espera com o helper genérico, com teste de regressão entre helpers (13/10/2026)
 
 ### Próximas melhorias
 

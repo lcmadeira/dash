@@ -129,6 +129,12 @@
 
   /* Cache de proxies em "cool down" por 1 minuto se derem 429 */
   const proxyCoolDown = new Map();
+  function isProxyCoolingDown(source) {
+    return Date.now() < (proxyCoolDown.get(source) || 0);
+  }
+  function coolDownProxy(source) {
+    proxyCoolDown.set(source, Date.now() + 60000);
+  }
 
   /**
    * Tenta cada fonte até obter resposta HTTP válida e aprovada pelo validador opcional.
@@ -143,14 +149,13 @@
   async function fetchFirstOk(url, options = {}, timeoutMs = 12000, sources, validate) {
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
-    const now = Date.now();
 
     for (let i = 0; i < plan.length; i++) {
       throwIfCallerAborted(options.signal);
       const step = plan[i];
       
       /* Saltar se estiver em cooldown */
-      if (proxyCoolDown.has(step.source) && now < proxyCoolDown.get(step.source)) {
+      if (isProxyCoolingDown(step.source)) {
         continue;
       }
 
@@ -159,7 +164,7 @@
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
         
         if (r.status === 429) {
-          proxyCoolDown.set(step.source, now + 60000); // 1 minuto de pausa
+          coolDownProxy(step.source); // 1 minuto de pausa
           if (isFetchDebugEnabled()) console.warn(`[fetch] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
@@ -273,9 +278,18 @@
     for (let i = 0; i < plan.length; i++) {
       throwIfCallerAborted(options.signal);
       const step = plan[i];
+      if (isProxyCoolingDown(step.source)) {
+        if (isFetchDebugEnabled()) console.debug(`[fetch-json] skip ${step.source} (cooldown)`, url);
+        continue;
+      }
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] try #${i + 1}/${plan.length} ${step.source}`, url);
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+        if (r.status === 429) {
+          coolDownProxy(step.source);
+          if (isFetchDebugEnabled()) console.warn(`[fetch-json] 429 rate limit on ${step.source}, cooling down...`);
+          continue;
+        }
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-json] fail ${step.source} HTTP ${r.status}`, url);
@@ -314,9 +328,18 @@
     for (let i = 0; i < plan.length; i++) {
       throwIfCallerAborted(options.signal);
       const step = plan[i];
+      if (isProxyCoolingDown(step.source)) {
+        if (isFetchDebugEnabled()) console.debug(`[fetch-text] skip ${step.source} (cooldown)`, url);
+        continue;
+      }
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] try #${i + 1}/${plan.length} ${step.source}`, url);
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+        if (r.status === 429) {
+          coolDownProxy(step.source);
+          if (isFetchDebugEnabled()) console.warn(`[fetch-text] 429 rate limit on ${step.source}, cooling down...`);
+          continue;
+        }
         if (!r.ok) {
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-text] fail ${step.source} HTTP ${r.status}`, url);
