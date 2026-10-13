@@ -627,3 +627,52 @@ test("FX card rejects malformed cached rates and sanitizes trend preferences", a
   assert.deepEqual(JSON.parse(values.get("dash_fx_trend_pref_v1")), { code: "USD", days: 30 });
   assert.doesNotThrow(() => vm.runInContext("const APP_FX_PAIRS = FX_PAIRS;", context));
 });
+
+test("crypto card rejects malformed cache and restricts trend selections", async () => {
+  const body = { innerHTML: "" };
+  const values = new Map();
+  let cacheWrite = null;
+  let fetchCalls = 0;
+  const context = vm.createContext({
+    Intl,
+    PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: () => null },
+    localStorage: {
+      getItem: key => values.get(key) || null,
+      setItem: (key, value) => values.set(key, value),
+    },
+    $: selector => selector === "crypto-body" ? body : null,
+    skeletonKPIs: () => "loading",
+    lsGet: key => key === "cg" ? { bitcoin: { eur: "bad" } } : null,
+    lsSet: (key, value) => { cacheWrite = { key, value }; },
+    fetchFirstOk: async () => {
+      fetchCalls++;
+      return {
+        r: {
+          ok: true,
+          async json() { return { bitcoin: { eur: 65000, eur_24h_change: -1.25 } }; },
+        },
+      };
+    },
+    addToHistory() {},
+    fmtP: value => Number(value).toFixed(2),
+    chg: value => `${value}%`,
+    er: () => "error",
+    notifyNonCriticalError() {},
+  });
+  context.window = context;
+  vm.runInContext('const CRYPTO_IDS = ["cached app"];', context);
+
+  vm.runInContext(await readFile("src/cards/crypto.js", "utf8"), context);
+  await context.loadCrypto();
+  context.setCryptoTrendCoin('<img src=x onerror=alert(1)>');
+  context.setCryptoTrendDays(999);
+
+  assert.equal(fetchCalls, 1);
+  assert.equal(cacheWrite.key, "cg");
+  assert.equal(cacheWrite.value.bitcoin.eur, 65000);
+  assert.match(body.innerHTML, /Bitcoin/);
+  assert.deepEqual(JSON.parse(values.get("dash_crypto_trend_pref_v1")), { coinId: "bitcoin", days: 30 });
+  assert.doesNotThrow(() => vm.runInContext("const APP_CRYPTO_IDS = CRYPTO_IDS;", context));
+});
