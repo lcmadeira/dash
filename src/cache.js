@@ -36,6 +36,20 @@
   }
 
   /**
+   * Valida o formato e o timestamp de um registo de cache.
+   * @param {*} value Registo descodificado de localStorage.
+   * @param {number} now Timestamp atual em milissegundos.
+   * @returns {boolean} Indica se o envelope pode ser usado.
+   */
+  function isValidEnvelope(value, now = Date.now()) {
+    const ts = typeof value?.ts === "number" ? value.ts
+      : typeof value?.ts === "string" && value.ts.trim() ? Number(value.ts) : NaN;
+    return !!value && typeof value === "object" && !Array.isArray(value)
+      && Object.prototype.hasOwnProperty.call(value, "d")
+      && Number.isFinite(ts) && ts >= 0 && ts <= now;
+  }
+
+  /**
    * Lê o registo guardado sem aplicar o TTL, para permitir recuperação de dados antigos.
    * @param {string} key Chave lógica, sem o prefixo interno.
    * @returns {{d: *, ts: number}|null} Dados e timestamp, ou null se não existirem/forem inválidos.
@@ -45,7 +59,7 @@
       const raw = localStorage.getItem(PFX + key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.d) return parsed;
+      if (isValidEnvelope(parsed)) return parsed;
     } catch {}
     return null;
   }
@@ -60,12 +74,9 @@
       if (!key.startsWith(PFX)) return;
       try {
         const data = JSON.parse(localStorage.getItem(key));
-        if (data && data.ts) {
-          const ttl = getTTL(key);
-          if (now - data.ts > ttl) {
-            localStorage.removeItem(key);
-            removed++;
-          }
+        if (!isValidEnvelope(data, now) || now - Number(data.ts) >= getTTL(key)) {
+          localStorage.removeItem(key);
+          removed++;
         }
       } catch {
         localStorage.removeItem(key);
@@ -86,13 +97,11 @@
       const raw = localStorage.getItem(PFX + k);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      const ts = Number(parsed?.ts);
-      const d = parsed?.d;
-      if (!Number.isFinite(ts)) return null;
-      const age = Date.now() - ts;
+      if (!isValidEnvelope(parsed)) return null;
+      const age = Date.now() - Number(parsed.ts);
       const ttl = getTTL(k);
       if (age >= ttl) return null;
-      return d;
+      return parsed.d;
     } catch {
       return null;
     }

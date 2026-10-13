@@ -1,6 +1,6 @@
 # Painel Pessoal · Portugal
 
-Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — desenhado para correr **sem backend** e com **cache local (localStorage)**.
+Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — desenhado para correr **sem backend** e com **cache local (localStorage)**. Os registos têm TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
 
 ## O que inclui
 

@@ -793,3 +793,42 @@ test("gas markets card rejects malformed TTF cache and keeps its global handlers
   assert.match(body.innerHTML, /38\.5/);
   assert.doesNotThrow(() => vm.runInContext("const APP_GAS_MARKETS = true;", context));
 });
+
+
+test("cache ignores future or malformed timestamps and removes invalid entries", async () => {
+  const storage = {
+    getItem(key) { return this[key] ?? null; },
+    setItem(key, value) { this[key] = String(value); },
+    removeItem(key) { delete this[key]; },
+  };
+  const context = vm.createContext({
+    Date,
+    Object,
+    Number,
+    JSON,
+    console: { log() {}, warn() {}, error() {} },
+    localStorage: storage,
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/cache.js", "utf8"), context);
+
+  const now = Date.now();
+  storage.dash_v15_fresh = JSON.stringify({ d: { ok: true }, ts: now - 1000 });
+  storage.dash_v15_future = JSON.stringify({ d: { future: true }, ts: now + 60_000 });
+  storage.dash_v15_bad = JSON.stringify({ d: { missingTimestamp: true } });
+  storage.dash_v15_old = JSON.stringify({ d: { stale: true }, ts: now - context.CACHE_TTL - 1000 });
+  storage.dash_v15_corrupt = "{";
+
+  assert.deepEqual(context.lsGet("fresh"), { ok: true });
+  assert.equal(context.lsGet("future"), null);
+  assert.equal(context.lsGet("bad"), null);
+  assert.deepEqual(context.getStaleCache("old").d, { stale: true });
+  assert.equal(context.getStaleCache("future"), null);
+
+  context.cleanOldCacheSync();
+  assert.ok(storage.dash_v15_fresh);
+  assert.equal(storage.dash_v15_future, undefined);
+  assert.equal(storage.dash_v15_bad, undefined);
+  assert.equal(storage.dash_v15_old, undefined);
+  assert.equal(storage.dash_v15_corrupt, undefined);
+});
