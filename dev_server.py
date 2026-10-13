@@ -39,20 +39,62 @@ def _validate_target(url: str) -> tuple[bool, str]:
         return False, "URL inválido"
     if parsed.scheme not in {"http", "https"}:
         return False, "Apenas http/https são permitidos"
-    if not parsed.netloc:
+    if not parsed.netloc or not parsed.hostname:
         return False, "Host em falta"
-    host = parsed.hostname or ""
+    if parsed.username is not None or parsed.password is not None:
+        return False, "Credenciais na URL não são permitidas"
+    try:
+        port = parsed.port
+    except ValueError:
+        return False, "Porta inválida"
+    if port is not None and not 1 <= port <= 65535:
+        return False, "Porta inválida"
+    host = parsed.hostname
     if _is_private_host(host):
         return False, "Host privado/local não permitido"
     return True, ""
 
 
+def _is_allowed_origin(origin: str | None) -> bool:
+    if not origin or origin == "null":
+        return True
+    try:
+        parsed = urllib.parse.urlparse(origin)
+        if parsed.scheme not in {"http", "https"} or parsed.username or parsed.password:
+            return False
+        host = (parsed.hostname or "").lower()
+        port = parsed.port
+    except ValueError:
+        return False
+    return host in {"localhost", "127.0.0.1", "::1"} and port in {None, PORT}
+
+
+class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        ok, error = _validate_target(new_url)
+        if not ok:
+            raise urllib.error.HTTPError(
+                request.full_url,
+                HTTPStatus.FORBIDDEN,
+                f"Redirect bloqueado: {error}",
+                headers,
+                file_pointer,
+            )
+        return super().redirect_request(request, file_pointer, code, message, headers, new_url)
+
+
+_PROXY_OPENER = urllib.request.build_opener(SafeRedirectHandler())
+
+
 class Handler(SimpleHTTPRequestHandler):
     def end_headers(self) -> None:
-        # Allow dev CORS for same-machine browser
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        # Allow CORS only for local dashboard pages (including file:// origin null).
+        origin = self.headers.get("Origin")
+        if _is_allowed_origin(origin):
+            self.send_header("Access-Control-Allow-Origin", origin or "*")
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
 
     def do_OPTIONS(self) -> None:
@@ -66,6 +108,11 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def _handle_proxy(self) -> None:
+        origin = self.headers.get("Origin")
+        if not _is_allowed_origin(origin):
+            self._send_json({"ok": False, "error": "Origem não permitida"}, status=HTTPStatus.FORBIDDEN)
+            return
+
         q = urllib.parse.urlparse(self.path).query
         params = urllib.parse.parse_qs(q)
         target = (params.get("url", [""])[0] or "").strip()
@@ -92,7 +139,7 @@ class Handler(SimpleHTTPRequestHandler):
             method="GET",
         )
         try:
-            with urllib.request.urlopen(req, timeout=UPSTREAM_TIMEOUT_SEC) as resp:
+            with _PROXY_OPENER.open(req, timeout=UPSTREAM_TIMEOUT_SEC) as resp:
                 body = resp.read()
                 headers = {}
                 ct = resp.headers.get("Content-Type")
@@ -130,7 +177,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    with ThreadingHTTPServer(("0.0.0.0", PORT), Handler) as httpd:
+    with ThreadingHTTPServer(("127.0.0.1", PORT), Handler) as httpd:
         print(f"Dev server: http://localhost:{PORT}")
         print("Proxy endpoint: /proxy?url=https://example.com")
         httpd.serve_forever()

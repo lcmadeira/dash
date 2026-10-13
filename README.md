@@ -52,7 +52,7 @@ Opção 3 (recomendado se apanhares erros de CORS/429 em proxies públicos):
 python3 dev_server.py
 ```
 
-Depois abrir `http://localhost:8000` (inclui um endpoint `/proxy` para contornar CORS em dev).
+Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
 
 ## Credenciais de APIs
 
@@ -86,9 +86,9 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | Job | Descrição | Falha se... |
 |---|---|---|
 | `lint-js` | ESLint no JavaScript inline do `index.html` e nos ficheiros listados em `package.json` | Erros de sintaxe ou `no-undef` |
-| `lint-py` | Ruff no `dev_server.py` | Erros de lint Python |
+| `lint-py` | Ruff e testes unitários Python do servidor de desenvolvimento | Erros de lint ou regressões no proxy |
 | `validate-html` | html-validate na estrutura HTML | Erros estruturais ou acessibilidade |
-| `secret-scan` | Regex por API keys hardcoded em `index.html`, `dev_server.py` e `src/` | Encontrar secrets em código ativo |
+| `secret-scan` | Regex por API keys hardcoded em `index.html`, `dev_server.py`, `src/` e `tests/` | Encontrar secrets em código ativo |
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
@@ -98,7 +98,8 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 npm ci --no-bin-links  # instalar versões fixadas no package-lock.json
 npm run lint         # ESLint
 npm run validate     # html-validate
-ruff check dev_server.py  # Ruff (requer Python)
+npm run lint:py     # Ruff (requer Python)
+python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
 ## Estrutura do repositório
