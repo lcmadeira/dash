@@ -213,6 +213,7 @@
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **Extrair o tráfego marítimo de Ormuz** para `src/cards/ormuz.js`, expirar AIS após 15 minutos, validar coordenadas e escapar tooltips ✅ (13/10/2026)
 - [x] **Extrair o card de emissões CO₂** para `src/cards/co2.js`, remover a consulta REN sem efeito e identificar o ano da comparação europeia ✅ (13/10/2026)
+- [x] **Extrair o card de transportes** para `src/cards/transport.js`, atualizar tarifas urbanas para 2026 e deixar claro que o estado operacional não é consultado em direto ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -319,6 +320,7 @@
 - ✅ **Tráfego aéreo modularizado** — painel OpenSky e mapa movidos para `src/cards/air-traffic.js`; conteúdo externo escapado, aeroportos fora da área removidos da legenda e Coimbra alinhada com o AIP NAV Portugal (13/10/2026)
 - ✅ **Tráfego marítimo modularizado** — card de Ormuz movido para `src/cards/ormuz.js`; cache AIS expira após 15 minutos, tooltips escapam dados externos e percentagens estimadas são identificadas como referência (13/10/2026)
 - ✅ **Emissões CO₂ modularizadas** — mix anual de referência movido para `src/cards/co2.js`; removida a consulta REN cujo resultado não era apresentado e indicada a base 2023 na comparação europeia (13/10/2026)
+- ✅ **Transportes modularizados** — tarifas urbanas atualizadas para 2026; removidos preços interurbanos fixos desatualizados e o estado operacional hardcoded (13/10/2026)
 
 ### Próximas melhorias
 

@@ -379,3 +379,47 @@ test("CO2 card renders its reference mix without an unused network fetch", async
   assert.match(body.innerHTML, /gCO₂\/kWh/);
   assert.doesNotThrow(() => vm.runInContext("const APP_CO2_F = CO2_F;", context));
 });
+
+test("transport card shows current urban reference fares and avoids claiming live service status", async () => {
+  const context = createBrowserContext();
+  vm.runInContext("function loadTransp() {} function switchTr() {}", context);
+  const body = { innerHTML: "" };
+  const passes = { style: {} };
+  const schedules = { style: {} };
+  const buses = { style: {} };
+  const tabs = [0, 1, 2].map(() => ({
+    classList: {
+      classes: new Set(),
+      remove(name) { this.classes.delete(name); },
+      add(name) { this.classes.add(name); },
+    },
+  }));
+  context.document = {
+    getElementById: id => ({
+      "transp-body": body,
+      "tr-passes": passes,
+      "tr-horarios": schedules,
+      "tr-autocarros": buses,
+    })[id] || null,
+    querySelectorAll: () => tabs,
+  };
+
+  const source = await readFile("src/cards/transport.js", "utf8");
+  vm.runInContext(source, context);
+  assert.equal(typeof context.loadTransp, "function");
+  assert.equal(typeof context.switchTr, "function");
+  context.loadTransp();
+  assert.match(body.innerHTML, /Passe Navegante 2026/);
+  assert.match(body.innerHTML, /1\.90€/);
+  assert.match(body.innerHTML, /7\.25€/);
+  assert.match(body.innerHTML, /1\.40€/);
+  assert.match(body.innerHTML, /consultar tarifa/i);
+  assert.match(body.innerHTML, /estado operacional e os avisos de greve não são consultados em direto/);
+  assert.doesNotMatch(body.innerHTML, /Sem greves anunciadas|Circulação normal|Passe Alentejo/);
+
+  context.switchTr("horarios", tabs[1]);
+  assert.equal(passes.style.display, "none");
+  assert.equal(schedules.style.display, "");
+  assert.equal(buses.style.display, "none");
+  assert.equal(tabs[1].classList.classes.has("on"), true);
+});
