@@ -423,3 +423,22 @@ test("transport card shows current urban reference fares and avoids claiming liv
   assert.equal(buses.style.display, "none");
   assert.equal(tabs[1].classList.classes.has("on"), true);
 });
+
+test("press card renders RSF 2026 separately from historical EIU data and avoids cached scope collisions", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const RSF = ["cached app"]; const EIU = ["cached app"];', context);
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "press-body" ? body : null };
+
+  const source = await readFile("src/cards/press.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadPress, "function");
+  context.loadPress();
+  assert.match(body.innerHTML, /RSF 2026/);
+  assert.match(body.innerHTML, /Portugal[\s\S]*?#10[\s\S]*?83\.71/);
+  assert.match(body.innerHTML, /EIU 2024/);
+  assert.match(body.innerHTML, /Distribuição global RSF 2024/);
+  assert.match(body.innerHTML, /Score por região RSF 2024/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_RSF = RSF; const APP_EIU = EIU;", context));
+});

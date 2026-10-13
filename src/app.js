@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -2984,171 +2984,9 @@ function loadSMN(force){
 /* Transportes PT movido para src/cards/transport.js */
 
 
-function loadPress(force){
-  const el=document.getElementById("press-body");
-  if(!el) return;
+/* Liberdade de imprensa movida para src/cards/press.js */
 
-  /* RSF Press Freedom Index 2024 (score 0-100, maior=melhor) */
-  /* Fonte: rsf.org/en/index */
-  const RSF=[
-    {c:"🇳🇴",n:"Noruega",   rank:1,  score:91.89,trend:0,   status:"Livre"},
-    {c:"🇩🇰",n:"Dinamarca", rank:2,  score:89.61,trend:+1,  status:"Livre"},
-    {c:"🇸🇪",n:"Suécia",    rank:3,  score:88.36,trend:-1,  status:"Livre"},
-    {c:"🇫🇮",n:"Finlândia", rank:4,  score:87.94,trend:0,   status:"Livre"},
-    {c:"🇳🇱",n:"Holanda",   rank:5,  score:87.08,trend:+3,  status:"Livre"},
-    {c:"🇵🇹",n:"Portugal",  rank:8,  score:84.27,trend:+2,  status:"Livre"},
-    {c:"🇩🇪",n:"Alemanha",  rank:10, score:82.43,trend:-3,  status:"Livre"},
-    {c:"🇫🇷",n:"França",    rank:21, score:76.92,trend:+5,  status:"Livre"},
-    {c:"🇪🇸",n:"Espanha",   rank:30, score:70.31,trend:-4,  status:"Satisfatório"},
-    {c:"🇬🇧",n:"Reino Unido",rank:23,score:75.48,trend:+1,  status:"Livre"},
-    {c:"🇺🇸",n:"EUA",       rank:55, score:66.59,trend:-10, status:"Problemático"},
-    {c:"🇧🇷",n:"Brasil",    rank:82, score:55.47,trend:+6,  status:"Problemático"},
-    {c:"🇮🇳",n:"Índia",     rank:159,score:31.28,trend:-2,  status:"Difícil"},
-    {c:"🇷🇺",n:"Rússia",    rank:164,score:22.16,trend:-5,  status:"Muito grave"},
-    {c:"🇨🇳",n:"China",     rank:172,score:20.32,trend:-3,  status:"Muito grave"},
-  ];
 
-  /* EIU Democracy Index 2024 (0-10) */
-  /* Fonte: eiu.com/democracy-index */
-  const EIU=[
-    {c:"🇳🇴",n:"Noruega",   score:9.81,type:"Democracia plena"},
-    {c:"🇮🇸",n:"Islândia",  score:9.45,type:"Democracia plena"},
-    {c:"🇸🇪",n:"Suécia",    score:9.39,type:"Democracia plena"},
-    {c:"🇳🇿",n:"Nova Zelândia",score:9.37,type:"Democracia plena"},
-    {c:"🇩🇰",n:"Dinamarca", score:9.22,type:"Democracia plena"},
-    {c:"🇵🇹",n:"Portugal",  score:7.90,type:"Democracia plena"},
-    {c:"🇩🇪",n:"Alemanha",  score:8.80,type:"Democracia plena"},
-    {c:"🇺🇸",n:"EUA",       score:7.85,type:"Democracia com falhas"},
-    {c:"🇧🇷",n:"Brasil",    score:6.78,type:"Democracia com falhas"},
-    {c:"🇷🇺",n:"Rússia",    score:2.22,type:"Regime autoritário"},
-    {c:"🇨🇳",n:"China",     score:1.97,type:"Regime autoritário"},
-  ];
-
-  /* Estatísticas globais RSF 2024 */
-  const GLOBAL={
-    livre:31.4, satisfatorio:24.6, problematico:17.8, dificil:13.2, muitoGrave:13.0,
-    total:180,
-    tendencia:"↓ Situação deteriorou-se em 60% dos países em 2024"
-  };
-
-  /* Distribuição regional */
-  const REGIONS=[
-    {r:"Europa",score:71.2,col:"#10B981"},
-    {r:"Américas",score:57.8,col:"#3B82F6"},
-    {r:"Ásia-Pacífico",score:45.6,col:"#F59E0B"},
-    {r:"MENA",score:38.2,col:"#F97316"},
-    {r:"África",score:42.1,col:"#8B5CF6"},
-    {r:"Ásia Central",score:22.4,col:"#EF4444"},
-  ];
-
-  const statusCol={
-    "Livre":"#10B981","Satisfatório":"#84CC16","Problemático":"#F59E0B",
-    "Difícil":"#F97316","Muito grave":"#EF4444"
-  };
-
-  el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
-    <!-- COLUNA 1: RSF Press Freedom -->
-    <div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.72rem;font-weight:700;color:#8B5CF6;text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
-        <div style="font-size:.58rem;color:var(--t3)">RSF 2024</div>
-      </div>
-
-      <!-- Distribuição global -->
-      <div style="margin-bottom:8px">
-        <div style="font-size:.6rem;color:var(--t3);margin-bottom:3px">Distribuição global (${GLOBAL.total} países)</div>
-        <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px">
-          ${Object.entries({Livre:GLOBAL.livre,"Satisf.":GLOBAL.satisfatorio,"Problem.":GLOBAL.problematico,"Difícil":GLOBAL.dificil,"M.Grave":GLOBAL.muitoGrave})
-            .map(([k,v],i)=>{
-              const cols=["#10B981","#84CC16","#F59E0B","#F97316","#EF4444"];
-              return `<div style="flex:${v};background:${cols[i]}" title="${k}: ${v}%"></div>`;
-            }).join("")}
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:.55rem;color:var(--t3);margin-top:2px">
-          <span style="color:#10B981">Livre ${GLOBAL.livre}%</span>
-          <span style="color:#EF4444">M.Grave ${GLOBAL.muitoGrave}%</span>
-        </div>
-        <div style="font-size:.6rem;color:#F59E0B;margin-top:3px">${GLOBAL.tendencia}</div>
-      </div>
-
-      <!-- Tabela países seleccionados -->
-      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
-      ${RSF.map(r=>{
-        const col=statusCol[r.status]||"#6E7A96";
-        const trendIcon=r.trend>0?"↑":r.trend<0?"↓":"→";
-        const trendCol=r.trend>0?"#10B981":r.trend<0?"#EF4444":"#6E7A96";
-        const barW=Math.round(r.score);
-        return `<div style="display:grid;grid-template-columns:16px 80px 24px 1fr 30px;
-                     align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
-          <span style="font-size:.8rem">${r.c}</span>
-          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
-                font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
-          <span style="font-size:.58rem;color:var(--t3)">#${r.rank}</span>
-          <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
-            <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
-          </div>
-          <span style="font-size:.6rem;color:${trendCol};text-align:right">${trendIcon}${Math.abs(r.trend)||""}</span>
-        </div>`;
-      }).join("")}
-    </div>
-
-    <!-- COLUNA 2: EIU Democracy + Regiões -->
-    <div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.72rem;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
-        <div style="font-size:.58rem;color:var(--t3)">EIU 2024</div>
-      </div>
-
-      <!-- Categorias EIU -->
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:8px">
-        ${[["Democracia plena","#10B981","8-10"],["Dem. com falhas","#84CC16","6-8"],
-           ["Regime híbrido","#F59E0B","4-6"],["Reg. autoritário","#EF4444","0-4"]].map(([lbl,col,range])=>
-          `<div style="background:${col}18;border:1px solid ${col}33;border-radius:5px;padding:4px 6px">
-            <div style="font-size:.58rem;font-weight:600;color:${col}">${lbl}</div>
-            <div style="font-size:.55rem;color:var(--t3)">${range} / 10</div>
-          </div>`).join("")}
-      </div>
-
-      <!-- Países EIU -->
-      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
-      ${EIU.map(r=>{
-        const col=r.score>=8?"#10B981":r.score>=6?"#84CC16":r.score>=4?"#F59E0B":"#EF4444";
-        const barW=Math.round(r.score*10);
-        return `<div style="display:grid;grid-template-columns:16px 90px 1fr 30px;
-                     align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
-          <span style="font-size:.8rem">${r.c}</span>
-          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
-                font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
-          <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
-            <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
-          </div>
-          <span style="font-size:.63rem;color:${col};font-weight:600;text-align:right">${r.score.toFixed(1)}</span>
-        </div>`;
-      }).join("")}
-
-      <!-- Score médio mundial -->
-      <div style="background:var(--b2);border-radius:6px;padding:6px 8px;margin-top:8px;
-           font-size:.63rem;color:var(--t2)">
-        <b style="color:var(--text)">Média mundial 2024: 5.17</b> /10 · mínimo histórico
-        <div style="font-size:.58rem;color:var(--t3);margin-top:1px">Apenas 7.8% da pop. mundial vive em democracia plena</div>
-      </div>
-
-      <!-- Score regiões -->
-      <div style="margin-top:8px">
-        <div style="font-size:.63rem;font-weight:600;color:var(--t2);margin-bottom:4px">Score por região (RSF):</div>
-        ${REGIONS.map(r=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
-          <span style="font-size:.6rem;color:var(--t3);width:70px;flex-shrink:0">${r.r}</span>
-          <div style="flex:1;background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
-            <div style="width:${r.score}%;height:100%;background:${r.col};border-radius:2px"></div>
-          </div>
-          <span style="font-size:.6rem;color:${r.col};font-weight:600;width:30px;text-align:right">${r.score}</span>
-        </div>`).join("")}
-      </div>
-    </div>
-  </div>`;
-}
 
 /* Sismos movido para src/cards/seis.js */
 
@@ -3521,7 +3359,7 @@ const DEFAULT_CONFIG = {
     { id: 'conflicts',  name: 'Conflitos Globais',         desc: '🗺️ Mapa de tensão e guerras activas',         visible: true, icon: '🗺️' },
     { id: 'geo',        name: 'Análise Geopolítica',       desc: '📡 Satélite e análise estratégica',          visible: true, icon: '🛰️' },
     { id: 'co2',        name: 'Emissões CO₂',              desc: 'Mix energético PT · DGEG/REN 2024',          visible: true, icon: '🌱' },
-    { id: 'press',      name: 'Liberdade Imprensa',        desc: 'RSF 2024 · Democracy Index',                 visible: true, icon: '🗽' },
+    { id: 'press',      name: 'Liberdade Imprensa',        desc: 'RSF 2026 · EIU 2024 histórico',              visible: true, icon: '🗽' },
     { id: 'news-pt',    name: 'Notícias Portugal',         desc: 'Google News RSS · PT · tempo real',          visible: true, icon: '📰' },
     { id: 'news-world', name: 'Notícias Mundo',            desc: 'Google News RSS · Mundo · tempo real',       visible: true, icon: '🌍' }
   ],

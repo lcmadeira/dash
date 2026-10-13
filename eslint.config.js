@@ -2,7 +2,7 @@ import html from "eslint-plugin-html";
 
 export default [
   {
-    files: ["**/*.html", "src/app.js", "src/cards/air-quality.js", "src/cards/agriculture.js", "src/cards/air-traffic.js", "src/cards/ormuz.js", "src/cards/co2.js", "src/cards/transport.js", "src/cards/exports.js", "src/cards/fear-greed.js", "src/cards/fuel.js", "src/cards/holidays.js", "src/cards/market-stats.js", "src/cards/public-debt.js", "src/cards/real-estate.js", "src/cards/recession.js", "src/cards/weather.js", "src/widgets/economic-calendar.js", "src/widgets/market-clock.js"],
+    files: ["**/*.html", "src/app.js", "src/cards/air-quality.js", "src/cards/agriculture.js", "src/cards/air-traffic.js", "src/cards/ormuz.js", "src/cards/co2.js", "src/cards/transport.js", "src/cards/press.js", "src/cards/exports.js", "src/cards/fear-greed.js", "src/cards/fuel.js", "src/cards/holidays.js", "src/cards/market-stats.js", "src/cards/public-debt.js", "src/cards/real-estate.js", "src/cards/recession.js", "src/cards/weather.js", "src/widgets/economic-calendar.js", "src/widgets/market-clock.js"],
     plugins: { html },
     languageOptions: {
       ecmaVersion: 2022,

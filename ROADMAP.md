@@ -321,6 +321,7 @@
 - ✅ **Tráfego marítimo modularizado** — card de Ormuz movido para `src/cards/ormuz.js`; cache AIS expira após 15 minutos, tooltips escapam dados externos e percentagens estimadas são identificadas como referência (13/10/2026)
 - ✅ **Emissões CO₂ modularizadas** — mix anual de referência movido para `src/cards/co2.js`; removida a consulta REN cujo resultado não era apresentado e indicada a base 2023 na comparação europeia (13/10/2026)
 - ✅ **Transportes modularizados** — tarifas urbanas atualizadas para 2026; removidos preços interurbanos fixos desatualizados e o estado operacional hardcoded (13/10/2026)
+- ✅ **Liberdade de imprensa modularizada** — card movido para `src/cards/press.js`; classificação RSF atualizada para 2026, scores expostos e dados EIU/global/regional de 2024 identificados como históricos (13/10/2026)
 
 ### Próximas melhorias
 
