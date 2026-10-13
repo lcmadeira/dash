@@ -54,6 +54,10 @@ python3 dev_server.py
 
 Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais, rejeita nomes DNS sem endereços públicos e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
 
+### Cache e consola do browser
+
+O GitHub Pages pode manter HTML e JavaScript em cache durante alguns minutos. Ao alterar `src/widgets/market-clock.js` ou `src/app.js`, atualiza o parâmetro `v` nas respetivas tags `<script>` no fim de `index.html`; isso força o browser a pedir os ficheiros novos. Para confirmar uma publicação, faz uma atualização forçada (`Ctrl+Shift+R`). O HTML atual não declara recursos `preload`; ao investigar avisos desse tipo, verifica o URL completo, pois widgets e folhas de estilo externas também podem criar as suas próprias sugestões de carregamento.
+
 ## Credenciais de APIs
 
 A integração com a Twelve Data está desativada. Não coloques chaves API em `src/config.js`, `index.html` ou noutro ficheiro servido ao browser: qualquer visitante pode lê-las. Uma futura integração deve enviar pedidos através de um endpoint de backend que mantenha a credencial no servidor.
