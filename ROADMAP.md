@@ -207,6 +207,7 @@
 - [x] **Extrair o card imobiliário** para `src/cards/real-estate.js`, preservando os dados INE e as tabs de visualização ✅ (13/10/2026)
 - [x] **Extrair o indicador Fear & Greed** para `src/cards/fear-greed.js`, preservando gauge e histórico ✅ (13/10/2026)
 - [x] **Extrair o card de preços agrícolas** para `src/cards/agriculture.js`, isolando os símbolos e preservando a renderização ✅ (13/10/2026)
+- [x] **Extrair o card de exportações** para `src/cards/exports.js`, com validação segura das vistas disponíveis ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -307,6 +308,7 @@
 - ✅ **Imobiliário modularizado** — carregamento INE e vistas regionais movidos para `src/cards/real-estate.js` (13/10/2026)
 - ✅ **Fear & Greed modularizado** — carregamento Alternative.me, gauge e histórico movidos para `src/cards/fear-greed.js` (13/10/2026)
 - ✅ **Preços agrícolas modularizados** — símbolos, consulta Yahoo/Stooq e renderização movidos para `src/cards/agriculture.js` (13/10/2026)
+- ✅ **Exportações modularizadas** — dados e vistas por destino/produto movidos para `src/cards/exports.js`; seleção inválida não altera a vista atual (13/10/2026)
 
 ### Próximas melhorias
 

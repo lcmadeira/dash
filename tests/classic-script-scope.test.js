@@ -190,3 +190,31 @@ test("agriculture card isolates its cached symbol list and renders cached prices
   assert.match(body.innerHTML, /500\.0/);
   assert.doesNotThrow(() => vm.runInContext('var APP_AGRI_SYMS = AGRI_SYMS;', context));
 });
+
+test("exports card renders both views and ignores unknown modes", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('var EXP_DATA = { cached: true }; var EXP_MODE = "cached";', context);
+
+  const body = { innerHTML: "" };
+  const buttons = [
+    { classList: { remove() {}, add() {} } },
+    { classList: { remove() {}, add() {} } },
+  ];
+  context.document = {
+    querySelectorAll: () => buttons,
+    getElementById: id => id === "exp-body" ? body : null,
+  };
+  context.$ = id => context.document.getElementById(id);
+
+  const source = await readFile("src/cards/exports.js", "utf8");
+  vm.runInContext(source, context);
+
+  context.renderExp();
+  assert.match(body.innerHTML, /Espanha/);
+  context.switchExp("produtos", buttons[1]);
+  assert.match(body.innerHTML, /Máquinas e Aparelhos/);
+  const productsView = body.innerHTML;
+  context.switchExp("unknown", buttons[0]);
+  assert.equal(body.innerHTML, productsView);
+  assert.doesNotThrow(() => vm.runInContext('var APP_EXP_DATA = EXP_DATA;', context));
+});

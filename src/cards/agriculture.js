@@ -3,7 +3,7 @@
 /* ══════════════════════════════════════════════════════════════
    PREÇOS AGRÍCOLAS — via tdGet()
    ══════════════════════════════════════════════════════════════ */
-var AGRI_SYMS=[
+const AGRI_SYMS=[
   {sym:"ZW=F",  label:"Trigo",   unit:"¢/bu", ico:"🌾"},
   {sym:"ZC=F",  label:"Milho",   unit:"¢/bu", ico:"🌽"},
   {sym:"ZS=F",  label:"Soja",    unit:"¢/bu", ico:"🫘"},
@@ -60,7 +60,7 @@ async function loadAgri(force=false){
               const hi=parseFloat(cols[3]);
               const lo=parseFloat(cols[4]);
               const vol=parseFloat(cols[6])||0;
-              if(!isNaN(close)&&close>0)
+              if(!Number.isNaN(close)&&close>0)
                 return {close,chg:open?((close-open)/open*100):null,hi,lo,vol};
             }
           }
@@ -81,19 +81,20 @@ async function loadAgri(force=false){
     }
   }
 
-  const isStatic=!cache.some(x=>x.vol!=null&&x.vol>0);
+  const isStatic=!cache.some(x=>x.vol!==null&&x.vol!==undefined&&x.vol>0);
 
   el.innerHTML=AGRI_SYMS.map((s,i)=>{
     const q=cache[i]||{};
     const price=q.close;
     const chg=q.chg;
     const hi=q.hi, lo=q.lo;
-    const col=chg==null?"var(--t2)":chg>=0?"#10B981":"#EF4444";
-    const bgCol=chg==null?"var(--b2)":chg>=0?"#10B98110":"#EF444410";
-    const arr=chg==null?"":chg>=0?"▲":"▼";
-    const fmt=v=>v!=null?v.toFixed(v>100?1:2):"—";
+    const hasChange=chg!==null&&chg!==undefined;
+    const col=!hasChange?"var(--t2)":chg>=0?"#10B981":"#EF4444";
+    const bgCol=!hasChange?"var(--b2)":chg>=0?"#10B98110":"#EF444410";
+    const arr=!hasChange?"":chg>=0?"▲":"▼";
+    const fmt=v=>v!==null&&v!==undefined?v.toFixed(v>100?1:2):"—";
     return `<div style="background:${bgCol};border-radius:8px;padding:10px 12px;
-                 border:1px solid ${chg==null?"var(--b)":chg>=0?"#10B98130":"#EF444430"};
+                 border:1px solid ${!hasChange?"var(--b)":chg>=0?"#10B98130":"#EF444430"};
                  display:flex;flex-direction:column;gap:2px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:1.3rem">${s.ico}</span>
@@ -105,9 +106,9 @@ async function loadAgri(force=false){
       <div style="font-size:1.35rem;font-weight:800;color:var(--text);
            line-height:1;letter-spacing:-.5px">${fmt(price)}</div>
       <div style="font-size:.72rem;font-weight:700;color:${col}">
-        ${chg!=null?`${arr} ${Math.abs(chg).toFixed(2)}%`:"—"}
+        ${hasChange?`${arr} ${Math.abs(chg).toFixed(2)}%`:"—"}
       </div>
-      ${hi!=null?`<div style="display:flex;justify-content:space-between;margin-top:3px;
+      ${hi!==null&&hi!==undefined?`<div style="display:flex;justify-content:space-between;margin-top:3px;
            font-size:.57rem;color:var(--t3)">
         <span>H <b style="color:#6E7A96">${fmt(hi)}</b></span>
         <span>L <b style="color:#6E7A96">${fmt(lo)}</b></span>
