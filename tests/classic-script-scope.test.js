@@ -442,3 +442,23 @@ test("press card renders RSF 2026 separately from historical EIU data and avoids
   assert.match(body.innerHTML, /Score por região RSF 2024/);
   assert.doesNotThrow(() => vm.runInContext("const APP_RSF = RSF; const APP_EIU = EIU;", context));
 });
+
+test("minimum wage card uses comparable 2026 Eurostat amounts and explains Portugal's 14 payments", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const SMN_HIST = ["cached app"]; const SMN_EU = ["cached app"]; const IPC = ["cached app"];', context);
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "smn-body" ? body : null };
+
+  const source = await readFile("src/cards/smn.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadSMN, "function");
+  context.loadSMN();
+  assert.match(body.innerHTML, /SMN legal Portugal 2026/);
+  assert.match(body.innerHTML, /Comparação UE · Eurostat jan\. 2026/);
+  assert.match(body.innerHTML, /Portugal[\s\S]*?1073€/);
+  assert.match(body.innerHTML, /920€ × 14[\s\S]*?1073€ brutos\/mês/);
+  assert.match(body.innerHTML, /Espanha: dado de 2025/);
+  assert.doesNotMatch(body.innerHTML, /custo de vida estimado|IPC por categoria/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_SMN_HIST = SMN_HIST; const APP_SMN_EU = SMN_EU;", context));
+});

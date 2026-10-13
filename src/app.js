@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress */
+/* global CFG,REF_DATE,EURIBOR_FALLBACK,PSI20_CONST,EU_INDICES,INFLATION_FALLBACK,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchFirstOk,fetchJsonFirstOk,fetchTextFirstOk,fetchWithCORS,fetchStooqMulti,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,ld,er,chg,fmtP,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -2847,138 +2847,9 @@ async function loadPSI20Trend(force = false) {
 }
 
 
-function loadSMN(force){
-  const el=document.getElementById("smn-body");
-  if(!el) return;
+/* Salário mínimo e comparação europeia movidos para src/cards/smn.js */
 
-  const SMN_HIST=[
-    {y:2017,v:557},{y:2018,v:580},{y:2019,v:600},{y:2020,v:635},
-    {y:2021,v:665},{y:2022,v:705},{y:2023,v:760},{y:2024,v:820},
-    {y:2025,v:870},{y:2026,v:920},
-  ];
 
-  /* SMN EU — fonte: Eurostat / fontes nacionais Jan 2026 */
-  const SMN_EU=[
-    {c:"🇱🇺",n:"Luxemburgo", v:2637,col:"#10B981"},
-    {c:"🇳🇱",n:"Holanda",    v:2191,col:"#10B981"},
-    {c:"🇩🇪",n:"Alemanha",   v:2096,col:"#10B981"},
-    {c:"🇧🇪",n:"Bélgica",    v:2070,col:"#10B981"},
-    {c:"🇫🇷",n:"França",     v:1802,col:"#3B82F6"},
-    {c:"🇪🇸",n:"Espanha",    v:1381,col:"#3B82F6"},
-    {c:"🇬🇷",n:"Grécia",     v:968, col:"#F59E0B"},
-    {c:"🇵🇹",n:"Portugal",   v:920, col:"#F59E0B"},
-    {c:"🇵🇱",n:"Polónia",    v:887, col:"#F97316"},
-    {c:"🇷🇴",n:"Roménia",    v:704, col:"#EF4444"},
-    {c:"🇧🇬",n:"Bulgária",   v:534, col:"#EF4444"},
-  ];
-
-  /* IPC PT — INE Dez 2025 (variação homóloga 12m) */
-  const IPC=[
-    {cat:"Habitação",        var12m:+4.2, ico:"🏠", col:"#EF4444"},
-    {cat:"Saúde",            var12m:+4.8, ico:"🏥", col:"#8B5CF6"},
-    {cat:"Restauração",      var12m:+4.1, ico:"🍽️",col:"#06B6D4"},
-    {cat:"Transportes",      var12m:+3.6, ico:"🚗", col:"#F59E0B"},
-    {cat:"Educação",         var12m:+3.1, ico:"📚", col:"#3B82F6"},
-    {cat:"Alimentação",      var12m:+2.4, ico:"🛒", col:"#F97316"},
-    {cat:"Electricidade/Gás",var12m:-0.8, ico:"⚡", col:"#10B981"},
-    {cat:"Comunicações",     var12m:-0.5, ico:"📱", col:"#10B981"},
-  ];
-
-  const smn=920, smn24=870;
-  const yoy=((smn-smn24)/smn24*100).toFixed(1);
-  const custoLx=1750, custoResto=1220; /* estimativa 2026 */
-  const rLx=(smn/custoLx*100).toFixed(0);
-  const rResto=(smn/custoResto*100).toFixed(0);
-
-  const vals=SMN_HIST.map(x=>x.v);
-  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
-  const W=180,H=40;
-  const px=i=>Math.round(i/(vals.length-1)*W);
-  const py=v=>Math.round(H-(v-mn)/rng*H);
-  const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
-  const fill=pts+` ${W},${H+1} 0,${H+1}`;
-
-  el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-
-    <!-- ESQ: SMN + EU -->
-    <div>
-      <div style="background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:8px">
-        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-             letter-spacing:.5px;margin-bottom:2px">SMN Portugal 2025</div>
-        <div style="display:flex;align-items:flex-end;gap:5px">
-          <div style="font-size:2.2rem;font-weight:900;color:#10B981;line-height:1">${smn}</div>
-          <div style="font-size:.72rem;color:var(--t3);margin-bottom:3px">€/mês</div>
-        </div>
-        <div style="font-size:.68rem;color:#10B981;font-weight:600;margin-top:1px">▲ ${yoy}% vs 2024 (820€)</div>
-        <svg viewBox="0 0 ${W} ${H+10}" style="width:100%;height:${H+10}px;margin-top:5px">
-          <polygon points="${fill}" fill="#10B98118"/>
-          <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="1.8"/>
-          <circle cx="${px(vals.length-1)}" cy="${py(smn)}" r="3" fill="#10B981"/>
-          <text x="1" y="${H+9}" font-size="7" fill="#4A526A">2017: 557€</text>
-          <text x="${W}" y="${H+9}" font-size="7" fill="#10B981" text-anchor="end">2026: ${smn}€</text>
-        </svg>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:1px">+65% em 9 anos</div>
-      </div>
-
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:4px">Comparação EU 2025:</div>
-      ${SMN_EU.map(r=>{
-        const bw=Math.round((r.v/2571)*100);
-        const ispt=r.n==="Portugal";
-        return `<div style="display:grid;grid-template-columns:16px 66px 1fr 38px;
-                     align-items:center;gap:3px;padding:2px ${ispt?"4px":"0"};
-                     ${ispt?"background:"+r.col+"15;border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)"}">
-          <span style="font-size:.76rem">${r.c}</span>
-          <span style="font-size:.59rem;font-weight:${ispt?700:400};
-                color:${ispt?"#fff":"var(--t2)"}">${r.n}</span>
-          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
-            <div style="width:${bw}%;height:100%;background:${r.col}"></div>
-          </div>
-          <span style="font-size:.61rem;color:${r.col};font-weight:600;text-align:right">${r.v}€</span>
-        </div>`;
-      }).join("")}
-    </div>
-
-    <!-- DIR: Poder de compra + IPC -->
-    <div>
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">💰 SMN vs custo de vida estimado</div>
-      ${[{l:"Lisboa",v:custoLx,r:rLx},{l:"Resto do país",v:custoResto,r:rResto}].map(x=>{
-        const col=x.r<70?"#EF4444":x.r<85?"#F59E0B":"#10B981";
-        return `<div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:6px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:.62rem;color:var(--t2);font-weight:600">${x.l}</span>
-            <span style="font-size:.59rem;color:var(--t3)">est. ${x.v}€/mês</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:.7rem;font-weight:700;color:${col}">SMN cobre ${x.r}%</span>
-            <span style="font-size:.65rem;color:var(--t3)">défice ~${Math.max(0,x.v-smn)}€</span>
-          </div>
-          <div style="background:var(--b);border-radius:3px;height:6px;overflow:hidden">
-            <div style="width:${Math.min(x.r,100)}%;height:100%;background:${col};border-radius:3px"></div>
-          </div>
-        </div>`;
-      }).join("")}
-
-      <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:6px 0 4px">📊 IPC por categoria · var. 12m (Jan 2025)</div>
-      ${IPC.map(c=>{
-        const abs=Math.abs(c.var12m);
-        const bw=Math.round((abs/6)*100);
-        return `<div style="display:grid;grid-template-columns:16px 86px 1fr 34px;
-                     align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--b)">
-          <span style="font-size:.7rem">${c.ico}</span>
-          <span style="font-size:.59rem;color:var(--t2)">${c.cat}</span>
-          <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
-            <div style="width:${bw}%;height:100%;background:${c.col};opacity:.85"></div>
-          </div>
-          <span style="font-size:.62rem;font-weight:700;color:${c.col};text-align:right">
-            ${c.var12m>=0?"▲":"▼"}${abs.toFixed(1)}%
-          </span>
-        </div>`;
-      }).join("")}
-      <div style="font-size:.57rem;color:var(--t3);margin-top:4px">IPC geral Dez 2025: <b style="color:var(--text)">+2.4%</b> homólogo · SMN 2026: 920€</div>
-    </div>
-  </div>`;
-}
 
 
 /* Transportes PT movido para src/cards/transport.js */

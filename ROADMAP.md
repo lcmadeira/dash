@@ -322,6 +322,7 @@
 - ✅ **Emissões CO₂ modularizadas** — mix anual de referência movido para `src/cards/co2.js`; removida a consulta REN cujo resultado não era apresentado e indicada a base 2023 na comparação europeia (13/10/2026)
 - ✅ **Transportes modularizados** — tarifas urbanas atualizadas para 2026; removidos preços interurbanos fixos desatualizados e o estado operacional hardcoded (13/10/2026)
 - ✅ **Liberdade de imprensa modularizada** — card movido para `src/cards/press.js`; classificação RSF atualizada para 2026, scores expostos e dados EIU/global/regional de 2024 identificados como históricos (13/10/2026)
+- ✅ **Salário mínimo modularizado e comparável** — valores UE atualizados para Eurostat jan. 2026; conversão portuguesa de 14 para 12 pagamentos explicitada e estimativas de custo de vida/IPC sem base comparável removidas (13/10/2026)
 
 ### Próximas melhorias
 
