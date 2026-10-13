@@ -247,3 +247,29 @@ test("public debt card renders country and updated 2014–2024 trend views", asy
   assert.equal(body.innerHTML, trendView);
   assert.doesNotThrow(() => vm.runInContext('var APP_DIV_PAISES = DIV_PAISES;', context));
 });
+
+test("recession card describes spread readings precisely and recovers from invalid cache", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const REC_TREND_PREF_KEY = "cached app"; function loadRec() {}', context);
+
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "rec-body" ? body : null };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.PFX = "test_";
+  context.localStorage = { getItem: () => null, setItem() {} };
+  context._lastN = (values, length) => values.slice(-length);
+  context.lsGet = () => [["invalid-date", NaN]];
+
+  const source = await readFile("src/cards/recession.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadRec, "function");
+  assert.equal(typeof context.setRecTrendDays, "function");
+  await context.loadRec();
+  assert.match(body.innerHTML, /ref\. Mar 2026/);
+  assert.match(body.innerHTML, /Leituras negativas/);
+  assert.match(body.innerHTML, /indicador é historicamente associado/);
+  assert.doesNotMatch(body.innerHTML, /mercados não sinalizam recessão iminente/);
+  assert.doesNotThrow(() => vm.runInContext('const APP_REC_PREF = REC_TREND_PREF_KEY;', context));
+});
