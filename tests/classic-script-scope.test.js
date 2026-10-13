@@ -218,3 +218,32 @@ test("exports card renders both views and ignores unknown modes", async () => {
   assert.equal(body.innerHTML, productsView);
   assert.doesNotThrow(() => vm.runInContext('var APP_EXP_DATA = EXP_DATA;', context));
 });
+
+test("public debt card renders country and updated 2014–2024 trend views", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('var DIV_PAISES = ["cached app"]; var DIV_TREND = [];', context);
+
+  const body = { innerHTML: "" };
+  const buttons = [
+    { classList: { remove() {}, add() {} } },
+    { classList: { remove() {}, add() {} } },
+  ];
+  context.document = {
+    querySelectorAll: () => buttons,
+    getElementById: id => id === "div-body" ? body : null,
+  };
+  context.$ = id => context.document.getElementById(id);
+
+  const source = await readFile("src/cards/public-debt.js", "utf8");
+  vm.runInContext(source, context);
+
+  context.renderDiv();
+  assert.match(body.innerHTML, /Portugal/);
+  context.switchDiv("trend", buttons[1]);
+  assert.match(body.innerHTML, /2014–2024/);
+  assert.match(body.innerHTML, />24</);
+  const trendView = body.innerHTML;
+  context.switchDiv("unknown", buttons[0]);
+  assert.equal(body.innerHTML, trendView);
+  assert.doesNotThrow(() => vm.runInContext('var APP_DIV_PAISES = DIV_PAISES;', context));
+});
