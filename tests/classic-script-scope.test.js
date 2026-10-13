@@ -101,3 +101,14 @@ test("holidays card loads alongside cached globals and switches its summary tabs
   assert.equal(tabs[1].classList.classes.has("on"), true);
   assert.doesNotThrow(() => vm.runInContext("const APP_MUNIC = MUNIC;", context));
 });
+
+test("market stats card replaces its cached global entry point without redeclaration", async () => {
+  const context = createBrowserContext();
+  vm.runInContext("function loadMarketStats() {}", context);
+
+  const source = await readFile("src/cards/market-stats.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadMarketStats, "function");
+  assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_MARKET_STATS() {}", context));
+});
