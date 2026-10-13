@@ -676,3 +676,52 @@ test("crypto card rejects malformed cache and restricts trend selections", async
   assert.deepEqual(JSON.parse(values.get("dash_crypto_trend_pref_v1")), { coinId: "bitcoin", days: 30 });
   assert.doesNotThrow(() => vm.runInContext("const APP_CRYPTO_IDS = CRYPTO_IDS;", context));
 });
+
+test("PSI 20 card refreshes an invalid quote cache and validates fetched records", async () => {
+  const body = { innerHTML: "" };
+  let fetchCalls = 0;
+  let cacheWrite = null;
+  const context = vm.createContext({
+    Date,
+    Intl,
+    PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: id => id === "psi20-body" ? body : null },
+    localStorage: { getItem: () => null },
+    lsGet: key => key === "psi20_v2" ? { indices: [], stocks: [], live: true } : null,
+    lsSet: (key, value) => { cacheWrite = { key, value }; },
+    fetchWithCORS: async () => {
+      fetchCalls++;
+      return {
+        async json() {
+          return { chart: { result: [{ meta: {
+            regularMarketPrice: 100,
+            previousClose: 99,
+            regularMarketDayHigh: 101,
+            regularMarketDayLow: 98,
+            regularMarketVolume: 1000,
+          } }] } };
+        },
+      };
+    },
+    fetchStooqMulti: async () => ({}),
+    fetchStooqDailySeries: async () => [],
+    _lastN: rows => rows,
+    _setOnByDataAttr() {},
+    addToHistory() {},
+    renderTrendChart() {},
+    ld: () => "loading",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  vm.runInContext('const PSI20_TREND_PREF_KEY = "cached app";', context);
+  vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
+  await context.loadPSI20();
+
+  assert.equal(fetchCalls, context.EU_INDICES.length + context.PSI20_CONST.length);
+  assert.equal(cacheWrite.key, "psi20_v2");
+  assert.equal(cacheWrite.value.live, true);
+  assert.match(body.innerHTML, /PSI 20 · Lisboa/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_PSI20_TREND_PREF_KEY = PSI20_TREND_PREF_KEY;", context));
+});
