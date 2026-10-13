@@ -59,3 +59,15 @@ test("air quality card loads alongside a cached AQI_EU declaration", async () =>
   assert.equal(typeof context.loadAirQuality, "function");
   assert.doesNotThrow(() => vm.runInContext("const APP_AQI_EU = AQI_EU;", context));
 });
+
+test("economic calendar loads alongside cached date data and event handlers", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const FOMC_DATES_2026 = ["cached app"]; function switchCal() {}', context);
+
+  const source = await readFile("src/widgets/economic-calendar.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.switchCal, "function");
+  assert.equal(typeof context.loadAndRenderCalendar, "function");
+  assert.doesNotThrow(() => vm.runInContext("const APP_FOMC_DATES = FOMC_DATES_2026;", context));
+});
