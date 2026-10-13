@@ -199,6 +199,7 @@
 - [x] **Extrair o card de combustíveis** para `src/cards/fuel.js`, preservando a ordem clássica de carregamento ✅ (13/10/2026)
 - [x] **Extrair relógios das praças financeiras** para `src/widgets/market-clock.js` ✅ (13/10/2026)
 - [x] **Evitar colisões de nomes entre scripts clássicos extraídos** e cobrir o carregamento misto por teste de regressão ✅ (13/10/2026)
+- [x] **Extrair o card de meteorologia IPMA** para `src/cards/weather.js`, mantendo a API global necessária às interações ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -291,6 +292,7 @@
 - ✅ **Card de combustíveis modularizado** — preferências, agregação ES e renderização movidas para `src/cards/fuel.js` (13/10/2026)
 - ✅ **Relógios dos mercados modularizados** — lógica de fuso horário e horário de negociação movida para `src/widgets/market-clock.js` (13/10/2026)
 - ✅ **Escopo isolado dos módulos clássicos** — impede colisões de nomes com versões em cache e inclui teste automatizado (13/10/2026)
+- ✅ **Meteorologia IPMA modularizada** — lógica do card movida para `src/cards/weather.js` (13/10/2026)
 
 ### Próximas melhorias
 

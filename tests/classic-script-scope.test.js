@@ -37,3 +37,14 @@ test("fuel card loads alongside a cached classic script declaring FUEL_SLUGS", a
   assert.equal(typeof context.getFuelPrefs, "function");
   assert.doesNotThrow(() => vm.runInContext("const APP_FUEL_SLUGS = FUEL_SLUGS;", context));
 });
+
+test("weather card replaces the cached global entry point without redeclaration", async () => {
+  const context = createBrowserContext();
+  vm.runInContext("function loadWeather() {}", context);
+
+  const source = await readFile("src/cards/weather.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadWeather, "function");
+  assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_WEATHER() {}", context));
+});
