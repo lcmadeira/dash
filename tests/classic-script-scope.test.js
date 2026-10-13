@@ -48,3 +48,14 @@ test("weather card replaces the cached global entry point without redeclaration"
   assert.equal(typeof context.loadWeather, "function");
   assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_WEATHER() {}", context));
 });
+
+test("air quality card loads alongside a cached AQI_EU declaration", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const AQI_EU = ["cached app"];', context);
+
+  const source = await readFile("src/cards/air-quality.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadAirQuality, "function");
+  assert.doesNotThrow(() => vm.runInContext("const APP_AQI_EU = AQI_EU;", context));
+});

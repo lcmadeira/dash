@@ -2,7 +2,7 @@ import html from "eslint-plugin-html";
 
 export default [
   {
-    files: ["**/*.html", "src/app.js", "src/cards/fuel.js", "src/cards/weather.js", "src/widgets/market-clock.js"],
+    files: ["**/*.html", "src/app.js", "src/cards/air-quality.js", "src/cards/fuel.js", "src/cards/weather.js", "src/widgets/market-clock.js"],
     plugins: { html },
     languageOptions: {
       ecmaVersion: 2022,
