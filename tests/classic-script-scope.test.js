@@ -163,3 +163,30 @@ test("fear and greed card replaces its cached entry point and renders cached dat
   assert.match(body.innerHTML, /30 dias/);
   assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_FNG() {}", context));
 });
+
+test("agriculture card isolates its cached symbol list and renders cached prices", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('var AGRI_SYMS = ["cached app"]; function loadAgri() {}', context);
+
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "agri-body" ? body : null };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.lsGet = () => Array.from({ length: 6 }, (_, index) => ({
+    close: 500 + index,
+    chg: index - 2,
+    hi: 510 + index,
+    lo: 490 + index,
+    vol: 1000,
+  }));
+
+  const source = await readFile("src/cards/agriculture.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadAgri, "function");
+  await context.loadAgri();
+  assert.match(body.innerHTML, /Trigo/);
+  assert.match(body.innerHTML, /Café/);
+  assert.match(body.innerHTML, /500\.0/);
+  assert.doesNotThrow(() => vm.runInContext('var APP_AGRI_SYMS = AGRI_SYMS;', context));
+});
