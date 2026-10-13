@@ -25,7 +25,7 @@
    * @returns {Promise<Response>} Resposta do proxy.
    */
   async function fetchViaLocalProxy(url, options = {}) {
-    return fetch(localProxyUrl(url), { ...options, signal: AbortSignal.timeout(12000) });
+    return fetch(localProxyUrl(url), withTimeoutOpts(options, 12000));
   }
 
   function isFetchDebugEnabled() {
@@ -119,6 +119,14 @@
     return { ...options, signal: hasSignal ? options.signal : AbortSignal.timeout(timeoutMs) };
   }
 
+  function throwIfCallerAborted(signal) {
+    if (!signal?.aborted) return;
+    if (signal.reason !== undefined) throw signal.reason;
+    const error = new Error("Pedido cancelado pelo chamador");
+    error.name = "AbortError";
+    throw error;
+  }
+
   /* Cache de proxies em "cool down" por 1 minuto se derem 429 */
   const proxyCoolDown = new Map();
 
@@ -138,6 +146,7 @@
     const now = Date.now();
 
     for (let i = 0; i < plan.length; i++) {
+      throwIfCallerAborted(options.signal);
       const step = plan[i];
       
       /* Saltar se estiver em cooldown */
@@ -169,6 +178,7 @@
         if (isFetchDebugEnabled()) console.info(`[fetch] ok ${step.source}`, url);
         return { r, usedUrl: step.url };
       } catch (e) {
+        if (options.signal?.aborted) throw options.signal.reason || e;
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch] err ${step.source}`, url, e?.message || e);
       }
@@ -181,6 +191,7 @@
    * @param {RequestInit} [options] Opções Fetch.
    * @param {number} [timeoutMs=12000] Timeout por tentativa, em milissegundos.
    * @returns {Promise<Response>} Resposta válida.
+   * @throws {Error} Propaga o cancelamento do chamador sem tentar os proxies restantes.
    */
   async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
     const { r } = await fetchFirstOk(url, options, timeoutMs);
@@ -260,6 +271,7 @@
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
     for (let i = 0; i < plan.length; i++) {
+      throwIfCallerAborted(options.signal);
       const step = plan[i];
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] try #${i + 1}/${plan.length} ${step.source}`, url);
@@ -278,6 +290,7 @@
         if (isFetchDebugEnabled()) console.info(`[fetch-json] ok ${step.source}`, url);
         return j;
       } catch (e) {
+        if (options.signal?.aborted) throw options.signal.reason || e;
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] err ${step.source}`, url, e?.message || e);
       }
@@ -299,6 +312,7 @@
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
     for (let i = 0; i < plan.length; i++) {
+      throwIfCallerAborted(options.signal);
       const step = plan[i];
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] try #${i + 1}/${plan.length} ${step.source}`, url);
@@ -317,6 +331,7 @@
         if (isFetchDebugEnabled()) console.info(`[fetch-text] ok ${step.source}`, url);
         return t;
       } catch (e) {
+        if (options.signal?.aborted) throw options.signal.reason || e;
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] err ${step.source}`, url, e?.message || e);
       }

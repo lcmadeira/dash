@@ -832,3 +832,43 @@ test("cache ignores future or malformed timestamps and removes invalid entries",
   assert.equal(storage.dash_v15_old, undefined);
   assert.equal(storage.dash_v15_corrupt, undefined);
 });
+
+test("fetch helpers stop proxy retries when the caller aborts", async () => {
+  let calls = 0;
+  let activeController = null;
+  const context = vm.createContext({
+    AbortSignal,
+    URL,
+    URLSearchParams,
+    Date,
+    Map,
+    Set,
+    console: { log() {}, warn() {}, debug() {}, info() {} },
+    location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+    localStorage: { getItem: () => null, setItem() {} },
+    fetch: async () => {
+      calls++;
+      activeController.abort();
+      throw activeController.signal.reason;
+    },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  for (const method of ["fetchFirstOk", "fetchJsonFirstOk", "fetchTextFirstOk"]) {
+    const controller = new AbortController();
+    activeController = controller;
+    calls = 0;
+    await assert.rejects(
+      context[method]("https://example.com/data", { signal: controller.signal }, 100, ["allorigins", "corsproxy"]),
+      { name: "AbortError" },
+    );
+    assert.equal(calls, 1, `${method} must stop after the caller aborts the first request`);
+  }
+
+  const controller = new AbortController();
+  let receivedOptions;
+  context.fetch = async (_url, options) => { receivedOptions = options; return "ok"; };
+  await context.fetchViaLocalProxy("https://example.com/data", { signal: controller.signal });
+  assert.equal(receivedOptions.signal, controller.signal);
+});

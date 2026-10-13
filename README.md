@@ -23,7 +23,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Single-page** em `index.html`, estilos em `styles.css` e JavaScript da aplicação em `src/` (sem bundler / sem build step)
 - **Chart.js** via CDN
 - **TradingView widgets** (ticker tape, advanced chart, heatmap)
-- **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
+- **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos; pedidos cancelados pelo utilizador não continuam a cadeia de proxies.
 - Sem build step / sem bundler
 
 ### Ferramentas de dev
