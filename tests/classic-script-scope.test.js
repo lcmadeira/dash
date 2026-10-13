@@ -924,3 +924,46 @@ test("JSON and text fetch helpers share proxy cooldowns after HTTP 429", async (
   assert.equal(requests.length, 5);
   assert.ok(requests[4].startsWith("https://api.codetabs.com/"));
 });
+
+test("heatmap tabs reuse previously mounted TradingView widgets", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const start = source.indexOf("const HMAP_CONFIGS={");
+  const end = source.indexOf("/* Meteorologia movida", start);
+  assert.notEqual(start, -1);
+  assert.notEqual(end, -1);
+
+  const root = {
+    children: [],
+    appendChild(child) { this.children.push(child); },
+  };
+  const tabs = ["sp500", "crypto", "etf"].map(() => ({
+    classList: {
+      active: false,
+      add() { this.active = true; },
+      remove() { this.active = false; },
+    },
+  }));
+  const mounted = [];
+  const context = vm.createContext({
+    document: {
+      querySelectorAll: () => tabs,
+      getElementById: id => id === "hmap-widget" ? root : null,
+      createElement: () => ({ dataset: {}, hidden: false }),
+    },
+    mountLazyTradingView: (host, _url, config) => mounted.push({ host, config }),
+  });
+
+  vm.runInContext(source.slice(start, end), context);
+  context.switchHmap("sp500", tabs[0]);
+  const initialHost = root.children[0];
+  context.switchHmap("crypto", tabs[1]);
+  context.switchHmap("sp500", tabs[0]);
+
+  assert.equal(mounted.length, 2);
+  assert.equal(root.children.length, 2);
+  assert.equal(root.children[0], initialHost);
+  assert.equal(root.children[0].hidden, false);
+  assert.equal(root.children[1].hidden, true);
+  assert.equal(mounted[0].config.dataSource, "SPX500");
+  assert.equal(mounted[1].config.dataSource, "Crypto");
+});

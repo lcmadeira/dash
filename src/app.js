@@ -89,13 +89,21 @@ const HMAP_CONFIGS={
   crypto:{dataSource:"Crypto",grouping:"no_group",blockSize:"market_cap_basic"},
   etf:{dataSource:"ETF",grouping:"asset_class",blockSize:"assets_under_management"},
 };
+const HMAP_WIDGET_HOSTS = new Map();
 function switchHmap(key,btn){
   document.querySelectorAll("#hmap-tabs .psi-tab").forEach(b=>b.classList.remove("on"));
   if(btn)btn.classList.add("on");
   const c=HMAP_CONFIGS[key];if(!c)return;
-  const cfg=JSON.stringify({exchanges:[],dataSource:c.dataSource,grouping:c.grouping,blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460});
-  const w=document.getElementById("hmap-widget");
-  mountLazyTradingView(w,"https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",JSON.parse(cfg),460);
+  const root=document.getElementById("hmap-widget");if(!root)return;
+  let host=HMAP_WIDGET_HOSTS.get(key);
+  if(!host){
+    host=document.createElement("div");
+    host.dataset.hmapKey=key;
+    root.appendChild(host);
+    HMAP_WIDGET_HOSTS.set(key,host);
+    mountLazyTradingView(host,"https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",{exchanges:[],dataSource:c.dataSource,grouping:c.grouping,blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460},460);
+  }
+  HMAP_WIDGET_HOSTS.forEach((widgetHost,widgetKey)=>{widgetHost.hidden=widgetKey!==key;});
 }
 
 /* Meteorologia movida para src/cards/weather.js */

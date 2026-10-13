@@ -347,6 +347,7 @@
 - ✅ **Cancelamento HTTP respeitado** — helpers de fetch terminam retries quando o chamador aborta e `fetchViaLocalProxy` conserva o sinal recebido (13/10/2026)
 - ✅ **Cooldown de proxies unificado** — fetch JSON/texto respeita `429` e partilha o período de espera com o helper genérico, com teste de regressão entre helpers (13/10/2026)
 - ✅ **Proxy local limitado ao loopback** — limita CORS a origens locais; valida esquema, credenciais, porta e DNS público; bloqueia redirecionamentos para hosts privados (13/10/2026)
+- ✅ **Widgets do mapa de calor reutilizados** — tabs já visitadas mantêm o iframe TradingView montado, evitando pedidos repetidos ao alternar entre mercados (13/10/2026)
 
 ### Próximas melhorias
 
