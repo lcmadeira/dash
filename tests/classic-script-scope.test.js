@@ -139,3 +139,27 @@ test("real estate card keeps its entry points and renders selected tabs", async 
   assert.equal(tabs[1].classList.classes.has("on"), true);
   assert.doesNotThrow(() => vm.runInContext("const APP_IMOB_REGIOES = IMOB_REGIOES;", context));
 });
+
+test("fear and greed card replaces its cached entry point and renders cached data", async () => {
+  const context = createBrowserContext();
+  vm.runInContext("function loadFng() {}", context);
+
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "fng-body" ? body : null };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.lsGet = () => Array.from({ length: 30 }, (_, index) => ({
+    value: String(index === 0 ? 80 : 50),
+    timestamp: String(Math.floor(Date.now() / 1000) - index * 86400),
+  }));
+  context.lsSet = () => {};
+
+  const source = await readFile("src/cards/fear-greed.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadFng, "function");
+  await context.loadFng();
+  assert.match(body.innerHTML, /Ganância Extrema/);
+  assert.match(body.innerHTML, /30 dias/);
+  assert.doesNotThrow(() => vm.runInContext("function APP_LOAD_FNG() {}", context));
+});
