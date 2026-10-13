@@ -577,3 +577,53 @@ test("Euribor card ignores an incomplete cache and renders the configured fallba
   assert.match(body.innerHTML, /2\.682/);
   assert.doesNotMatch(body.innerHTML, /NaN|undefined/);
 });
+
+test("FX card rejects malformed cached rates and sanitizes trend preferences", async () => {
+  const body = { innerHTML: "" };
+  const values = new Map();
+  let cacheWrite = null;
+  let fetchCount = 0;
+  const context = vm.createContext({
+    Intl,
+    PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: () => null },
+    localStorage: {
+      getItem: key => values.get(key) || null,
+      setItem: (key, value) => values.set(key, value),
+    },
+    $: selector => selector === "fx-body" ? body : ({ value: "1" }),
+    skeletonKPIs: () => "loading",
+    lsGet: key => key === "fx" ? { date: "invalida", rates: { USD: "not-a-rate" } } : null,
+    lsSet: (key, value) => { cacheWrite = { key, value }; },
+    fetchJsonFirstOk: async url => {
+      fetchCount++;
+      assert.match(url, /frankfurter\.dev/);
+      return {
+        date: "2026-10-12",
+        rates: { USD: 1.1, GBP: 0.8, CHF: 0.9, JPY: 170, BRL: 6.2, CNY: 7.8, AED: 4, CAD: 1.5 },
+      };
+    },
+    addToHistory() {},
+    renderTrendChart() {},
+    _lastN: rows => rows,
+    _setOnByDataAttr() {},
+    getHistory: () => [],
+    er: () => "error",
+    notifyNonCriticalError() {},
+  });
+  context.window = context;
+  vm.runInContext('const FX_PAIRS = ["cached app"];', context);
+
+  vm.runInContext(await readFile("src/cards/fx.js", "utf8"), context);
+  await context.loadFX();
+  context.setFXTrendCode('<img src=x onerror=alert(1)>');
+  context.setFXTrendDays(999);
+
+  assert.equal(fetchCount, 1);
+  assert.equal(cacheWrite.key, "fx");
+  assert.equal(cacheWrite.value.rates.USD, 1.1);
+  assert.match(body.innerHTML, /1,1000/);
+  assert.deepEqual(JSON.parse(values.get("dash_fx_trend_pref_v1")), { code: "USD", days: 30 });
+  assert.doesNotThrow(() => vm.runInContext("const APP_FX_PAIRS = FX_PAIRS;", context));
+});
