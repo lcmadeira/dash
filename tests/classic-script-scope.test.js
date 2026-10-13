@@ -317,3 +317,47 @@ test("air traffic card escapes OpenSky text and lists only airports on the map",
   assert.doesNotMatch(body.innerHTML, />PDL</);
   assert.doesNotThrow(() => vm.runInContext("const APP_AIRPORTS = AIRPORTS;", context));
 });
+
+test("Ormuz card expires stale AIS, validates positions and escapes vessel tooltips", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  const tip = { style: {} };
+  const canvasContext = {
+    fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, closePath() {},
+    fill() {}, arc() {}, save() {}, translate() {}, rotate() {}, restore() {}, fillText() {},
+  };
+  const canvas = {
+    parentElement: { offsetWidth: 600 },
+    getBoundingClientRect: () => ({ width: 600, height: 200, left: 0, top: 0 }),
+    getContext: () => canvasContext,
+  };
+  context.document = {
+    getElementById: id => ({ "ormuz-body": body, "ormuz-map-canvas": canvas, "ormuz-map-tip": tip })[id] || null,
+  };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.IS_LOCAL_DEV = false;
+  const ship = Array(19).fill(null);
+  Object.assign(ship, { 0: "211000111", 1: 25, 2: 59, 3: 12, 4: 270, 5: '<img src=x onerror="alert(1)">', 18: "<svg/onload=alert(2)>" });
+  let cached = { live: true, ts: Date.now(), vessels: [{}, ship, ["bad", null, "", 0, 0]] };
+  context.lsGet = () => cached;
+  context.window._topoCache = { features: [] };
+
+  const source = await readFile("src/cards/ormuz.js", "utf8");
+  vm.runInContext(source, context);
+  assert.equal(typeof context.loadOrmuz, "function");
+  await context.loadOrmuz();
+  assert.match(body.innerHTML, /Live/);
+  assert.match(body.innerHTML, /Distribuição estimada por tipo/);
+  assert.match(body.innerHTML, /não classificadas a partir dos dados AIS/);
+
+  canvas.onmousemove({ clientX: 516, clientY: 139, offsetX: 516, offsetY: 139 });
+  assert.match(tip.innerHTML, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.match(tip.innerHTML, /&lt;SVG\/ONLOAD=ALERT\(2\)&gt;/);
+  assert.doesNotMatch(tip.innerHTML, /<img src=x/);
+
+  cached = { live: true, ts: Date.now() - 16 * 60 * 1000, vessels: [{}, ship] };
+  await context.loadOrmuz();
+  assert.match(body.innerHTML, /Simulated/);
+  assert.doesNotMatch(body.innerHTML, /● Live/);
+});
