@@ -1,7 +1,7 @@
 /* global $, AbortSignal, fetch, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   PREÇOS AGRÍCOLAS — via tdGet()
+   PREÇOS AGRÍCOLAS — Yahoo Finance com fallback Stooq
    ══════════════════════════════════════════════════════════════ */
 const AGRI_SYMS=[
   {sym:"ZW=F",  label:"Trigo",   unit:"¢/bu", ico:"🌾"},

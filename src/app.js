@@ -293,22 +293,8 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
 
 /* Criptomoedas e histórico movidos para src/cards/crypto.js */
 
-/* ── Twelve Data — Indicadores ── */
-const TD_BASE="https://api.twelvedata.com";
-async function tdGet(ep,params,force=false){
-  // Verificar se API key está configurada
-  if (!CFG.TD_KEY) {
-    console.warn('⚠️ Twelve Data API key não configurada. Indicadores de mercado desativados.');
-    throw new Error('API key não configurada');
-  }
-  
-  const ck=ep+"?"+new URLSearchParams(params);
-  if(!force){const h=lsGet(ck);if(h)return h;}
-  const r=await fetch(`${TD_BASE}${ep}?${new URLSearchParams({...params,apikey:CFG.TD_KEY})}`);
-  if(!r.ok)throw new Error(`TD ${r.status}`);
-  const j=await r.json();if(j.status==="error")throw new Error(j.message||"TD error");
-  lsSet(ck,j);return j;
-}
+/* Twelve Data permanece desativado: a aplicação não tem endpoint de backend
+   para manter uma chave API fora do código público. */
 
 /* Calendário económico movido para src/widgets/economic-calendar.js */
 

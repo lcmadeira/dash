@@ -1,8 +1,5 @@
 /* ── Configurações centrais — separadas para fácil manutenção ── */
 const CFG = {
-  // Segurança: chave API removida do código cliente
-  TD_KEY: null,
-
   // IPMA — cidade padrão (Lisboa)
   IPMA_CITY_ID: 1110600,
 

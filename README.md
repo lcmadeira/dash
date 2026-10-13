@@ -54,12 +54,9 @@ python3 dev_server.py
 
 Depois abrir `http://localhost:8000` (inclui um endpoint `/proxy` para contornar CORS em dev).
 
-## Configuração (API keys)
+## Credenciais de APIs
 
-Por omissão, a chave da Twelve Data está **desativada** por segurança (`TD_KEY: null`).
-
-- Edita localmente a secção `CFG` em `src/config.js` para adicionares a tua chave.
-- Importante: **não commitar keys** no repositório.
+A integração com a Twelve Data está desativada. Não coloques chaves API em `src/config.js`, `index.html` ou noutro ficheiro servido ao browser: qualquer visitante pode lê-las. Uma futura integração deve enviar pedidos através de um endpoint de backend que mantenha a credencial no servidor.
 
 ## Fontes de dados (alto nível)
 
