@@ -349,6 +349,7 @@
 - ✅ **Proxy local limitado ao loopback** — limita CORS a origens locais; valida esquema, credenciais, porta e DNS público; bloqueia redirecionamentos para hosts privados (13/10/2026)
 - ✅ **Widgets do mapa de calor reutilizados** — tabs já visitadas mantêm o iframe TradingView montado, evitando pedidos repetidos ao alternar entre mercados (13/10/2026)
 - ✅ **Semântica dos controlos HTML** — botões sem submissão declaram `type="button"`, pesquisa e conversor têm nomes acessíveis e as opções de exportação usam conteúdo permitido em botões (13/10/2026)
+- ✅ **Diálogos fechados inertes** — notificações, definições, exportação, detalhe de combustíveis e editor do cabaz deixam de permitir foco/interação enquanto estão fechados (13/10/2026)
 
 ### Próximas melhorias
 

@@ -967,3 +967,33 @@ test("heatmap tabs reuse previously mounted TradingView widgets", async () => {
   assert.equal(mounted[0].config.dataSource, "SPX500");
   assert.equal(mounted[1].config.dataSource, "Crypto");
 });
+
+test("notification panel is inert while closed and interactive while open", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const start = source.indexOf("function setNotificationsOpen(open) {");
+  const end = source.indexOf("\n}\n", start) + 2;
+  assert.notEqual(start, -1);
+  assert.ok(end > start);
+
+  const panel = {
+    inert: true,
+    attributes: {},
+    classList: { toggle(name, enabled) { this[name] = enabled; } },
+    setAttribute(name, value) { this.attributes[name] = value; },
+  };
+  const button = { attributes: {}, setAttribute(name, value) { this.attributes[name] = value; } };
+  const context = vm.createContext({
+    document: { getElementById: id => id === "notifPanel" ? panel : button },
+  });
+
+  vm.runInContext(source.slice(start, end), context);
+  context.setNotificationsOpen(true);
+  assert.equal(panel.inert, false);
+  assert.equal(panel.attributes["aria-hidden"], "false");
+  assert.equal(button.attributes["aria-expanded"], "true");
+
+  context.setNotificationsOpen(false);
+  assert.equal(panel.inert, true);
+  assert.equal(panel.attributes["aria-hidden"], "true");
+  assert.equal(button.attributes["aria-expanded"], "false");
+});

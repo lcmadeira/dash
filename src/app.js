@@ -1430,6 +1430,7 @@ function openSettings() {
     return;
   }
   
+  overlay.inert = false;
   overlay.classList.add('show');
   overlay.setAttribute('aria-hidden', 'false');
   const btn = document.getElementById('settingsOpenBtn');
@@ -1462,6 +1463,7 @@ function closeSettings() {
   const overlay = document.getElementById('settingsOverlay');
   overlay.classList.remove('show');
   overlay.setAttribute('aria-hidden', 'true');
+  overlay.inert = true;
   const btn = document.getElementById('settingsOpenBtn');
   if (btn) btn.setAttribute('aria-expanded', 'false');
   document.body.style.overflow = '';
@@ -2647,6 +2649,7 @@ function setNotificationsOpen(open) {
   if (!panel) return;
   panel.classList.toggle('show', !!open);
   panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  panel.inert = !open;
   if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
@@ -2986,6 +2989,7 @@ function openExportModal() {
   if (toggleAllText) toggleAllText.textContent = 'Todos';
   
   // Abrir modal
+  modal.inert = false;
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
   const btn = document.getElementById('exportOpenBtn');
@@ -3004,6 +3008,7 @@ function closeExportModal() {
   if (modal) {
     modal.classList.remove('show');
     modal.setAttribute('aria-hidden', 'true');
+    modal.inert = true;
     document.body.style.overflow = '';
   }
 
@@ -3136,6 +3141,7 @@ function openFuelModal(){
   const modal = document.getElementById('fuelModal');
   if(!modal) return;
   renderFuelModal();
+  modal.inert = false;
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
   const btn = document.getElementById('fuelDetailBtn');
@@ -3150,6 +3156,7 @@ function closeFuelModal(){
   if (modal) {
     modal.classList.remove('show');
     modal.setAttribute('aria-hidden', 'true');
+    modal.inert = true;
     document.body.style.overflow = '';
   }
   const btn = document.getElementById('fuelDetailBtn');
@@ -4177,6 +4184,7 @@ function openCabazEditor(){
   lastFocusCabaz = document.activeElement;
   const modal=document.getElementById("cabaz-modal");
   if(!modal)return;
+  modal.inert=false;
   modal.classList.add("show");
   modal.setAttribute("aria-hidden","false");
   const btn=document.getElementById("cabaz-edit-btn");
@@ -4199,6 +4207,7 @@ function closeCabazEditor(){
   if(modal){
     modal.classList.remove("show");
     modal.setAttribute("aria-hidden","true");
+    modal.inert=true;
   }
   document.body.style.overflow="";
   const btn=document.getElementById("cabaz-edit-btn");
