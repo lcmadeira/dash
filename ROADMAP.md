@@ -213,6 +213,7 @@
 - [x] **Extrair o câmbio EUR** para `src/cards/fx.js`, validar taxas e histórico em cache e restringir as preferências às moedas suportadas ✅ (13/10/2026)
 - [x] **Extrair o card de cripto** para `src/cards/crypto.js`, validar preços e séries em cache e restringir as preferências aos ativos suportados ✅ (13/10/2026)
 - [x] **Extrair o card PSI 20** para `src/cards/psi20.js` e rejeitar caches e cotações incompletos antes da renderização ✅ (13/10/2026)
+- [x] **Extrair o card geopolítico** para `src/cards/geopolitics.js`, escapar conteúdo RSS e aceitar apenas links HTTPS seguros ✅ (13/10/2026)
 - [x] **Extrair o card Euribor** para `src/cards/euribor.js` e validar os dados em cache antes de os renderizar ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **Extrair o tráfego marítimo de Ormuz** para `src/cards/ormuz.js`, expirar AIS após 15 minutos, validar coordenadas e escapar tooltips ✅ (13/10/2026)
@@ -332,6 +333,7 @@
 - ✅ **Câmbio EUR modularizado e validado** — card e histórico movidos para `src/cards/fx.js`; dados em cache validados antes de renderizar e preferências de moeda/duração aceitam apenas opções suportadas (13/10/2026)
 - ✅ **Cripto modularizada e validada** — preços e gráfico movidos para `src/cards/crypto.js`; cache e pontos CoinGecko validados e preferências limitadas a Bitcoin/Ethereum e 7/30/90 dias (13/10/2026)
 - ✅ **PSI 20 modularizado e resiliente** — cotações e histórico movidos para `src/cards/psi20.js`; cache inválido é atualizado e cotações Stooq incompletas recorrem ao fallback configurado (13/10/2026)
+- ✅ **Feed geopolítico modularizado e seguro** — conteúdo RSS escapado, links externos limitados a HTTPS e abertos com proteção `noopener`; fonte BBC World identificada corretamente (13/10/2026)
 
 ### Próximas melhorias
 

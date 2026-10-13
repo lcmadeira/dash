@@ -725,3 +725,39 @@ test("PSI 20 card refreshes an invalid quote cache and validates fetched records
   assert.match(body.innerHTML, /PSI 20 · Lisboa/);
   assert.doesNotThrow(() => vm.runInContext("const APP_PSI20_TREND_PREF_KEY = PSI20_TREND_PREF_KEY;", context));
 });
+
+test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
+  const body = { innerHTML: "" };
+  let fetchCalls = 0;
+  const context = vm.createContext({
+    URL,
+    console: { log() {}, warn() {} },
+    document: { querySelectorAll: () => [] },
+    $: () => body,
+    skeletonGeneric: () => "loading",
+    lsGet: () => [
+      {
+        id: "fa",
+        title: '<img src=x onerror="alert(1)"> BBC title',
+        link: "https://example.com/story?x=1&y=2",
+        dt: Date.now(),
+      },
+      { id: "icg", title: "Unsafe link title", link: "javascript:alert(1)", dt: Date.now() },
+    ],
+    lsSet() {},
+    fetch: async () => { fetchCalls++; throw new Error("cache should be sufficient"); },
+    notifyNonCriticalError() {},
+    er: () => "error",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
+  await context.loadGeo();
+
+  assert.equal(fetchCalls, 0);
+  assert.match(body.innerHTML, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.match(body.innerHTML, /BBC World/);
+  assert.match(body.innerHTML, /rel="noopener noreferrer"/);
+  assert.match(body.innerHTML, /x=1&amp;y=2/);
+  assert.doesNotMatch(body.innerHTML, /onclick=|javascript:/);
+});

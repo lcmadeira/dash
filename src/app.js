@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,er,loadElec,loadNews,loadSeis,loadDams,notifyNonCriticalError,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20 */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -899,90 +899,7 @@ window.switchCmap=function(tab,btn){
 })();
 
 
-/* ═══ RSS GEOPOLÍTICO ═══ */
-var GEO_DATA=[],GEO_FILTER="all";
-var GEO_FEEDS=[
- {id:"icg",label:"Crisis Group",color:"#EF4444",url:"https://www.crisisgroup.org/rss/139",proxy:true},
- {id:"gpf",label:"Geop. Futures",color:"#F59E0B",url:"https://geopoliticalfutures.com/feed/",proxy:true},
- {id:"fa", label:"Foreign Affairs",color:"#8B5CF6",url:"https://feeds.bbci.co.uk/news/world/rss.xml",proxy:false},
-];
-
-async function loadGeo(force){
- $("geo-body").innerHTML=skeletonGeneric(6);
- try{
-  let ck="geo_v10",cached=force?null:lsGet(ck);
-  if(!cached){
-   const all=[];
-   for(let fi=0;fi<GEO_FEEDS.length;fi++){
-    let feed=GEO_FEEDS[fi],raw=null;
-    try{
-     if(!feed.proxy){
-      try{const rd=await fetch(feed.url,{signal:AbortSignal.timeout(9000)});
-        if(rd.ok){const rt=await rd.text();if(rt.includes("<item>"))raw=rt;}
-      }catch(e){}
-     }
-     if(!raw){
-      const pxs=["https://corsproxy.io/?"+encodeURIComponent(feed.url),
-               "https://api.allorigins.win/raw?url="+encodeURIComponent(feed.url)];
-      for(let pi=0;pi<pxs.length&&!raw;pi++){
-       try{const rp=await fetch(pxs[pi],{signal:AbortSignal.timeout(10000)});
-         if(rp.ok){const tp=await rp.text();if(tp.includes("<item>"))raw=tp;}
-       }catch(e){}
-      }
-     }
-     if(!raw)continue;
-     const xml=new DOMParser().parseFromString(raw,"text/xml");
-     const items=xml.querySelectorAll("item");
-     for(let ii=0;ii<Math.min(items.length,8);ii++){
-      const it=items[ii];
-      const title=((it.querySelector("title")||{}).textContent||"")
-        .replace(/CDATA/g,"").replace(/<[^>]+>/g,"").replace(/[\[\]!]/g,"").trim();
-      const link=((it.querySelector("link")||{}).textContent||"").trim();
-      const pub=((it.querySelector("pubDate")||{}).textContent||"");
-      const dt=pub?new Date(pub).getTime():Date.now()-(ii*3600000);
-      if(title&&title.length>8)all.push({id:feed.id,label:feed.label,color:feed.color,title:title,link:link,dt:dt});
-     }
-    }catch(fe){console.warn("geo feed",feed.id,fe);}
-   }
-   all.sort(function(a,b){return b.dt-a.dt;});
-   if(!all.length)throw new Error("Feeds indispon\u00edveis");
-   cached=all;lsSet(ck,cached);
-  }
-  GEO_DATA=cached;renderGeo();
- }catch(e){
-  $("geo-body").innerHTML=er(e,{context:"Geopolítica",action:"clique em ↺ ou abra uma fonte em baixo"})+"<div style='margin-top:8px'>"+GEO_FEEDS.map(function(f){
-   return "<div style='margin:3px 0;font-size:.62rem'>&rarr; <a href='"+f.url+"' target='_blank' style='color:"+f.color+"'>"+f.label+"</a></div>";
-  }).join("")+"</div>";
-  notifyNonCriticalError("Geopolítica",e,"clique em ↺ ou abra uma fonte em baixo");
- }
-}
-
-function switchGeo(f,btn){
- document.querySelectorAll(".geo-tab").forEach(function(b){b.classList.remove("on");});
- if(btn)btn.classList.add("on");
- GEO_FILTER=f;renderGeo();
-}
-
-function renderGeo(){
- const items=GEO_FILTER==="all"?GEO_DATA:GEO_DATA.filter(function(x){return x.id===GEO_FILTER;});
- if(!items||!items.length){$("geo-body").innerHTML='<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';return;}
- $("geo-body").innerHTML=items.slice(0,10).map(function(it){
-  const ago=fmtAgo(it.dt);
-  const lnk=(it.link||"").replace(/'/g,"\'");
-  return '<div class="geo-item" role="button" tabindex="0" aria-label="Abrir artigo '+it.label+': '+it.title.replace(/"/g,"&quot;")+'" onclick="window.open(\''+ lnk +'\')">'
-   +'<span class="geo-src-tag" style="color:'+it.color+';border-color:'+it.color+'44;background:'+it.color+'11">'+it.label+'</span>'
-   +'<div class="geo-title">'+it.title+'</div>'
-   +'<div class="geo-date">'+ago+'</div></div>';
- }).join("");
-}
-
-function fmtAgo(ts){
- const d=Math.floor((Date.now()-ts)/1000);
- if(d<60)return"agora";if(d<3600)return Math.floor(d/60)+"min";
- if(d<86400)return Math.floor(d/3600)+"h";return Math.floor(d/86400)+"d";
-}
-
-/* boot geo */
+/* RSS geopolítico movido para src/cards/geopolitics.js */
 buildConflictMap();
 loadGeo();
 
@@ -4543,6 +4460,7 @@ function skeletonGeneric(lines = 4) {
     </div>
   `;
 }
+window.skeletonGeneric = skeletonGeneric;
 
 /**
  * Skeleton para Cards (retângulos)
