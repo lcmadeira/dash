@@ -20,7 +20,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ## Stack / dependências
 
-- **Single-page** em `index.html`, estilos em `styles.css` e helpers JS em `src/` (sem bundler / sem build step)
+- **Single-page** em `index.html`, estilos em `styles.css` e JavaScript da aplicação em `src/` (sem bundler / sem build step)
 - **Chart.js** via CDN
 - **TradingView widgets** (ticker tape, advanced chart, heatmap)
 - **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
@@ -28,7 +28,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ### Ferramentas de dev
 
-- **ESLint** + `eslint-plugin-html` — lint do JS (principalmente `index.html`)
+- **ESLint** + `eslint-plugin-html` — lint do JavaScript em `index.html` e `src/app.js`
 - **html-validate** — validação estrutural e acessibilidade HTML
 - **Ruff** — lint de `dev_server.py`
 - **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
@@ -105,9 +105,10 @@ ruff check dev_server.py  # Ruff (requer Python)
 
 ## Estrutura do repositório
 
-- `index.html` — aplicação (UI + lógica + integrações)
+- `index.html` — estrutura da página e dos cards, com referências aos estilos e scripts
 - `styles.css` — estilos globais da aplicação
-- `src/` — código extraído de `index.html` (cache/fetch/UI + cards)
+- `src/app.js` — lógica principal da aplicação, carregada como script clássico para manter compatibilidade com handlers inline
+- `src/` — helpers de cache/fetch/UI, configuração e módulos dos cards
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente

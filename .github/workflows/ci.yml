@@ -20,8 +20,8 @@ jobs:
 
       - run: npm ci
 
-      - name: ESLint (JS inline em index.html)
-        run: npx eslint index.html
+      - name: ESLint (JavaScript da aplicação)
+        run: npm run lint
 
   lint-py:
     name: Lint Python

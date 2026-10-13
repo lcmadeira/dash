@@ -2,7 +2,7 @@ import html from "eslint-plugin-html";
 
 export default [
   {
-    files: ["**/*.html"],
+    files: ["**/*.html", "src/app.js"],
     plugins: { html },
     languageOptions: {
       ecmaVersion: 2022,

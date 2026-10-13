@@ -184,9 +184,9 @@
 
 ## 🔧 7. Melhorias Técnicas
 
-### Prioridade: **Média** 🟡 *(ficheiro com ~11 000 linhas)*
+### Prioridade: **Média** 🟡 *(lógica principal em `src/app.js`, ~9 800 linhas)*
 
-> ℹ️ O `index.html` continua grande (~566 KB / ~14k linhas), mas a modularização incremental já começou (v1.2.0).
+> ℹ️ O markup está em `index.html`; a lógica principal está em `src/app.js` e os helpers/cards em `src/`. A modularização incremental começou em v1.2.0.
 
 - [x] **Extrair infra comum** para `src/` (cache, fetch, UI status, core utils) ✅ (01/04/2026)
 - [x] **Extrair alguns cards** para `src/cards/` (ex.: eletricidade, sismos, notícias) ✅ (01/04/2026)
@@ -195,6 +195,7 @@
 - [x] **Extrair configurações** para `config.js` (CFG, REF_DATE, EURIBOR_FALLBACK, GAS_TARIFAS, IPMA_*) ✅ (17/04/2026)
 - [x] **Consolidar CSS** em `styles.css`, carregado por `index.html` ✅ (13/10/2026)
 - [x] Documentar APIs partilhadas e pontos de entrada dos cards extraídos (JSDoc) ✅ (13/10/2026)
+- [x] **Externalizar o script principal** para `src/app.js`, preservando a execução clássica e os handlers inline ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -280,6 +281,10 @@
 ### v1.2.3 — Concluído ✅
 
 - ✅ **Separação do CSS** — estilos globais extraídos para `styles.css`; `index.html` mantém a folha externa ligada sem build step (13/10/2026)
+
+### v1.2.4 — Em progresso
+
+- ✅ **JavaScript principal externalizado** — lógica movida para `src/app.js`; CI e lint local passam a cobrir o ficheiro (13/10/2026)
 
 ### Próximas melhorias
 
