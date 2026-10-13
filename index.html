@@ -436,16 +436,20 @@
       <button class="oil-tab"   onclick="switchOil('wti',this)">WTI</button>
     </div>
     <div id="oil-brent" class="tv-widget-wrap">
-      <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-      {"symbols":[["Brent","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.15)","bottomColor":"rgba(245,158,11,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
-      </script></div>
+      <template data-tradingview-widget data-height="210">
+        <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {"symbols":[["Brent","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.15)","bottomColor":"rgba(245,158,11,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        </script></div>
+      </template>
     </div>
     <div id="oil-wti" class="tv-widget-wrap" style="display:none">
-      <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-      {"symbols":[["WTI","OANDA:WTICOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.15)","bottomColor":"rgba(239,87,87,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
-      </script></div>
+      <template data-tradingview-widget data-height="210">
+        <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+        {"symbols":[["WTI","OANDA:WTICOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.15)","bottomColor":"rgba(239,87,87,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        </script></div>
+      </template>
     </div>
     <div class="src">✦ TradingView · Brent (ICE) &amp; WTI (NYMEX) · Tempo real</div>
   </div>
@@ -746,12 +750,6 @@
       </div>
     </div>
     <div id="hmap-widget">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
-        {"exchanges":[],"dataSource":"SPX500","grouping":"sector","blockSize":"market_cap_basic","blockColor":"change","locale":"pt","colorTheme":"dark","hasTopBar":true,"isDataSetEnabled":false,"isZoomEnabled":true,"hasSymbolTooltip":true,"isMonoSize":false,"width":"100%","height":460}
-        </script>
-      </div>
     </div>
     <div class="src">✦ TradingView · S&amp;P 500 · Por sector · Cor = variação dia</div>
   </div>
@@ -954,7 +952,7 @@
  <script src="src/cards/gas-markets.js"></script>
  <script src="src/widgets/economic-calendar.js"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
- <script src="src/widgets/market-clock.js?v=20261013-2"></script>
-<script src="src/app.js?v=20261013-2"></script>
+ <script src="src/widgets/market-clock.js?v=20261013-3"></script>
+<script src="src/app.js?v=20261013-3"></script>
 </body>
 </html>

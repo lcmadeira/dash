@@ -2582,6 +2582,7 @@ textarea.nta::placeholder{color:var(--t3)}
 /* Ticker Tape */
 .tv-tape-wrap{margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);background:var(--card)}
 .tv-tape-wrap .tradingview-widget-copyright{display:none!important}
+.tv-lazy-placeholder{display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:16px;color:var(--t3);font:500 .72rem var(--mono);text-align:center}
 /* TV Cards */
 .tv-chart-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;position:relative;animation:fadeUp .35s ease both}
 .tv-chart-card:hover{border-color:var(--b2)}

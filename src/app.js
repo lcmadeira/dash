@@ -22,6 +22,58 @@ tick();setInterval(tick,1000);
 
 /* Dev proxy + fetch/cache helpers movidos para src/fetch.js e src/cache.js */
 
+function mountLazyTradingView(host, scriptUrl, config, height = 0) {
+  if (!host) return;
+
+  const loadWidget = () => {
+    const container = document.createElement('div');
+    container.className = 'tradingview-widget-container';
+    if (height) container.style.minHeight = `${height}px`;
+
+    const widget = document.createElement('div');
+    widget.className = 'tradingview-widget-container__widget';
+    container.appendChild(widget);
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = scriptUrl;
+    script.async = true;
+    script.text = JSON.stringify(config);
+    container.appendChild(script);
+
+    host.replaceChildren(container);
+  };
+
+  host.dataset.lazyId = 'tradingview';
+  host.replaceChildren();
+  const placeholder = document.createElement('div');
+  placeholder.className = 'tv-lazy-placeholder';
+  placeholder.setAttribute('role', 'status');
+  placeholder.textContent = 'A carregar dados de mercado…';
+  if (height) placeholder.style.minHeight = `${height}px`;
+  host.appendChild(placeholder);
+
+  if (!registerLazyLoad(host, loadWidget)) loadWidget();
+}
+
+function initStaticTradingViewWidgets() {
+  document.querySelectorAll('template[data-tradingview-widget]').forEach((template) => {
+    const source = template.content.querySelector('script[src]');
+    const host = template.parentElement;
+    if (!source || !host) return;
+
+    try {
+      const config = JSON.parse(source.textContent.trim());
+      const height = Number(template.dataset.height) || 0;
+      const scriptUrl = source.src;
+      template.remove();
+      mountLazyTradingView(host, scriptUrl, config, height);
+    } catch (error) {
+      console.error('Não foi possível preparar o widget TradingView:', error);
+    }
+  });
+}
+
 /* ── Oil tabs ── */
 function switchOil(type,btn){
   document.querySelectorAll(".oil-tab").forEach(b=>b.classList.remove("on"));
@@ -42,8 +94,8 @@ function switchHmap(key,btn){
   if(btn)btn.classList.add("on");
   const c=HMAP_CONFIGS[key];if(!c)return;
   const cfg=JSON.stringify({exchanges:[],dataSource:c.dataSource,grouping:c.grouping,blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460});
-  const w=document.getElementById("hmap-widget");w.innerHTML="";
-  w.appendChild(document.createRange().createContextualFragment(`<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>${cfg}<\/script></div>`));
+  const w=document.getElementById("hmap-widget");
+  mountLazyTradingView(w,"https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",JSON.parse(cfg),460);
 }
 
 /* Meteorologia movida para src/cards/weather.js */
@@ -1980,6 +2032,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Inicializar lazy loading
   const lazyEnabled = initLazyLoading();
+  initStaticTradingViewWidgets();
   
   // Auto-identificar cards
   perfMark('auto-identify-start');
@@ -2245,19 +2298,7 @@ function renderTvTickerTape(tickers) {
     locale: 'pt'
   };
 
-  wrap.innerHTML = '';
-  const container = document.createElement('div');
-  container.className = 'tradingview-widget-container';
-  const widget = document.createElement('div');
-  widget.className = 'tradingview-widget-container__widget';
-  container.appendChild(widget);
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
-  script.async = true;
-  script.text = JSON.stringify(cfg);
-  container.appendChild(script);
-  wrap.appendChild(container);
+  mountLazyTradingView(wrap, 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js', cfg, 58);
 }
 
 function renderTvAdvancedChart(tickers) {
@@ -2302,23 +2343,7 @@ function renderTvAdvancedChart(tickers) {
     support_host: 'https://www.tradingview.com'
   };
 
-  inner.innerHTML = '';
-  const container = document.createElement('div');
-  container.className = 'tradingview-widget-container';
-  container.style.height = '100%';
-  container.style.width = '100%';
-  const widget = document.createElement('div');
-  widget.className = 'tradingview-widget-container__widget';
-  widget.style.height = '100%';
-  widget.style.width = '100%';
-  container.appendChild(widget);
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.async = true;
-  script.text = JSON.stringify(cfg);
-  container.appendChild(script);
-  inner.appendChild(container);
+  mountLazyTradingView(inner, 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js', cfg, 520);
 }
 
 function applyConfigSideEffects(prevConfig, nextConfig) {
