@@ -277,14 +277,13 @@
 - ✅ **Lint fixes** — `no-var`, `prefer-const`, `eqeqeq` e limpeza de globals (21/04/2026)
 - ✅ **ECB Key Rates parser** — Limpeza de `loadFX` e resolução de erros de lint (21/04/2026)
 
-### v1.2.3 — Em progresso
+### v1.2.3 — Concluído ✅
 
 - ✅ **Separação do CSS** — estilos globais extraídos para `styles.css`; `index.html` mantém a folha externa ligada sem build step (13/10/2026)
 
 ### Próximas melhorias
 
-- [ ] Documentar funções principais (JSDoc)
-- [ ] Separar JS em módulos (ES Modules) — opcional
+- A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
 
 ### v2.0.0 — Futuro
 
@@ -294,5 +293,5 @@
 
 ---
 
-**Última atualização**: 21 de Abril de 2026
+**Última atualização**: 13 de Outubro de 2026
 **Mantido por**: LCMadeira
