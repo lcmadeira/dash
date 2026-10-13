@@ -202,6 +202,7 @@
 - [x] **Extrair o card de meteorologia IPMA** para `src/cards/weather.js`, mantendo a API global necessária às interações ✅ (13/10/2026)
 - [x] **Extrair o card de qualidade do ar** para `src/cards/air-quality.js`, mantendo a API global necessária à atualização ✅ (13/10/2026)
 - [x] **Extrair o calendário económico** para `src/widgets/economic-calendar.js`, preservando controlos inline e atualização ✅ (13/10/2026)
+- [x] **Extrair o card de feriados** para `src/cards/holidays.js`, incluindo o handler das tabs do resumo/lista ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -297,6 +298,7 @@
 - ✅ **Meteorologia IPMA modularizada** — lógica do card movida para `src/cards/weather.js` (13/10/2026)
 - ✅ **Qualidade do ar modularizada** — API, cálculo do índice europeu e renderização movidos para `src/cards/air-quality.js` (13/10/2026)
 - ✅ **Calendário económico modularizado** — geração e renderização movidas para `src/widgets/economic-calendar.js` (13/10/2026)
+- ✅ **Feriados modularizados** — resumo, lista e separadores movidos para `src/cards/holidays.js`; handler `switchHolTab` incluído (13/10/2026)
 
 ### Próximas melhorias
 

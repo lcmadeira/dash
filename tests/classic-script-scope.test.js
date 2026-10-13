@@ -71,3 +71,33 @@ test("economic calendar loads alongside cached date data and event handlers", as
   assert.equal(typeof context.loadAndRenderCalendar, "function");
   assert.doesNotThrow(() => vm.runInContext("const APP_FOMC_DATES = FOMC_DATES_2026;", context));
 });
+
+test("holidays card loads alongside cached globals and switches its summary tabs", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const MUNIC = ["cached app"]; function loadHolidays() {}', context);
+
+  const tabs = [
+    { classList: { classes: new Set(["on"]), remove(name) { this.classes.delete(name); }, add(name) { this.classes.add(name); } } },
+    { classList: { classes: new Set(), remove(name) { this.classes.delete(name); }, add(name) { this.classes.add(name); } } },
+  ];
+  const views = {
+    "hol-resumo": { style: {} },
+    "hol-feriados": { style: {} },
+  };
+  context.document = {
+    querySelectorAll: () => tabs,
+    getElementById: id => views[id] || null,
+  };
+
+  const source = await readFile("src/cards/holidays.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadHolidays, "function");
+  assert.equal(typeof context.switchWxHol, "function");
+  context.switchHolTab("feriados", tabs[1]);
+  assert.equal(views["hol-resumo"].style.display, "none");
+  assert.equal(views["hol-feriados"].style.display, "");
+  assert.equal(tabs[0].classList.classes.has("on"), false);
+  assert.equal(tabs[1].classList.classes.has("on"), true);
+  assert.doesNotThrow(() => vm.runInContext("const APP_MUNIC = MUNIC;", context));
+});
