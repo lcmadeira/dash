@@ -214,6 +214,7 @@
 - [x] **Extrair o card de cripto** para `src/cards/crypto.js`, validar preços e séries em cache e restringir as preferências aos ativos suportados ✅ (13/10/2026)
 - [x] **Extrair o card PSI 20** para `src/cards/psi20.js` e rejeitar caches e cotações incompletos antes da renderização ✅ (13/10/2026)
 - [x] **Extrair os cards de gás TTF e PT** para `src/cards/gas-markets.js`, validar a cache partilhada e cobrir cache TTF malformada com teste de regressão ✅ (13/10/2026)
+- [x] **Alargar o scan de segredos do CI** aos módulos em `src/`, depois da externalização da aplicação ✅ (13/10/2026)
 - [x] **Extrair o card geopolítico** para `src/cards/geopolitics.js`, escapar conteúdo RSS e aceitar apenas links HTTPS seguros ✅ (13/10/2026)
 - [x] **Extrair o card Euribor** para `src/cards/euribor.js` e validar os dados em cache antes de os renderizar ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
@@ -336,6 +337,7 @@
 - ✅ **Cripto modularizada e validada** — preços e gráfico movidos para `src/cards/crypto.js`; cache e pontos CoinGecko validados e preferências limitadas a Bitcoin/Ethereum e 7/30/90 dias (13/10/2026)
 - ✅ **PSI 20 modularizado e resiliente** — cotações e histórico movidos para `src/cards/psi20.js`; cache inválido é atualizado e cotações Stooq incompletas recorrem ao fallback configurado (13/10/2026)
 - ✅ **Feed geopolítico modularizado e seguro** — conteúdo RSS escapado, links externos limitados a HTTPS e abertos com proteção `noopener`; fonte BBC World identificada corretamente (13/10/2026)
+- ✅ **Scan de segredos atualizado** — GitHub Actions verifica também `src/`, incluindo configuração e módulos extraídos (13/10/2026)
 
 ### Próximas melhorias
 

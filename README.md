@@ -58,7 +58,7 @@ Depois abrir `http://localhost:8000` (inclui um endpoint `/proxy` para contornar
 
 Por omissão, a chave da Twelve Data está **desativada** por segurança (`TD_KEY: null`).
 
-- Edita localmente a secção `CFG` em `index.html` para adicionares a tua chave.
+- Edita localmente a secção `CFG` em `src/config.js` para adicionares a tua chave.
 - Importante: **não commitar keys** no repositório.
 
 ## Fontes de dados (alto nível)
@@ -88,10 +88,10 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 
 | Job | Descrição | Falha se... |
 |---|---|---|
-| `lint-js` | ESLint no JS inline do `index.html` | Erros de sintaxe ou `no-undef` |
+| `lint-js` | ESLint no JavaScript inline do `index.html` e nos ficheiros listados em `package.json` | Erros de sintaxe ou `no-undef` |
 | `lint-py` | Ruff no `dev_server.py` | Erros de lint Python |
 | `validate-html` | html-validate na estrutura HTML | Erros estruturais ou acessibilidade |
-| `secret-scan` | Regex por API keys hardcoded no código | Encontrar secrets em código activo |
+| `secret-scan` | Regex por API keys hardcoded em `index.html`, `dev_server.py` e `src/` | Encontrar secrets em código ativo |
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
