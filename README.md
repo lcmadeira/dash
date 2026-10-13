@@ -108,7 +108,7 @@ ruff check dev_server.py  # Ruff (requer Python)
 - `index.html` — estrutura da página e dos cards, com referências aos estilos e scripts
 - `styles.css` — estilos globais da aplicação
 - `src/app.js` — lógica principal da aplicação, carregada como script clássico para manter compatibilidade com handlers inline
-- `src/` — helpers de cache/fetch/UI, configuração e módulos dos cards, incluindo combustíveis
+- `src/` — helpers de cache/fetch/UI, configuração, módulos de cards e widgets, incluindo combustíveis e relógios dos mercados
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente

@@ -45,6 +45,7 @@ function syncFuelDeltaBtn(){
   btn.classList.toggle("on", p.deltaMode === "pct");
   btn.title = p.deltaMode === "pct" ? "A mostrar Δ em %" : "A mostrar Δ em €";
 }
+// eslint-disable-next-line no-unused-vars -- called by the inline fuel control in index.html
 function toggleFuelDeltaMode(){
   const p = getFuelPrefs();
   setFuelPrefs({ deltaMode: p.deltaMode === "pct" ? "abs" : "pct" });
