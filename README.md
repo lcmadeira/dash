@@ -28,8 +28,9 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ### Ferramentas de dev
 
-- **ESLint** + `eslint-plugin-html` — lint do JavaScript em `index.html` e `src/app.js`
+- **ESLint** + `eslint-plugin-html` — lint do JavaScript inline e dos módulos em `src/`
 - **html-validate** — validação estrutural e acessibilidade HTML
+- **Node.js test runner** — testes de regressão executados com `npm test`
 - **Ruff** — lint de `dev_server.py`
 - **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
 

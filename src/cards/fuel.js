@@ -1,4 +1,5 @@
-/* global PFX, lsGet, lsSet, fetchJsonFirstOk, fetchWithCORS, $, skeletonTable, er, notifyNonCriticalError, renderFuelModal */
+/* global PFX, lsGet, lsSet, fetchJsonFirstOk, fetchWithCORS, $, skeletonTable, er, notifyNonCriticalError, renderFuelModal, window */
+(() => {
 /* ── Combustíveis — PT (API Aberta) + ES (MITECO/MINETUR) ── */
 const FUEL_SLUGS=[
   {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--accent)"},
@@ -45,7 +46,6 @@ function syncFuelDeltaBtn(){
   btn.classList.toggle("on", p.deltaMode === "pct");
   btn.title = p.deltaMode === "pct" ? "A mostrar Δ em %" : "A mostrar Δ em €";
 }
-// eslint-disable-next-line no-unused-vars -- called by the inline fuel control in index.html
 function toggleFuelDeltaMode(){
   const p = getFuelPrefs();
   setFuelPrefs({ deltaMode: p.deltaMode === "pct" ? "abs" : "pct" });
@@ -272,3 +272,10 @@ async function renderFuel(force=false){
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }
 
+  window.FUEL_SLUGS = FUEL_SLUGS;
+  window.getFuelPrefs = getFuelPrefs;
+  window.setFuelPrefs = setFuelPrefs;
+  window.syncFuelDeltaBtn = syncFuelDeltaBtn;
+  window.toggleFuelDeltaMode = toggleFuelDeltaMode;
+  window.renderFuel = renderFuel;
+})();

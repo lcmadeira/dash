@@ -23,6 +23,9 @@ jobs:
       - name: ESLint (JavaScript da aplicação)
         run: npm run lint
 
+      - name: JavaScript regression tests
+        run: npm test
+
   lint-py:
     name: Lint Python
     runs-on: ubuntu-latest

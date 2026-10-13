@@ -1,4 +1,5 @@
-/* global document, Intl, Date, Object, parseInt */
+/* global document, Intl, Date, Object, parseInt, window */
+(() => {
 /* ── Relógios das Praças Financeiras ── */
 const MARKETS=[
   {city:"Lisboa",    flag:"🇵🇹",tz:"Europe/Lisbon",   exch:"Euronext",oH:8, oM:0, cH:16,cM:30,days:[1,2,3,4,5]},
@@ -23,7 +24,6 @@ function mktStatus(mkt,l){
   const n=l.h*60+l.m,o=mkt.oH*60+mkt.oM,c=mkt.cH*60+mkt.cM;
   if(n>=o&&n<c)return"open";if(n>=o-30&&n<o)return"pre";if(n>=c&&n<c+30)return"post";return"closed";
 }
-// eslint-disable-next-line no-unused-vars -- called by tick() in src/app.js
 function tickMarkets(){
   const bar=document.getElementById("mkt-bar");if(!bar)return;
   bar.innerHTML=MARKETS.map(m=>{
@@ -32,5 +32,5 @@ function tickMarkets(){
   }).join("");
 }
 
-
-
+  window.tickMarkets = tickMarkets;
+})();
