@@ -761,3 +761,35 @@ test("geopolitics card escapes RSS content and rejects unsafe article links", as
   assert.match(body.innerHTML, /x=1&amp;y=2/);
   assert.doesNotMatch(body.innerHTML, /onclick=|javascript:/);
 });
+
+
+test("gas markets card rejects malformed TTF cache and keeps its global handlers", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  context.window = context;
+  context.localStorage = { getItem: () => null, setItem() {} };
+  context.PFX = "test_";
+  context.lsGet = key => key === "ttf_live_v1" ? { price: "invalid", prev: null } : null;
+  context.lsSet = () => {};
+  context.fetchTextFirstOk = async () => { throw new Error("offline"); };
+  context.fetch = async () => { throw new Error("offline"); };
+  context.addToHistory = () => {};
+  context.getHistory = () => [];
+  context._setOnByDataAttr = () => {};
+  context.fetchStooqDailySeries = async () => [];
+  context._lastN = (items, count) => items.slice(-count);
+  context.renderTrendChart = () => {};
+  context.GAS_TARIFAS = {};
+  context.document = { getElementById: id => id === "ttf-body" ? body : null };
+
+  const source = await readFile("src/cards/gas-markets.js", "utf8");
+  vm.runInContext(source, context);
+
+  assert.equal(typeof context.loadTTF, "function");
+  assert.equal(typeof context.loadGasPT, "function");
+  assert.equal(typeof context.setTTFTrendDays, "function");
+  await context.loadTTF();
+  assert.doesNotMatch(body.innerHTML, /invalid/);
+  assert.match(body.innerHTML, /38\.5/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_GAS_MARKETS = true;", context));
+});

@@ -111,6 +111,7 @@ ruff check dev_server.py  # Ruff (requer Python)
 - `src/app.js` — lógica principal da aplicação, carregada como script clássico para manter compatibilidade com handlers inline
 - `src/` — helpers de cache/fetch/UI, configuração, módulos de cards e widgets, incluindo combustíveis e relógios dos mercados
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
+- `src/cards/gas-markets.js` contém os cards TTF e gás PT; o segundo reutiliza a cache TTF, validada antes de alimentar a estimativa MIBGAS.
 - `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente
 - `package.json` — dev dependencies (ESLint, html-validate)
