@@ -196,6 +196,7 @@
 - [x] **Consolidar CSS** em `styles.css`, carregado por `index.html` ✅ (13/10/2026)
 - [x] Documentar APIs partilhadas e pontos de entrada dos cards extraídos (JSDoc) ✅ (13/10/2026)
 - [x] **Externalizar o script principal** para `src/app.js`, preservando a execução clássica e os handlers inline ✅ (13/10/2026)
+- [x] **Extrair o card de combustíveis** para `src/cards/fuel.js`, preservando a ordem clássica de carregamento ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -285,6 +286,7 @@
 ### v1.2.4 — Em progresso
 
 - ✅ **JavaScript principal externalizado** — lógica movida para `src/app.js`; CI e lint local passam a cobrir o ficheiro (13/10/2026)
+- ✅ **Card de combustíveis modularizado** — preferências, agregação ES e renderização movidas para `src/cards/fuel.js` (13/10/2026)
 
 ### Próximas melhorias
 
