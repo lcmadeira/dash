@@ -54,6 +54,11 @@
     throw lastErr || new Error("RSS indisponível");
   }
 
+  /** Carrega e apresenta notícias RSS portuguesas ou mundiais, recorrendo ao cache em caso de falha.
+   * @param {"pt"|"world"} scope Seleciona o feed e o card de destino.
+   * @param {boolean} [force=false] Se true, ignora o cache válido.
+   * @returns {Promise<void>}
+   */
   async function loadNews(scope, force = false) {
     const isPT = scope === "pt",
       el = $(isPT ? "news-pt" : "news-world");
@@ -113,6 +118,12 @@
     }
   }
 
+  /** Gera o HTML dos artigos RSS com etiqueta de idioma e idade de publicação.
+   * @param {{title: string, link: string, source?: string, pubDate?: string}[]} arts Artigos a apresentar.
+   * @param {boolean} isPT Indica se os artigos pertencem ao feed português.
+   * @param {boolean} [stale=false] Indica que os artigos vieram de cache usado como fallback.
+   * @returns {string} HTML dos artigos e da respetiva fonte.
+   */
   function renderNewsItems(arts, isPT, stale = false) {
     return `<div class="news-wrap">${arts
       .map(

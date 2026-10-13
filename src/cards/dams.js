@@ -1,5 +1,9 @@
 /* src/cards/dams.js — Dados SNIRH (Barragens) */
 
+/** Carrega os níveis das bacias do SNIRH, usando cache e fallback estático quando necessário.
+ * @param {boolean} [force=false] Se true, ignora o cache válido e volta a consultar a fonte.
+ * @returns {Promise<void>}
+ */
 async function loadDams(force = false) {
   const el = document.getElementById("dams-body");
   if (!el) return;
@@ -96,6 +100,9 @@ async function loadDams(force = false) {
   renderDams(cache);
 }
 
+/** Desenha o resumo nacional e as oito bacias com menor armazenamento.
+ * @param {{basins: {name: string, val: number, avg: number}[], totalVal: number, totalAvg: number}} data Dados calculados pelo carregador.
+ */
 function renderDams(data) {
   const el = document.getElementById("dams-body");
   if (!el || !data) return;

@@ -28,31 +28,31 @@ const REF_DATE = {
 
 /* ── Euribor fallback (valores fixos quando API falha) ── */
 const EURIBOR_FALLBACK = {
-  updated: "10 Mar 2026",
+  updated: "17 Set 2026",
   rates: [
-    { term: "1S",  termFull: "1 Semana", val: 1.888, prev: 2.012, color: "#06B6D4", hipot: false,
+    { term: "1S",  termFull: "1 Semana", val: 2.240, prev: 2.149, color: "#06B6D4", hipot: false,
      desc: "Ref. overnight e swaps curtos" },
-    { term: "1M",  termFull: "1 Mês",    val: 1.951, prev: 2.089, color: "#22D3EE", hipot: false,
+    { term: "1M",  termFull: "1 Mês",    val: 2.460, prev: 2.221, color: "#22D3EE", hipot: false,
      desc: "Ref. produtos curtos, tesouraria" },
-    { term: "3M",  termFull: "3 Meses",  val: 2.138, prev: 2.503, color: "#3B82F6", hipot: true,
+    { term: "3M",  termFull: "3 Meses",  val: 2.682, prev: 2.513, color: "#3B82F6", hipot: true,
      desc: "Crédito habitação revisão trimestral" },
-    { term: "6M",  termFull: "6 Meses",  val: 2.295, prev: 2.415, color: "#8B5CF6", hipot: true,
+    { term: "6M",  termFull: "6 Meses",  val: 2.946, prev: 2.713, color: "#8B5CF6", hipot: true,
      desc: "Crédito habitação revisão semestral" },
-    { term: "12M", termFull: "12 Meses", val: 2.552, prev: 2.350, color: "#A855F7", hipot: true,
+    { term: "12M", termFull: "12 Meses", val: 3.326, prev: 2.954, color: "#A855F7", hipot: true,
      desc: "Crédito habitação revisão anual" },
   ],
   hist: [
-    ["Mar 26", 2.138, 2.295, 2.552], ["Fev 26", 2.503, 2.415, 2.350],
-    ["Jan 26", 2.612, 2.534, 2.478], ["Dez 25", 2.721, 2.648, 2.589],
-    ["Nov 25", 2.869, 2.784, 2.718], ["Out 25", 3.054, 2.954, 2.871],
-    ["Set 25", 3.124, 3.018, 2.936], ["Ago 25", 3.201, 3.089, 2.998],
+    ["Ago 26", 2.513, 2.713, 2.954], ["Jul 26", 2.425, 2.647, 2.855],
+    ["Jun 26", 2.339, 2.596, 2.798], ["Mai 26", 2.226, 2.536, 2.804],
+    ["Abr 26", 2.175, 2.454, 2.747], ["Mar 26", 2.138, 2.295, 2.552],
+    ["Fev 26", 2.503, 2.415, 2.350], ["Jan 26", 2.612, 2.534, 2.478],
   ],
-  bce: { dep: 2.00, refin: 2.15, margLend: 2.40 },
+  bce: { dep: 2.50, refin: 2.65, margLend: 2.90 },
   peak: { val: 4.160, date: "Out 2023" },
   bceNext: {
-    date: "17 Abr 2026", expectativa: "Pausa",
-    probCorte: 38, probPausa: 58, probSubida: 4,
-    nota: "Mercados divididos. BCE aguarda dados inflação Mar/Abr antes de decidir."
+    date: "29 Out 2026", expectativa: "Pausa / Dados-dependente",
+    probCorte: 10, probPausa: 55, probSubida: 35,
+    nota: "Mercados avaliam impacto dos preços de energia e inflação de serviços antes da reunião de Outubro."
   },
   spreadBancario: {
     min: 0.70, max: 1.50, tipico: 1.10,
@@ -61,7 +61,7 @@ const EURIBOR_FALLBACK = {
 };
 
 /* ── MIBGAS reference (spot mais recente) ── */
-const MIBGAS_SPOT = 40.50; // €/MWh — atualizar manualmente quando houver novo valor
+const MIBGAS_SPOT = 81.20; // €/MWh — atualizar manualmente quando houver novo valor
 
 /* ── Spread TTF→MIBGAS por mês (referência sazonal) ── */
 const MIBGAS_MONTHLY_SPREAD = {
@@ -81,15 +81,15 @@ const GAS_TARIFAS = {
   totalEsc2: 0.1527 /* (0.0716+0.0821)*1.06 */,
   /* Termo fixo mensal (capacidade) */
   termoFixo: 3.42 /* €/mês */,
-  /* Ref MIBGAS spot Mar 2026 */
-  mibgasSpot: 57.3,
-  mibgasPrev: 46.2,
-  mibgas7d: [36.8, 38.2, 46.1, 54.8, 58.2, 56.4, 57.3],
-  /* TTF Day-ahead ref Mar 2026 */
-  ttfSpot: 48.2,
-  ttfPrev: 40.2,
+  /* Ref MIBGAS spot Set 2026 */
+  mibgasSpot: 81.2,
+  mibgasPrev: 57.3,
+  mibgas7d: [68.5, 72.0, 74.8, 77.4, 79.1, 80.5, 81.2],
+  /* TTF Day-ahead ref Set 2026 */
+  ttfSpot: 78.5,
+  ttfPrev: 53.3,
   /* Spread MIBGAS-TTF */
-  spread: 57.3 - 48.2,
+  spread: 81.2 - 78.5,
 };
 
 /* ── IPMA — lista de cidades disponíveis ── */
@@ -143,12 +143,14 @@ const EU_INDICES = [
 
 /* ── Inflação fallback (estático se API falhar) ── */
 const INFLATION_FALLBACK = [
+  {m:"Ago 2026",pt:3.3,eu:2.8},
+  {m:"Jul 2026",pt:3.0,eu:2.6},
+  {m:"Jun 2026",pt:2.8,eu:2.5},
+  {m:"Mai 2026",pt:2.7,eu:2.4},
+  {m:"Abr 2026",pt:2.5,eu:2.4},
+  {m:"Mar 2026",pt:2.3,eu:2.4},
   {m:"Fev 2026",pt:2.4,eu:2.3},
   {m:"Jan 2026",pt:2.6,eu:2.5},
-  {m:"Dez 2025",pt:2.2,eu:2.4},
-  {m:"Nov 2025",pt:1.9,eu:2.3},
-  {m:"Out 2025",pt:1.8,eu:2.3},
-  {m:"Set 2025",pt:1.2,eu:1.7},
 ];
 
 const IPMA_WIND = ["", "Fraco", "Fraco a mod.", "Moderado", "Forte", "Muito forte"];

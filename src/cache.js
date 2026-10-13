@@ -22,6 +22,11 @@
     static: 7 * 24 * 60 * 60 * 1000, // 7 dias (dados estáticos)
   };
 
+  /**
+   * Devolve o tempo de vida configurado para uma chave de cache.
+   * @param {string} key Chave lógica, sem o prefixo interno.
+   * @returns {number} TTL em milissegundos.
+   */
   function getTTL(key) {
     const lower = String(key || "").toLowerCase();
     for (const [prefix, ttl] of Object.entries(CACHE_TTL_MAP)) {
@@ -30,6 +35,11 @@
     return CACHE_TTL;
   }
 
+  /**
+   * Lê o registo guardado sem aplicar o TTL, para permitir recuperação de dados antigos.
+   * @param {string} key Chave lógica, sem o prefixo interno.
+   * @returns {{d: *, ts: number}|null} Dados e timestamp, ou null se não existirem/forem inválidos.
+   */
   function getStaleCache(key) {
     try {
       const raw = localStorage.getItem(PFX + key);
@@ -40,6 +50,7 @@
     return null;
   }
 
+  /** Remove sincronamente entradas expiradas ou inválidas do localStorage. */
   function cleanOldCacheSync() {
     const keys = Object.keys(localStorage);
     const now = Date.now();
@@ -65,6 +76,11 @@
     if (removed > 0) console.log(`🧹 ${removed} itens de cache removidos`);
   }
 
+  /**
+   * Lê dados do cache apenas quando a entrada ainda está dentro do TTL.
+   * @param {string} k Chave lógica, sem o prefixo interno.
+   * @returns {*} Dados guardados, ou null se ausentes, expirados ou inválidos.
+   */
   function lsGet(k) {
     try {
       const raw = localStorage.getItem(PFX + k);
@@ -82,6 +98,12 @@
     }
   }
 
+  /**
+   * Guarda dados com timestamp e tenta limpar entradas antigas se o armazenamento estiver cheio.
+   * @param {string} k Chave lógica, sem o prefixo interno.
+   * @param {*} d Dados serializáveis a guardar.
+   * @returns {boolean} Indica se a gravação foi concluída.
+   */
   function lsSet(k, d) {
     const payload = JSON.stringify({ d, ts: Date.now() });
     try {

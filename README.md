@@ -20,7 +20,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 
 ## Stack / dependências
 
-- **Single-page** em `index.html` + helpers JS em `src/` (sem bundler / sem build step)
+- **Single-page** em `index.html`, estilos em `styles.css` e helpers JS em `src/` (sem bundler / sem build step)
 - **Chart.js** via CDN
 - **TradingView widgets** (ticker tape, advanced chart, heatmap)
 - **Estratégia Anti-CORS**: Tentativa de fetch direto (nacional/nativa) com fallback automático para múltiplos proxies públicos.
@@ -106,7 +106,9 @@ ruff check dev_server.py  # Ruff (requer Python)
 ## Estrutura do repositório
 
 - `index.html` — aplicação (UI + lógica + integrações)
+- `styles.css` — estilos globais da aplicação
 - `src/` — código extraído de `index.html` (cache/fetch/UI + cards)
+- Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `dev_server.py` — servidor dev com proxy CORS local
 - `ROADMAP.md` — plano de evolução e histórico recente
 - `package.json` — dev dependencies (ESLint, html-validate)

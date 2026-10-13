@@ -22,6 +22,9 @@
   window.ELEC_TARIFAS = ELEC_TARIFAS;
 
   const ELEC_TREND_PREF_KEY = "elec_trend_pref_v1";
+  /** Lê a preferência de período do gráfico e aplica 30 dias como valor predefinido.
+   * @returns {{days: 7|30|90}} Período atualmente selecionado.
+   */
   function getElecTrendPref() {
     try {
       const raw = localStorage.getItem(PFX + ELEC_TREND_PREF_KEY);
@@ -32,6 +35,10 @@
       return { days: 30 };
     }
   }
+  /** Guarda alterações às preferências do gráfico de tendência.
+   * @param {{days?: 7|30|90}} patch Campos a atualizar.
+   * @returns {{days: 7|30|90}} Preferências resultantes.
+   */
   function setElecTrendPref(patch) {
     const cur = getElecTrendPref();
     const next = { ...cur, ...patch };
@@ -40,11 +47,18 @@
     } catch {}
     return next;
   }
+  /** Atualiza o período do gráfico e agenda a sua recarga.
+   * @param {7|30|90} days Número de dias a apresentar.
+   */
   function setElecTrendDays(days) {
     setElecTrendPref({ days });
     loadElecTrend(false).catch(() => {});
   }
 
+  /** Carrega e desenha a série histórica de preços horários da eletricidade.
+   * @param {boolean} [force=false] Se true, ignora o cache válido.
+   * @returns {Promise<void>}
+   */
   async function loadElecTrend(force = false) {
     const canvas = document.getElementById("elecTrendCanvas");
     const statusEl = document.getElementById("elecTrendStatus");
@@ -240,6 +254,10 @@
     }
   }
 
+  /** Carrega preços de eletricidade da REE e atualiza KPIs e comparação tarifária.
+   * @param {boolean} [force=false] Se true, ignora o cache válido.
+   * @returns {Promise<void>}
+   */
   async function loadElec(force = false) {
     $("elec-body").innerHTML = skeletonKPIs(4);
     try {

@@ -193,8 +193,8 @@
 - [ ] **Separar JS em módulos** (ES Modules) ← opcional; hoje usa scripts globais sem bundler
 - [x] **Aplicar definições sem reload** (re-renderização dinâmica de cards) ✅ (25/03/2026)
 - [x] **Extrair configurações** para `config.js` (CFG, REF_DATE, EURIBOR_FALLBACK, GAS_TARIFAS, IPMA_*) ✅ (17/04/2026)
-- [ ] **Consolidar CSS** em ficheiro separado
-- [ ] Documentar funções principais (JSDoc)
+- [x] **Consolidar CSS** em `styles.css`, carregado por `index.html` ✅ (13/10/2026)
+- [x] Documentar APIs partilhadas e pontos de entrada dos cards extraídos (JSDoc) ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -277,9 +277,12 @@
 - ✅ **Lint fixes** — `no-var`, `prefer-const`, `eqeqeq` e limpeza de globals (21/04/2026)
 - ✅ **ECB Key Rates parser** — Limpeza de `loadFX` e resolução de erros de lint (21/04/2026)
 
-### v1.2.3 — Planeado
+### v1.2.3 — Em progresso
 
-- [ ] **Consolidar CSS** em ficheiro separado
+- ✅ **Separação do CSS** — estilos globais extraídos para `styles.css`; `index.html` mantém a folha externa ligada sem build step (13/10/2026)
+
+### Próximas melhorias
+
 - [ ] Documentar funções principais (JSDoc)
 - [ ] Separar JS em módulos (ES Modules) — opcional
 

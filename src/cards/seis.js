@@ -1,5 +1,9 @@
 /* Sismos card (moved out of index.html) */
 (function () {
+  /** Carrega eventos sísmicos USGS, com cache local e recuperação de dados antigos.
+   * @param {boolean} [force=false] Se true, ignora o cache ainda válido.
+   * @returns {Promise<void>}
+   */
   async function loadSeis(force = false) {
     const el = $("seis-body");
     if (!el) return;

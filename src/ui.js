@@ -145,6 +145,13 @@
     });
   }
 
+  /**
+   * Atualiza o estado visível e acessível de um card e gere a ação de nova tentativa.
+   * @param {string} cardId Identificador do card no atributo data-card-id.
+   * @param {"idle"|"loading"|"error"|"stale"|"cache"|"live"|"static"} state Estado apresentado.
+   * @param {string} text Texto curto mostrado no badge.
+   * @param {{title?: string, force?: boolean}} [meta] Texto auxiliar e opção para substituir um estado loading.
+   */
   function setCardStatus(cardId, state, text, meta = {}) {
     const el = ensureCardStatusEl(cardId);
     if (!el) return;
@@ -161,6 +168,10 @@
     setInlineRetryButton(cardId, state === "error");
   }
 
+  /** Deriva o badge do card a partir da idade e do TTL da entrada de cache.
+   * @param {string} cardId Identificador do card.
+   * @param {string} cacheKey Chave lógica de cache.
+   */
   function refreshCardStatusFromCache(cardId, cacheKey) {
     const current = ensureCardStatusEl(cardId);
     if (current?.dataset?.state === "error") return;
@@ -187,6 +198,15 @@
     return `aq_v3_${id}`;
   }
 
+  /**
+   * Executa a atualização manual de um card e sincroniza botão, erros e badge de estado.
+   * @param {string} cardId Identificador do card.
+   * @param {string|(() => string)} cacheKeyOrFn Chave de cache ou função que a resolve antes/depois da atualização.
+   * @param {HTMLElement|null} btn Botão cuja apresentação de loading será controlada.
+   * @param {(...args: *) => (void|Promise<void>)} fn Função de atualização do card.
+   * @param {...*} args Argumentos entregues à função de atualização.
+   * @returns {Promise<void>}
+   */
   async function refreshCard(cardId, cacheKeyOrFn, btn, fn, ...args) {
     const getKey = () => (typeof cacheKeyOrFn === "function" ? cacheKeyOrFn() : cacheKeyOrFn);
     const keyBefore = getKey();

@@ -5,6 +5,11 @@
     location.hostname === "localhost" ||
     location.hostname === "127.0.0.1";
 
+  /**
+   * Constrói a URL do proxy local, incluindo o porto configurado em modo file://.
+   * @param {string} url URL de destino.
+   * @returns {string} URL local que encaminha o pedido.
+   */
   function localProxyUrl(url) {
     const enc = encodeURIComponent(url);
     if (location.protocol === "file:") {
@@ -14,6 +19,11 @@
     return `/proxy?url=${enc}`;
   }
 
+  /** Envia um pedido diretamente ao proxy de desenvolvimento, com timeout de 12 segundos.
+   * @param {string} url URL de destino.
+   * @param {RequestInit} [options] Opções Fetch adicionais.
+   * @returns {Promise<Response>} Resposta do proxy.
+   */
   async function fetchViaLocalProxy(url, options = {}) {
     return fetch(localProxyUrl(url), { ...options, signal: AbortSignal.timeout(12000) });
   }
@@ -39,6 +49,12 @@
     return !!on;
   };
 
+  /**
+   * Cria a lista ordenada de tentativas diretas e proxies para um URL.
+   * @param {string} url URL original.
+   * @param {string[]} [sources] Fontes permitidas; por omissão usa a cadeia padrão.
+   * @returns {{source: string, url: string}[]} Tentativas sem URLs duplicados.
+   */
   function buildFetchPlan(url, sources) {
     const isCorsHost = (u) => {
       const h = new URL(u).hostname.toLowerCase();
@@ -93,6 +109,11 @@
     return status === 400 || status === 404;
   }
 
+  /** Acrescenta um AbortSignal com timeout, mantendo o signal fornecido pelo chamador.
+   * @param {RequestInit} [options] Opções Fetch originais.
+   * @param {number} [timeoutMs=12000] Limite em milissegundos.
+   * @returns {RequestInit} Opções com signal.
+   */
   function withTimeoutOpts(options = {}, timeoutMs = 12000) {
     const hasSignal = !!options.signal;
     return { ...options, signal: hasSignal ? options.signal : AbortSignal.timeout(timeoutMs) };
@@ -101,6 +122,16 @@
   /* Cache de proxies em "cool down" por 1 minuto se derem 429 */
   const proxyCoolDown = new Map();
 
+  /**
+   * Tenta cada fonte até obter resposta HTTP válida e aprovada pelo validador opcional.
+   * @param {string} url URL original.
+   * @param {RequestInit} [options] Opções Fetch.
+   * @param {number} [timeoutMs=12000] Timeout por tentativa, em milissegundos.
+   * @param {string[]} [sources] Fontes usadas para construir o plano.
+   * @param {(response: Response) => boolean|Promise<boolean>} [validate] Validador da resposta.
+   * @returns {Promise<{r: Response, usedUrl: string}>} Resposta e URL que funcionou.
+   * @throws {Error} O último erro encontrado se todas as tentativas falharem.
+   */
   async function fetchFirstOk(url, options = {}, timeoutMs = 12000, sources, validate) {
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
@@ -145,11 +176,22 @@
     throw lastErr || new Error("Fetch indisponível (todos os proxies falharam)");
   }
 
+  /** Devolve a primeira resposta válida usando a cadeia padrão de fontes CORS.
+   * @param {string} url URL original.
+   * @param {RequestInit} [options] Opções Fetch.
+   * @param {number} [timeoutMs=12000] Timeout por tentativa, em milissegundos.
+   * @returns {Promise<Response>} Resposta válida.
+   */
   async function fetchWithCORS(url, options = {}, timeoutMs = 12000) {
     const { r } = await fetchFirstOk(url, options, timeoutMs);
     return r;
   }
 
+  /**
+   * Obtém cotações CSV da Stooq num único pedido para vários símbolos.
+   * @param {string[]} symbols Símbolos reconhecidos pela Stooq.
+   * @returns {Promise<Record<string, {price: number, prev: number, hi: number, lo: number, vol: number, chg: number, live: boolean, src: string}>>} Cotações indexadas por símbolo minúsculo; objeto vazio em caso de falha.
+   */
   async function fetchStooqMulti(symbols) {
     if (!Array.isArray(symbols) || !symbols.length) return {};
     const symStr = symbols.map(s => encodeURIComponent(s)).join("+");
@@ -204,6 +246,16 @@
     }
   }
 
+  /**
+   * Percorre as fontes configuradas e devolve o primeiro corpo JSON válido.
+   * @param {string} url URL original.
+   * @param {RequestInit} [options] Opções Fetch.
+   * @param {number} [timeoutMs=12000] Timeout por tentativa, em milissegundos.
+   * @param {string[]} [sources] Fontes usadas para construir o plano.
+   * @param {(value: *) => boolean} [validateJson] Validador do objeto descodificado.
+   * @returns {Promise<*>} Primeiro JSON aceite.
+   * @throws {Error} O último erro encontrado se todas as tentativas falharem.
+   */
   async function fetchJsonFirstOk(url, options = {}, timeoutMs = 12000, sources, validateJson) {
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
@@ -233,6 +285,16 @@
     throw lastErr || new Error("JSON indisponível");
   }
 
+  /**
+   * Percorre as fontes configuradas e devolve o primeiro corpo textual válido.
+   * @param {string} url URL original.
+   * @param {RequestInit} [options] Opções Fetch.
+   * @param {number} [timeoutMs=12000] Timeout por tentativa, em milissegundos.
+   * @param {string[]} [sources] Fontes usadas para construir o plano.
+   * @param {(value: string) => boolean} [validateText] Validador do texto recebido.
+   * @returns {Promise<string>} Primeiro texto aceite.
+   * @throws {Error} O último erro encontrado se todas as tentativas falharem.
+   */
   async function fetchTextFirstOk(url, options = {}, timeoutMs = 12000, sources, validateText) {
     const plan = buildFetchPlan(url, sources);
     let lastErr = null;
