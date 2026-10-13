@@ -361,3 +361,21 @@ test("Ormuz card expires stale AIS, validates positions and escapes vessel toolt
   assert.match(body.innerHTML, /Simulated/);
   assert.doesNotMatch(body.innerHTML, /● Live/);
 });
+
+test("CO2 card renders its reference mix without an unused network fetch", async () => {
+  const context = createBrowserContext();
+  vm.runInContext('const CO2_F = ["cached app"];', context);
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => id === "co2-body" ? body : null };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+
+  const source = await readFile("src/cards/co2.js", "utf8");
+  vm.runInContext(source, context);
+  assert.equal(typeof context.loadCO2, "function");
+  await context.loadCO2();
+  assert.match(body.innerHTML, /Mix energético 2024/);
+  assert.match(body.innerHTML, /comparação EU \(2023\)/);
+  assert.match(body.innerHTML, /gCO₂\/kWh/);
+  assert.doesNotThrow(() => vm.runInContext("const APP_CO2_F = CO2_F;", context));
+});

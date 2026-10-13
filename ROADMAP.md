@@ -212,6 +212,7 @@
 - [x] **Extrair o indicador de recessão** para `src/cards/recession.js`, validar o cache e clarificar as unidades e a mensagem do indicador ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **Extrair o tráfego marítimo de Ormuz** para `src/cards/ormuz.js`, expirar AIS após 15 minutos, validar coordenadas e escapar tooltips ✅ (13/10/2026)
+- [x] **Extrair o card de emissões CO₂** para `src/cards/co2.js`, remover a consulta REN sem efeito e identificar o ano da comparação europeia ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)
 
 ---
@@ -317,6 +318,7 @@
 - ✅ **Indicador de recessão modularizado** — preferências, leitura FRED e gráfico movidos para `src/cards/recession.js`; cache inválido recupera para fallback e as mensagens referem-se apenas ao spread 10Y–2Y (13/10/2026)
 - ✅ **Tráfego aéreo modularizado** — painel OpenSky e mapa movidos para `src/cards/air-traffic.js`; conteúdo externo escapado, aeroportos fora da área removidos da legenda e Coimbra alinhada com o AIP NAV Portugal (13/10/2026)
 - ✅ **Tráfego marítimo modularizado** — card de Ormuz movido para `src/cards/ormuz.js`; cache AIS expira após 15 minutos, tooltips escapam dados externos e percentagens estimadas são identificadas como referência (13/10/2026)
+- ✅ **Emissões CO₂ modularizadas** — mix anual de referência movido para `src/cards/co2.js`; removida a consulta REN cujo resultado não era apresentado e indicada a base 2023 na comparação europeia (13/10/2026)
 
 ### Próximas melhorias
 
