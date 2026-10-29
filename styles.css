@@ -128,6 +128,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.dashboard-views button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 	#main-grid [data-card-id].profile-hidden{display:none!important}
 	.data-overview-items{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;color:var(--t3);font-size:.58rem}
+	.data-source-health{margin-top:7px;color:var(--t3);font-size:.56rem}
 	.data-overview-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;padding:5px 8px;border:1px solid var(--b);border-radius:8px;background:var(--b2);color:var(--t2);font:inherit;text-align:left;cursor:pointer}
 	.data-overview-item small{color:var(--t3);font-size:.52rem;white-space:normal}
 	.data-overview-item:hover,.data-overview-item:focus-visible{border-color:var(--accent);outline:2px solid transparent;color:var(--text)}
@@ -142,6 +143,8 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-preference-options label{display:flex;align-items:center;gap:4px}
 	.briefing-preference-options input{accent-color:var(--accent)}
 	.briefing-updated{color:var(--t3);font: .52rem var(--mono)}
+	.briefing-changes{margin-top:9px;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t2);font-size:.62rem}
+	.briefing-changes ul{margin:5px 0 0;padding-left:18px}.briefing-changes li+li{margin-top:3px}.briefing-changes a{color:var(--blue)}
 	.briefing-impact{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 9px;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface)}
 	.briefing-impact label{display:flex;flex-direction:column;gap:2px;color:var(--t2);font-size:.62rem}
 	.briefing-impact label span{color:var(--t3);font-size:.52rem}

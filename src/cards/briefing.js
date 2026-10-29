@@ -5,10 +5,28 @@
   const MAX_FUEL_AGE_HOURS = 72;
   const FUEL_ALERT_KEY = (window.PFX || "dash_v15_") + "fuel_alert_v1";
   const BRIEFING_PREF_KEY = (window.PFX || "dash_v15_") + "briefing_preferences_v1";
+  const LAST_VISIT_KEY = (window.PFX || "dash_v15_") + "briefing_last_visit_v1";
   const BRIEFING_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
   let briefingPreferencesMemory = null;
   let currentFuelPrice = null;
   let currentFuelObserved = null;
+  let lastVisitSnapshot = readVisitSnapshot();
+  let currentVisitSnapshot = {};
+
+  function readVisitSnapshot() {
+    try {
+      const value = JSON.parse(window.localStorage?.getItem(LAST_VISIT_KEY) || "null");
+      return value && typeof value === "object" && value.observations && typeof value.observations === "object"
+        ? value.observations : null;
+    } catch { return null; }
+  }
+
+  function saveVisitSnapshot() {
+    if (!Object.keys(currentVisitSnapshot).length) return;
+    try { window.localStorage?.setItem(LAST_VISIT_KEY, JSON.stringify({ savedAt: Date.now(), observations: currentVisitSnapshot })); } catch {}
+  }
+
+  window.addEventListener?.("pagehide", saveVisitSnapshot);
 
   function renderPortugalBriefing(now = Date.now()) {
     const root = document.getElementById("briefingBody");
@@ -31,6 +49,7 @@
         value: `${Math.round(tempMax)}°C de máxima${Number.isFinite(rain) ? ` · ${Math.round(rain)}% de precipitação` : ""}`,
         detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · previsão ${formatDate(forecastDate)} · IPMA atualizada ${formatDateTime(weatherObserved)}`,
         href: "#card-weather",
+        snapshot: [Math.round(tempMax), Number.isFinite(rain) ? Math.round(rain) : null],
       });
     } else if (weatherCache?.age > MAX_WEATHER_AGE_HOURS * 3600000) {
       observations.push({ group: "weather", title: "Meteorologia", value: "Previsão desatualizada", detail: `Cache local há ${window.fmtAgeShort?.(weatherCache.age) || "mais de 36h"}`, href: "#card-weather", stale: true });
@@ -60,6 +79,7 @@
         value: `Gasolina 95 · ${fuelPrice.toFixed(3).replace(".", ",")} €/L${comparison}`,
         detail: `${Number(gas95.station_count) || 0} postos${esIsFresh ? ` · média espanhola ${esPrice.toFixed(3).replace(".", ",")} €/L (${formatDate(esObserved)})` : ""} · API Aberta · observada ${formatDateTime(fuelObserved)}`,
         href: "#card-fuel",
+        snapshot: Math.round(fuelPrice * 1000),
       });
     } else if (fuelCache?.age > MAX_FUEL_AGE_HOURS * 3600000) {
       observations.push({ group: "fuel", title: "Combustível", value: "Preço desatualizado", detail: `Cache local há ${window.fmtAgeShort?.(fuelCache.age) || "mais de 72h"}`, href: "#card-fuel", stale: true });
@@ -88,6 +108,7 @@
         value: `Portugal ${latestInflation.pt.toFixed(1).replace(".", ",")}% · zona euro ${latestInflation.eu.toFixed(1).replace(".", ",")}%`,
         detail: `${formatDate(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
         href: "#card-inf",
+        snapshot: [latestInflation.pt, latestInflation.eu],
       });
     }
 
@@ -103,6 +124,7 @@
         value: `3M ${threeMonth.toFixed(3).replace(".", ",")}% · 12M ${twelveMonth.toFixed(3).replace(".", ",")}%`,
         detail: `BCE · observação ${formatDate(euriborDate)}`,
         href: "#card-euribor",
+        snapshot: [threeMonth, twelveMonth],
       });
     }
 
@@ -122,6 +144,7 @@
           value: `€${currentValue.toFixed(2).replace(".", ",")} · ${change} face ao registo anterior`,
           detail: `Observação ${formatDate(latest[0])} · registo do histórico do painel`,
           href: "#card-cabaz",
+          snapshot: Math.round(currentValue * 100),
         });
       }
     }
@@ -129,6 +152,11 @@
     bindBriefingPreferences(now);
     const selected = readBriefingPreferences();
     const visibleObservations = observations.filter(item => selected.includes(item.group));
+    observations.forEach(item => {
+      if (item.snapshot !== undefined) currentVisitSnapshot[item.group] = { snapshot: item.snapshot, value: item.value };
+    });
+    renderVisitChanges(visibleObservations);
+    bindBriefingNavigation();
     root.innerHTML = visibleObservations.length
       ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("")
       : observations.length
@@ -138,6 +166,40 @@
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
     updateFuelImpact();
     bindFuelAlert();
+  }
+
+  function bindBriefingNavigation() {
+    ["briefingBody", "briefingChanges"].forEach(id => {
+      const root = document.getElementById(id);
+      if (!root || root.dataset.navigationBound) return;
+      root.addEventListener("click", event => {
+        const link = event.target.closest('a[href^="#card-"]');
+        if (!link) return;
+        const card = document.getElementById(link.getAttribute("href").slice(1));
+        if (!card?.classList.contains("profile-hidden")) return;
+        event.preventDefault();
+        window.setDashboardProfile?.("all");
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      root.dataset.navigationBound = "true";
+    });
+  }
+
+  function renderVisitChanges(observations) {
+    const root = document.getElementById("briefingChanges");
+    if (!root) return;
+    const changes = lastVisitSnapshot ? observations.filter(item => {
+      const previous = lastVisitSnapshot[item.group];
+      return previous && JSON.stringify(previous.snapshot) !== JSON.stringify(item.snapshot);
+    }) : [];
+    root.innerHTML = changes.length
+      ? `<strong>Alterações desde a visita anterior</strong><ul>${changes.map(item => {
+        const previous = lastVisitSnapshot[item.group];
+        return `<li><a href="${item.href}">${escapeHTML(item.title)}</a>: ${escapeHTML(previous.value)} → ${escapeHTML(item.value)}</li>`;
+      }).join("")}</ul>`
+      : lastVisitSnapshot
+        ? "Sem alterações nos indicadores recentes desde a visita anterior."
+        : "As alterações entre visitas aparecem aqui após a próxima visita.";
   }
 
   function readBriefingPreferences() {

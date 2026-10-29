@@ -214,6 +214,16 @@
     setCount("dataCountAvailable", available);
     setCount("dataCountAttention", attention);
     setCount("dataCountLoading", counts.loading + counts.idle);
+    const affectedSources = new Set();
+    statuses.filter(el => ["error", "stale"].includes(el.dataset.state)).forEach(el => {
+      const source = /Fonte: (.+?)(?= · Observado:| · Idade baseada|$)/.exec(el.title || "")?.[1];
+      if (source) affectedSources.add(source.trim());
+    });
+    setCount("dataCountSourceIssues", affectedSources.size);
+    const sourceSummary = document.getElementById("dataSourceHealth");
+    if (sourceSummary) sourceSummary.textContent = affectedSources.size
+      ? `Fontes associadas a erro ou dados antigos: ${[...affectedSources].join(", ")}.`
+      : "Nenhuma fonte foi identificada nos estados atuais de erro ou dados antigos.";
     const items = document.getElementById("dataOverviewItems");
     if (!items) return;
     const visibleIssues = issues.slice(0, 5);
@@ -482,6 +492,7 @@
   window.getCardElById = getCardElById;
   window.ensureCardStatusEl = ensureCardStatusEl;
   window.setCardStatus = setCardStatus;
+  window.updateDataOverview = updateDataOverview;
   window.refreshCardStatusFromCache = refreshCardStatusFromCache;
   window.getWeatherCacheKey = getWeatherCacheKey;
   window.getAirQualityCacheKey = getAirQualityCacheKey;

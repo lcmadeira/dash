@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi }) {
-  const root = { innerHTML: "" };
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit }) {
+  const root = { innerHTML: "", dataset: {}, addEventListener() {} };
+  const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
   const updated = { textContent: "" };
   const impact = { textContent: "" };
   const input = { value: fuelLitres, dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
@@ -15,8 +16,10 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const preferences = Object.fromEntries(["Weather", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
     "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
   ]));
-  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, ...preferences };
+  const elements = { briefingBody: root, briefingChanges: changes, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, ...preferences };
   const store = new Map();
+  if (previousVisit) store.set("dash_v15_briefing_last_visit_v1", JSON.stringify(previousVisit));
+  let pagehideHandler = null;
   const notices = [];
   const context = vm.createContext({
     Date, Intl, Number, String, Math, Array, Notification: notificationApi,
@@ -31,11 +34,12 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
     localStorage: { getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value) },
     addNotification: (...args) => notices.push(args),
     window: {},
+    addEventListener: (event, handler) => { if (event === "pagehide") pagehideHandler = handler; },
   });
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, root, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, desktopToggle, preferences, status, store, notices };
+  return { html: root.innerHTML, root, changes: changes.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -150,4 +154,21 @@ test("Portugal briefing rejects provider timestamps and manual basket dates in t
   });
   assert.match(result.html, /Ainda não há observações recentes suficientes/);
   assert.ok(!["28°C", "1,800 €/L", "€254,00"].some(value => result.html.includes(value)));
+});
+
+test("Portugal briefing compares fresh observations with the previous visit and saves on page hide", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    previousVisit: { savedAt: now - 86400000, observations: {
+      fuel: { snapshot: 1750, value: "Gasolina 95 · 1,750 €/L" },
+    } },
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
+  });
+  assert.match(result.changes, /Alterações desde a visita anterior/);
+  assert.ok(result.changes.includes("1,750 €/L → Gasolina 95 · 1,720 €/L"));
+  result.pagehideHandler();
+  const saved = JSON.parse(result.store.get("dash_v15_briefing_last_visit_v1"));
+  assert.equal(saved.observations.fuel.snapshot, 1720);
+  assert.ok(Number.isFinite(saved.savedAt) && saved.savedAt > 0);
 });

@@ -146,6 +146,32 @@ test("dashboard profile filters cards without changing preferences and can resto
   assert.equal(cards.some(card => card.classList.contains("profile-hidden")), false);
 });
 
+test("data overview groups failing and stale cards by distinct provider", async () => {
+  const values = new Map();
+  const items = { innerHTML: "", dataset: {}, addEventListener() {} };
+  const panel = {};
+  const statuses = [
+    { dataset: { state: "error", statusFor: "crypto" }, title: "Fonte: Proxy A · Observado: —", childNodes: [] },
+    { dataset: { state: "stale", statusFor: "news-pt" }, title: "Fonte: Proxy A · Observado: ontem", childNodes: [] },
+    { dataset: { state: "error", statusFor: "geo" }, title: "Fonte: Proxy B · Observado: —", childNodes: [] },
+  ];
+  const context = vm.createContext({
+    document: {
+      getElementById(id) { return id === "dataOverview" ? panel : id === "dataOverviewItems" ? items : values.get(id) || null; },
+      querySelectorAll() { return statuses; },
+    },
+    window: {},
+  });
+  context.window = context;
+  ["dataCountProvenance", "dataCountAvailable", "dataCountAttention", "dataCountLoading", "dataCountSourceIssues", "dataSourceHealth"]
+    .forEach(id => values.set(id, { textContent: "" }));
+  vm.runInContext(await readFile("src/ui.js", "utf8"), context);
+  context.updateDataOverview();
+  assert.equal(values.get("dataCountSourceIssues").textContent, "2");
+  assert.match(values.get("dataSourceHealth").textContent, /Proxy A, Proxy B/);
+  assert.equal(values.get("dataCountAttention").textContent, "3");
+});
+
 test("food basket includes the latest verified weekly DECO values", async () => {
   const source = await readFile("src/app.js", "utf8");
   assert.match(source, /\["2026-10-21", 253\.99,/);

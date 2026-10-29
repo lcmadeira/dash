@@ -138,6 +138,9 @@
 - [ ] Selecionar e licenciar uma fonte de cotações PSI para apresentação pública; não usar proxies como substituto de licença de redistribuição.
 - [ ] Implementar push com o dashboard fechado: requer endpoint agendado, chaves VAPID e armazenamento seguro das subscrições; notificações atuais continuam dependentes da página aberta.
 - [x] Criar vistas contextuais Tudo/Portugal/Mercados/Mundo e indicador de cobertura de proveniência. ✅ (29/10/2026)
+- [x] Comparar o briefing recente com o snapshot da visita anterior e agregar fontes identificáveis associadas a erros/dados antigos. ✅ (29/10/2026)
+- [ ] Ativar o Worker publicado e configurar `CFG.DATA_API_BASE`; secrets Cloudflare não estão disponíveis no ambiente local atual.
+- [ ] Push persistente continua condicionado a execução agendada, armazenamento de subscrições e segredos VAPID de produção.
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos
