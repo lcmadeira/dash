@@ -127,13 +127,31 @@
     throw error;
   }
 
-  /* Cache de proxies em "cool down" por 1 minuto se derem 429 */
+  /* Backoff partilhado por proxy e persistido durante a sessão da tab. */
   const proxyCoolDown = new Map();
   function isProxyCoolingDown(source) {
-    return Date.now() < (proxyCoolDown.get(source) || 0);
+    let until = proxyCoolDown.get(source) || 0;
+    try {
+      const saved = Number(sessionStorage.getItem(`dash_proxy_cooldown_${source}`));
+      if (Number.isFinite(saved)) until = Math.max(until, saved);
+    } catch {}
+    return Date.now() < until;
   }
-  function coolDownProxy(source) {
-    proxyCoolDown.set(source, Date.now() + 60000);
+  function coolDownProxy(source, status = 0) {
+    if (source === "direct" || source === "localproxy") return;
+    const duration = status === 401 || status === 403 ? 30 * 60 * 1000
+      : status === 429 ? 5 * 60 * 1000
+      : status === 408 || status >= 500 ? 60 * 1000
+      : 60 * 1000;
+    const until = Date.now() + duration;
+    proxyCoolDown.set(source, until);
+    try { sessionStorage.setItem(`dash_proxy_cooldown_${source}`, String(until)); } catch {}
+  }
+  function recordProxyHttpFailure(source, status) {
+    if ([401, 403, 408, 429].includes(status) || status >= 500) coolDownProxy(source, status);
+  }
+  function recordProxyNetworkFailure(source) {
+    if (source !== "direct" && source !== "localproxy") coolDownProxy(source);
   }
 
   /**
@@ -164,12 +182,13 @@
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
         
         if (r.status === 429) {
-          coolDownProxy(step.source); // 1 minuto de pausa
+          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
 
         if (!r.ok) {
+          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
           continue;
@@ -184,6 +203,7 @@
         return { r, usedUrl: step.url };
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
+        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch] err ${step.source}`, url, e?.message || e);
       }
@@ -286,11 +306,12 @@
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] try #${i + 1}/${plan.length} ${step.source}`, url);
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
         if (r.status === 429) {
-          coolDownProxy(step.source);
+          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch-json] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
         if (!r.ok) {
+          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-json] fail ${step.source} HTTP ${r.status}`, url);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
@@ -305,6 +326,7 @@
         return j;
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
+        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] err ${step.source}`, url, e?.message || e);
       }
@@ -336,11 +358,12 @@
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] try #${i + 1}/${plan.length} ${step.source}`, url);
         const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
         if (r.status === 429) {
-          coolDownProxy(step.source);
+          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch-text] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
         if (!r.ok) {
+          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-text] fail ${step.source} HTTP ${r.status}`, url);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
@@ -355,6 +378,7 @@
         return t;
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
+        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] err ${step.source}`, url, e?.message || e);
       }

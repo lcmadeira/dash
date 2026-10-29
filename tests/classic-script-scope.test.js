@@ -962,6 +962,45 @@ test("JSON and text fetch helpers share proxy cooldowns after HTTP 429", async (
   assert.ok(requests[4].startsWith("https://api.codetabs.com/"));
 });
 
+test("proxy authorization failures are cooled down across fetches and page reloads", async () => {
+  const requests = [];
+  const sessionValues = new Map();
+  const sessionStorage = {
+    getItem: key => sessionValues.get(key) ?? null,
+    setItem: (key, value) => sessionValues.set(key, value),
+  };
+  const makeContext = () => {
+    const context = vm.createContext({
+      AbortSignal, URL, URLSearchParams, Date, Map, Set,
+      console: { log() {}, warn() {}, debug() {}, info() {} },
+      location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+      localStorage: { getItem: () => null, setItem() {} },
+      sessionStorage,
+      fetch: async url => {
+        requests.push(url);
+        if (url.startsWith("https://corsproxy.io/")) return { status: 401, ok: false };
+        return { status: 200, ok: true, async json() { return { ok: true }; } };
+      },
+    });
+    context.window = context;
+    vm.runInContext(source, context);
+    return context;
+  };
+  const source = await readFile("src/fetch.js", "utf8");
+  const firstTab = makeContext();
+  const sources = ["corsproxy", "codetabs"];
+
+  assert.deepEqual(await firstTab.fetchJsonFirstOk("https://example.com/data", {}, 100, sources), { ok: true });
+  assert.equal(requests.length, 2);
+  assert.ok(requests[0].startsWith("https://corsproxy.io/"));
+  assert.ok(requests[1].startsWith("https://api.codetabs.com/"));
+
+  const reloadedTab = makeContext();
+  assert.deepEqual(await reloadedTab.fetchJsonFirstOk("https://example.com/other", {}, 100, sources), { ok: true });
+  assert.equal(requests.length, 3);
+  assert.ok(requests[2].startsWith("https://api.codetabs.com/"));
+});
+
 test("heatmap tabs reuse previously mounted TradingView widgets", async () => {
   const source = await readFile("src/app.js", "utf8");
   const start = source.indexOf("const HMAP_CONFIGS={");
