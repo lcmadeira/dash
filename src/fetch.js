@@ -1,5 +1,19 @@
 /* dash fetch/proxy helpers (loaded before index.html inline script) */
 (function () {
+  const inFlightTasks = new Map();
+
+  /** Reutiliza a promise de um carregamento já em curso para a mesma chave. */
+  function runSingleFlight(key, task) {
+    const id = String(key || "");
+    if (!id || typeof task !== "function") return Promise.reject(new TypeError("Chave e tarefa são obrigatórias"));
+    if (inFlightTasks.has(id)) return inFlightTasks.get(id);
+    const promise = Promise.resolve().then(task);
+    inFlightTasks.set(id, promise);
+    promise.finally(() => {
+      if (inFlightTasks.get(id) === promise) inFlightTasks.delete(id);
+    }).catch(() => {});
+    return promise;
+  }
   const IS_LOCAL_DEV =
     location.protocol === "file:" ||
     location.hostname === "localhost" ||
@@ -433,6 +447,7 @@
   window.localProxyUrl = localProxyUrl;
   window.fetchViaLocalProxy = fetchViaLocalProxy;
   window.dataApiUrl = dataApiUrl;
+  window.runSingleFlight = runSingleFlight;
   window.withTimeoutOpts = withTimeoutOpts;
   window.buildFetchPlan = buildFetchPlan;
   window.fetchFirstOk = fetchFirstOk;

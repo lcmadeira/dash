@@ -10,6 +10,8 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers, **preferências de conforto visual e pesquisa em tempo-real**) aplicado em tempo-real **sem recarregar a página**.
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
+- **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro.
+- **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: novas gravações podem guardar fonte, estado (`live`, `partial`, `static`, `fallback`) e hora observada. O tooltip distingue cache recente de observação recente; envelopes antigos continuam compatíveis.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.

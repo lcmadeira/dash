@@ -369,7 +369,16 @@
 
 ### Próximas melhorias
 
+- [ ] Gateway Cloudflare opcional: publicar e configurar `CFG.DATA_API_BASE` para cripto e geopolítica; ainda não ativado em produção.
+- [ ] PSI 20: selecionar uma fonte de cotações de Lisboa autorizada e estável; Stooq/Yahoo/proxies atuais não garantem disponibilidade nem atualização em tempo real.
+- [ ] Resumo diário editorial: gerar destaques apenas quando existirem observações comparáveis, atuais e com fonte identificada.
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
+
+### 29/10/2026 — Síntese de saúde e pedidos concorrentes
+
+- ✅ Novo resumo acessível no topo agrega estados dos cards e permite saltar para dados desatualizados, parciais, de referência ou com erro.
+- ✅ PSI 20, cripto e geopolítica reutilizam a operação em curso quando atualizações coincidem, reduzindo chamadas redundantes.
+- ✅ Documentação esclarece o alcance do resumo: estado de disponibilidade/frescura, sem inferir acontecimentos a partir de dados incompletos.
 
 ### v2.0.0 — Futuro
 

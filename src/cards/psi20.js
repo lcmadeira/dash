@@ -67,7 +67,12 @@ async function loadPSI20Trend(force = false) {
   }
 }
 
-	async function loadPSI20(force=false){
+	function loadPSI20(force=false){
+	  const run = window.runSingleFlight || ((_key, task) => Promise.resolve().then(task));
+	  return run("card:psi20", () => loadPSI20Once(force));
+	}
+
+	async function loadPSI20Once(force=false){
 	  const el=document.getElementById("psi20-body");
 	  if(!el) return;
 	  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;

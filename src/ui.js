@@ -183,7 +183,48 @@
     el.setAttribute("aria-label", getStatusAssistiveText(cardId, state || "idle", visibleText));
     if (meta?.title) el.title = meta.title;
     setInlineRetryButton(cardId, state === "error");
+    updateDataOverview();
   }
+
+  function updateDataOverview() {
+    const panel = document.getElementById("dataOverview");
+    if (!panel) return;
+    const counts = { live: 0, cache: 0, stale: 0, static: 0, error: 0, loading: 0, idle: 0 };
+    const issues = [];
+    document.querySelectorAll(".card-status[data-status-for]").forEach((el) => {
+      const state = Object.prototype.hasOwnProperty.call(counts, el.dataset.state) ? el.dataset.state : "idle";
+      counts[state]++;
+      if (["error", "stale", "static"].includes(state)) {
+        issues.push({ id: el.dataset.statusFor, label: CARD_LABELS[el.dataset.statusFor] || el.dataset.statusFor, state, text: el.childNodes[0]?.textContent?.trim() || state });
+      }
+    });
+    const available = counts.live + counts.cache;
+    const attention = counts.error + counts.stale + counts.static;
+    const setCount = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value); };
+    setCount("dataCountAvailable", available);
+    setCount("dataCountAttention", attention);
+    setCount("dataCountLoading", counts.loading + counts.idle);
+    const items = document.getElementById("dataOverviewItems");
+    if (!items) return;
+    const visibleIssues = issues.slice(0, 5);
+    items.innerHTML = visibleIssues.length
+      ? visibleIssues.map((item) => `<button type="button" class="data-overview-item" data-summary-target="${escapeAttribute(item.id)}" data-state="${item.state}" title="${escapeAttribute(item.text)}">${escapeHTML(item.label)} · ${item.state === "error" ? "erro" : item.state === "stale" ? "desatualizado/parcial" : "referência"}</button>`).join("") + (issues.length > visibleIssues.length ? `<span>+${issues.length - visibleIssues.length} outros</span>` : "")
+      : (available ? "Sem alertas de atualidade nos cards monitorizados." : "A recolher estado dos cards…");
+    if (!items.dataset.bound) {
+      items.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-summary-target]");
+        if (!button) return;
+        const card = getCardElById(button.dataset.summaryTarget);
+        card?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      items.dataset.bound = "true";
+    }
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+  }
+  function escapeAttribute(value) { return escapeHTML(value).replace(/`/g, "&#96;"); }
 
   /** Deriva o badge do card a partir da idade e do TTL da entrada de cache.
    * @param {string} cardId Identificador do card.

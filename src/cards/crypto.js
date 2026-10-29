@@ -113,7 +113,12 @@ async function loadCryptoTrend(force = false) {
   }
 }
 
-async function loadCrypto(force=false){
+function loadCrypto(force=false){
+  const run = window.runSingleFlight || ((_key, task) => Promise.resolve().then(task));
+  return run("card:crypto", () => loadCryptoOnce(force));
+}
+
+async function loadCryptoOnce(force=false){
   $("crypto-body").innerHTML=skeletonKPIs(6);
   try{
     let data=force?null:lsGet("cg");

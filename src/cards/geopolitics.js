@@ -9,7 +9,12 @@ const GEO_FEEDS = [
 let GEO_DATA = [];
 let GEO_FILTER = "all";
 
-async function loadGeo(force = false) {
+function loadGeo(force = false) {
+  const run = window.runSingleFlight || ((_key, task) => Promise.resolve().then(task));
+  return run("card:geopolitics", () => loadGeoOnce(force));
+}
+
+async function loadGeoOnce(force = false) {
   const body = $("geo-body");
   if (!body) return;
   body.innerHTML = skeletonGeneric(6);

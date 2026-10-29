@@ -95,6 +95,29 @@ test("food basket includes the latest verified weekly DECO values", async () => 
   assert.match(source, /Ver atualização de 28 Out \(Lusa\)/);
 });
 
+test("single-flight helper shares concurrent card loads and clears settled work", async () => {
+  const context = vm.createContext({
+    URL, URLSearchParams,
+    location: { protocol: "https:", hostname: "example.test", search: "" },
+    window: {},
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  let calls = 0;
+  let release;
+  const task = () => { calls++; return new Promise(resolve => { release = resolve; }); };
+  const first = context.runSingleFlight("card:test", task);
+  const second = context.runSingleFlight("card:test", task);
+  await Promise.resolve();
+  assert.equal(calls, 1);
+  assert.equal(first, second);
+  release("done");
+  assert.equal(await first, "done");
+  assert.equal(await context.runSingleFlight("card:test", async () => { calls++; return "next"; }), "next");
+  assert.equal(calls, 2);
+});
+
 test("fuel card loads alongside a cached classic script declaring FUEL_SLUGS", async () => {
   const context = createBrowserContext();
   vm.runInContext('const FUEL_SLUGS = ["cached app"];', context);
