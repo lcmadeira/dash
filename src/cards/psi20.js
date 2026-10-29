@@ -84,6 +84,11 @@ async function loadPSI20Trend(force = false) {
     if (!force && isWeekend && cache && (Date.now() - cache.ts < 48 * 3600000)) {
       console.log("📈 PSI20: Mercado fechado (fim-de-semana), a usar cache.");
     } else if (!cache) {
+	    const allSyms=[...EU_INDICES,...PSI20_CONST];
+	    /* Stooq devolve os símbolos num único pedido; tentar primeiro reduz a
+       carga nos proxies públicos, que limitam pedidos paralelos ao Yahoo. */
+	    const stooqResults = await fetchStooqMulti(allSyms.map(s => s.sym));
+	    const needsYahoo = allSyms.filter(s => !isValidPSI20Quote(stooqResults[s.sym.toLowerCase()]));
 	    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
 
 	    async function fetchYahoo(sym){
@@ -106,27 +111,21 @@ async function loadPSI20Trend(force = false) {
 	      }
 	    }
 
-	    /* Fetch paralelo de todos os símbolos */
-	    const allSyms=[...EU_INDICES,...PSI20_CONST];
-	    const yahooRes = await Promise.allSettled(allSyms.map(s => fetchYahoo(s.yf)));
-	    
-	    const needsStooq = allSyms.filter((s, i) => yahooRes[i].status !== 'fulfilled' || !yahooRes[i].value);
-	    let stooqResults = {};
-	    if (needsStooq.length > 0) {
-	      stooqResults = await fetchStooqMulti(needsStooq.map(s => s.sym));
-	    }
+	    /* Yahoo fica como fallback, apenas para símbolos ausentes na resposta Stooq. */
+	    const yahooRes = await Promise.allSettled(needsYahoo.map(s => fetchYahoo(s.yf)));
+	    const yahooBySymbol = new Map(needsYahoo.map((s, i) => [s.sym.toLowerCase(),
+	      yahooRes[i]?.status === 'fulfilled' ? yahooRes[i].value : null]));
 
-	    const results = allSyms.map((s, i) => {
-	      if (yahooRes[i].status === 'fulfilled' && yahooRes[i].value) return yahooRes[i].value;
-      const quote = stooqResults[s.sym.toLowerCase()] || null;
+	    const results = allSyms.map(s => {
+	      const quote = stooqResults[s.sym.toLowerCase()] || null;
       return isValidPSI20Quote(quote) ? quote : null;
-	    });
+	    }).map((quote, i) => quote || yahooBySymbol.get(allSyms[i].sym.toLowerCase()) || null);
 
       const mkFallback=(s)=>({
         price:s.fallback,
         prev:s.fallback/(1+(s.fChg||0)/100),
         hi:s.fallback*1.005, lo:s.fallback*0.995,
-        chg:s.fChg||0, vol:0, live:false
+        chg:s.fChg||0, vol:0, live:false, fallback:true
       });
 
 	    const isLive=results.some(r=>r?.live);
@@ -161,7 +160,7 @@ async function loadPSI20Trend(force = false) {
     </svg>`;
   }
 
-  const liveTag=cache.live
+  const liveTag=psi.live
     ? `<span class="badge live">● ${(cache.src||"live").toUpperCase()}</span>`
     : `<span class="badge warn">⚠ FALLBACK ${REF_DATE.full.toUpperCase()}</span>`;
 
@@ -225,8 +224,9 @@ async function loadPSI20Trend(force = false) {
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
           <div>
             <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${s.col}">
-              ${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€</div>
+        ${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€</div>
             <div style="font-size:.6rem;font-weight:600;color:${c}">${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
+        ${q.fallback?'<div style="font-size:.45rem;color:var(--t3)">sem cotação atual</div>':''}
           </div>
           ${miniBar(q.chg)}
         </div>
@@ -235,7 +235,7 @@ async function loadPSI20Trend(force = false) {
   </div>
   <div style="font-size:.52rem;color:var(--t3);margin-top:6px;line-height:1.4">
     ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
-    ${cache.live?(cache.src==="yahoo"?"Dados em tempo-real (atraso 15m)":"Último fecho disponível"):"Dados estáticos (fallback "+REF_DATE.full+")"}
+    ${cache.live?(cache.src==="yahoo"?"Dados em tempo-real (atraso 15m)":"Último fecho disponível")+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · alguns valores em fallback":""):"Sem cotações atuais · valores estáticos de referência ("+REF_DATE.full+")"}
   </div>`;
 
   loadPSI20Trend(false).catch(()=>{});

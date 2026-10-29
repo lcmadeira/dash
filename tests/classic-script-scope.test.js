@@ -842,6 +842,48 @@ test("PSI 20 card refreshes an invalid quote cache and validates fetched records
   assert.doesNotThrow(() => vm.runInContext("const APP_PSI20_TREND_PREF_KEY = PSI20_TREND_PREF_KEY;", context));
 });
 
+test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote source", async () => {
+  const body = { innerHTML: "" };
+  let yahooCalls = 0;
+  let stooqSymbols = [];
+  let cacheWrite = null;
+  const context = vm.createContext({
+    Date,
+    Intl,
+    PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: id => id === "psi20-body" ? body : null },
+    localStorage: { getItem: () => null },
+    lsGet: () => null,
+    lsSet: (key, value) => { cacheWrite = { key, value }; },
+    fetchWithCORS: async () => { yahooCalls++; throw new Error("Yahoo should not be needed"); },
+    fetchStooqMulti: async symbols => {
+      stooqSymbols = symbols;
+      return Object.fromEntries(symbols.map(sym => [sym, {
+        price: 100, prev: 99, hi: 101, lo: 98, vol: 1000, chg: 1,
+        live: true, src: "stooq",
+      }]));
+    },
+    fetchStooqDailySeries: async () => [],
+    _lastN: rows => rows,
+    _setOnByDataAttr() {},
+    addToHistory() {},
+    renderTrendChart() {},
+    ld: () => "loading",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
+  await context.loadPSI20();
+
+  assert.equal(stooqSymbols.length, context.EU_INDICES.length + context.PSI20_CONST.length);
+  assert.equal(yahooCalls, 0);
+  assert.equal(cacheWrite.value.live, true);
+  assert.match(body.innerHTML, /STOOQ/);
+  assert.doesNotMatch(body.innerHTML, /FALLBACK/);
+});
+
 test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
   const body = { innerHTML: "" };
   let fetchCalls = 0;

@@ -270,7 +270,7 @@
         url,
         { cache: "no-store" },
         10000,
-        ["local", "allorigins"],
+        ["local", "allorigins", "corsproxy", "codetabs"],
         async (res) => {
           const text = await res.clone().text();
           return text.includes("Symbol,Date,Time") && !text.includes("<!DOCTYPE html>");
