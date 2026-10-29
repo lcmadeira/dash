@@ -448,6 +448,7 @@
 - ✅ Card de notícias usa gateway configurado e preserva o fallback RSS existente; títulos e fontes são escapados e links só abrem destinos HTTPS sem credenciais.
 - ✅ Resumo de saúde mostra fonte e data observada nas incidências quando a proveniência está disponível.
 - ✅ “Portugal hoje” permite selecionar indicadores e guarda a seleção apenas no browser.
+- ✅ Hierarquia visual do estado dos dados e do resumo “Portugal hoje” reforçada para melhorar leitura, contraste e separação dos indicadores em desktop e mobile, sem alterar a lógica dos dados.
 - ✅ Alerta de combustível pode pedir permissão explícita para mostrar uma notificação do sistema enquanto o dashboard está aberto.
 - ✅ Fixtures RSS exercitam parser/validação do Worker; testes do card cobrem conteúdo malicioso, destinos inseguros e preferências locais.
 - ⏳ Publicar/configurar Worker para ativar as novas rotas no dashboard alojado; notificações push com a página fechada ainda requerem VAPID, armazenamento de subscrições e execução agendada.

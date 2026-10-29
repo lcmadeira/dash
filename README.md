@@ -93,6 +93,8 @@ Quando um fornecedor falha, o Worker pode servir um snapshot de contingência gu
 
 ### Cache e consola do browser
 
+O estado dos dados e o resumo “Portugal hoje” usam uma hierarquia tipográfica mais legível, contagens agrupadas e cartões de observação com maior contraste, preservando os mesmos dados e controlos. Os estados continuam identificados por cor e texto, e os cartões mantêm foco visível e adaptação a ecrãs pequenos.
+
 Os botões de vista **Tudo**, **Portugal**, **Mercados** e **Mundo** filtram os cards sem alterar a personalização guardada de ordem/visibilidade; a escolha fica no armazenamento local deste browser. O resumo de dados também mostra quantos estados já incluem fonte ou data observada. Estes indicadores são uma medida de cobertura de proveniência, não uma garantia de que a fonte esteja atualizada.
 
 O GitHub Pages pode manter HTML, CSS e JavaScript em cache durante alguns minutos. Ao alterar `styles.css`, `src/widgets/market-clock.js` ou `src/app.js`, atualiza o parâmetro `v` nas respetivas tags `<link>`/`<script>` em `index.html`; isso força o browser a pedir os ficheiros novos. Para confirmar uma publicação, faz uma atualização forçada (`Ctrl+Shift+R`). O HTML atual não declara recursos `preload`; ao investigar avisos desse tipo, verifica o URL completo, pois widgets e folhas de estilo externas também podem criar as suas próprias sugestões de carregamento.
