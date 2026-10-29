@@ -10,6 +10,16 @@ const CFG = {
   DATA_API_BASE: ""
 };
 
+/* Períodos de referência dos fallbacks; rever quando os valores abaixo forem atualizados. */
+const STATIC_REFERENCE_POLICY = {
+  euribor: { source: "EMMI", observedAt: "2026-09-17", maxAgeDays: 75 },
+  inf: { source: "INE/Eurostat · estimativa IHPC", observedAt: "2026-09-01", maxAgeDays: 120 },
+  imob: { source: "INE · preços da habitação", observedAt: "2025-09-30", maxAgeDays: 540 },
+  agri: { source: "Referência agrícola", observedAt: "2026-03-01", maxAgeDays: 120 },
+  rec: { source: "FRED · spread 10Y–2Y", observedAt: "2026-03-10", maxAgeDays: 45 },
+  "gas-eu": { source: "Stooq · referência TTF", observedAt: "2026-09-01", maxAgeDays: 90 },
+};
+
 /* ── Datas de referência (automáticas) ── */
 const now = new Date();
 const mesAtual = now.getMonth();
@@ -158,6 +168,7 @@ const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 // Backward compatibility: o restante código e handlers inline ainda esperam
 // estes valores como globais clássicos acessíveis via `window`.
 window.CFG = CFG;
+window.STATIC_REFERENCE_POLICY = STATIC_REFERENCE_POLICY;
 window.REF_DATE = REF_DATE;
 window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
 window.MIBGAS_SPOT = MIBGAS_SPOT;

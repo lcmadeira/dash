@@ -3,12 +3,15 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa" }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "" }) {
   const root = { innerHTML: "" };
   const updated = { textContent: "" };
+  const impact = { textContent: "" };
+  const input = { value: fuelLitres, dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
+  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact };
   const context = vm.createContext({
     Date, Intl, Number, String, Math, Array,
-    document: { getElementById: id => id === "briefingBody" ? root : id === "briefingUpdated" ? updated : null },
+    document: { getElementById: id => elements[id] || null },
     CFG: { IPMA_CITY_ID: 1060300 },
     IPMA_CITIES: { 1060300: city },
     lsGet: key => key.startsWith("ipma_") ? weather : key === "fuel" ? fuel : key === "fuel_es" ? fuelEs :
@@ -21,7 +24,7 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, updated: updated.textContent };
+  return { html: root.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -34,6 +37,7 @@ test("Portugal briefing includes only dated recent observations and escapes prov
     inflation: { source: "eurostat_live", rows: [{ m: "Set 2026", pt: 3.6, eu: 3.8 }, { m: "Ago 2026", pt: 3.6, eu: 3.2 }] },
     euribor: { _source: "bce_live", updated: "out. de 2026", rates: [{ term: "3M", val: 2.682 }, { term: "12M", val: 3.326 }] },
     basket: [["2026-10-21", 253.99], ["2026-10-28", 253.55]],
+    fuelLitres: "100",
     city: '<img src=x onerror="alert(1)">',
   });
   assert.match(result.html, /Meteorologia/);
@@ -49,6 +53,13 @@ test("Portugal briefing includes only dated recent observations and escapes prov
   assert.ok(result.html.includes("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"));
   assert.ok(!result.html.includes("<img"));
   assert.match(result.updated, /Síntese gerada/);
+  assert.match(result.impact, /172,00/);
+  result.input.value = "120";
+  result.input.handler();
+  assert.match(result.impactEl.textContent, /206,40/);
+  result.input.value = "6000";
+  result.input.handler();
+  assert.match(result.impactEl.textContent, /Indique 1–5 000 litros/);
 });
 
 test("Portugal briefing omits expired observations instead of presenting stale values as current", async () => {
@@ -58,9 +69,11 @@ test("Portugal briefing omits expired observations instead of presenting stale v
     weather: { dataUpdate: "2026-10-20T10:00:00Z", data: [{ forecastDate: "2026-10-20", tMax: 24 }] },
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: "2026-10-20T10:00:00Z" }],
     basket: [["2026-10-01", 252], ["2026-10-07", 253]],
+    fuelLitres: "100",
   });
   assert.ok(!["26°C", "1,720 €/L", "€253,00"].some(value => result.html.includes(value)));
   assert.match(result.html, /Ainda não há observações recentes suficientes/);
+  assert.match(result.impact, /Preço atual indisponível/);
 });
 
 test("Portugal briefing rejects provider timestamps and manual basket dates in the future", async () => {

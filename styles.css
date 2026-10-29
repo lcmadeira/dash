@@ -130,6 +130,13 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.portugal-briefing h2{margin:0;color:var(--text);font-size:.9rem;font-weight:800}
 	.briefing-heading p{margin:3px 0 0;color:var(--t3);font-size:.58rem}
 	.briefing-updated{color:var(--t3);font: .52rem var(--mono)}
+	.briefing-impact{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 9px;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface)}
+	.briefing-impact label{display:flex;flex-direction:column;gap:2px;color:var(--t2);font-size:.62rem}
+	.briefing-impact label span{color:var(--t3);font-size:.52rem}
+	.briefing-impact-control{display:flex;align-items:center;gap:8px}
+	.briefing-impact input{width:135px;padding:6px 8px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font: .62rem var(--mono)}
+	.briefing-impact input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+	.briefing-impact output{min-width:125px;color:var(--green);font:700 .68rem var(--mono)}
 	.briefing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 	.briefing-item{display:flex;min-width:0;flex-direction:column;gap:5px;padding:10px 11px;border:1px solid var(--b);border-radius:var(--rs);background:var(--card);text-decoration:none;transition:border-color .2s,transform .2s}
 	.briefing-item:hover,.briefing-item:focus-visible{border-color:var(--accent);transform:translateY(-1px);outline:2px solid transparent}
@@ -159,6 +166,9 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   .hdr-center{order:2}
   .hdr-right{order:3;justify-content:center}
   .briefing-grid{grid-template-columns:1fr}
+  .briefing-impact{align-items:flex-start;flex-direction:column}
+  .briefing-impact-control{width:100%;flex-wrap:wrap}
+  .briefing-impact input{flex:1}
   
   /* Tamanhos de fonte reduzidos */
   html{font-size:14px}

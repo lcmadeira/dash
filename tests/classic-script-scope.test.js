@@ -78,6 +78,9 @@ test("cache preserves validated source provenance without breaking legacy envelo
   assert.equal(context.getObservationFreshness("fuel", now - 73 * 60 * 60 * 1000, now).stale, true);
   assert.equal(context.getObservationFreshness("fuel", now - 24 * 60 * 60 * 1000, now).stale, false);
   assert.equal(context.getObservationFreshness("fuel", now + 60000, now), null);
+  assert.equal(context.getReferenceFreshness("2026-09-01", 45, now).stale, true);
+  assert.equal(context.getReferenceFreshness("2026-10-01", 120, now).stale, false);
+  assert.equal(context.getReferenceFreshness("2027-10-01", 120, now), null);
 
   const observedAt = Date.now() - 60000;
   assert.equal(context.lsSet("market", { price: 12 }, {
@@ -99,6 +102,18 @@ test("cache preserves validated source provenance without breaking legacy envelo
   context.lsSet("future", { value: 2 }, { source: "Provider", observedAt: Date.now() + 60000 });
   assert.equal(context.getCacheMeta("future").dataMeta.source, "Provider");
   assert.equal(context.getCacheMeta("future").sourceTs, null);
+});
+
+test("static economic fallback references declare a review period", async () => {
+  const context = createBrowserContext();
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  const policy = context.STATIC_REFERENCE_POLICY;
+  assert.deepEqual(Object.keys(policy).sort(), ["agri", "euribor", "gas-eu", "imob", "inf", "rec"]);
+  for (const entry of Object.values(policy)) {
+    assert.ok(Number.isFinite(Date.parse(entry.observedAt)));
+    assert.ok(Number.isFinite(entry.maxAgeDays) && entry.maxAgeDays > 0);
+    assert.ok(entry.source.length > 0);
+  }
 });
 
 test("food basket includes the latest verified weekly DECO values", async () => {

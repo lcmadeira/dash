@@ -3,6 +3,7 @@
   const MAX_CABAZ_AGE_DAYS = 14;
   const MAX_WEATHER_AGE_HOURS = 36;
   const MAX_FUEL_AGE_HOURS = 72;
+  let currentFuelPrice = null;
 
   function renderPortugalBriefing(now = Date.now()) {
     const root = document.getElementById("briefingBody");
@@ -35,7 +36,9 @@
     const gas95 = Array.isArray(fuel) ? fuel.find(item => item?.fuel_slug === "gasoline_95") : null;
     const fuelObserved = Date.parse(gas95?.updated_at || "");
     const fuelPrice = Number(gas95?.avg_price_eur);
+    currentFuelPrice = null;
     if (gas95 && Number.isFinite(fuelObserved) && now >= fuelObserved && now - fuelObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(fuelPrice) && fuelPrice > 0) {
+      currentFuelPrice = fuelPrice;
       const esObserved = Number(fuelEs?.ts);
       const esPrice = Number(fuelEs?.items?.gasoline_95?.avg);
       const esIsFresh = Number.isFinite(esObserved) && now >= esObserved && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(esPrice) && esPrice > 0;
@@ -115,6 +118,25 @@
       : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>';
     const updated = document.getElementById("briefingUpdated");
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
+    updateFuelImpact();
+  }
+
+  function updateFuelImpact() {
+    const input = document.getElementById("fuelMonthlyLitres");
+    const output = document.getElementById("fuelMonthlyCost");
+    if (!input || !output) return;
+    if (!input.dataset.bound) {
+      input.addEventListener("input", updateFuelImpact);
+      input.dataset.bound = "true";
+    }
+    const litres = Number(input.value);
+    if (!Number.isFinite(currentFuelPrice)) {
+      output.textContent = "Preço atual indisponível";
+    } else if (!Number.isFinite(litres) || litres <= 0 || litres > 5000) {
+      output.textContent = "Indique 1–5 000 litros";
+    } else {
+      output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(litres * currentFuelPrice)} / mês`;
+    }
   }
 
   function formatDate(value) {

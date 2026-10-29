@@ -236,6 +236,20 @@
 
     const meta = cacheKey ? getCacheMeta(cacheKey) : null;
     if (!meta) {
+      const reference = window.STATIC_REFERENCE_POLICY?.[cardId];
+      if (reference) {
+        const freshness = window.getReferenceFreshness?.(reference.observedAt, reference.maxAgeDays);
+        const referenceDate = new Date(`${reference.observedAt}T12:00:00Z`).toLocaleDateString("pt-PT");
+        const state = freshness?.stale || !freshness ? "stale" : "static";
+        const label = state === "stale"
+          ? `Referência antiga · há ${freshness ? fmtAgeShort(freshness.age) : "data inválida"}`
+          : `Referência · ${reference.source}`;
+        setCardStatus(cardId, state, label, {
+          title: `${reference.source} · referência de ${referenceDate} · limite ${reference.maxAgeDays} dias`,
+          force: true,
+        });
+        return;
+      }
       setCardStatus(cardId, "idle", "—", { title: "Ainda sem dados em cache", force: true });
       return;
     }

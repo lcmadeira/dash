@@ -63,6 +63,14 @@
     return { age, maxAge, stale: age >= maxAge };
   }
 
+  function getReferenceFreshness(observedAt, maxAgeDays, now = Date.now()) {
+    const timestamp = typeof observedAt === "number" ? observedAt : Date.parse(String(observedAt || ""));
+    const maxAge = Number(maxAgeDays) * 24 * 60 * 60 * 1000;
+    if (!Number.isFinite(timestamp) || timestamp <= 0 || timestamp > now || !Number.isFinite(maxAge) || maxAge <= 0) return null;
+    const age = now - timestamp;
+    return { age, maxAge, stale: age >= maxAge };
+  }
+
   /**
    * Valida o formato e o timestamp de um registo de cache.
    * @param {*} value Registo descodificado de localStorage.
@@ -193,6 +201,7 @@
   window.getTTL = getTTL;
   window.getMaxObservationAge = getMaxObservationAge;
   window.getObservationFreshness = getObservationFreshness;
+  window.getReferenceFreshness = getReferenceFreshness;
   window.getStaleCache = getStaleCache;
   window.normalizeCacheMeta = normalizeCacheMeta;
   window.cleanOldCacheSync = cleanOldCacheSync;
