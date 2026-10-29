@@ -57,3 +57,25 @@ test("offline worker caches only successful same-origin assets", async () => {
   assert.equal((await cache.match("https://example.test/dash/styles.css?v=1")).status, 200);
   assert.equal(entries.size, 1);
 });
+
+test("offline banner explains stored card count and links to freshness details", async () => {
+  const listeners = {};
+  const banner = { hidden: false };
+  const message = { textContent: "" };
+  const context = vm.createContext({
+    document: {
+      getElementById: id => id === "offlineBanner" ? banner : id === "offlineBannerMessage" ? message : null,
+      querySelectorAll: selector => selector.includes('data-state="cache"') ? [1, 2] : [],
+    },
+    navigator: { onLine: false, serviceWorker: { register: async () => {} } },
+    window: { addEventListener(type, listener) { listeners[type] = listener; } },
+    console: { warn() {} },
+  });
+  vm.runInContext(await readFile("src/offline.js", "utf8"), context);
+  assert.equal(banner.hidden, false);
+  assert.match(message.textContent, /2 cards mostram dados guardados/);
+  assert.match(await readFile("index.html", "utf8"), /href="#dataOverview">Ver estado e idade dos dados/);
+  context.navigator.onLine = true;
+  listeners.online();
+  assert.equal(banner.hidden, true);
+});

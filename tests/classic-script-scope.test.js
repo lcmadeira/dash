@@ -171,6 +171,8 @@ test("data overview groups failing and stale cards by distinct provider", async 
   context.updateDataOverview();
   assert.equal(values.get("dataCountSourceIssues").textContent, "2");
   assert.match(values.get("dataSourceHealth").textContent, /Proxy A, Proxy B/);
+  assert.match(values.get("dataSourceHealth").textContent, /Verificação às \d{2}:\d{2}/);
+  assert.match(values.get("dataSourceHealth").textContent, /cards com erro/);
   assert.equal(values.get("dataCountAttention").textContent, "3");
 });
 

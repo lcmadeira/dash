@@ -259,7 +259,7 @@ async function loadPSI20Trend(force = false) {
   </div>
   <div style="font-size:.52rem;color:var(--t3);margin-top:6px;line-height:1.4">
     ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
-    ${cache.live?(cache.src==="yahoo"?"Última cotação Yahoo (pode ter atraso)":"Último fecho devolvido pela Stooq")+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
+    ${cache.live?(cache.src==="yahoo"?"Última cotação Yahoo (pode ter atraso)":"Último fecho devolvido pela Stooq")+` · consulta recebida ${new Date(cache.ts).toLocaleString("pt-PT")}`+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
   </div>`;
 
   loadPSI20Trend(false).catch(()=>{});

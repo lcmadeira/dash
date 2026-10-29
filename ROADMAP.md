@@ -401,6 +401,13 @@
 - ✅ Workflow diário/manual verifica GitHub Pages, conteúdo essencial, os recursos locais críticos (incluindo shell PWA) e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
 
+### 29/10/2026 — Confiança e leitura offline
+
+- ✅ Resumo de saúde carimba a hora da avaliação e distingue quantidade de cards com erro de dados antigos; texto esclarece que uma verificação sem alertas não é histórico de disponibilidade.
+- ✅ Faixa offline informa quantos cards apresentam cache/referência e liga diretamente ao resumo de estado e idade; APIs continuam explicitamente indisponíveis offline.
+- ✅ PSI mostra quando a consulta que forneceu os valores foi recebida, sem sugerir que esse instante é a hora exata da negociação.
+- ✅ Testes cobrem o texto do resumo e o comportamento acessível da faixa offline; gateway próprio permanece preparado, mas depende dos secrets Cloudflare do proprietário para reduzir a dependência de proxies públicos em produção.
+
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
 
 - ✅ Novo resumo acessível no topo agrega estados dos cards e permite saltar para dados desatualizados, parciais, de referência ou com erro.

@@ -7,7 +7,9 @@ test("published-site smoke check validates dashboard markers and critical assets
   const html = [
     'id="dataOverview"', 'id="briefingBody"', 'id="briefingChanges"', 'id="dataSourceHealth"', 'id="costOfLiving"', 'id="offlineBanner"', 'id="main-grid"', 'data-dashboard-profile="portugal"', 'id="dataCountProvenance"',
     'src="src/cards/news.js?v=1"',
-    'href="styles.css?v=1"', 'href="./manifest.webmanifest"', 'src="src/config.js?v=1"', 'src="src/offline.js?v=1"', 'src="src/fetch.js?v=1"', 'src="src/cache.js?v=1"',
+    'href="styles.css?v=20261029-9"', 'href="./manifest.webmanifest"', 'src="sw.js"',
+    'src="src/config.js?v=20261029-3"', 'src="src/offline.js?v=20261029-2"',
+    'src="src/fetch.js?v=1"', 'src="src/cache.js?v=1"',
     'src="sw.js"',
     'src="src/ui.js?v=1"', 'src="src/cards/briefing.js?v=1"', 'src="src/app.js?v=1"',
   ].join(" ");

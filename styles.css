@@ -153,6 +153,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.cost-of-living-fields input{width:100%;box-sizing:border-box;padding:7px;border:1px solid var(--b);border-radius:6px;background:var(--card);color:var(--text);font: .62rem var(--mono)}
 	.cost-of-living output{display:block;margin-top:8px;color:var(--green);font:700 .68rem var(--mono)}
 	.offline-banner{position:sticky;top:0;z-index:30;padding:9px 12px;background:#513b0b;color:#fff2c2;text-align:center;font-size:.68rem}
+	.offline-banner a{margin-left:6px;color:#fff;font-weight:700;text-underline-offset:2px}
 	.offline-banner[hidden]{display:none}
 	.briefing-impact{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 9px;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface)}
 	.briefing-impact label{display:flex;flex-direction:column;gap:2px;color:var(--t2);font-size:.62rem}

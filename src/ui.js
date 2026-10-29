@@ -192,6 +192,7 @@
     const counts = { live: 0, cache: 0, stale: 0, static: 0, error: 0, loading: 0, idle: 0 };
     const issues = [];
     const statuses = Array.from(document.querySelectorAll(".card-status[data-status-for]"));
+    window.updateOfflineBanner?.();
     const provenanceCount = statuses.filter((el) => /· Fonte:|· referência de /.test(el.title || "")).length;
     const provenanceEl = document.getElementById("dataCountProvenance");
     if (provenanceEl) provenanceEl.textContent = `${provenanceCount}/${statuses.length}`;
@@ -221,9 +222,14 @@
     });
     setCount("dataCountSourceIssues", affectedSources.size);
     const sourceSummary = document.getElementById("dataSourceHealth");
-    if (sourceSummary) sourceSummary.textContent = affectedSources.size
-      ? `Fontes associadas a erro ou dados antigos: ${[...affectedSources].join(", ")}.`
-      : "Nenhuma fonte foi identificada nos estados atuais de erro ou dados antigos.";
+    if (sourceSummary) {
+      const checkedAt = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+      const errorCount = statuses.filter(el => el.dataset.state === "error").length;
+      const oldCount = statuses.filter(el => el.dataset.state === "stale").length;
+      sourceSummary.textContent = affectedSources.size
+        ? `Verificação às ${checkedAt}: ${affectedSources.size} fontes identificadas afetadas (${errorCount} cards com erro, ${oldCount} antigos/parciais): ${[...affectedSources].join(", ")}.`
+        : `Verificação às ${checkedAt}: sem alertas reportados pelos ${statuses.length} cards monitorizados; isto não confirma disponibilidade histórica das fontes.`;
+    }
     const items = document.getElementById("dataOverviewItems");
     if (!items) return;
     const visibleIssues = issues.slice(0, 5);
