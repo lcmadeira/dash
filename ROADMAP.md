@@ -407,6 +407,9 @@
 - ✅ Faixa offline informa quantos cards apresentam cache/referência e liga diretamente ao resumo de estado e idade; APIs continuam explicitamente indisponíveis offline.
 - ✅ PSI mostra quando a consulta que forneceu os valores foi recebida, sem sugerir que esse instante é a hora exata da negociação.
 - ✅ Testes cobrem o texto do resumo e o comportamento acessível da faixa offline; gateway próprio permanece preparado, mas depende dos secrets Cloudflare do proprietário para reduzir a dependência de proxies públicos em produção.
+- ✅ “Portugal hoje” guarda até 90 dias de observações recentes por dia e apresenta variações desde o último ponto local disponível; histórico começa a acumular a partir da atualização e não é sincronizado entre dispositivos.
+- ✅ Quando offline e sem observações recentes carregáveis, o briefing apresenta o último snapshot datado da visita anterior e avisa explicitamente que os valores podem estar antigos.
+- ⏳ Gateway e fonte PSI licenciada continuam dependentes, respetivamente, de credenciais Cloudflare no GitHub e de escolha/termos do fornecedor.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
 

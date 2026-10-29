@@ -6,10 +6,13 @@
   const FUEL_ALERT_KEY = (window.PFX || "dash_v15_") + "fuel_alert_v1";
   const BRIEFING_PREF_KEY = (window.PFX || "dash_v15_") + "briefing_preferences_v1";
   const LAST_VISIT_KEY = (window.PFX || "dash_v15_") + "briefing_last_visit_v1";
+  const OBSERVATION_HISTORY_KEY = (window.PFX || "dash_v15_") + "briefing_observation_history_v1";
   const BRIEFING_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
+  const OBSERVATION_HISTORY_DAYS = 90;
   let briefingPreferencesMemory = null;
   let currentFuelPrice = null;
   let currentFuelObserved = null;
+  let lastVisitSnapshotSavedAt = 0;
   let lastVisitSnapshot = readVisitSnapshot();
   let currentVisitSnapshot = {};
 
@@ -17,6 +20,7 @@
     try {
       const value = JSON.parse(window.localStorage?.getItem(LAST_VISIT_KEY) || "null");
       if (!value || typeof value !== "object" || !value.observations || typeof value.observations !== "object") return null;
+      lastVisitSnapshotSavedAt = Number.isFinite(value.savedAt) && value.savedAt > 0 && value.savedAt <= Date.now() ? value.savedAt : 0;
       const observations = Object.fromEntries(BRIEFING_GROUPS.flatMap(group => {
         const item = value.observations[group];
         const snapshot = item?.snapshot;
@@ -33,6 +37,71 @@
   }
 
   window.addEventListener?.("pagehide", saveVisitSnapshot);
+
+  function readObservationHistory() {
+    try {
+      const parsed = JSON.parse(window.localStorage?.getItem(OBSERVATION_HISTORY_KEY) || "{}");
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+      const cutoff = Date.now() - OBSERVATION_HISTORY_DAYS * 86400000;
+      return Object.fromEntries(BRIEFING_GROUPS.map(group => [group, Array.isArray(parsed[group])
+        ? parsed[group].filter(item => Number.isFinite(item?.timestamp) && item.timestamp >= cutoff && item.timestamp <= Date.now() &&
+          (Number.isFinite(item?.snapshot) || Array.isArray(item?.snapshot) && item.snapshot.length <= 4 && item.snapshot.every(part => part === null || Number.isFinite(part))))
+          .sort((a, b) => a.timestamp - b.timestamp).slice(-OBSERVATION_HISTORY_DAYS)
+        : []]));
+    } catch { return {}; }
+  }
+
+  function saveObservationHistory(observations) {
+    const history = readObservationHistory();
+    const cutoff = Date.now() - OBSERVATION_HISTORY_DAYS * 86400000;
+    observations.forEach(item => {
+      if (!BRIEFING_GROUPS.includes(item.group) || item.snapshot === undefined || !Number.isFinite(item.observedAt)) return;
+      const rows = history[item.group] || [];
+      const date = new Date(item.observedAt).toISOString().slice(0, 10);
+      const validSnapshot = Number.isFinite(item.snapshot) || Array.isArray(item.snapshot) && item.snapshot.length <= 4 && item.snapshot.every(Number.isFinite);
+      if (!validSnapshot) return;
+      const entry = { timestamp: item.observedAt, date, snapshot: item.snapshot, value: item.value.slice(0, 300) };
+      const existing = rows.findIndex(row => row.date === date);
+      if (existing >= 0) rows[existing] = entry;
+      else rows.push(entry);
+      history[item.group] = rows.filter(row => row.timestamp >= cutoff).sort((a, b) => a.timestamp - b.timestamp).slice(-OBSERVATION_HISTORY_DAYS);
+    });
+    try { window.localStorage?.setItem(OBSERVATION_HISTORY_KEY, JSON.stringify(history)); } catch {}
+    return history;
+  }
+
+  function historyDelta(group, previous, current) {
+    const delta = (a, b, digits = 1) => `${b - a > 0 ? "+" : ""}${(b - a).toFixed(digits).replace(".", ",")}`;
+    if (group === "fuel") return `${delta(previous / 1000, current / 1000, 3)} €/L`;
+    if (group === "basket") return `${delta(previous / 100, current / 100, 2)} €`;
+    if (group === "weather") {
+      if (!Number.isFinite(previous[0]) || !Number.isFinite(current[0])) return "";
+      return `${delta(previous[0], current[0], 0)} °C${Number.isFinite(previous[1]) && Number.isFinite(current[1]) ? ` · ${delta(previous[1], current[1], 0)} pp precipitação` : ""}`;
+    }
+    if (group === "inflation" || group === "euribor") {
+      if (!Number.isFinite(previous[0]) || !Number.isFinite(current[0]) || !Number.isFinite(previous[1]) || !Number.isFinite(current[1])) return "";
+      return group === "inflation"
+        ? `${delta(previous[0], current[0], 1)} pp PT · ${delta(previous[1], current[1], 1)} pp zona euro`
+        : `${delta(previous[0], current[0], 3)} pp 3M · ${delta(previous[1], current[1], 3)} pp 12M`;
+    }
+    return "";
+  }
+
+  function renderObservationHistory(observations, visibleObservations = observations) {
+    const root = document.getElementById("briefingHistory");
+    if (!root) return;
+    const history = saveObservationHistory(observations);
+    const rows = visibleObservations.flatMap(item => {
+      const prior = (history[item.group] || []).filter(entry => entry.timestamp < item.observedAt);
+      if (!prior.length || item.snapshot === undefined) return [];
+      const reference = prior[prior.length - 1];
+      const delta = historyDelta(item.group, reference.snapshot, item.snapshot);
+      return delta ? [`<li><strong>${escapeHTML(item.title)}</strong>: ${escapeHTML(delta)} desde ${formatDate(reference.timestamp)} · ${prior.length + 1} observações locais</li>`] : [];
+    });
+    root.innerHTML = rows.length
+      ? `<strong>Tendência local (até 90 dias; amostras recolhidas neste browser)</strong><ul>${rows.join("")}</ul>`
+      : "Histórico local: a reunir observações diárias com fonte e data; guardado apenas neste browser.";
+  }
   const MATERIAL_CHANGE = { weather: [2, 20], fuel: 10, basket: 100, inflation: 0.1, euribor: 0.05 };
 
   function isMaterialChange(group, previous, current) {
@@ -66,6 +135,7 @@
         detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · previsão ${formatDate(forecastDate)} · IPMA atualizada ${formatDateTime(weatherObserved)}`,
         href: "#card-weather",
         snapshot: [Math.round(tempMax), Number.isFinite(rain) ? Math.round(rain) : null],
+        observedAt: weatherObserved,
       });
     } else if (weatherCache?.age > MAX_WEATHER_AGE_HOURS * 3600000) {
       observations.push({ group: "weather", title: "Meteorologia", value: "Previsão desatualizada", detail: `Cache local há ${window.fmtAgeShort?.(weatherCache.age) || "mais de 36h"}`, href: "#card-weather", stale: true });
@@ -96,6 +166,7 @@
         detail: `${Number(gas95.station_count) || 0} postos${esIsFresh ? ` · média espanhola ${esPrice.toFixed(3).replace(".", ",")} €/L (${formatDate(esObserved)})` : ""} · API Aberta · observada ${formatDateTime(fuelObserved)}`,
         href: "#card-fuel",
         snapshot: Math.round(fuelPrice * 1000),
+        observedAt: fuelObserved,
       });
     } else if (fuelCache?.age > MAX_FUEL_AGE_HOURS * 3600000) {
       observations.push({ group: "fuel", title: "Combustível", value: "Preço desatualizado", detail: `Cache local há ${window.fmtAgeShort?.(fuelCache.age) || "mais de 72h"}`, href: "#card-fuel", stale: true });
@@ -125,6 +196,7 @@
         detail: `${formatDate(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
         href: "#card-inf",
         snapshot: [latestInflation.pt, latestInflation.eu],
+        observedAt: inflationPeriod,
       });
     }
 
@@ -141,6 +213,7 @@
         detail: `BCE · observação ${formatDate(euriborDate)}`,
         href: "#card-euribor",
         snapshot: [threeMonth, twelveMonth],
+        observedAt: euriborDate,
       });
     }
 
@@ -161,6 +234,7 @@
           detail: `Observação ${formatDate(latest[0])} · registo do histórico do painel`,
           href: "#card-cabaz",
           snapshot: Math.round(currentValue * 100),
+          observedAt: date,
         });
       }
     }
@@ -169,15 +243,23 @@
     const selected = readBriefingPreferences();
     const visibleObservations = observations.filter(item => selected.includes(item.group));
     observations.forEach(item => {
-      if (item.snapshot !== undefined) currentVisitSnapshot[item.group] = { snapshot: item.snapshot, value: item.value };
+      if (item.snapshot !== undefined) currentVisitSnapshot[item.group] = { snapshot: item.snapshot, value: item.value, observedAt: item.observedAt };
     });
+    renderObservationHistory(observations, visibleObservations);
     renderVisitChanges(visibleObservations);
     bindBriefingNavigation();
+    const offlineSnapshot = window.navigator?.onLine === false && lastVisitSnapshot && lastVisitSnapshotSavedAt > 0 &&
+      now >= lastVisitSnapshotSavedAt && now - lastVisitSnapshotSavedAt <= OBSERVATION_HISTORY_DAYS * 86400000
+      ? Object.entries(lastVisitSnapshot).map(([group, item]) => `${({ weather: "Meteorologia", fuel: "Combustível", basket: "Cabaz alimentar", inflation: "Inflação", euribor: "Euribor" })[group] || group}: ${item.value}`).slice(0, BRIEFING_GROUPS.length)
+      : [];
+    const snapshotMarkup = offlineSnapshot.length
+      ? `<div class="briefing-offline-snapshot"><strong>Último snapshot guardado · ${formatDateTime(lastVisitSnapshotSavedAt)}</strong><span>Observações recentes da última sessão, apenas para consulta offline:</span><ul>${offlineSnapshot.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ul><span>Podem já não refletir os valores atuais.</span></div>`
+      : "";
     root.innerHTML = visibleObservations.length
-      ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("")
-      : observations.length
+      ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("") + snapshotMarkup
+      : snapshotMarkup || (observations.length
         ? '<p class="briefing-empty">Nenhum indicador recente está selecionado. Altere as preferências do resumo.</p>'
-        : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>';
+        : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>');
     const updated = document.getElementById("briefingUpdated");
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
     updateFuelImpact();

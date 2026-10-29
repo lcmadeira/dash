@@ -3,9 +3,10 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit, observationHistory, offline = false }) {
   const root = { innerHTML: "", dataset: {}, addEventListener() {} };
   const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
+  const historyView = { innerHTML: "" };
   const updated = { textContent: "" };
   const impact = { textContent: "" };
   const makeInput = value => ({ value, dataset: {}, addEventListener(event, handler) {
@@ -24,9 +25,10 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const preferences = Object.fromEntries(["Weather", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
     "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
   ]));
-  const elements = { briefingBody: root, briefingChanges: changes, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
+  const elements = { briefingBody: root, briefingChanges: changes, briefingHistory: historyView, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
   const store = new Map();
   if (previousVisit) store.set("dash_v15_briefing_last_visit_v1", JSON.stringify(previousVisit));
+  if (observationHistory) store.set("dash_v15_briefing_observation_history_v1", JSON.stringify(observationHistory));
   let pagehideHandler = null;
   const notices = [];
   const context = vm.createContext({
@@ -42,12 +44,13 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
     localStorage: { getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value) },
     addNotification: (...args) => notices.push(args),
     window: {},
+    navigator: { onLine: !offline },
     addEventListener: (event, handler) => { if (event === "pagehide") pagehideHandler = handler; },
   });
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, root, changes: changes.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, costIncome, costFood, costElectricity, costOutput, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
+  return { html: root.innerHTML, root, changes: changes.innerHTML, history: historyView.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, costIncome, costFood, costElectricity, costOutput, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -179,6 +182,38 @@ test("Portugal briefing compares fresh observations with the previous visit and 
   const saved = JSON.parse(result.store.get("dash_v15_briefing_last_visit_v1"));
   assert.equal(saved.observations.fuel.snapshot, 1720);
   assert.ok(Number.isFinite(saved.savedAt) && saved.savedAt > 0);
+});
+
+test("Portugal briefing keeps a bounded local observation history with comparable changes", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const previous = now - 3 * 86400000;
+  const result = await loadBriefing({
+    now,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
+    observationHistory: { fuel: [
+      { timestamp: previous, date: "2026-10-26", snapshot: 1750, value: "Gasolina 95 · 1,750 €/L" },
+      { timestamp: now - 200 * 86400000, date: "2026-04-12", snapshot: 1900, value: "Registo antigo" },
+    ] },
+  });
+  assert.match(result.history, /Tendência local \(até 90 dias/);
+  assert.ok(result.history.includes("-0,030 €/L desde 26/10/2026 · 2 observações locais"));
+  const saved = JSON.parse(result.store.get("dash_v15_briefing_observation_history_v1"));
+  assert.equal(saved.fuel.length, 2);
+});
+
+test("offline briefing offers a dated last-visit snapshot when fresh APIs are unavailable", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    offline: true,
+    previousVisit: { savedAt: now - 2 * 86400000, observations: {
+      fuel: { snapshot: 1720, value: "Gasolina 95 · 1,720 €/L" },
+      basket: { snapshot: 25355, value: "Cabaz alimentar · €253,55" },
+    } },
+  });
+  assert.match(result.html, /Último snapshot guardado · 27\/10, 11:00/);
+  assert.ok(result.html.includes("Gasolina 95 · 1,720 €/L"));
+  assert.match(result.html, /Podem já não refletir os valores atuais/);
 });
 
 test("visit summary suppresses insignificant changes and local budget math never persists inputs", async () => {

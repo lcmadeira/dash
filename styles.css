@@ -145,6 +145,10 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-updated{color:var(--t3);font: .52rem var(--mono)}
 	.briefing-changes{margin-top:9px;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t2);font-size:.62rem}
 	.briefing-changes ul{margin:5px 0 0;padding-left:18px}.briefing-changes li+li{margin-top:3px}.briefing-changes a{color:var(--blue)}
+	.briefing-history{margin:8px 0;padding:8px 10px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t3);font-size:.56rem;line-height:1.55}
+	.briefing-history strong{color:var(--t2)}.briefing-history ul{margin:4px 0 0;padding-left:17px}.briefing-history li+li{margin-top:2px}
+	.briefing-offline-snapshot{grid-column:1/-1;padding:10px;border:1px solid var(--accent);border-radius:var(--rs);background:var(--surface);color:var(--t2)}
+	.briefing-offline-snapshot strong{display:block;color:var(--accent);margin-bottom:4px}.briefing-offline-snapshot ul{margin:4px 0;padding-left:18px}
 	.cost-of-living{margin-top:9px;padding:9px 11px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t2);font-size:.62rem}
 	.cost-of-living summary{cursor:pointer;color:var(--blue);font-weight:700}
 	.cost-of-living p,.cost-of-living-note{display:block;margin:7px 0;color:var(--t3);font-size:.54rem;line-height:1.5}
