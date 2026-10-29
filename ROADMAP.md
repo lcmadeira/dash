@@ -139,6 +139,9 @@
 - [ ] Implementar push com o dashboard fechado: requer endpoint agendado, chaves VAPID e armazenamento seguro das subscrições; notificações atuais continuam dependentes da página aberta.
 - [x] Criar vistas contextuais Tudo/Portugal/Mercados/Mundo e indicador de cobertura de proveniência. ✅ (29/10/2026)
 - [x] Comparar o briefing recente com o snapshot da visita anterior e agregar fontes identificáveis associadas a erros/dados antigos. ✅ (29/10/2026)
+- [x] Centralizar contratos de fonte e limites de atualidade, manter TTL local separado e filtrar variações pequenas no resumo entre visitas. ✅ (29/10/2026)
+- [x] Preparar PWA com cache limitado ao shell/recursos do próprio site, banner offline e testes que excluem proxies/fornecedores. ✅ (29/10/2026)
+- [x] Acrescentar estimativa local opcional para compras, eletricidade e combustível; valores introduzidos ficam apenas na página. ✅ (29/10/2026)
 - [ ] Ativar o Worker publicado e configurar `CFG.DATA_API_BASE`; secrets Cloudflare não estão disponíveis no ambiente local atual.
 - [ ] Push persistente continua condicionado a execução agendada, armazenamento de subscrições e segredos VAPID de produção.
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
@@ -395,7 +398,7 @@
 - ✅ Fallbacks económicos selecionados declaram fonte, data e prazo de revisão; o resumo assinala referências antigas sem as apresentar como atuais.
 - ✅ Simulador de custo mensal da gasolina 95 calcula consumo × média observada apenas na memória da página; sem persistência de valores introduzidos.
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
-- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial, sete recursos locais críticos e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
+- ✅ Workflow diário/manual verifica GitHub Pages, conteúdo essencial, os recursos locais críticos (incluindo shell PWA) e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes

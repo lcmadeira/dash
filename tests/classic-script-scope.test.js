@@ -67,6 +67,8 @@ test("cache preserves validated source provenance without breaking legacy envelo
     document: { querySelector: () => null, querySelectorAll: () => [] },
   });
   context.window = context;
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  assert.equal(context.DATA_SOURCE_CONTRACTS.ipma.maxObservationAgeMs, 36 * 60 * 60 * 1000);
   vm.runInContext(await readFile("src/cache.js", "utf8"), context);
   vm.runInContext(await readFile("src/ui.js", "utf8"), context);
 

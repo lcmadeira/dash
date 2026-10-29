@@ -6,12 +6,17 @@ export async function checkPublishedSite(base, request = fetch) {
   if (!response.ok) throw new Error(`Dashboard respondeu HTTP ${response.status}: ${baseUrl}`);
 
   const html = await response.text();
-  for (const marker of ['id="dataOverview"', 'id="briefingBody"', 'id="main-grid"', 'data-dashboard-profile="portugal"', 'id="dataCountProvenance"']) {
+  for (const marker of ['id="dataOverview"', 'id="briefingBody"', 'id="costOfLiving"', 'id="offlineBanner"', 'id="main-grid"', 'data-dashboard-profile="portugal"', 'id="dataCountProvenance"']) {
     if (!html.includes(marker)) throw new Error(`Marcador obrigatório ausente: ${marker}`);
   }
 
   const requiredAssets = [
     "styles.css",
+    "manifest.webmanifest",
+    "pwa-icon.svg",
+    "sw.js",
+    "src/offline.js",
+    "src/config.js",
     "src/fetch.js",
     "src/cache.js",
     "src/ui.js",
@@ -20,14 +25,20 @@ export async function checkPublishedSite(base, request = fetch) {
     "src/app.js",
   ];
   const references = [...html.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]);
+  let manifest = null;
   for (const asset of requiredAssets) {
-    const reference = references.find(value => new URL(value, baseUrl).pathname.endsWith(`/${asset}`));
+    const reference = references.find(value => new URL(value, baseUrl).pathname.endsWith(`/${asset}`))
+      || (asset === "sw.js" ? "sw.js" : null)
+      || (asset === "pwa-icon.svg" && manifest?.icons?.some(icon => typeof icon?.src === "string" && new URL(icon.src, new URL("manifest.webmanifest", baseUrl)).pathname.endsWith("/pwa-icon.svg")) ? "./pwa-icon.svg" : null);
     if (!reference) throw new Error(`Recurso obrigatório não referenciado: ${asset}`);
     const assetUrl = new URL(reference, baseUrl);
     const assetResponse = await request(assetUrl, { signal: AbortSignal.timeout(15000) });
     if (!assetResponse.ok) throw new Error(`${asset} respondeu HTTP ${assetResponse.status}`);
     const body = await assetResponse.text();
     if (!body.trim()) throw new Error(`${asset} foi publicado vazio`);
+    if (asset === "manifest.webmanifest") {
+      try { manifest = JSON.parse(body); } catch { throw new Error("manifest.webmanifest não contém JSON válido"); }
+    }
   }
   return requiredAssets.length;
 }

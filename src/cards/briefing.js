@@ -16,8 +16,14 @@
   function readVisitSnapshot() {
     try {
       const value = JSON.parse(window.localStorage?.getItem(LAST_VISIT_KEY) || "null");
-      return value && typeof value === "object" && value.observations && typeof value.observations === "object"
-        ? value.observations : null;
+      if (!value || typeof value !== "object" || !value.observations || typeof value.observations !== "object") return null;
+      const observations = Object.fromEntries(BRIEFING_GROUPS.flatMap(group => {
+        const item = value.observations[group];
+        const snapshot = item?.snapshot;
+        const validSnapshot = Number.isFinite(snapshot) || (Array.isArray(snapshot) && snapshot.length <= 4 && snapshot.every(part => part === null || Number.isFinite(part)));
+        return validSnapshot && typeof item.value === "string" ? [[group, { snapshot, value: item.value.slice(0, 300) }]] : [];
+      }));
+      return Object.keys(observations).length ? observations : null;
     } catch { return null; }
   }
 
@@ -27,6 +33,16 @@
   }
 
   window.addEventListener?.("pagehide", saveVisitSnapshot);
+  const MATERIAL_CHANGE = { weather: [2, 20], fuel: 10, basket: 100, inflation: 0.1, euribor: 0.05 };
+
+  function isMaterialChange(group, previous, current) {
+    const threshold = MATERIAL_CHANGE[group];
+    if (Array.isArray(previous) && Array.isArray(current)) {
+      return current.some((value, index) => Number.isFinite(value) && Number.isFinite(previous[index])
+        && Math.abs(value - previous[index]) >= (Array.isArray(threshold) ? threshold[index] : threshold || 0));
+    }
+    return Number.isFinite(previous) && Number.isFinite(current) && Math.abs(current - previous) >= (threshold || 0);
+  }
 
   function renderPortugalBriefing(now = Date.now()) {
     const root = document.getElementById("briefingBody");
@@ -166,6 +182,8 @@
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
     updateFuelImpact();
     bindFuelAlert();
+    bindCostOfLivingCalculator();
+    updateCostOfLivingCalculator();
   }
 
   function bindBriefingNavigation() {
@@ -190,7 +208,7 @@
     if (!root) return;
     const changes = lastVisitSnapshot ? observations.filter(item => {
       const previous = lastVisitSnapshot[item.group];
-      return previous && JSON.stringify(previous.snapshot) !== JSON.stringify(item.snapshot);
+      return previous && isMaterialChange(item.group, previous.snapshot, item.snapshot);
     }) : [];
     root.innerHTML = changes.length
       ? `<strong>Alterações desde a visita anterior</strong><ul>${changes.map(item => {
@@ -198,8 +216,44 @@
         return `<li><a href="${item.href}">${escapeHTML(item.title)}</a>: ${escapeHTML(previous.value)} → ${escapeHTML(item.value)}</li>`;
       }).join("")}</ul>`
       : lastVisitSnapshot
-        ? "Sem alterações nos indicadores recentes desde a visita anterior."
+        ? "Sem alterações relevantes nos indicadores recentes desde a visita anterior."
         : "As alterações entre visitas aparecem aqui após a próxima visita.";
+  }
+
+  function bindCostOfLivingCalculator() {
+    ["costMonthlyIncome", "costMonthlyFood", "costMonthlyElectricity", "fuelMonthlyLitres"].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input || input.dataset.costBound) return;
+      input.addEventListener("input", updateCostOfLivingCalculator);
+      input.dataset.costBound = "true";
+    });
+  }
+
+  function updateCostOfLivingCalculator() {
+    const output = document.getElementById("costOfLivingResult");
+    const incomeInput = document.getElementById("costMonthlyIncome");
+    if (!output || !incomeInput) return;
+    const income = Number(incomeInput.value);
+    if (!Number.isFinite(income) || income <= 0 || income > 1000000) {
+      output.textContent = "Indique o rendimento líquido mensal do agregado.";
+      return;
+    }
+    const expenses = ["costMonthlyFood", "costMonthlyElectricity"].map(id => Number(document.getElementById(id)?.value))
+      .filter(value => Number.isFinite(value) && value > 0 && value <= 100000);
+    const litres = Number(document.getElementById("fuelMonthlyLitres")?.value);
+    const fuelCost = Number.isFinite(currentFuelPrice) && Number.isFinite(litres) && litres > 0 && litres <= 5000
+      ? currentFuelPrice * litres : null;
+    if (fuelCost !== null) expenses.push(fuelCost);
+    if (!expenses.length) {
+      output.textContent = "Indique compras, eletricidade ou litros de combustível para calcular os custos introduzidos.";
+      return;
+    }
+    const total = expenses.reduce((sum, value) => sum + value, 0);
+    const share = (total / income) * 100;
+    const fuelNote = Number.isFinite(litres) && litres > 0 && fuelCost === null
+      ? " Gasolina excluída: preço recente indisponível."
+      : "";
+    output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(total)} em custos indicados · ${share.toFixed(1).replace(".", ",")}% do rendimento líquido.${fuelNote}`;
   }
 
   function readBriefingPreferences() {

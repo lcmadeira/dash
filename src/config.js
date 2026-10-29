@@ -20,6 +20,16 @@ const STATIC_REFERENCE_POLICY = {
   "gas-eu": { source: "Stooq · referência TTF", observedAt: "2026-09-01", maxAgeDays: 90 },
 };
 
+/* Contratos da observação do fornecedor, separados da validade da cache local. */
+const DATA_SOURCE_CONTRACTS = Object.freeze({
+  ipma: { label: "IPMA", card: "weather", keyPrefix: "ipma_", maxObservationAgeMs: 36 * 60 * 60 * 1000 },
+  fuel: { label: "API Aberta", card: "fuel", cacheKey: "fuel", maxObservationAgeMs: 72 * 60 * 60 * 1000 },
+  fuel_es: { label: "MITECO/MINETUR", card: "fuel", cacheKey: "fuel_es", maxObservationAgeMs: 72 * 60 * 60 * 1000 },
+  fx: { label: "Frankfurter/ExchangeRate-API", card: "fx", cacheKey: "fx", maxObservationAgeMs: 4 * 24 * 60 * 60 * 1000 },
+  euribor_live_v1: { label: "BCE/EMMI", card: "euribor", cacheKey: "euribor_live_v1", maxObservationAgeMs: 75 * 24 * 60 * 60 * 1000 },
+  inflation_eurostat_v2: { label: "Eurostat", card: "inf", cacheKey: "inflation_eurostat_v2", maxObservationAgeMs: 120 * 24 * 60 * 60 * 1000 },
+});
+
 /* ── Datas de referência (automáticas) ── */
 const now = new Date();
 const mesAtual = now.getMonth();
@@ -169,6 +179,7 @@ const wxIPMA = (id) => IPMA_WX[id] || ["🌤️","—"];
 // estes valores como globais clássicos acessíveis via `window`.
 window.CFG = CFG;
 window.STATIC_REFERENCE_POLICY = STATIC_REFERENCE_POLICY;
+window.DATA_SOURCE_CONTRACTS = DATA_SOURCE_CONTRACTS;
 window.REF_DATE = REF_DATE;
 window.EURIBOR_FALLBACK = EURIBOR_FALLBACK;
 window.MIBGAS_SPOT = MIBGAS_SPOT;

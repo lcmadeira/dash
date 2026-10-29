@@ -1,0 +1,13 @@
+{
+  "name": "Painel Pessoal · Portugal",
+  "short_name": "Painel PT",
+  "description": "Portugal, mercados e contexto global num painel pessoal.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101116",
+  "theme_color": "#101116",
+  "icons": [
+    { "src": "./pwa-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

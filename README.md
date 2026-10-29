@@ -13,6 +13,8 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro. Quando os metadados existem, mostra também fonte e hora da observação. Para IPMA, combustíveis, câmbio, IHPC e Euribor, limites de idade da observação são avaliados separadamente da idade da cache local. O resumo agrega também as fontes conhecidas associadas a erros ou observações antigas; não é uma métrica histórica de disponibilidade.
 - **Portugal hoje**: síntese personalizável de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual. As preferências ficam neste browser. Inclui uma estimativa opcional de custo mensal de gasolina baseada nos litros indicados na página; não persiste o consumo.
 - **Alterações desde a visita anterior**: compara indicadores recentes com o último snapshot observado neste browser. Só compara observações atuais; o primeiro acesso cria a referência, guardada ao sair da página.
+- **Alterações relevantes**: filtra diferenças pequenas com limites próprios por indicador (2 °C/20 pp na meteorologia, €0,01/L no combustível, €1 no cabaz, 0,1 pp no IHPC e 0,05 pp na Euribor); a comparação não é uma recomendação nem usa dados antigos como atuais.
+- **Custos do agregado**: estimativa opcional baseada apenas nas compras e eletricidade introduzidas e no combustível calculado pelos litros mensais e por um preço recente. Mostra que percentagem estes custos representam do rendimento líquido indicado; não é um orçamento completo e não guarda os valores.
 - **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: gravações podem guardar fonte, estado (`live`, `partial`, `stale`, `static`, `fallback`) e hora observada. IPMA, combustíveis, câmbio, IHPC, Euribor, notícias, qualidade do ar, Fear & Greed, spread FRED e sismos registam metadados de origem; o tooltip distingue cache recente de observação recente e envelopes antigos continuam compatíveis.
@@ -44,6 +46,10 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Verificação agendada da publicação** — confirma diariamente a página GitHub Pages e os recursos críticos, e abre o dashboard em Chromium para verificar a inicialização da UI; também pode ser executada manualmente em Actions.
 
 ## Como executar
+
+`src/config.js` centraliza os contratos de fonte e os limites de atualidade das séries com data verificável. Esses limites são distintos do TTL da cache local.
+
+O modo instalável/offline funciona em contexto seguro (GitHub Pages/HTTPS ou `localhost`). Abre o painel online pelo menos uma vez para guardar o shell local. O Service Worker guarda apenas a página e recursos do próprio site; APIs e proxies continuam dependentes da rede. A faixa offline indica que os dados apresentados podem não estar atualizados. Limpar os dados do site remove a cópia local.
 
 Opção 1 (mais simples): abrir `index.html` no browser.
 
@@ -132,7 +138,7 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
-Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os sete recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
+Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os doze recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
 
 ### Executar lint localmente
 

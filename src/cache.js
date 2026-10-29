@@ -23,7 +23,7 @@
   };
 
   /* Limites de observação: separados do TTL local para detetar payloads antigos recém-consultados. */
-  const OBSERVATION_MAX_AGE = {
+  const LEGACY_OBSERVATION_MAX_AGE = {
     ipma: 36 * 60 * 60 * 1000,
     fuel: 72 * 60 * 60 * 1000,
     fuel_es: 72 * 60 * 60 * 1000,
@@ -48,11 +48,11 @@
   /** Limite de idade da observação do fornecedor, distinto da idade de gravação local. */
   function getMaxObservationAge(key) {
     const id = String(key || "").toLowerCase();
-    if (id.startsWith("ipma_")) return OBSERVATION_MAX_AGE.ipma;
-    if (id === "fuel") return OBSERVATION_MAX_AGE.fuel;
-    if (id === "fuel_es") return OBSERVATION_MAX_AGE.fuel_es;
-    if (id === "fx") return OBSERVATION_MAX_AGE.fx;
-    return OBSERVATION_MAX_AGE[id] || null;
+    const contracts = Object.values(window.DATA_SOURCE_CONTRACTS || {});
+    const contract = contracts.find(item => item.cacheKey === id || (item.keyPrefix && id.startsWith(item.keyPrefix)));
+    if (contract) return contract.maxObservationAgeMs;
+    if (id.startsWith("ipma_")) return LEGACY_OBSERVATION_MAX_AGE.ipma;
+    return LEGACY_OBSERVATION_MAX_AGE[id] || null;
   }
 
   function getObservationFreshness(key, observedAt, now = Date.now()) {

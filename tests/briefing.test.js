@@ -8,7 +8,15 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
   const updated = { textContent: "" };
   const impact = { textContent: "" };
-  const input = { value: fuelLitres, dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
+  const makeInput = value => ({ value, dataset: {}, addEventListener(event, handler) {
+    const prior = this.handler;
+    this.handler = prior ? () => { prior(); handler(); } : handler;
+  } });
+  const input = makeInput(fuelLitres);
+  const costIncome = makeInput("");
+  const costFood = makeInput("");
+  const costElectricity = makeInput("");
+  const costOutput = { textContent: "" };
   const threshold = { value: "1.50", dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
   const toggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
   const desktopToggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
@@ -16,7 +24,7 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const preferences = Object.fromEntries(["Weather", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
     "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
   ]));
-  const elements = { briefingBody: root, briefingChanges: changes, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, ...preferences };
+  const elements = { briefingBody: root, briefingChanges: changes, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
   const store = new Map();
   if (previousVisit) store.set("dash_v15_briefing_last_visit_v1", JSON.stringify(previousVisit));
   let pagehideHandler = null;
@@ -39,7 +47,7 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, root, changes: changes.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
+  return { html: root.innerHTML, root, changes: changes.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, costIncome, costFood, costElectricity, costOutput, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -171,4 +179,22 @@ test("Portugal briefing compares fresh observations with the previous visit and 
   const saved = JSON.parse(result.store.get("dash_v15_briefing_last_visit_v1"));
   assert.equal(saved.observations.fuel.snapshot, 1720);
   assert.ok(Number.isFinite(saved.savedAt) && saved.savedAt > 0);
+});
+
+test("visit summary suppresses insignificant changes and local budget math never persists inputs", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    fuelLitres: "100",
+    previousVisit: { observations: { fuel: { snapshot: 1715, value: "Gasolina 95 · 1,715 €/L" } } },
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
+  });
+  assert.match(result.changes, /Sem alterações relevantes/);
+  result.costIncome.value = "2200";
+  result.costFood.value = "450";
+  result.costElectricity.value = "75";
+  result.costIncome.handler();
+  assert.match(result.costOutput.textContent, /697,00/);
+  assert.match(result.costOutput.textContent, /31,7%/);
+  assert.equal([...result.store.keys()].some(key => /costMonthly|costOfLiving/.test(key)), false);
 });
