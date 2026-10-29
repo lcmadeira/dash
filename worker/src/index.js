@@ -36,6 +36,30 @@ async function putCached(cache, key, response, ctx) {
   } catch {}
 }
 
+function staleCacheKey(url) {
+  const stale = new URL(url);
+  stale.searchParams.set("__dash_stale", "1");
+  return new Request(stale.toString(), { method: "GET" });
+}
+
+async function getStaleResponse(cache, key, path, headers) {
+  const cached = await getCached(cache, key);
+  if (!cached) return null;
+  try {
+    const payload = await cached.json();
+    if (!isValidPayload(path, payload)) return null;
+    payload._meta = { ...payload._meta, state: "stale", fallbackAt: Date.now() };
+    const staleHeaders = new Headers(cached.headers);
+    headers.forEach((value, name) => staleHeaders.set(name, value));
+    staleHeaders.set("Cache-Control", "public, max-age=0, s-maxage=0");
+    staleHeaders.set("X-Dash-Cache", "STALE");
+    staleHeaders.set("Warning", '110 - "Response is stale"');
+    return jsonResponse(payload, 200, staleHeaders);
+  } catch {
+    return null;
+  }
+}
+
 export async function handleRequest(request, env = {}, ctx = {}) {
   const url = new URL(request.url);
   const origin = request.headers.get("Origin");
@@ -65,6 +89,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   const cacheControl = `public, max-age=30, s-maxage=${ttl}`;
   const cache = globalThis.caches?.default;
   const cacheKey = new Request(`${url.origin}${url.pathname}`, { method: "GET" });
+  const staleKey = staleCacheKey(`${url.origin}${url.pathname}`);
   if (cache) {
     const cached = await getCached(cache, cacheKey);
     if (cached) {
@@ -81,10 +106,14 @@ export async function handleRequest(request, env = {}, ctx = {}) {
       signal: AbortSignal.timeout(9000),
     });
     if (!response.ok) {
+      const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
+      if (stale) return stale;
       return jsonResponse({ error: "Fornecedor indisponível", upstreamStatus: response.status }, 502, headers);
     }
     const payload = await response.json();
     if (!isValidPayload(url.pathname, payload)) {
+      const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
+      if (stale) return stale;
       return jsonResponse({ error: "Resposta inválida do fornecedor" }, 502, headers);
     }
 
@@ -94,9 +123,16 @@ export async function handleRequest(request, env = {}, ctx = {}) {
     headers.set("Cache-Control", cacheControl);
     headers.set("X-Dash-Cache", "MISS");
     const result = jsonResponse(output, 200, headers);
-    if (cache) await putCached(cache, cacheKey, result, ctx);
+    if (cache) {
+      await putCached(cache, cacheKey, result, ctx);
+      const staleHeaders = new Headers(result.headers);
+      staleHeaders.set("Cache-Control", "public, max-age=0, s-maxage=86400");
+      await putCached(cache, staleKey, new Response(JSON.stringify(output), { status: 200, headers: staleHeaders }), ctx);
+    }
     return result;
   } catch {
+    const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
+    if (stale) return stale;
     return jsonResponse({ error: "Não foi possível consultar o fornecedor" }, 502, headers);
   }
 }

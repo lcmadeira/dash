@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, basket, inflation, euribor, now, city = "Lisboa" }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa" }) {
   const root = { innerHTML: "" };
   const updated = { textContent: "" };
   const context = vm.createContext({
@@ -11,7 +11,7 @@ async function loadBriefing({ weather, fuel, basket, inflation, euribor, now, ci
     document: { getElementById: id => id === "briefingBody" ? root : id === "briefingUpdated" ? updated : null },
     CFG: { IPMA_CITY_ID: 1060300 },
     IPMA_CITIES: { 1060300: city },
-    lsGet: key => key.startsWith("ipma_") ? weather : key === "fuel" ? fuel :
+    lsGet: key => key.startsWith("ipma_") ? weather : key === "fuel" ? fuel : key === "fuel_es" ? fuelEs :
       key === "inflation_eurostat_v2" ? inflation : key === "euribor_live_v1" ? euribor : null,
     getCacheMeta: () => null,
     fmtAgeShort: age => `${Math.round(age / 3600000)}h`,
@@ -30,6 +30,7 @@ test("Portugal briefing includes only dated recent observations and escapes prov
     now,
     weather: { dataUpdate: new Date(now - 3600000).toISOString(), data: [{ forecastDate: "2026-10-29", tMax: "26.4", precipitaProb: "10" }] },
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, station_count: 187, updated_at: new Date(now - 7200000).toISOString() }],
+    fuelEs: { ts: now - 3600000, fecha: "28/10/2026", items: { gasoline_95: { avg: 1.61, n: 1200 } } },
     inflation: { source: "eurostat_live", rows: [{ m: "Set 2026", pt: 3.6, eu: 3.8 }, { m: "Ago 2026", pt: 3.6, eu: 3.2 }] },
     euribor: { _source: "bce_live", updated: "out. de 2026", rates: [{ term: "3M", val: 2.682 }, { term: "12M", val: 3.326 }] },
     basket: [["2026-10-21", 253.99], ["2026-10-28", 253.55]],
@@ -37,6 +38,7 @@ test("Portugal briefing includes only dated recent observations and escapes prov
   });
   assert.match(result.html, /Meteorologia/);
   assert.ok(result.html.includes("Gasolina 95 · 1,720 €/L"));
+  assert.ok(result.html.includes("+€0,110/L vs Espanha"));
   assert.match(result.html, /−€0,44 face ao registo anterior/);
   assert.ok(result.html.includes("Observação 28/10/2026"));
   assert.ok(result.html.includes("Inflação · IHPC"));

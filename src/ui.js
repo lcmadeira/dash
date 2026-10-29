@@ -254,6 +254,8 @@
     const title = `Cache local gravada há ${ageLbl} · ${t.toLocaleString("pt-PT")}${provider}${observed}${sourceInfo}${reason}`;
     if (dataMeta?.state === "static" || dataMeta?.state === "fallback") {
       setCardStatus(cardId, "static", `Referência${provider}`, { title, force: true });
+    } else if (dataMeta?.state === "stale") {
+      setCardStatus(cardId, "stale", `Gateway · há ${ageLbl}`, { title, force: true });
     } else if (dataMeta?.state === "partial") {
       setCardStatus(cardId, "stale", `Parcial · há ${ageLbl}`, { title, force: true });
     } else if (meta.expired) setCardStatus(cardId, "stale", `Stale · há ${ageLbl}`, { title, force: true });

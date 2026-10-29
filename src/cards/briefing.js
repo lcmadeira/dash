@@ -30,15 +30,22 @@
     }
 
     const fuel = window.lsGet?.("fuel");
+    const fuelEs = window.lsGet?.("fuel_es");
     const fuelCache = window.getCacheMeta?.("fuel");
     const gas95 = Array.isArray(fuel) ? fuel.find(item => item?.fuel_slug === "gasoline_95") : null;
     const fuelObserved = Date.parse(gas95?.updated_at || "");
     const fuelPrice = Number(gas95?.avg_price_eur);
     if (gas95 && Number.isFinite(fuelObserved) && now >= fuelObserved && now - fuelObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(fuelPrice) && fuelPrice > 0) {
+      const esObserved = Number(fuelEs?.ts);
+      const esPrice = Number(fuelEs?.items?.gasoline_95?.avg);
+      const esIsFresh = Number.isFinite(esObserved) && now >= esObserved && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(esPrice) && esPrice > 0;
+      const comparison = esIsFresh
+        ? ` · ${fuelPrice >= esPrice ? "+" : "−"}€${Math.abs(fuelPrice - esPrice).toFixed(3).replace(".", ",")}/L vs Espanha`
+        : "";
       observations.push({
         title: "Combustível",
-        value: `Gasolina 95 · ${fuelPrice.toFixed(3).replace(".", ",")} €/L`,
-        detail: `${Number(gas95.station_count) || 0} postos · API Aberta · observada ${formatDateTime(fuelObserved)}`,
+        value: `Gasolina 95 · ${fuelPrice.toFixed(3).replace(".", ",")} €/L${comparison}`,
+        detail: `${Number(gas95.station_count) || 0} postos${esIsFresh ? ` · média espanhola ${esPrice.toFixed(3).replace(".", ",")} €/L (${formatDate(esObserved)})` : ""} · API Aberta · observada ${formatDateTime(fuelObserved)}`,
         href: "#card-fuel",
       });
     } else if (fuelCache?.age > MAX_FUEL_AGE_HOURS * 3600000) {

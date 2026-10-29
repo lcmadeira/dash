@@ -144,7 +144,9 @@ async function loadCryptoOnce(force=false){
       const sourceMeta = data?._meta;
       lsSet("cg", data, {
         source: sourceMeta?.source || "CoinGecko",
-        state: sourceMeta?.state === "partial" ? "partial" : "live",
+        state: ["partial", "stale"].includes(sourceMeta?.state) ? sourceMeta.state : "live",
+        observedAt: sourceMeta?.checkedAt,
+        reason: sourceMeta?.state === "stale" ? "Fornecedor indisponível; snapshot do gateway" : undefined,
       });
     }
     /* Snapshot diário (localStorage) */

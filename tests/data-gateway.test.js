@@ -17,6 +17,7 @@ function installMemoryCache() {
     match: async request => entries.get(request.url)?.clone() || null,
     put: async (request, response) => entries.set(request.url, response.clone()),
   } };
+  return entries;
 }
 
 test("gateway serves validated CoinGecko data with CORS and edge cache", async () => {
@@ -45,6 +46,28 @@ test("gateway serves validated CoinGecko data with CORS and edge cache", async (
   const second = await handleRequest(request(), env, ctx);
   assert.equal(second.headers.get("X-Dash-Cache"), "HIT");
   assert.equal(upstreamCalls, 1);
+});
+
+test("gateway serves a visibly stale snapshot when the upstream is unavailable", async () => {
+  const entries = installMemoryCache();
+  globalThis.fetch = async () => Response.json({ bitcoin: { eur: 61000 } });
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const request = () => new Request("https://dash-data.test/v1/crypto", {
+    headers: { Origin: env.DASH_ORIGIN },
+  });
+  const first = await handleRequest(request(), env);
+  assert.equal(first.status, 200);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  entries.delete("https://dash-data.test/v1/crypto");
+
+  globalThis.fetch = async () => { throw new Error("upstream offline"); };
+  const fallback = await handleRequest(request(), env);
+  const payload = await fallback.json();
+  assert.equal(fallback.status, 200);
+  assert.equal(fallback.headers.get("X-Dash-Cache"), "STALE");
+  assert.equal(payload.bitcoin.eur, 61000);
+  assert.equal(payload._meta.state, "stale");
+  assert.ok(Number.isFinite(payload._meta.fallbackAt));
 });
 
 test("gateway returns recent GDELT JSON and rejects unapproved origins", async () => {

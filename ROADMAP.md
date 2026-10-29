@@ -369,10 +369,18 @@
 
 ### Próximas melhorias
 
-- [ ] Gateway Cloudflare opcional: publicar e configurar `CFG.DATA_API_BASE` para cripto e geopolítica; ainda não ativado em produção.
+- [ ] Gateway Cloudflare opcional: publicar e configurar `CFG.DATA_API_BASE` para cripto e geopolítica; ainda não ativado em produção. O código já serve snapshot stale identificado quando o fornecedor falha.
 - [ ] PSI 20: selecionar uma fonte de cotações de Lisboa estável e autorizada para exibição pública. A Euronext disponibiliza opções de feed e sujeita a exibição pública a políticas de dados; não foi ativado um endpoint não licenciado.
-- [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados.
+- [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados e comparações simples.
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
+
+### 29/10/2026 — Resiliência e monitorização publicada
+
+- ✅ Worker guarda um snapshot de contingência até 24 horas e só o serve quando o fornecedor falha; a resposta declara `state: stale`, cabeçalho `Warning` e não é novamente guardada pelo browser.
+- ✅ Cards de cripto e geopolítica mantêm o estado stale do gateway na proveniência/cache e no resumo de saúde, sem rotular a resposta como live.
+- ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
+- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial e seis recursos locais críticos; falhas de publicação passam a produzir uma execução falhada e visível em Actions.
+- ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
 

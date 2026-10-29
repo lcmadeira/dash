@@ -11,7 +11,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
 - **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro.
-- **Portugal hoje**: síntese de observações recentes da previsão IPMA, gasolina 95, histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual.
+- **Portugal hoje**: síntese de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual.
 - **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: novas gravações podem guardar fonte, estado (`live`, `partial`, `static`, `fallback`) e hora observada. O tooltip distingue cache recente de observação recente; envelopes antigos continuam compatíveis.
@@ -39,6 +39,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Node.js test runner** — testes de regressão executados com `npm test`
 - **Ruff** — lint de `dev_server.py`
 - **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
+- **Verificação agendada da publicação** — confirma diariamente a página GitHub Pages e os recursos críticos; também pode ser executada manualmente em Actions.
 
 ## Como executar
 
@@ -69,6 +70,8 @@ npx wrangler deploy --config worker/wrangler.toml
 ```
 
 Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. Se ficar vazia (predefinição), o dashboard continua a consultar os fornecedores diretamente e não depende do Cloudflare. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
+
+Quando um fornecedor falha, o Worker pode servir um snapshot de contingência guardado por até 24 horas. A resposta inclui `_meta.state: "stale"`, `X-Dash-Cache: STALE` e `Warning: 110`; os cards preservam esse estado para não apresentar a contingência como cotação atual. Esta proteção só existe depois de o Worker estar publicado e configurado.
 
 ### Cache e consola do browser
 
@@ -121,6 +124,8 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
+Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os seis recursos locais críticos. Para repetir o teste noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
+
 ### Executar lint localmente
 
 ```bash
@@ -140,7 +145,8 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `src/cards/gas-markets.js` contém os cards TTF e gás PT; o segundo reutiliza a cache TTF, validada antes de alimentar a estimativa MIBGAS.
 - `dev_server.py` — servidor dev com proxy CORS local
-- `worker/` — gateway serverless opcional para fontes com validação e cache na edge
+- `worker/` — gateway serverless opcional para fontes com validação, cache na edge e contingência stale identificada
+- `scripts/check-published-site.mjs` — smoke check da publicação GitHub Pages e dos recursos críticos
 - `ROADMAP.md` — plano de evolução e histórico recente
 - `package.json` — dev dependencies (ESLint, html-validate)
 - `eslint.config.js` — configuração ESLint (flat config)

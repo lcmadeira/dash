@@ -30,10 +30,12 @@ async function loadGeoOnce(force = false) {
       });
       const gatewayUrl = window.dataApiUrl?.("v1/geopolitics");
       let result = null;
+      let gatewayMeta = null;
       if (gatewayUrl) {
         try {
           result = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
             ["direct"], payload => Array.isArray(payload?.articles));
+          gatewayMeta = result?._meta || null;
         } catch {}
       }
       try {
@@ -85,8 +87,9 @@ async function loadGeoOnce(force = false) {
       const observedAt = Math.max(...cached.map(item => item.dt));
       lsSet(cacheKey, cached, {
         source: sources.map(id => GEO_FEEDS.find(feed => feed.id === id)?.label || id).join(", "),
-        state: sources.length > 1 ? "partial" : "live",
+        state: sources.length > 1 ? "partial" : gatewayMeta?.state === "stale" ? "stale" : "live",
         observedAt,
+        reason: gatewayMeta?.state === "stale" ? "Fornecedor indisponível; snapshot do gateway" : undefined,
       });
     }
     GEO_DATA = cached;
