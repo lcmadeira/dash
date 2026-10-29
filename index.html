@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261029-1"/>
+<link rel="stylesheet" href="styles.css?v=20261029-2"/>
 </head>
 <body>
 <!-- Container de Toast Notifications -->
@@ -381,6 +381,14 @@
     </div>
   </div>
   <div class="data-overview-items" id="dataOverviewItems">A recolher estado dos cards…</div>
+</section>
+
+<section class="portugal-briefing" aria-labelledby="briefingTitle">
+  <div class="briefing-heading">
+    <div><h2 id="briefingTitle">Portugal hoje</h2><p>Observações recentes com fonte e data; sem recomendações automáticas.</p></div>
+    <span class="briefing-updated" id="briefingUpdated">Atualizado a partir da cache disponível</span>
+  </div>
+  <div class="briefing-grid" id="briefingBody"><p class="briefing-empty">A recolher observações recentes…</p></div>
 </section>
 
 <!-- ═══════════════════ GRID ═══════════════════ -->
@@ -806,7 +814,7 @@
 
   <!-- Inflação s2 -->
   <!-- INFLAÇÃO PT vs Zona Euro -->
-  <div class="card s2">
+  <div class="card s2" id="card-inf">
     <div class="stripe" style="background:var(--red)"></div>
     <div class="ch">
       <div class="ch-ico" style="background:#EF575722">📊</div>
@@ -939,13 +947,15 @@
  <script src="src/core.js"></script>
  <script src="src/cache.js?v=20261029-1"></script>
  <script src="src/fetch.js?v=20261029-7"></script>
- <script src="src/ui.js?v=20261029-4"></script>
+ <script src="src/ui.js?v=20261029-6"></script>
+ <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
+ <script src="src/cards/briefing.js?v=20261029-1" integrity="sha384-3FKYPe8AbEv3uHSDTszP761mVxSVaGExQHJrKMQL3gwwUgYaLhq6KbZTEpL8uixe"></script>
  <script src="src/cards/elec.js"></script>
  <script src="src/cards/news.js?v=20261029-1"></script>
  <script src="src/cards/seis.js"></script>
  <script src="src/cards/dams.js"></script>
- <script src="src/cards/fuel.js"></script>
- <script src="src/cards/weather.js"></script>
+ <script src="src/cards/fuel.js?v=20261029-1"></script>
+ <script src="src/cards/weather.js?v=20261029-1"></script>
  <script src="src/cards/holidays.js"></script>
  <script src="src/cards/air-quality.js?v=20261029-1"></script>
  <script src="src/cards/market-stats.js"></script>
@@ -965,12 +975,12 @@
  <script src="src/cards/euribor.js"></script>
  <script src="src/cards/fx.js"></script>
  <script src="src/cards/crypto.js?v=20261029-5"></script>
- <script src="src/cards/psi20.js?v=20261029-4"></script>
+ <script src="src/cards/psi20.js?v=20261029-5"></script>
  <script src="src/cards/geopolitics.js?v=20261029-5"></script>
  <script src="src/cards/gas-markets.js?v=20261029-1"></script>
  <script src="src/widgets/economic-calendar.js"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261029-2"></script>
+<script src="src/app.js?v=20261029-3"></script>
 </body>
 </html>

@@ -954,6 +954,7 @@ test("PSI 20 hides static fallback prices and marks its card header unavailable"
     fetchWithCORS: async () => { throw new Error("quote unavailable"); },
     fetchStooqMulti: async () => ({}),
     fetchStooqDailySeries: async () => [],
+    getLisbonMarketContext: () => ({ state: "open", label: "Sessão normal aberta" }),
     _lastN: rows => rows,
     _setOnByDataAttr() {},
     addToHistory() {},
@@ -966,7 +967,8 @@ test("PSI 20 hides static fallback prices and marks its card header unavailable"
   vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
   await context.loadPSI20();
 
-  assert.equal(header.textContent, "⚠ Sem cotação atual");
+  assert.equal(header.textContent, "Fonte indisponível");
+  assert.match(header.title, /sessão aberta/);
   assert.match(header.className, /warn/);
   assert.match(body.innerHTML, /Cotação indisponível/);
   assert.match(body.innerHTML, /sem cotação atual/);

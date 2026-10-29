@@ -35,6 +35,7 @@ async function loadWeather(force=false){
           <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
         </div>`;}).join("")}</div>
       <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API</div>`;
+    window.renderPortugalBriefing?.();
   }catch(e){$("wx-body").innerHTML=er(e,{context:"Meteorologia IPMA",action:"clique em ↺ para atualizar"});notifyNonCriticalError("Meteorologia IPMA",e,"clique em ↺ para atualizar");}
 }
 

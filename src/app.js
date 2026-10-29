@@ -4000,6 +4000,9 @@ function loadCabazHist(){
   [...CABAZ_HIST_BASE,...extra].forEach(e=>{byDate[e[0]]=e;});
   return Object.values(byDate).sort((a,b)=>a[0]>b[0]?1:-1);
 }
+window.getCabazBriefingData = () => loadCabazHist()
+  .filter(row => Array.isArray(row) && /^\d{4}-\d{2}-\d{2}$/.test(row[0]) && Number.isFinite(Number(row[1])))
+  .map(row => [row[0], Number(row[1])]);
 
 /* Guardar entrada manual */
 function saveCabazToLS(iso, valor, nota){
@@ -4239,6 +4242,7 @@ function saveCabazEntry(){
   saveCabazToLS(iso,valor,nota);
   closeCabazEditor();
   renderCabaz();
+  window.renderPortugalBriefing?.();
 
   /* Confirmação visual */
   const btn=document.getElementById("cabaz-edit-btn");

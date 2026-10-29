@@ -125,6 +125,19 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.data-overview-item{padding:4px 7px;border:1px solid var(--b);border-radius:999px;background:var(--b2);color:var(--t2);font:inherit;cursor:pointer}
 	.data-overview-item:hover,.data-overview-item:focus-visible{border-color:var(--accent);outline:2px solid transparent;color:var(--text)}
 	.data-overview-item[data-state="error"]{color:var(--red)}.data-overview-item[data-state="stale"],.data-overview-item[data-state="static"]{color:var(--accent)}
+	.portugal-briefing{margin:12px 0;padding:14px;background:linear-gradient(110deg,var(--surface),var(--card));border:1px solid var(--b);border-radius:var(--r)}
+	.briefing-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+	.portugal-briefing h2{margin:0;color:var(--text);font-size:.9rem;font-weight:800}
+	.briefing-heading p{margin:3px 0 0;color:var(--t3);font-size:.58rem}
+	.briefing-updated{color:var(--t3);font: .52rem var(--mono)}
+	.briefing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+	.briefing-item{display:flex;min-width:0;flex-direction:column;gap:5px;padding:10px 11px;border:1px solid var(--b);border-radius:var(--rs);background:var(--card);text-decoration:none;transition:border-color .2s,transform .2s}
+	.briefing-item:hover,.briefing-item:focus-visible{border-color:var(--accent);transform:translateY(-1px);outline:2px solid transparent}
+	.briefing-title{color:var(--t3);font-size:.56rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+	.briefing-item strong{color:var(--text);font-size:.78rem;line-height:1.4}
+	.briefing-detail{color:var(--t3);font-size:.53rem;line-height:1.5}
+	.briefing-item.is-stale strong{color:var(--accent)}
+	.briefing-empty{grid-column:1/-1;margin:0;padding:8px 2px;color:var(--t3);font-size:.62rem}
 	.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--grid-gap);align-items:start}
 	.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.r2{grid-row:span 2}
 
@@ -145,6 +158,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   .hdr-left{order:1;align-items:center}
   .hdr-center{order:2}
   .hdr-right{order:3;justify-content:center}
+  .briefing-grid{grid-template-columns:1fr}
   
   /* Tamanhos de fonte reduzidos */
   html{font-size:14px}

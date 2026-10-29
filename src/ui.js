@@ -388,6 +388,7 @@
 
     Object.entries(byId).forEach(([cardId, cacheKey]) => refreshCardStatusFromCache(cardId, cacheKey));
     enhanceRefreshButtonLabels();
+    window.renderPortugalBriefing?.();
 
     const cm = getCabazMeta();
     if (cm) {

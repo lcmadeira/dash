@@ -370,8 +370,8 @@
 ### Próximas melhorias
 
 - [ ] Gateway Cloudflare opcional: publicar e configurar `CFG.DATA_API_BASE` para cripto e geopolítica; ainda não ativado em produção.
-- [ ] PSI 20: selecionar uma fonte de cotações de Lisboa autorizada e estável; Stooq/Yahoo/proxies atuais não garantem disponibilidade nem atualização em tempo real.
-- [ ] Resumo diário editorial: gerar destaques apenas quando existirem observações comparáveis, atuais e com fonte identificada.
+- [ ] PSI 20: selecionar uma fonte de cotações de Lisboa estável e autorizada para exibição pública. A Euronext disponibiliza opções de feed e sujeita a exibição pública a políticas de dados; não foi ativado um endpoint não licenciado.
+- [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados.
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
@@ -379,6 +379,14 @@
 - ✅ Novo resumo acessível no topo agrega estados dos cards e permite saltar para dados desatualizados, parciais, de referência ou com erro.
 - ✅ PSI 20, cripto e geopolítica reutilizam a operação em curso quando atualizações coincidem, reduzindo chamadas redundantes.
 - ✅ Documentação esclarece o alcance do resumo: estado de disponibilidade/frescura, sem inferir acontecimentos a partir de dados incompletos.
+
+### 29/10/2026 — Briefing Portugal e contexto de sessão
+
+- ✅ Vista “Portugal hoje” resume meteorologia IPMA, preço médio da gasolina 95, cabaz alimentar e, quando há cache live recente, IHPC Eurostat e Euribor BCE; itens apontam para os cards de origem.
+- ✅ A leitura do cabaz compara os dois últimos registos e preserva a distinção entre registo local e fonte externa.
+- ✅ PSI 20 distingue mercado fechado, fora de sessão, sessão especial e falta de cotação durante dia de negociação, sem revelar os valores de fallback.
+- ✅ Calendário Euronext 2026 e fontes/limites de dados públicos documentados; não foi ligada uma fonte de bolsa sem licença de exibição pública confirmada.
+- ✅ Testes de regressão para limite de sessão/feriados e para inclusão de dados recentes versus observações antigas no briefing.
 
 ### v2.0.0 — Futuro
 

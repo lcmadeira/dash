@@ -269,6 +269,7 @@ async function renderFuel(force=false){
       </div>`;
     }).join("")}</div>
     <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${esLbl}</div>`;
+    window.renderPortugalBriefing?.();
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }
 

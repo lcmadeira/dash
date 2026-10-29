@@ -11,6 +11,8 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
 - **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro.
+- **Portugal hoje**: síntese de observações recentes da previsão IPMA, gasolina 95, histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual.
+- **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: novas gravações podem guardar fonte, estado (`live`, `partial`, `static`, `fallback`) e hora observada. O tooltip distingue cache recente de observação recente; envelopes antigos continuam compatíveis.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
@@ -97,6 +99,8 @@ Notas:
 - No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - O card PSI 20 tenta primeiro obter as cotações em lote da Stooq, usa Yahoo Finance para símbolos em falta e oculta os valores de referência quando os proxies não devolvem cotações atuais. A ligação oficial da Euronext permanece disponível como consulta alternativa.
 - O card de geopolítica usa GDELT DOC JSON diretamente, com CORS, antes de tentar as feeds RSS de reserva. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- O contexto de sessão da Euronext Lisboa usa o [calendário oficial de feriados](https://www.euronext.com/en/trading/trading-hours-holidays) e o horário regular publicado pelo [Santander](https://www.santander.pt/onebroker); em 24 e 31 de dezembro de 2026 identifica sessão curta sem assumir a hora de fecho, ainda por confirmar pela Euronext.
+- Não há uma fonte pública de cotações do PSI autorizada/configurada. A Euronext apresenta opções de dados/feeds e indica que a exibição pública está sujeita a políticas de licença; dados atrasados gratuitos são para uso interno, pelo que o painel mantém as cotações ausentes ocultas até existir uma fonte compatível com publicação pública ([políticas Euronext](https://www.euronext.com/en/data/real-time-data/pricing-specs-agreements/market-data-pricing-policies), [Euronext Stream API](https://www.euronext.com/en/products-services/euronext-stream-api)).
 - O envelope local mantém `{d, ts}` e aceita `meta` opcional com `source`, `state`, `observedAt` e `reason`; `ts` continua a indicar quando o browser guardou a resposta, não quando o fornecedor observou o dado.
 - Certas funcionalidades (ex.: notificações periódicas) estão condicionadas por CORS — ver `ROADMAP.md`.
 
@@ -132,7 +136,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 - `index.html` — estrutura da página e dos cards, com referências aos estilos e scripts
 - `styles.css` — estilos globais da aplicação
 - `src/app.js` — lógica principal da aplicação, carregada como script clássico para manter compatibilidade com handlers inline
-- `src/` — helpers de cache/fetch/UI, configuração, módulos de cards e widgets, incluindo combustíveis e relógios dos mercados
+- `src/` — helpers de cache/fetch/UI, contexto do calendário de Lisboa, briefing Portugal, módulos de cards e widgets, incluindo combustíveis e relógios dos mercados
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `src/cards/gas-markets.js` contém os cards TTF e gás PT; o segundo reutiliza a cache TTF, validada antes de alimentar a estimativa MIBGAS.
 - `dev_server.py` — servidor dev com proxy CORS local

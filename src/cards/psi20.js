@@ -1,4 +1,4 @@
-/* global Date, EU_INDICES, PFX, PSI20_CONST, REF_DATE, _lastN, _setOnByDataAttr, addToHistory, console, document, fetchStooqDailySeries, fetchStooqMulti, fetchWithCORS, localStorage, lsGet, lsSet, renderTrendChart, window, ld */
+/* global Date, EU_INDICES, PFX, PSI20_CONST, _lastN, _setOnByDataAttr, addToHistory, console, document, fetchStooqDailySeries, fetchStooqMulti, fetchWithCORS, localStorage, lsGet, lsSet, renderTrendChart, window, ld */
 (() => {
 	/* ── PSI20 · dados ── (config em src/config.js) */
 
@@ -162,8 +162,15 @@ async function loadPSI20Trend(force = false) {
   const headerStatus = document.getElementById("psi20-header-status");
   if (headerStatus) {
     headerStatus.className = `badge ${psi.live ? "live" : "warn"}`;
-    headerStatus.textContent = psi.live ? `● ${(psi.src || cache.src || "dados").toUpperCase()}` : "⚠ Sem cotação atual";
-    headerStatus.title = psi.live ? "Última cotação devolvida pela fonte externa" : "As fontes automáticas não devolveram uma cotação atual para o PSI";
+    const session = window.getLisbonMarketContext?.();
+    const reason = !session ? "As fontes automáticas não devolveram uma cotação atual para o PSI" :
+      session.state === "closed" || session.state === "outside-session" || session.state === "special-session" ? session.label :
+      "Sem cotação devolvida durante uma sessão aberta";
+    headerStatus.textContent = psi.live ? `● ${(psi.src || cache.src || "dados").toUpperCase()}` :
+      session?.state === "closed" ? "Mercado encerrado" :
+      session?.state === "outside-session" ? "Fora de sessão" : "Fonte indisponível";
+    if (!psi.live && session?.state === "special-session") headerStatus.textContent = "Sessão curta";
+    headerStatus.title = psi.live ? "Última cotação devolvida pela fonte externa" : reason;
   }
 
   function miniBar(chg, w=48, h=22){
@@ -180,14 +187,14 @@ async function loadPSI20Trend(force = false) {
 
   const liveTag=psi.live
     ? `<span class="badge live">● ${(cache.src||"live").toUpperCase()}</span>`
-    : `<span class="badge warn">⚠ FALLBACK ${REF_DATE.full.toUpperCase()}</span>`;
+    : `<span class="badge warn">⚠ ${window.getLisbonMarketContext?.()?.label || "Sem cotação atual"}</span>`;
 
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-bottom:8px;align-items:start">
     <div style="background:var(--b2);border-radius:10px;padding:10px 14px;min-width:160px;border-left:4px solid #10B981">
       <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
       <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.live ? psi.price.toFixed(0) : "—"}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : "Cotação indisponível"}</div>
+      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : (window.getLisbonMarketContext?.()?.state === "closed" ? "Sem negociação hoje" : "Cotação indisponível")}</div>
       <div style="display:flex;gap:8px;margin-top:4px;font-size:.55rem;color:var(--t3)">
         <span>H <b style="color:var(--t2)">${psi.live ? psi.hi.toFixed(0) : "—"}</b></span>
         <span>L <b style="color:var(--t2)">${psi.live ? psi.lo.toFixed(0) : "—"}</b></span>
