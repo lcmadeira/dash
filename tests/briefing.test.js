@@ -43,6 +43,7 @@ test("Portugal briefing includes only dated recent observations and escapes prov
   assert.ok(result.html.includes("Observação 28/10/2026"));
   assert.ok(result.html.includes("Inflação · IHPC"));
   assert.ok(result.html.includes("-0,2 pp vs zona euro"));
+  assert.ok(result.html.includes("0,0 pp face ao mês anterior"));
   assert.ok(result.html.includes("Euribor"));
   assert.ok(result.html.includes("3M 2,682% · 12M 3,326%"));
   assert.ok(result.html.includes("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"));

@@ -22,6 +22,16 @@
     static: 7 * 24 * 60 * 60 * 1000, // 7 dias (dados estáticos)
   };
 
+  /* Limites de observação: separados do TTL local para detetar payloads antigos recém-consultados. */
+  const OBSERVATION_MAX_AGE = {
+    ipma: 36 * 60 * 60 * 1000,
+    fuel: 72 * 60 * 60 * 1000,
+    fuel_es: 72 * 60 * 60 * 1000,
+    fx: 4 * 24 * 60 * 60 * 1000,
+    euribor_live_v1: 75 * 24 * 60 * 60 * 1000,
+    inflation_eurostat_v2: 120 * 24 * 60 * 60 * 1000,
+  };
+
   /**
    * Devolve o tempo de vida configurado para uma chave de cache.
    * @param {string} key Chave lógica, sem o prefixo interno.
@@ -33,6 +43,24 @@
       if (lower.includes(prefix)) return ttl;
     }
     return CACHE_TTL;
+  }
+
+  /** Limite de idade da observação do fornecedor, distinto da idade de gravação local. */
+  function getMaxObservationAge(key) {
+    const id = String(key || "").toLowerCase();
+    if (id.startsWith("ipma_")) return OBSERVATION_MAX_AGE.ipma;
+    if (id === "fuel") return OBSERVATION_MAX_AGE.fuel;
+    if (id === "fuel_es") return OBSERVATION_MAX_AGE.fuel_es;
+    if (id === "fx") return OBSERVATION_MAX_AGE.fx;
+    return OBSERVATION_MAX_AGE[id] || null;
+  }
+
+  function getObservationFreshness(key, observedAt, now = Date.now()) {
+    const maxAge = getMaxObservationAge(key);
+    const timestamp = typeof observedAt === "number" ? observedAt : Date.parse(String(observedAt || ""));
+    if (!maxAge || !Number.isFinite(timestamp) || timestamp <= 0 || timestamp > now) return null;
+    const age = now - timestamp;
+    return { age, maxAge, stale: age >= maxAge };
   }
 
   /**
@@ -163,6 +191,8 @@
   window.PFX = PFX;
   window.CACHE_TTL_MAP = CACHE_TTL_MAP;
   window.getTTL = getTTL;
+  window.getMaxObservationAge = getMaxObservationAge;
+  window.getObservationFreshness = getObservationFreshness;
   window.getStaleCache = getStaleCache;
   window.normalizeCacheMeta = normalizeCacheMeta;
   window.cleanOldCacheSync = cleanOldCacheSync;

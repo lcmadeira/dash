@@ -60,10 +60,19 @@
         Number.isFinite(latestInflation?.pt) && Number.isFinite(latestInflation?.eu)) {
       const gap = latestInflation.pt - latestInflation.eu;
       const gapText = `${gap > 0 ? "+" : ""}${gap.toFixed(1).replace(".", ",")} pp vs zona euro`;
+      const previousInflation = inflationRows[1];
+      const previousPeriod = parseMonthLabel(previousInflation?.m);
+      const consecutiveMonths = previousPeriod && Math.abs(monthOrdinal(inflationPeriod) - monthOrdinal(previousPeriod)) === 1;
+      const monthlyChange = consecutiveMonths && Number.isFinite(previousInflation?.pt)
+        ? latestInflation.pt - previousInflation.pt
+        : null;
+      const monthlyText = Number.isFinite(monthlyChange)
+        ? `${monthlyChange > 0 ? "+" : ""}${monthlyChange.toFixed(1).replace(".", ",")} pp face ao mês anterior`
+        : "";
       observations.push({
         title: "Inflação · IHPC",
         value: `Portugal ${latestInflation.pt.toFixed(1).replace(".", ",")}% · zona euro ${latestInflation.eu.toFixed(1).replace(".", ",")}%`,
-        detail: `${formatDate(inflationPeriod)} · ${gapText} · Eurostat`,
+        detail: `${formatDate(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
         href: "#card-inf",
       });
     }
@@ -121,6 +130,10 @@
   function monthIndex(value) {
     const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
     return months.indexOf(String(value || "").toLowerCase());
+  }
+  function monthOrdinal(timestamp) {
+    const date = new Date(timestamp);
+    return date.getUTCFullYear() * 12 + date.getUTCMonth();
   }
   function formatDateTime(value) {
     return new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Lisbon" }).format(new Date(value));

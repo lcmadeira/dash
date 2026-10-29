@@ -70,6 +70,15 @@ test("cache preserves validated source provenance without breaking legacy envelo
   vm.runInContext(await readFile("src/cache.js", "utf8"), context);
   vm.runInContext(await readFile("src/ui.js", "utf8"), context);
 
+  assert.equal(context.getMaxObservationAge("ipma_1110600"), 36 * 60 * 60 * 1000);
+  assert.equal(context.getMaxObservationAge("fuel_es"), 72 * 60 * 60 * 1000);
+  assert.equal(context.getMaxObservationAge("euribor_live_v1"), 75 * 24 * 60 * 60 * 1000);
+  assert.equal(context.getMaxObservationAge("hist_fx_USD_90"), null);
+  const now = Date.parse("2026-10-29T12:00:00Z");
+  assert.equal(context.getObservationFreshness("fuel", now - 73 * 60 * 60 * 1000, now).stale, true);
+  assert.equal(context.getObservationFreshness("fuel", now - 24 * 60 * 60 * 1000, now).stale, false);
+  assert.equal(context.getObservationFreshness("fuel", now + 60000, now), null);
+
   const observedAt = Date.now() - 60000;
   assert.equal(context.lsSet("market", { price: 12 }, {
     source: "Provider A", state: "partial", observedAt, reason: "1 symbol missing",

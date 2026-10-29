@@ -380,6 +380,8 @@
 - ✅ Cards de cripto e geopolítica mantêm o estado stale do gateway na proveniência/cache e no resumo de saúde, sem rotular a resposta como live.
 - ✅ Normalizador da cache passa a preservar o estado `stale`; regressão coberta por teste para que a contingência continue identificada após leitura local.
 - ✅ Metadados de fonte/observação acrescentados a IPMA, API Aberta, MITECO/MINETUR, Frankfurter/ExchangeRate-API, Eurostat e BCE; cache antiga continua aceite.
+- ✅ Resumo de saúde compara idade local e idade observada nos fornecedores principais, com limites próprios (36h meteorologia, 72h combustíveis, 4d câmbio, 75d Euribor e 120d IHPC).
+- ✅ Briefing acrescenta variação mensal do IHPC apenas quando o período anterior é consecutivo, evitando comparações enganosas com meses em falta.
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
 - ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial, seis recursos locais críticos e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.

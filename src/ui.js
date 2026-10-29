@@ -246,6 +246,7 @@
       ? ` · Fonte: ${sourceTs.toLocaleString("pt-PT")} (há ${fmtAgeShort(Date.now() - meta.sourceTs)})`
       : " · Idade baseada na gravação local; a fonte não forneceu timestamp reconhecível";
     const dataMeta = meta.dataMeta;
+    const observationFreshness = window.getObservationFreshness?.(cacheKey, meta.sourceTs);
     const provider = dataMeta?.source ? ` · Fonte: ${dataMeta.source}` : "";
     const reason = dataMeta?.reason ? ` · ${dataMeta.reason}` : "";
     const observed = meta.sourceTs
@@ -258,6 +259,8 @@
       setCardStatus(cardId, "stale", `Gateway · há ${ageLbl}`, { title, force: true });
     } else if (dataMeta?.state === "partial") {
       setCardStatus(cardId, "stale", `Parcial · há ${ageLbl}`, { title, force: true });
+    } else if (observationFreshness?.stale) {
+      setCardStatus(cardId, "stale", `Fonte antiga · há ${fmtAgeShort(observationFreshness.age)}`, { title, force: true });
     } else if (meta.expired) setCardStatus(cardId, "stale", `Stale · há ${ageLbl}`, { title, force: true });
     else setCardStatus(cardId, "cache", `Cache${provider} · há ${ageLbl}`, { title, force: true });
   }
