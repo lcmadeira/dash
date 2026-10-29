@@ -130,6 +130,8 @@ async function loadPSI20Trend(force = false) {
 
 	    const isLive=results.some(r=>r?.live);
 	    const src=results.find(r=>r?.src)?.src || null;
+	    const liveSources=[...new Set(results.filter(r=>r?.live).map(r=>r.src||"market"))];
+	    const hasFallback=results.some(r=>!r?.live);
 
 	    cache={
 	      indices: EU_INDICES.map((s,i)=>results[i]||mkFallback(s)),
@@ -138,7 +140,11 @@ async function loadPSI20Trend(force = false) {
 	      src,
 	      ts:      Date.now()
 	    };
-	    if(isLive) lsSet(CK,cache);
+	    if(isLive) lsSet(CK, cache, {
+	      source: liveSources.join(" + "),
+	      state: hasFallback ? "partial" : "live",
+	      reason: hasFallback ? "Alguns símbolos não têm cotação recente." : "",
+	    });
 	  }
 
   const psi=cache.indices[0];

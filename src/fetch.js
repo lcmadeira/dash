@@ -40,6 +40,21 @@
     }
   }
 
+  /** Devolve uma rota do gateway opcional, sem aceitar URLs arbitrários. */
+  function dataApiUrl(path) {
+    const base = String(window.CFG?.DATA_API_BASE || "").trim();
+    const route = String(path || "").replace(/^\/+/, "");
+    if (!base || !/^v1\/[a-z-]+$/.test(route)) return null;
+    try {
+      const parsed = new URL(base);
+      if (parsed.username || parsed.password || parsed.search || parsed.hash) return null;
+      if (parsed.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(parsed.hostname)) return null;
+      return `${base.replace(/\/+$/, "")}/${route}`;
+    } catch {
+      return null;
+    }
+  }
+
   window.setFetchDebug = function setFetchDebug(on = true) {
     try {
       const pfx = window.PFX || "dash_";
@@ -417,6 +432,7 @@
   window.IS_LOCAL_DEV = IS_LOCAL_DEV;
   window.localProxyUrl = localProxyUrl;
   window.fetchViaLocalProxy = fetchViaLocalProxy;
+  window.dataApiUrl = dataApiUrl;
   window.withTimeoutOpts = withTimeoutOpts;
   window.buildFetchPlan = buildFetchPlan;
   window.fetchFirstOk = fetchFirstOk;

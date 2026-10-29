@@ -1,6 +1,6 @@
 # Painel Pessoal · Portugal
 
-Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — desenhado para correr **sem backend** e com **cache local (localStorage)**. Os registos têm TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
+Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — funciona sem backend e aceita um gateway serverless opcional. Mantém cache local (`localStorage`) com TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
 
 ## O que inclui
 
@@ -10,6 +10,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers, **preferências de conforto visual e pesquisa em tempo-real**) aplicado em tempo-real **sem recarregar a página**.
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
+- **Proveniência da cache**: novas gravações podem guardar fonte, estado (`live`, `partial`, `static`, `fallback`) e hora observada. O tooltip distingue cache recente de observação recente; envelopes antigos continuam compatíveis.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.
@@ -55,6 +56,16 @@ python3 dev_server.py
 
 Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais, rejeita nomes DNS sem endereços públicos e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
 
+### Gateway de dados opcional
+
+`worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko e GDELT. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
+
+```bash
+npx wrangler deploy --config worker/wrangler.toml
+```
+
+Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. Se ficar vazia (predefinição), o dashboard continua a consultar os fornecedores diretamente e não depende do Cloudflare. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
+
 ### Cache e consola do browser
 
 O GitHub Pages pode manter HTML, CSS e JavaScript em cache durante alguns minutos. Ao alterar `styles.css`, `src/widgets/market-clock.js` ou `src/app.js`, atualiza o parâmetro `v` nas respetivas tags `<link>`/`<script>` em `index.html`; isso força o browser a pedir os ficheiros novos. Para confirmar uma publicação, faz uma atualização forçada (`Ctrl+Shift+R`). O HTML atual não declara recursos `preload`; ao investigar avisos desse tipo, verifica o URL completo, pois widgets e folhas de estilo externas também podem criar as suas próprias sugestões de carregamento.
@@ -84,6 +95,7 @@ Notas:
 - No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - O card PSI 20 tenta primeiro obter as cotações em lote da Stooq, usa Yahoo Finance para símbolos em falta e oculta os valores de referência quando os proxies não devolvem cotações atuais. A ligação oficial da Euronext permanece disponível como consulta alternativa.
 - O card de geopolítica usa GDELT DOC JSON diretamente, com CORS, antes de tentar as feeds RSS de reserva. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- O envelope local mantém `{d, ts}` e aceita `meta` opcional com `source`, `state`, `observedAt` e `reason`; `ts` continua a indicar quando o browser guardou a resposta, não quando o fornecedor observou o dado.
 - Certas funcionalidades (ex.: notificações periódicas) estão condicionadas por CORS — ver `ROADMAP.md`.
 
 ## Roadmap
@@ -122,6 +134,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 - Os helpers partilhados em `src/cache.js`, `src/fetch.js` e `src/ui.js`, e os pontos de entrada dos cards em `src/cards/`, usam JSDoc para documentar parâmetros, resultados e comportamento relevante.
 - `src/cards/gas-markets.js` contém os cards TTF e gás PT; o segundo reutiliza a cache TTF, validada antes de alimentar a estimativa MIBGAS.
 - `dev_server.py` — servidor dev com proxy CORS local
+- `worker/` — gateway serverless opcional para fontes com validação e cache na edge
 - `ROADMAP.md` — plano de evolução e histórico recente
 - `package.json` — dev dependencies (ESLint, html-validate)
 - `eslint.config.js` — configuração ESLint (flat config)

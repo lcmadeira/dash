@@ -1,0 +1,6 @@
+name = "dash-data-gateway"
+main = "src/index.js"
+compatibility_date = "2026-10-29"
+
+[vars]
+DASH_ORIGIN = "https://lcmadeira.github.io"

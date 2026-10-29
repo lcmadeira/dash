@@ -67,7 +67,9 @@
         || !Number.isFinite(ts) || ts < 0 || ts > Date.now()) return null;
       const ttl = window.getTTL ? window.getTTL(k) : 0;
       const age = Date.now() - ts;
-      return { ts, ttl, age, expired: ttl ? age >= ttl : false, sourceTs: getSourceTimestamp(k, parsed.d) };
+      const dataMeta = window.normalizeCacheMeta ? window.normalizeCacheMeta(parsed.meta) : null;
+      const sourceTs = dataMeta?.observedAt || getSourceTimestamp(k, parsed.d);
+      return { ts, ttl, age, expired: ttl ? age >= ttl : false, sourceTs, dataMeta };
     } catch {
       return null;
     }
@@ -202,9 +204,19 @@
     const sourceInfo = sourceTs
       ? ` · Fonte: ${sourceTs.toLocaleString("pt-PT")} (há ${fmtAgeShort(Date.now() - meta.sourceTs)})`
       : " · Idade baseada na gravação local; a fonte não forneceu timestamp reconhecível";
-    const title = `Cache local gravada há ${ageLbl} · ${t.toLocaleString("pt-PT")}${sourceInfo}`;
-    if (meta.expired) setCardStatus(cardId, "stale", `Stale · há ${ageLbl}`, { title, force: true });
-    else setCardStatus(cardId, "cache", `Cache · há ${ageLbl}`, { title, force: true });
+    const dataMeta = meta.dataMeta;
+    const provider = dataMeta?.source ? ` · Fonte: ${dataMeta.source}` : "";
+    const reason = dataMeta?.reason ? ` · ${dataMeta.reason}` : "";
+    const observed = meta.sourceTs
+      ? ` · Observado: ${new Date(meta.sourceTs).toLocaleString("pt-PT")} (há ${fmtAgeShort(Date.now() - meta.sourceTs)})`
+      : "";
+    const title = `Cache local gravada há ${ageLbl} · ${t.toLocaleString("pt-PT")}${provider}${observed}${sourceInfo}${reason}`;
+    if (dataMeta?.state === "static" || dataMeta?.state === "fallback") {
+      setCardStatus(cardId, "static", `Referência${provider}`, { title, force: true });
+    } else if (dataMeta?.state === "partial") {
+      setCardStatus(cardId, "stale", `Parcial · há ${ageLbl}`, { title, force: true });
+    } else if (meta.expired) setCardStatus(cardId, "stale", `Stale · há ${ageLbl}`, { title, force: true });
+    else setCardStatus(cardId, "cache", `Cache${provider} · há ${ageLbl}`, { title, force: true });
   }
 
   function getWeatherCacheKey() {

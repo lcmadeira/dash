@@ -23,10 +23,20 @@ async function loadGeo(force = false) {
         query: "(geopolitics OR conflict OR war OR diplomacy OR sanctions)",
         mode: "ArtList", format: "json", maxrecords: "30", sort: "DateDesc", timespan: "7d",
       });
+      const gatewayUrl = window.dataApiUrl?.("v1/geopolitics");
+      let result = null;
+      if (gatewayUrl) {
+        try {
+          result = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
+            ["direct"], payload => Array.isArray(payload?.articles));
+        } catch {}
+      }
       try {
-        const url = `https://api.gdeltproject.org/api/v2/doc/doc?${params}`;
-        const result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
-          ["direct"], payload => Array.isArray(payload?.articles));
+        if (!result) {
+          const url = `https://api.gdeltproject.org/api/v2/doc/doc?${params}`;
+          result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
+            ["direct"], payload => Array.isArray(payload?.articles));
+        }
         result.articles.slice(0, 24).forEach((article, index) => {
           const title = String(article?.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
           const dt = parseGdeltDate(article?.seendate) || Date.now() - index * 60000;
@@ -66,7 +76,13 @@ async function loadGeo(force = false) {
 
       cached = sanitizeGeoItems(articles);
       if (!cached.length) throw new Error("Feeds indisponíveis");
-      lsSet(cacheKey, cached);
+      const sources = [...new Set(cached.map(item => item.id))];
+      const observedAt = Math.max(...cached.map(item => item.dt));
+      lsSet(cacheKey, cached, {
+        source: sources.map(id => GEO_FEEDS.find(feed => feed.id === id)?.label || id).join(", "),
+        state: sources.length > 1 ? "partial" : "live",
+        observedAt,
+      });
     }
     GEO_DATA = cached;
     renderGeo();

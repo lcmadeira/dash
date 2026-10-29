@@ -49,6 +49,29 @@
       && Number.isFinite(ts) && ts >= 0 && ts <= now;
   }
 
+  /** Normaliza a proveniência opcional guardada com cada resposta de fornecedor. */
+  function normalizeCacheMeta(meta) {
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
+    const allowedStates = new Set(["live", "partial", "static", "fallback"]);
+    const state = allowedStates.has(meta.state) ? meta.state : null;
+    const toTimestamp = (value) => {
+      if (typeof value === "number" && Number.isFinite(value) && value > 0 && value <= Date.now()) return value;
+      if (typeof value === "string") {
+        const parsed = Date.parse(value);
+        if (Number.isFinite(parsed) && parsed > 0 && parsed <= Date.now()) return parsed;
+      }
+      return null;
+    };
+    const normalized = {
+      source: typeof meta.source === "string" ? meta.source.trim().slice(0, 120) : "",
+      state,
+      observedAt: toTimestamp(meta.observedAt),
+      reason: typeof meta.reason === "string" ? meta.reason.trim().slice(0, 180) : "",
+    };
+    if (!normalized.source && !normalized.state && !normalized.observedAt && !normalized.reason) return null;
+    return normalized;
+  }
+
   /**
    * Lê o registo guardado sem aplicar o TTL, para permitir recuperação de dados antigos.
    * @param {string} key Chave lógica, sem o prefixo interno.
@@ -59,7 +82,7 @@
       const raw = localStorage.getItem(PFX + key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (isValidEnvelope(parsed)) return parsed;
+      if (isValidEnvelope(parsed)) return { ...parsed, meta: normalizeCacheMeta(parsed.meta) };
     } catch {}
     return null;
   }
@@ -111,10 +134,14 @@
    * Guarda dados com timestamp e tenta limpar entradas antigas se o armazenamento estiver cheio.
    * @param {string} k Chave lógica, sem o prefixo interno.
    * @param {*} d Dados serializáveis a guardar.
+   * @param {{source?: string, state?: "live"|"partial"|"static"|"fallback", observedAt?: string|number, reason?: string}} [meta] Proveniência e estado da resposta.
    * @returns {boolean} Indica se a gravação foi concluída.
    */
-  function lsSet(k, d) {
-    const payload = JSON.stringify({ d, ts: Date.now() });
+  function lsSet(k, d, meta) {
+    const envelope = { d, ts: Date.now() };
+    const normalizedMeta = normalizeCacheMeta(meta);
+    if (normalizedMeta) envelope.meta = normalizedMeta;
+    const payload = JSON.stringify(envelope);
     try {
       localStorage.setItem(PFX + k, payload);
       return true;
@@ -137,6 +164,7 @@
   window.CACHE_TTL_MAP = CACHE_TTL_MAP;
   window.getTTL = getTTL;
   window.getStaleCache = getStaleCache;
+  window.normalizeCacheMeta = normalizeCacheMeta;
   window.cleanOldCacheSync = cleanOldCacheSync;
   window.lsGet = lsGet;
   window.lsSet = lsSet;

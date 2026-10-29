@@ -4,7 +4,10 @@ const CFG = {
   IPMA_CITY_ID: 1110600,
 
   // Compatibilidade com fetch/proxy local em ambiente file://
-  LOCAL_PROXY_PORT: 8000
+  LOCAL_PROXY_PORT: 8000,
+
+  // Opcional: URL base do Worker em worker/ (vazio mantém chamadas diretas).
+  DATA_API_BASE: ""
 };
 
 /* ── Datas de referência (automáticas) ── */

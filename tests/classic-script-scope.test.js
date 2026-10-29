@@ -55,6 +55,38 @@ test("card status cache metadata rejects malformed and future cache envelopes", 
   assert.equal(context.getCacheMeta("array"), null);
 });
 
+test("cache preserves validated source provenance without breaking legacy envelopes", async () => {
+  const values = new Map();
+  const context = vm.createContext({
+    Date, Object, console: { log() {}, warn() {}, error() {} },
+    localStorage: {
+      getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+      removeItem: key => values.delete(key),
+    },
+    document: { querySelector: () => null, querySelectorAll: () => [] },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/cache.js", "utf8"), context);
+  vm.runInContext(await readFile("src/ui.js", "utf8"), context);
+
+  const observedAt = Date.now() - 60000;
+  assert.equal(context.lsSet("market", { price: 12 }, {
+    source: "Provider A", state: "partial", observedAt, reason: "1 symbol missing",
+  }), true);
+  assert.equal(context.lsGet("market").price, 12);
+  const meta = context.getCacheMeta("market");
+  assert.equal(meta.dataMeta.source, "Provider A");
+  assert.equal(meta.dataMeta.state, "partial");
+  assert.equal(meta.sourceTs, observedAt);
+
+  context.lsSet("legacy", { value: 1 });
+  assert.equal(context.getCacheMeta("legacy").dataMeta, null);
+  context.lsSet("future", { value: 2 }, { source: "Provider", observedAt: Date.now() + 60000 });
+  assert.equal(context.getCacheMeta("future").dataMeta.source, "Provider");
+  assert.equal(context.getCacheMeta("future").sourceTs, null);
+});
+
 test("food basket includes the latest verified weekly DECO values", async () => {
   const source = await readFile("src/app.js", "utf8");
   assert.match(source, /\["2026-10-21", 253\.99,/);
@@ -1236,6 +1268,23 @@ test("Yahoo Finance requests skip a known CORS-blocked direct source on hosted p
 
   const cryptoPlan = context.buildFetchPlan("https://api.coingecko.com/api/v3/simple/price", ["direct", "allorigins"]);
   assert.deepEqual(Array.from(cryptoPlan, step => step.source), ["direct", "allorigins"]);
+});
+
+test("optional data gateway URL accepts only HTTPS and fixed API routes", async () => {
+  const context = vm.createContext({
+    URL, URLSearchParams,
+    location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+    localStorage: { getItem: () => null },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  assert.equal(context.dataApiUrl("v1/crypto"), null);
+  context.CFG = { DATA_API_BASE: "https://dash-data.example.workers.dev/" };
+  assert.equal(context.dataApiUrl("v1/crypto"), "https://dash-data.example.workers.dev/v1/crypto");
+  assert.equal(context.dataApiUrl("https://attacker.example"), null);
+  context.CFG.DATA_API_BASE = "http://attacker.example";
+  assert.equal(context.dataApiUrl("v1/crypto"), null);
 });
 
 test("proxy cooldown prevents queued concurrent requests from repeating an unauthorized proxy", async () => {

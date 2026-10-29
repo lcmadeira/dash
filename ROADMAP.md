@@ -131,6 +131,9 @@
 - [x] **PSI20 constituintes** — centralizados em `config.js` e fetch otimizado (weekend check). ✅ (21/04/2026)
 - [x] Reduzir falhas de atualização no PSI 20 com Stooq em lote antes do Yahoo, proxies alternativos e ocultação de valores de referência sem cotação atual. ✅ (29/10/2026)
 - [x] Usar GDELT DOC como fonte JSON CORS para geopolítica e permitir pedidos diretos ao endpoint público CoinGecko. ✅ (29/10/2026)
+- [x] Guardar proveniência opcional no envelope de cache e distinguir estado parcial/fallback da idade da consulta; envelopes anteriores permanecem compatíveis. ✅ (29/10/2026)
+- [x] Preparar gateway opcional Cloudflare Worker para CoinGecko/GDELT, com validação de origem, payload e cache na edge; o endpoint fica opt-in até ser publicado/configurado. ✅ (29/10/2026)
+- [ ] Publicar o Worker de dados e definir `CFG.DATA_API_BASE` no dashboard alojado.
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos
