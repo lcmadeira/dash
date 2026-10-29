@@ -63,7 +63,7 @@ async function loadPSI20Trend(force = false) {
         último: ${last.toFixed(0)}
       </span>`;
   } catch (e) {
-    statusEl.textContent = (e && e.message) ? e.message : 'Histórico indisponível';
+    statusEl.innerHTML = `${(e && e.message) ? e.message : 'Histórico indisponível'} · <a href="https://live.euronext.com/en/product/indices/pting0200002-xlis" target="_blank" rel="noopener noreferrer">ver PSI na Euronext ↗</a>`;
   }
 }
 
@@ -148,6 +148,13 @@ async function loadPSI20Trend(force = false) {
   const psiArr=psiChg>=0?"▲":"▼";
   const trendPref = getPSI20TrendPref();
 
+  const headerStatus = document.getElementById("psi20-header-status");
+  if (headerStatus) {
+    headerStatus.className = `badge ${psi.live ? "live" : "warn"}`;
+    headerStatus.textContent = psi.live ? `● ${(psi.src || cache.src || "dados").toUpperCase()}` : "⚠ Sem cotação atual";
+    headerStatus.title = psi.live ? "Última cotação devolvida pela fonte externa" : "As fontes automáticas não devolveram uma cotação atual para o PSI";
+  }
+
   function miniBar(chg, w=48, h=22){
     const col=chg>=0?"#10B981":"#EF4444";
     const pct=Math.min(Math.abs(chg)/3*100,100);
@@ -168,11 +175,11 @@ async function loadPSI20Trend(force = false) {
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-bottom:8px;align-items:start">
     <div style="background:var(--b2);border-radius:10px;padding:10px 14px;min-width:160px;border-left:4px solid #10B981">
       <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
-      <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.price.toFixed(0)}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psiArr} ${Math.abs(psiChg).toFixed(2)}%</div>
+      <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.live ? psi.price.toFixed(0) : "—"}</div>
+      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : "Cotação indisponível"}</div>
       <div style="display:flex;gap:8px;margin-top:4px;font-size:.55rem;color:var(--t3)">
-        <span>H <b style="color:var(--t2)">${psi.hi.toFixed(0)}</b></span>
-        <span>L <b style="color:var(--t2)">${psi.lo.toFixed(0)}</b></span>
+        <span>H <b style="color:var(--t2)">${psi.live ? psi.hi.toFixed(0) : "—"}</b></span>
+        <span>L <b style="color:var(--t2)">${psi.live ? psi.lo.toFixed(0) : "—"}</b></span>
       </div>
       <div style="margin-top:5px">${liveTag}</div>
     </div>
@@ -187,8 +194,8 @@ async function loadPSI20Trend(force = false) {
             <div style="font-size:.85rem">${idx.flag}</div>
             <div style="font-size:.58rem;font-weight:700;color:${idx.col};white-space:nowrap">${idx.label}</div>
             <div style="font-family:var(--mono);font-size:.68rem;font-weight:700;color:var(--text);margin:1px 0">
-              ${q.price>1000?q.price.toLocaleString("pt",{maximumFractionDigits:0}):q.price.toFixed(2)}</div>
-            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
+              ${q.live ? (q.price>1000?q.price.toLocaleString("pt",{maximumFractionDigits:0}):q.price.toFixed(2)) : "—"}</div>
+            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação"}</div>
           </div>`;
         }).join("")}
       </div>
@@ -224,18 +231,17 @@ async function loadPSI20Trend(force = false) {
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
           <div>
             <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${s.col}">
-        ${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€</div>
-            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%</div>
-        ${q.fallback?'<div style="font-size:.45rem;color:var(--t3)">sem cotação atual</div>':''}
+        ${q.live ? `${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€` : "—"}</div>
+            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação atual"}</div>
           </div>
-          ${miniBar(q.chg)}
+          ${q.live ? miniBar(q.chg) : ""}
         </div>
       </div>`;
     }).join("")}
   </div>
   <div style="font-size:.52rem;color:var(--t3);margin-top:6px;line-height:1.4">
     ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
-    ${cache.live?(cache.src==="yahoo"?"Dados em tempo-real (atraso 15m)":"Último fecho disponível")+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · alguns valores em fallback":""):"Sem cotações atuais · valores estáticos de referência ("+REF_DATE.full+")"}
+    ${cache.live?(cache.src==="yahoo"?"Última cotação Yahoo (pode ter atraso)":"Último fecho devolvido pela Stooq")+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
   </div>`;
 
   loadPSI20Trend(false).catch(()=>{});

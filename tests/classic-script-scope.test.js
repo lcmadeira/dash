@@ -884,6 +884,40 @@ test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote sou
   assert.doesNotMatch(body.innerHTML, /FALLBACK/);
 });
 
+test("PSI 20 hides static fallback prices and marks its card header unavailable", async () => {
+  const body = { innerHTML: "" };
+  const header = { className: "", textContent: "", title: "" };
+  const context = vm.createContext({
+    Date,
+    Intl,
+    PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: id => id === "psi20-body" ? body : id === "psi20-header-status" ? header : null },
+    localStorage: { getItem: () => null },
+    lsGet: () => null,
+    lsSet() {},
+    fetchWithCORS: async () => { throw new Error("quote unavailable"); },
+    fetchStooqMulti: async () => ({}),
+    fetchStooqDailySeries: async () => [],
+    _lastN: rows => rows,
+    _setOnByDataAttr() {},
+    addToHistory() {},
+    renderTrendChart() {},
+    ld: () => "loading",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
+  await context.loadPSI20();
+
+  assert.equal(header.textContent, "⚠ Sem cotação atual");
+  assert.match(header.className, /warn/);
+  assert.match(body.innerHTML, /Cotação indisponível/);
+  assert.match(body.innerHTML, /sem cotação atual/);
+  assert.doesNotMatch(body.innerHTML, /4\.12€/);
+});
+
 test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
   const body = { innerHTML: "" };
   let fetchCalls = 0;
