@@ -16,7 +16,7 @@ async function loadDams(force = false) {
     try {
       const url = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
       /* Tentar obter o HTML via proxy */
-      const r = await window.fetchWithCORS(url, { cache: "no-store" }, 15000);
+      const r = await window.fetchWithCORS(url, { cache: "no-store" }, 8000);
       const html = await r.text();
 
       if (!html || html.length < 500) throw new Error("Resposta do servidor insuficiente");

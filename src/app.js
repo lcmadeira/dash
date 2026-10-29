@@ -288,7 +288,7 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
       url,
       {},
       11000,
-      ["local", "allorigins", "corsproxy", "codetabs"],
+      ["local", "allorigins", "codetabs"],
       (text) => !!text && text.includes("Date,Open,High,Low,Close") && !text.includes("<!DOCTYPE html>"),
     );
     if (!csv || csv.length < 20 || csv.includes("<!DOCTYPE html>")) {

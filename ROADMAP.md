@@ -239,6 +239,7 @@
 - [x] **Extrair o card Euribor** para `src/cards/euribor.js` e validar os dados em cache antes de os renderizar ✅ (13/10/2026)
 - [x] **Extrair o card de tráfego aéreo** para `src/cards/air-traffic.js`, escapar dados externos e corrigir as coordenadas do aeródromo de Coimbra ✅ (13/10/2026)
 - [x] **Extrair o tráfego marítimo de Ormuz** para `src/cards/ormuz.js`, expirar AIS após 15 minutos, validar coordenadas e escapar tooltips ✅ (13/10/2026)
+- [x] **Reduzir pedidos externos redundantes** — não repetir GDELT no browser quando o gateway configurado falha, encaminhar BBC por proxy CORS, retirar fallbacks que devolviam 403/401 e limitar timeout por proxy SNIRH ✅ (29/10/2026)
 - [x] **Extrair o card de emissões CO₂** para `src/cards/co2.js`, remover a consulta REN sem efeito e identificar o ano da comparação europeia ✅ (13/10/2026)
 - [x] **Extrair o card de transportes** para `src/cards/transport.js`, atualizar tarifas urbanas para 2026 e deixar claro que o estado operacional não é consultado em direto ✅ (13/10/2026)
 - [x] **CI/CD pipeline (GitHub Actions)** — 6 jobs: ESLint (JS inline), Ruff (Python), html-validate, secret scan, CDN health check, file size warning ✅ (27/03/2026)

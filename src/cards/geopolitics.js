@@ -4,7 +4,7 @@ const GEO_FEEDS = [
   { id: "gdelt", label: "GDELT · Mundo", color: "#22D3EE", url: "https://www.gdeltproject.org/", api: true },
   { id: "icg", label: "Crisis Group", color: "#EF4444", url: "https://www.crisisgroup.org/rss/139", proxy: true },
   { id: "gpf", label: "Geop. Futures", color: "#F59E0B", url: "https://geopoliticalfutures.com/feed/", proxy: true },
-  { id: "fa", label: "BBC World", color: "#8B5CF6", url: "https://feeds.bbci.co.uk/news/world/rss.xml", proxy: false },
+  { id: "fa", label: "BBC World", color: "#8B5CF6", url: "https://feeds.bbci.co.uk/news/world/rss.xml", proxy: true },
 ];
 let GEO_DATA = [];
 let GEO_FILTER = "all";
@@ -31,7 +31,9 @@ async function loadGeoOnce(force = false) {
       const gatewayUrl = window.dataApiUrl?.("v1/geopolitics");
       let result = null;
       let gatewayMeta = null;
+      let gatewayConfigured = false;
       if (gatewayUrl) {
+        gatewayConfigured = true;
         try {
           result = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
             ["direct"], payload => Array.isArray(payload?.articles));
@@ -39,7 +41,7 @@ async function loadGeoOnce(force = false) {
         } catch {}
       }
       try {
-        if (!result) {
+        if (!result && !gatewayConfigured) {
           const url = `https://api.gdeltproject.org/api/v2/doc/doc?${params}`;
           result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
             ["direct"], payload => Array.isArray(payload?.articles));

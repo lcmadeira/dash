@@ -117,11 +117,15 @@ O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), in
 
 Notas:
 
+Dados fora do gateway continuam dependentes dos fornecedores e proxies públicos. Falhas mantêm estados de cache/fallback identificados; uma mensagem de fallback não representa uma cotação atual.
+
 - Alguns endpoints recorrem a **proxies CORS públicos** (ex.: `allorigins`, `corsproxy`, `thingproxy`) e podem falhar por indisponibilidade/limites.
 - A API Air Quality da Open-Meteo usa `nitrogen_dioxide`, `ozone` e `sulphur_dioxide` para os poluentes; o card converte estes campos para os nomes internos `no2`, `o3` e `so2`. No GitHub Pages, a previsão UV usa CORS direto e não o proxy local de desenvolvimento.
 - No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - O card PSI 20 tenta primeiro obter as cotações em lote da Stooq, usa Yahoo Finance para símbolos em falta e oculta os valores de referência quando os proxies não devolvem cotações atuais. A ligação oficial da Euronext permanece disponível como consulta alternativa.
-- O card de geopolítica usa GDELT DOC JSON diretamente, com CORS, antes de tentar as feeds RSS de reserva. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- O card de geopolítica tenta primeiro o gateway para GDELT; quando este está configurado mas indisponível, não repete a consulta diretamente no browser e passa às feeds RSS de reserva. O feed BBC também usa proxies CORS. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- As notícias Google RSS já não tentam o proxy Jina, que devolve 403 neste feed. O histórico Stooq do gás evita `corsproxy.io`, que devolve 401 para este endpoint; mantém AllOrigins/Codetabs como alternativas.
+- O pedido SNIRH de barragens limita cada tentativa de proxy a 8 segundos para reduzir a espera quando o fornecedor não responde; mantém cache e fallback identificados.
 - O contexto de sessão da Euronext Lisboa usa o [calendário oficial de feriados](https://www.euronext.com/en/trading/trading-hours-holidays) e o horário regular publicado pelo [Santander](https://www.santander.pt/onebroker); em 24 e 31 de dezembro de 2026 identifica sessão curta sem assumir a hora de fecho, ainda por confirmar pela Euronext.
 - Não há uma fonte pública de cotações do PSI autorizada/configurada. A Euronext apresenta opções de dados/feeds e indica que a exibição pública está sujeita a políticas de licença; dados atrasados gratuitos são para uso interno, pelo que o painel mantém as cotações ausentes ocultas até existir uma fonte compatível com publicação pública ([políticas Euronext](https://www.euronext.com/en/data/real-time-data/pricing-specs-agreements/market-data-pricing-policies), [Euronext Stream API](https://www.euronext.com/en/products-services/euronext-stream-api)).
 - O envelope local mantém `{d, ts}` e aceita `meta` opcional com `source`, `state`, `observedAt` e `reason`; `ts` continua a indicar quando o browser guardou a resposta, não quando o fornecedor observou o dado.

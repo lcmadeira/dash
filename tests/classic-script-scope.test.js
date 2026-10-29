@@ -1140,6 +1140,44 @@ test("geopolitics loads recent GDELT JSON directly before fallback RSS feeds", a
   assert.match(body.innerHTML, /Global conflict headline/);
 });
 
+test("geopolitics does not repeat GDELT in the browser when the configured gateway fails", async () => {
+  const body = { innerHTML: "" };
+  const jsonRequests = [];
+  const textRequests = [];
+  const textSources = [];
+  const context = vm.createContext({
+    AbortSignal, Date, URL, URLSearchParams,
+    console: { log() {}, warn() {} },
+    document: { querySelectorAll: () => [] },
+    $: () => body,
+    skeletonGeneric: () => "loading",
+    lsGet: () => null,
+    lsSet() {},
+    dataApiUrl: route => `https://gateway.example/${route}`,
+    fetchJsonFirstOk: async url => { jsonRequests.push(url); throw new Error("gateway unavailable"); },
+    fetchTextFirstOk: async (url, _options, _timeout, sources) => {
+      textRequests.push(url);
+      textSources.push(Array.from(sources));
+      throw new Error("RSS unavailable");
+    },
+    notifyNonCriticalError() {},
+    er: () => "error",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
+  await context.loadGeo();
+
+  assert.deepEqual(jsonRequests, ["https://gateway.example/v1/geopolitics"]);
+  assert.deepEqual(textRequests, [
+    "https://www.crisisgroup.org/rss/139",
+    "https://geopoliticalfutures.com/feed/",
+    "https://feeds.bbci.co.uk/news/world/rss.xml",
+  ]);
+  assert.deepEqual(textSources[2], ["corsproxy", "allorigins", "codetabs"]);
+  assert.match(body.innerHTML, /error/);
+});
+
 test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
   const body = { innerHTML: "" };
   let fetchCalls = 0;

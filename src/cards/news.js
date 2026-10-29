@@ -35,8 +35,8 @@
   async function fetchRSS(url) {
     const isGoogleNews = /(^|\/\/)news\.google\.com\//i.test(url);
     const sources = isGoogleNews
-      ? ["local", "jina", "allorigins"]
-      : ["direct", "local", "allorigins", "jina", "corsproxy"];
+      ? ["local", "allorigins"]
+      : ["direct", "local", "allorigins", "corsproxy"];
 
     const xml = await fetchTextFirstOk(url, {}, 12000, sources, text => {
       try { return parseRSS(text).length > 0; } catch { return false; }
