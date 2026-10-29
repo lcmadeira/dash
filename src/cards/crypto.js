@@ -1,4 +1,4 @@
-/* global AbortSignal, $, PFX, _lastN, _setOnByDataAttr, addToHistory, chg, document, er, fetch, fetchFirstOk, fmtP, localStorage, lsGet, lsSet, notifyNonCriticalError, renderTrendChart, skeletonKPIs, window */
+/* global AbortSignal, $, PFX, _lastN, _setOnByDataAttr, addToHistory, chg, document, er, fetchFirstOk, fetchJsonFirstOk, fmtP, localStorage, lsGet, lsSet, notifyNonCriticalError, renderTrendChart, skeletonKPIs, window */
 (() => {
 /* ── CoinGecko Crypto ── */
 const CRYPTO_IDS=[
@@ -74,16 +74,9 @@ async function loadCryptoTrend(force = false) {
     if(!isValidCryptoSeries(series)) series = null;
     if (!series) {
       const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(meta.id)}/market_chart?vs_currency=eur&days=90`;
-      let json = null;
-      try {
-        const r = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } });
-        if (r.ok) json = await r.json();
-      } catch {}
-      if (!json) {
-        const rp = await fetch('https://corsproxy.io/?' + encodeURIComponent(url), { signal: AbortSignal.timeout(11000) });
-        if (!rp.ok) throw new Error(`CoinGecko ${rp.status}`);
-        json = await rp.json();
-      }
+      const json = await fetchJsonFirstOk(url,
+        { signal: AbortSignal.timeout(11000), headers: { Accept: 'application/json' } },
+        11000, ["direct", "allorigins", "corsproxy"], data => Array.isArray(data?.prices));
       series = _cgDailyFromPrices(json?.prices);
       if(!isValidCryptoSeries(series)) throw new Error('Histórico insuficiente');
       lsSet(cacheKey, series);

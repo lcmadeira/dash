@@ -1,4 +1,4 @@
-/* global $, AbortSignal, fetch, ld, lsGet, lsSet, window */
+/* global $, AbortSignal, fetchFirstOk, fetchTextFirstOk, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    PREÇOS AGRÍCOLAS — Yahoo Finance com fallback Stooq
@@ -18,51 +18,39 @@ async function loadAgri(force=false){
   let cache=force?null:lsGet(ck);
 
   if(!cache||!cache.length){
-    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
-    const YF2="https://query2.finance.yahoo.com/v8/finance/chart/";
-    const PROXIES=[
-      s=>"https://api.allorigins.win/raw?url="+encodeURIComponent(YF+s+"?range=5d&interval=1d"),
-      s=>"https://corsproxy.io/?url="+encodeURIComponent(YF+s+"?range=5d&interval=1d"),
-      s=>"https://api.allorigins.win/raw?url="+encodeURIComponent(YF2+s+"?range=5d&interval=1d"),
-    ];
-
     async function fetchSym(sym){
-      for(const mkUrl of PROXIES){
-        try{
-          const r=await fetch(mkUrl(sym),{signal:AbortSignal.timeout(8000)});
-          if(!r.ok) continue;
-          const j=await r.json();
-          const meta=j?.chart?.result?.[0]?.meta;
-          if(!meta?.regularMarketPrice) continue;
-          const price=meta.regularMarketPrice;
-          const prev=meta.previousClose||meta.chartPreviousClose||price;
-          const hi=meta.regularMarketDayHigh||price;
-          const lo=meta.regularMarketDayLow||price;
-          const vol=meta.regularMarketVolume||0;
-          return {close:price,chg:prev?((price-prev)/prev*100):null,hi,lo,vol};
-        }catch{}
-      }
+      const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`;
+      try{
+        const {r}=await fetchFirstOk(url,{signal:AbortSignal.timeout(8000)},8000,["allorigins","corsproxy"],async response=>{
+          try{return Boolean((await response.clone().json())?.chart?.result?.[0]?.meta?.regularMarketPrice);}catch{return false;}
+        });
+        const j=await r.json();
+        const meta=j?.chart?.result?.[0]?.meta;
+        const price=meta.regularMarketPrice;
+        const prev=meta.previousClose||meta.chartPreviousClose||price;
+        const hi=meta.regularMarketDayHigh||price;
+        const lo=meta.regularMarketDayLow||price;
+        const vol=meta.regularMarketVolume||0;
+        return {close:price,chg:prev?((price-prev)/prev*100):null,hi,lo,vol};
+      }catch{}
+
       /* Fallback Stooq CSV */
       const STOOQ={"ZW=F":"zw.f","ZC=F":"zc.f","ZS=F":"zs.f","KC=F":"kc.f","SB=F":"sb.f","CT=F":"ct.f"};
       const ssym=STOOQ[sym];
       if(ssym){
         try{
           const url=`https://stooq.com/q/l/?s=${ssym}&f=sd2t2ohlcv&h&e=csv`;
-          const r=await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-            {signal:AbortSignal.timeout(8000)});
-          if(r.ok){
-            const csv=await r.text();
-            const rows=csv.trim().split("\n");
-            if(rows.length>=2){
-              const cols=rows[1].split(",");
-              const close=parseFloat(cols[5]);
-              const open=parseFloat(cols[2]);
-              const hi=parseFloat(cols[3]);
-              const lo=parseFloat(cols[4]);
-              const vol=parseFloat(cols[6])||0;
-              if(!Number.isNaN(close)&&close>0)
-                return {close,chg:open?((close-open)/open*100):null,hi,lo,vol};
-            }
+          const csv=await fetchTextFirstOk(url,{signal:AbortSignal.timeout(8000)},8000,["allorigins","corsproxy"],text=>text.includes("Symbol,Date,Time")&&!text.includes("<!DOCTYPE html>"));
+          const rows=csv.trim().split("\n");
+          if(rows.length>=2){
+            const cols=rows[1].split(",");
+            const close=parseFloat(cols[6]);
+            const open=parseFloat(cols[3]);
+            const hi=parseFloat(cols[4]);
+            const lo=parseFloat(cols[5]);
+            const vol=parseFloat(cols[7])||0;
+            if(!Number.isNaN(close)&&close>0)
+              return {close,chg:open?((close-open)/open*100):null,hi,lo,vol};
           }
         }catch{}
       }

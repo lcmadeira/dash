@@ -1,4 +1,4 @@
-/* global AbortSignal, $, DOMParser, URL, console, document, er, fetch, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
+/* global AbortSignal, $, DOMParser, URL, console, document, er, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
 (() => {
 const GEO_FEEDS = [
   { id: "icg", label: "Crisis Group", color: "#EF4444", url: "https://www.crisisgroup.org/rss/139", proxy: true },
@@ -21,31 +21,9 @@ async function loadGeo(force = false) {
       for (const feed of GEO_FEEDS) {
         let raw = null;
         try {
-          if (!feed.proxy) {
-            try {
-              const response = await fetch(feed.url, { signal: AbortSignal.timeout(9000) });
-              if (response.ok) {
-                const text = await response.text();
-                if (text.includes("<item>")) raw = text;
-              }
-            } catch {}
-          }
-          if (!raw) {
-            const proxies = [
-              "https://corsproxy.io/?" + encodeURIComponent(feed.url),
-              "https://api.allorigins.win/raw?url=" + encodeURIComponent(feed.url),
-            ];
-            for (const proxy of proxies) {
-              try {
-                const response = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
-                if (response.ok) {
-                  const text = await response.text();
-                  if (text.includes("<item>")) raw = text;
-                }
-              } catch {}
-              if (raw) break;
-            }
-          }
+          const sources = feed.proxy ? ["corsproxy", "allorigins"] : ["direct", "corsproxy", "allorigins"];
+          raw = await fetchTextFirstOk(feed.url, { signal: AbortSignal.timeout(10000) }, 10000,
+            sources, text => text.includes("<item>"));
           if (!raw) continue;
 
           const xml = new DOMParser().parseFromString(raw, "text/xml");

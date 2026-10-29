@@ -1,4 +1,4 @@
-/* global $, AbortSignal, fetch, window, INFLATION_FALLBACK, lsGet, lsSet */
+/* global $, AbortSignal, fetchJsonFirstOk, window, INFLATION_FALLBACK, lsGet, lsSet */
 (() => {
 let INFLATION_DATA = null;
 let INFLATION_SOURCE = 'static'; // 'static' | 'eurostat_live'
@@ -78,25 +78,15 @@ async function fetchEurostatInflation(){
   const PARAMS = '?geo=PT&geo=EA20&geo=EA21&coicop=CP00&lastTimePeriod=8&lang=en';
   const url = BASE + PARAMS;
 
-  /* Tentar directo primeiro (CORS nativo do Eurostat) */
-  const attempts = [
-    () => fetch(url, {signal: AbortSignal.timeout(9000)}),
-    () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-                {signal: AbortSignal.timeout(11000)}),
-    () => fetch('https://corsproxy.io/?' + encodeURIComponent(url),
-                {signal: AbortSignal.timeout(11000)}),
-  ];
-
-  for(const attempt of attempts){
-    try{
-      const r = await attempt();
-      if(!r.ok) continue;
-      const json = await r.json();
-      const rows = parseEurostatInflation(json);
-      if(rows && rows.length >= 3) return rows;
-    } catch { /* tentar próximo */ }
+  try {
+    return await fetchJsonFirstOk(url, {signal: AbortSignal.timeout(11000)}, 11000,
+      ["direct", "allorigins", "corsproxy"], json => {
+        const rows = parseEurostatInflation(json);
+        return Boolean(rows && rows.length >= 3);
+      }).then(parseEurostatInflation);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /* ── Ponto de entrada: cache → fallback imediato → Eurostat bg ─ */

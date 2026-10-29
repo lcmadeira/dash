@@ -1,4 +1,4 @@
-/* global $, AbortSignal, PFX, _lastN, fetch, ld, localStorage, lsGet, lsSet, window */
+/* global $, AbortSignal, PFX, _lastN, fetchTextFirstOk, ld, localStorage, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    INDICADOR RECESSÃO — US 10Y-2Y Spread via FRED
@@ -43,17 +43,12 @@ async function loadRec(force=false){
 
   if(!data||!data.length){
     try{
-      const r=await fetch(
-        "https://api.allorigins.win/raw?url="+encodeURIComponent("https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y"),
-        {signal:AbortSignal.timeout(6000)}
-      );
-      if(r.ok){
-        const csv=await r.text();
-        const rows=csv.trim().split("\n").slice(1)
-          .map(l=>{const[dt,v]=l.split(",");return[dt,parseFloat(v)];})
-          .filter(x=>Number.isFinite(x[1]));
-        if(rows.length>20){data=rows.slice(-90);lsSet(ck,data);}
-      }
+      const csv=await fetchTextFirstOk("https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
+        {signal:AbortSignal.timeout(6000)},6000,["allorigins","corsproxy"],text=>text.startsWith("observation_date,"));
+      const rows=csv.trim().split("\n").slice(1)
+        .map(l=>{const[dt,v]=l.split(",");return[dt,parseFloat(v)];})
+        .filter(x=>Number.isFinite(x[1]));
+      if(rows.length>20){data=rows.slice(-90);lsSet(ck,data);}
     }catch{}
     if(!data||!data.length) data=REC_FALLBACK_DATA;
   }

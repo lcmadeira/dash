@@ -1,3 +1,4 @@
+/* global AbortSignal, fetchJsonFirstOk, fetchTextFirstOk */
 /* Cards TTF e gás natural PT. Dependem das APIs partilhadas em core/cache/fetch/app. */
 (function() {
 function isValidTTFData(data) {
@@ -174,25 +175,16 @@ function loadTTF(force=false){
   async function fetchTTFYahoo(){
     const sym="TTF=F";
     const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1d`;
-    const proxies=[
-      "https://api.allorigins.win/raw?url="+encodeURIComponent(url),
-      "https://corsproxy.io/?url="+encodeURIComponent(url),
-    ];
-    for(const p of proxies){
-      try{
-        const r=await fetch(p,{signal:AbortSignal.timeout(9000)});
-        if(!r.ok) continue;
-        const j=await r.json();
-        const meta=j?.chart?.result?.[0]?.meta;
-        if(!meta?.regularMarketPrice) continue;
-        const price=meta.regularMarketPrice;
-        const prev=meta.previousClose||meta.chartPreviousClose||price;
-        if(!isNaN(price)&&price>0&&price<500)
-          return {price,prev,hi:meta.regularMarketDayHigh||price,
-                  lo:meta.regularMarketDayLow||price,
-                  chg:prev?((price-prev)/prev*100):0,live:true,src:"Yahoo"};
-      }catch{}
-    }
+    try{
+      const j=await fetchJsonFirstOk(url,{signal:AbortSignal.timeout(9000)},9000,["allorigins","corsproxy"],data=>Boolean(data?.chart?.result?.[0]?.meta?.regularMarketPrice));
+      const meta=j?.chart?.result?.[0]?.meta;
+      const price=meta?.regularMarketPrice;
+      const prev=meta?.previousClose||meta?.chartPreviousClose||price;
+      if(Number.isFinite(price)&&price>0&&price<500)
+        return {price,prev,hi:meta.regularMarketDayHigh||price,
+                lo:meta.regularMarketDayLow||price,
+                chg:prev?((price-prev)/prev*100):0,live:true,src:"Yahoo"};
+    }catch{}
     return null;
   }
 

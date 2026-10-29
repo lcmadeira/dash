@@ -228,6 +228,32 @@ test("agriculture card isolates its cached symbol list and renders cached prices
   assert.doesNotThrow(() => vm.runInContext('var APP_AGRI_SYMS = AGRI_SYMS;', context));
 });
 
+test("agriculture Stooq fallback reads the CSV OHLCV columns correctly", async () => {
+  const body = { innerHTML: "" };
+  let savedCache = null;
+  const context = createBrowserContext();
+  context.AbortSignal = AbortSignal;
+  context.$ = id => id === "agri-body" ? body : null;
+  context.ld = () => "loading";
+  context.lsGet = () => null;
+  context.lsSet = (_key, value) => { savedCache = value; };
+  context.fetchFirstOk = async () => { throw new Error("Yahoo unavailable in test"); };
+  context.fetchTextFirstOk = async () =>
+    "Symbol,Date,Time,Open,High,Low,Close,Volume\nZW.F,2026-10-29,12:00:00,100,110,90,105,5000";
+
+  const source = await readFile("src/cards/agriculture.js", "utf8");
+  vm.runInContext(source, context);
+  await context.loadAgri(true);
+
+  assert.equal(savedCache[0].close, 105);
+  assert.equal(savedCache[0].chg, 5);
+  assert.equal(savedCache[0].hi, 110);
+  assert.equal(savedCache[0].lo, 90);
+  assert.equal(savedCache[0].vol, 5000);
+  assert.match(body.innerHTML, /105\.0/);
+  assert.match(body.innerHTML, /5\.00%/);
+});
+
 test("exports card renders both views and ignores unknown modes", async () => {
   const context = createBrowserContext();
   vm.runInContext('var EXP_DATA = { cached: true }; var EXP_MODE = "cached";', context);
@@ -574,6 +600,12 @@ test("inflation parser uses JSON-stat dimension strides and EA21 for 2026", asyn
       return responseData;
     },
   });
+  context.fetchJsonFirstOk = async (_url, _options, _timeoutMs, _sources, validateJson) => {
+    const response = await context.fetch(_url);
+    const json = await response.json();
+    if (validateJson && !validateJson(json)) throw new Error("invalid test response");
+    return json;
+  };
   context.AbortSignal = { timeout: () => undefined };
   context.console = { log() {}, warn() {} };
 
@@ -999,6 +1031,32 @@ test("proxy authorization failures are cooled down across fetches and page reloa
   assert.deepEqual(await reloadedTab.fetchJsonFirstOk("https://example.com/other", {}, 100, sources), { ok: true });
   assert.equal(requests.length, 3);
   assert.ok(requests[2].startsWith("https://api.codetabs.com/"));
+});
+
+test("proxy cooldown prevents queued concurrent requests from repeating an unauthorized proxy", async () => {
+  let corsproxyRequests = 0;
+  const context = vm.createContext({
+    AbortSignal, URL, URLSearchParams, Date, Map, Set,
+    console: { log() {}, warn() {}, debug() {}, info() {} },
+    location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+    localStorage: { getItem: () => null, setItem() {} },
+    sessionStorage: { getItem: () => null, setItem() {} },
+    fetch: async url => {
+      if (url.startsWith("https://corsproxy.io/")) {
+        corsproxyRequests++;
+        await new Promise(resolve => setTimeout(resolve, 5));
+        return { status: 401, ok: false };
+      }
+      return { status: 200, ok: true, async json() { return { ok: true }; } };
+    },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  await Promise.all(Array.from({ length: 6 }, (_, index) =>
+    context.fetchJsonFirstOk(`https://example.com/data-${index}`, {}, 100, ["corsproxy", "codetabs"]),
+  ));
+  assert.equal(corsproxyRequests, 2, "at most the already-in-flight requests should reach the proxy");
 });
 
 test("heatmap tabs reuse previously mounted TradingView widgets", async () => {

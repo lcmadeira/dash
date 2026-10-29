@@ -1,3 +1,4 @@
+/* global DOMParser, $, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonNews, window */
 /* Google News RSS cards (moved out of index.html) */
 (function () {
   function parseRSS(xml) {
@@ -34,24 +35,10 @@
       ? ["local", "jina", "allorigins"]
       : ["direct", "local", "allorigins", "jina", "corsproxy"];
 
-    const candidates = (buildFetchPlan(url, sources) || []).map((x) => x.url);
-    let lastErr = null;
-    for (const u of candidates) {
-      try {
-        const r = await fetch(u, withTimeoutOpts({}, 12000));
-        if (!r.ok) {
-          lastErr = new Error(`HTTP ${r.status}`);
-          continue;
-        }
-        const xml = await r.text();
-        const parsed = parseRSS(xml);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
-        lastErr = new Error("RSS vazio");
-      } catch (e) {
-        lastErr = e;
-      }
-    }
-    throw lastErr || new Error("RSS indisponível");
+    const xml = await fetchTextFirstOk(url, {}, 12000, sources, text => {
+      try { return parseRSS(text).length > 0; } catch { return false; }
+    });
+    return parseRSS(xml);
   }
 
   /** Carrega e apresenta notícias RSS portuguesas ou mundiais, recorrendo ao cache em caso de falha.

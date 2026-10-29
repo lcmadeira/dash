@@ -129,6 +129,7 @@
 
   /* Backoff partilhado por proxy e persistido durante a sessão da tab. */
   const proxyCoolDown = new Map();
+  const proxyInFlight = new Map();
   function isProxyCoolingDown(source) {
     let until = proxyCoolDown.get(source) || 0;
     try {
@@ -152,6 +153,38 @@
   }
   function recordProxyNetworkFailure(source) {
     if (source !== "direct" && source !== "localproxy") coolDownProxy(source);
+  }
+
+  async function acquireProxySlot(source) {
+    if (source === "direct" || source === "localproxy") return () => {};
+    let state = proxyInFlight.get(source);
+    if (!state) {
+      state = { active: 0, waiting: [] };
+      proxyInFlight.set(source, state);
+    }
+    if (state.active >= 2) await new Promise(resolve => state.waiting.push(resolve));
+    else state.active++;
+    return () => {
+      const next = state.waiting.shift();
+      if (next) next();
+      else state.active--;
+    };
+  }
+
+  async function fetchStep(step, options, timeoutMs) {
+    const release = await acquireProxySlot(step.source);
+    try {
+      /* Outro pedido pode ter aberto o cooldown enquanto este aguardava vaga. */
+      if (isProxyCoolingDown(step.source)) return null;
+      const response = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+      if (!response.ok) recordProxyHttpFailure(step.source, response.status);
+      return response;
+    } catch (error) {
+      if (!options.signal?.aborted) recordProxyNetworkFailure(step.source);
+      throw error;
+    } finally {
+      release();
+    }
   }
 
   /**
@@ -179,16 +212,15 @@
 
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch] try #${i + 1}/${plan.length} ${step.source}`, url);
-        const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+        const r = await fetchStep(step, options, timeoutMs);
+        if (!r) continue;
         
         if (r.status === 429) {
-          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
 
         if (!r.ok) {
-          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
           continue;
@@ -203,7 +235,6 @@
         return { r, usedUrl: step.url };
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
-        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch] err ${step.source}`, url, e?.message || e);
       }
@@ -304,14 +335,13 @@
       }
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] try #${i + 1}/${plan.length} ${step.source}`, url);
-        const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+        const r = await fetchStep(step, options, timeoutMs);
+        if (!r) continue;
         if (r.status === 429) {
-          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch-json] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
         if (!r.ok) {
-          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-json] fail ${step.source} HTTP ${r.status}`, url);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
@@ -326,7 +356,6 @@
         return j;
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
-        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-json] err ${step.source}`, url, e?.message || e);
       }
@@ -356,14 +385,13 @@
       }
       try {
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] try #${i + 1}/${plan.length} ${step.source}`, url);
-        const r = await fetch(step.url, withTimeoutOpts(options, timeoutMs));
+        const r = await fetchStep(step, options, timeoutMs);
+        if (!r) continue;
         if (r.status === 429) {
-          recordProxyHttpFailure(step.source, r.status);
           if (isFetchDebugEnabled()) console.warn(`[fetch-text] 429 rate limit on ${step.source}, cooling down...`);
           continue;
         }
         if (!r.ok) {
-          recordProxyHttpFailure(step.source, r.status);
           lastErr = new Error(`HTTP ${r.status}`);
           if (isFetchDebugEnabled()) console.debug(`[fetch-text] fail ${step.source} HTTP ${r.status}`, url);
           if ((step.source === "direct" || step.source === "localproxy") && isDefinitiveHttpError(r.status)) break;
@@ -378,7 +406,6 @@
         return t;
       } catch (e) {
         if (options.signal?.aborted) throw options.signal.reason || e;
-        recordProxyNetworkFailure(step.source);
         lastErr = e;
         if (isFetchDebugEnabled()) console.debug(`[fetch-text] err ${step.source}`, url, e?.message || e);
       }
