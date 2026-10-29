@@ -381,7 +381,7 @@
 - ✅ Normalizador da cache passa a preservar o estado `stale`; regressão coberta por teste para que a contingência continue identificada após leitura local.
 - ✅ Metadados de fonte/observação acrescentados a IPMA, API Aberta, MITECO/MINETUR, Frankfurter/ExchangeRate-API, Eurostat e BCE; cache antiga continua aceite.
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
-- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial e seis recursos locais críticos; falhas de publicação passam a produzir uma execução falhada e visível em Actions.
+- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial, seis recursos locais críticos e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes

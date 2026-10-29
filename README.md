@@ -39,7 +39,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Node.js test runner** — testes de regressão executados com `npm test`
 - **Ruff** — lint de `dev_server.py`
 - **GitHub Actions** — pipeline CI com 6 jobs (ver abaixo)
-- **Verificação agendada da publicação** — confirma diariamente a página GitHub Pages e os recursos críticos; também pode ser executada manualmente em Actions.
+- **Verificação agendada da publicação** — confirma diariamente a página GitHub Pages e os recursos críticos, e abre o dashboard em Chromium para verificar a inicialização da UI; também pode ser executada manualmente em Actions.
 
 ## Como executar
 
@@ -124,7 +124,7 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
-Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os seis recursos locais críticos. Para repetir o teste noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
+Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os seis recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
 
 ### Executar lint localmente
 

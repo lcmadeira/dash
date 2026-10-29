@@ -20,3 +20,18 @@ jobs:
           node-version: 20
       - name: Check page and critical assets
         run: node scripts/check-published-site.mjs
+
+  browser-smoke:
+    name: Verify dashboard runtime in Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pinned browser automation
+        run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Open published dashboard and check initialization
+        run: node scripts/browser-smoke.mjs
