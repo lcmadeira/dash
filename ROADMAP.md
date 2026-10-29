@@ -380,7 +380,7 @@
 ### Próximas melhorias
 
 - [x] Gateway Cloudflare: publicação de produção ativa, `CFG.DATA_API_BASE` configurado e snapshot stale identificado quando o fornecedor falha. ✅ (29/10/2026)
-- [ ] Fonte PSI licenciada: selecionar fornecedor e termos compatíveis com apresentação pública antes de ativar preços dinâmicos.
+- [ ] Fonte PSI licenciada: auditoria confirma que acesso a dados atrasados não basta para concluir que a redistribuição pública é permitida; pedir confirmação/termos à Euronext ou a um fornecedor antes de ativar preços dinâmicos.
 - [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; não está implementado por as notificações atuais dependerem da página aberta.
 - ✅ Vistas contextuais do dashboard e cobertura de fonte/data no resumo de saúde (29/10/2026).
 - [ ] PSI 20: selecionar uma fonte de cotações de Lisboa estável e autorizada para exibição pública. A Euronext disponibiliza opções de feed e sujeita a exibição pública a políticas de dados; não foi ativado um endpoint não licenciado.
@@ -400,6 +400,15 @@
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
 - ✅ Workflow diário/manual verifica GitHub Pages, conteúdo essencial, os recursos locais críticos (incluindo shell PWA) e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
+
+### 29/10/2026 — Tendência de fontes e experiência móvel
+
+- ✅ Resumo de saúde guarda até 30 observações diárias por browser, apresenta os últimos sete dias visitados e explica que não é sondagem contínua nem histórico partilhado.
+- ✅ Worker limita o tamanho das respostas de cada rota antes de analisar ou guardar o payload; testes cobrem resposta acima do limite.
+- ✅ Auditoria do endpoint INE `0009494` detetou que a observação mais recente disponível era Q3 2021; não foi adicionado ao gateway para evitar substituir a referência Q3 2025 por dados mais antigos.
+- ✅ “Alterações desde a visita anterior” só assinala diferenças materiais quando a observação é posterior à guardada; snapshots legados sem timestamp continuam compatíveis.
+- ✅ Controlos do resumo e briefing recebem alvos de toque maiores; o smoke check diário valida viewport de 390 px sem overflow horizontal.
+- ✅ Revisão da Euronext documentada: clarificar licença de exibição/redistribuição antes de ativar preços PSI. [Acesso a dados](https://www.euronext.com/en/data/real-time-data/how-access-market-data) · [Acordos](https://www.euronext.com/en/data/pricing-specs-agreements/data-agreements-types).
 
 ### 29/10/2026 — Confiança e leitura offline
 
@@ -445,7 +454,7 @@
 
 ### v2.0.0 — Futuro
 
-- [ ] PWA (Progressive Web App) com Service Worker
+- [x] PWA (Progressive Web App) com Service Worker — shell local/offline implementado em 29/10/2026
 - [ ] Backend leve para chaves de API e notificações push
 - [ ] Modo claro/escuro
 

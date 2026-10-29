@@ -28,8 +28,21 @@ try {
   if (!result.title.includes("Painel Pessoal") || result.cardCount < 20 || !result.hasBriefing || !result.hasStatus) {
     throw new Error(`Inicialização incompleta: ${JSON.stringify(result)}`);
   }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = await page.evaluate(() => {
+    const overview = document.getElementById("dataOverview");
+    return {
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      overviewWidth: overview?.getBoundingClientRect().width || 0,
+      historyVisible: Boolean(document.getElementById("dataSourceHistory")),
+    };
+  });
+  if (mobile.documentWidth > mobile.viewportWidth || mobile.overviewWidth > mobile.viewportWidth || !mobile.historyVisible) {
+    throw new Error(`Layout mobile com overflow ou conteúdo ausente: ${JSON.stringify(mobile)}`);
+  }
   if (pageErrors.length) throw new Error(`Erros JavaScript na página: ${pageErrors.join(" | ")}`);
-  console.log(`Browser smoke OK: ${result.cardCount} cards, briefing e estado de dados inicializados.`);
+  console.log(`Browser smoke OK: ${result.cardCount} cards, briefing, estado de dados e viewport mobile sem overflow.`);
 } finally {
   await browser.close();
 }

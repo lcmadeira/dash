@@ -129,6 +129,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	#main-grid [data-card-id].profile-hidden{display:none!important}
 	.data-overview-items{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;color:var(--t3);font-size:.58rem}
 	.data-source-health{margin-top:7px;color:var(--t3);font-size:.56rem}
+	.data-source-history{margin-top:4px;color:var(--t3);font-size:.54rem;line-height:1.45}
 	.data-overview-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;padding:5px 8px;border:1px solid var(--b);border-radius:8px;background:var(--b2);color:var(--t2);font:inherit;text-align:left;cursor:pointer}
 	.data-overview-item small{color:var(--t3);font-size:.52rem;white-space:normal}
 	.data-overview-item:hover,.data-overview-item:focus-visible{border-color:var(--accent);outline:2px solid transparent;color:var(--text)}
@@ -180,6 +181,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-detail{color:var(--t3);font-size:.53rem;line-height:1.5}
 	.briefing-item.is-stale strong{color:var(--accent)}
 	.briefing-empty{grid-column:1/-1;margin:0;padding:8px 2px;color:var(--t3);font-size:.62rem}
+
 	.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--grid-gap);align-items:start}
 	.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.r2{grid-row:span 2}
 
@@ -3303,3 +3305,17 @@ textarea.nta::placeholder{color:var(--t3)}
 .aqi-fc-val{font-size:.78rem;font-weight:700}
 .aqi-health{font-size:.65rem;color:var(--t2);line-height:1.5;padding:7px 10px;
   border-radius:var(--rs);border:1px solid;margin-top:8px}
+
+/* Alvos de toque e leitura sem overflow no resumo em ecrãs pequenos. */
+@media (max-width: 767px) {
+  .data-overview{padding:12px}
+  .data-overview-counts{gap:8px 12px;line-height:1.5}
+  .data-overview-items{display:grid;grid-template-columns:1fr;gap:7px}
+  .data-overview-item{width:100%;min-height:44px;padding:9px 10px;font-size:.66rem}
+  .data-overview-item small,.data-source-health,.data-source-history{font-size:.62rem;line-height:1.5;overflow-wrap:anywhere}
+  .briefing-item{min-height:44px;padding:12px}
+  .briefing-preference-options label{min-height:40px;padding:4px 2px}
+  .briefing-preference-options input{width:18px;height:18px}
+  .briefing-impact input,.cost-of-living-fields input{min-height:44px;font-size:16px}
+  .briefing-fuel-alert button{min-height:44px;padding:9px 12px}
+}

@@ -1,12 +1,10 @@
-/* global $, document, window, lsGet, lsSet, fetchJsonFirstOk */
+/* global $, document, window, lsGet */
 (() => {
 /* ═══ IMOBILIÁRIO PT ═══ */
 /* ══════════════════════════════════════════════════════════════
-   IMOBILIÁRIO PT — API INE live
-   Indicador 0009494: Preço mediano vendas alojamentos (€/m²)
-   Indicador 0009201: IPHab — Índice de preços habitação (base 2015)
-   Periodicidade: trimestral · publicação ~3 meses após o trimestre
-   CORS: via allorigins/corsproxy (API INE sem CORS nativo)
+   IMOBILIÁRIO PT — referência identificada até validar série INE atual
+   O endpoint 0009494 observado em 29/10/2026 só devolveu Q3 2021 e
+   registos geográficos desagregados; não serve para atualizar este agregado.
    ══════════════════════════════════════════════════════════════ */
 async function loadImob(force=false){
   const CK="imob_ine_v1";
@@ -21,76 +19,6 @@ async function loadImob(force=false){
     newChgYoY:14.1, existChgYoY:19.1,
     isLive:false
   };
-
-  /* ── Construir URL da API INE ────────────────────────────── */
-  function buildINEUrl(varcd, periodos){
-    /* Sem Dim1 especificado → todos os períodos disponíveis
-       Com Dim1 → filtrar por períodos (mais eficiente mas requer saber o código) */
-    return `https://www.ine.pt/ine/json_indicador/pindica.jsp?op=2&varcd=${varcd}&lang=PT`;
-  }
-
-  /* ── Parser da resposta INE ──────────────────────────────── */
-  function parseINEData(data){
-    if(!Array.isArray(data)||!data.length) throw new Error("INE: resposta vazia");
-
-    /* Converter código S7T32025 → chave numérica para ordenação correcta */
-    function toKey(code){
-      const m=code.match(/S7T(\d)(\d{4})/);
-      return m?parseInt(m[2])*10+parseInt(m[1]):0;
-    }
-    function toLabel(code){
-      const m=code.match(/S7T(\d)(\d{4})/);
-      return m?`Q${m[1]} ${m[2]}`:code;
-    }
-
-    /* Filtrar Portugal, ordenar do mais recente para o mais antigo */
-    const pt=data
-      .filter(r=>r.geocod==="PT"&&r.valor&&r.valor!=="x"&&r.valor!=="")
-      .sort((a,b)=>toKey(b.Dim1)-toKey(a.Dim1));
-
-    if(!pt.length) throw new Error("INE: sem dados PT");
-
-    const latest=pt[0], prev=pt[1];
-    const price=parseFloat(latest.valor);
-    const prevP=prev?parseFloat(prev.valor):null;
-
-    /* Ano anterior — mesmo trimestre */
-    const mLat=latest.Dim1.match(/S7T(\d)(\d{4})/);
-    let prevYearPrice=null;
-    if(mLat){
-      const prevYearCode=`S7T${mLat[1]}${parseInt(mLat[2])-1}`;
-      const prevYearRow=pt.find(r=>r.Dim1===prevYearCode);
-      if(prevYearRow) prevYearPrice=parseFloat(prevYearRow.valor);
-    }
-
-    return{
-      price,
-      prevPrice:prevP,
-      chgQoQ:prevP?((price-prevP)/prevP*100):null,
-      chgYoY:prevYearPrice?((price-prevYearPrice)/prevYearPrice*100):null,
-      period:toLabel(latest.Dim1),
-      periodFull:latest.dim1_dsg||toLabel(latest.Dim1),
-      history:pt.slice(0,8).map(r=>({period:toLabel(r.Dim1),value:parseFloat(r.valor)})),
-      isLive:true
-    };
-  }
-
-  /* ── Fetch com proxies ───────────────────────────────────── */
-  async function fetchINE(varcd){
-    const url = buildINEUrl(varcd);
-    try {
-      const j = await fetchJsonFirstOk(url, {}, 14000);
-      if(Array.isArray(j) && j.length) return j;
-      if(j.contents) {
-        const parsed = JSON.parse(j.contents);
-        if(Array.isArray(parsed)) return parsed;
-      }
-      return j;
-    } catch(e) {
-      console.warn("⚠️ INE falhou:", e.message);
-      return null;
-    }
-  }
 
   /* ── Actualizar KPIs no DOM com dados live ───────────────── */
   function updateDOM(d){
@@ -128,36 +56,22 @@ async function loadImob(force=false){
   }
 
   /* ── Inicialização ───────────────────────────────────────── */
-  /* 1. Cache válido → actualizar DOM e sair */
+  /* Cache recente e trimestral válido → atualizar DOM e sair. */
   if(!force){
     const cached=lsGet(CK);
-    if(cached){
+    const match=String(cached?.period||"").match(/^Q([1-4])\s+(\d{4})$/);
+    const periodKey=match?Number(match[2])*4+Number(match[1]):0;
+    const currentQuarter=Math.floor(new Date().getMonth()/3)+1;
+    const currentPeriodKey=new Date().getFullYear()*4+currentQuarter;
+    if(cached&&Number.isFinite(cached.price)&&cached.price>0&&periodKey>=2025*4+3&&periodKey<=currentPeriodKey){
       updateDOM(cached);
       return;
     }
   }
 
-  /* 2. Mostrar fallback imediatamente */
+  /* Manter a referência mais recente disponível; o endpoint 0009494 é antigo. */
   updateDOM(FALLBACK);
-
-  /* 3. Tentar API INE em background */
-  try{
-    const raw=await fetchINE("0009494");
-    if(raw){
-      const d=parseINEData(raw);
-      /* Preservar dados estáticos que a API não devolve directamente */
-      d.transactions=FALLBACK.transactions;
-      d.transChgYoY=FALLBACK.transChgYoY;
-      d.salesBn=FALLBACK.salesBn;
-      d.newChgYoY=FALLBACK.newChgYoY;
-      d.existChgYoY=FALLBACK.existChgYoY;
-      lsSet(CK,d);
-      updateDOM(d);
-      return;
-    }
-  }catch(e){console.warn("⚠️ INE imobiliário falhou:",e.message);}
-
-  console.warn("⚠️ INE indisponível — a usar valores estáticos Q3 2025");
+  console.info("ℹ️ Imobiliário: a API candidata do INE (0009494) só tem observações até Q3 2021; mantida a referência Q3 2025.");
 }
 
 (function(){

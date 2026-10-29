@@ -25,7 +25,8 @@
         const item = value.observations[group];
         const snapshot = item?.snapshot;
         const validSnapshot = Number.isFinite(snapshot) || (Array.isArray(snapshot) && snapshot.length <= 4 && snapshot.every(part => part === null || Number.isFinite(part)));
-        return validSnapshot && typeof item.value === "string" ? [[group, { snapshot, value: item.value.slice(0, 300) }]] : [];
+        const observedAt = Number.isFinite(item?.observedAt) && item.observedAt > 0 && item.observedAt <= Date.now() ? item.observedAt : null;
+        return validSnapshot && typeof item.value === "string" ? [[group, { snapshot, value: item.value.slice(0, 300), observedAt }]] : [];
       }));
       return Object.keys(observations).length ? observations : null;
     } catch { return null; }
@@ -290,12 +291,13 @@
     if (!root) return;
     const changes = lastVisitSnapshot ? observations.filter(item => {
       const previous = lastVisitSnapshot[item.group];
-      return previous && isMaterialChange(item.group, previous.snapshot, item.snapshot);
+      const hasNewObservation = !Number.isFinite(previous?.observedAt) || item.observedAt > previous.observedAt;
+      return previous && hasNewObservation && isMaterialChange(item.group, previous.snapshot, item.snapshot);
     }) : [];
     root.innerHTML = changes.length
       ? `<strong>Alterações desde a visita anterior</strong><ul>${changes.map(item => {
         const previous = lastVisitSnapshot[item.group];
-        return `<li><a href="${item.href}">${escapeHTML(item.title)}</a>: ${escapeHTML(previous.value)} → ${escapeHTML(item.value)}</li>`;
+        return `<li><a href="${item.href}">${escapeHTML(item.title)}</a>: ${escapeHTML(previous.value)} → ${escapeHTML(item.value)}${Number.isFinite(previous.observedAt) ? ` · observação renovada ${formatDateTime(item.observedAt)}` : ""}</li>`;
       }).join("")}</ul>`
       : lastVisitSnapshot
         ? "Sem alterações relevantes nos indicadores recentes desde a visita anterior."

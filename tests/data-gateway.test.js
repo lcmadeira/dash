@@ -129,3 +129,14 @@ test("gateway never proxies caller supplied news URLs", async () => {
   assert.equal(response.status, 404);
   assert.equal(upstreamCalls, 0);
 });
+
+test("gateway rejects oversized upstream bodies before parsing or caching", async () => {
+  installMemoryCache();
+  const body = JSON.stringify({ bitcoin: { eur: 60000 }, padding: "x".repeat(250_001) });
+  globalThis.fetch = async () => new Response(body, { headers: { "Content-Type": "application/json" } });
+  const response = await handleRequest(new Request("https://dash-data.test/v1/crypto", {
+    headers: { Origin: "https://lcmadeira.github.io" },
+  }), { DASH_ORIGIN: "https://lcmadeira.github.io" });
+  assert.equal(response.status, 502);
+  assert.equal((await response.json()).error, "Não foi possível consultar o fornecedor");
+});

@@ -233,3 +233,23 @@ test("visit summary suppresses insignificant changes and local budget math never
   assert.match(result.costOutput.textContent, /31,7%/);
   assert.equal([...result.store.keys()].some(key => /costMonthly|costOfLiving/.test(key)), false);
 });
+
+test("visit summary only reports material changes after a newer observation", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const savedAt = now - 3600000;
+  const previousVisit = { observations: { fuel: {
+    snapshot: 1700, value: "Gasolina 95 · 1,700 €/L", observedAt: savedAt,
+  } } };
+  const sameObservation = await loadBriefing({
+    now, previousVisit,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(savedAt).toISOString() }],
+  });
+  assert.match(sameObservation.changes, /Sem alterações relevantes/);
+
+  const newerObservation = await loadBriefing({
+    now, previousVisit,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now).toISOString() }],
+  });
+  assert.ok(newerObservation.changes.includes("1,700 €/L → Gasolina 95 · 1,720 €/L"));
+  assert.match(newerObservation.changes, /observação renovada/);
+});

@@ -30,6 +30,47 @@
     "news-pt": "Notícias Portugal",
     "news-world": "Notícias mundo",
   };
+  const SOURCE_HISTORY_KEY = "dash_v15_source_health_history_v1";
+  const SOURCE_HISTORY_DAYS = 30;
+
+  function recordSourceHealth(statuses, now = Date.now()) {
+    if (!statuses.length || statuses.some(el => el.dataset.state === "loading")) return;
+    const observed = statuses.filter(el => ["live", "cache", "stale", "static", "error"].includes(el.dataset.state));
+    if (!observed.length) return;
+    const date = new Date(now);
+    const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    try {
+      const parsed = JSON.parse(localStorage.getItem(SOURCE_HISTORY_KEY) || "[]");
+      const history = Array.isArray(parsed) ? parsed.filter(item => typeof item?.day === "string"
+        && /^\d{4}-\d{2}-\d{2}$/.test(item.day) && item.day <= day
+        && Number.isInteger(item.total) && item.total > 0
+        && Number.isInteger(item.attention) && item.attention >= 0 && item.attention <= item.total)
+        .slice(-SOURCE_HISTORY_DAYS + 1) : [];
+      const attention = observed.filter(el => ["error", "stale", "static"].includes(el.dataset.state)).length;
+      const sample = { day, total: observed.length, attention };
+      const existing = history.findIndex(item => item.day === day);
+      let changed = false;
+      if (existing >= 0) {
+        changed = history[existing].total !== sample.total || history[existing].attention !== sample.attention;
+        if (changed) history[existing] = sample;
+      } else {
+        history.push(sample);
+        changed = true;
+      }
+      if (changed) localStorage.setItem(SOURCE_HISTORY_KEY, JSON.stringify(history.slice(-SOURCE_HISTORY_DAYS)));
+      const view = document.getElementById("dataSourceHistory");
+      if (view) {
+        const recent = history.slice(-7);
+        const clean = recent.filter(item => item.attention === 0).length;
+        view.textContent = recent.length > 1
+          ? `Histórico neste browser: ${recent.length} dias com visitas nos últimos 7 · ${clean} sem alertas reportados · ${recent.reduce((sum, item) => sum + item.total, 0)} estados de cards observados. Não é monitorização contínua.`
+          : "Histórico local: a reunir visitas diárias neste browser; não é monitorização contínua das fontes.";
+      }
+    } catch {
+      const view = document.getElementById("dataSourceHistory");
+      if (view) view.textContent = "Histórico local indisponível neste browser.";
+    }
+  }
   function fmtAgeShort(ms) {
     if (!Number.isFinite(ms) || ms < 0) return "—";
     const s = Math.floor(ms / 1000);
@@ -230,6 +271,7 @@
         ? `Verificação às ${checkedAt}: ${affectedSources.size} fontes identificadas afetadas (${errorCount} cards com erro, ${oldCount} antigos/parciais): ${[...affectedSources].join(", ")}.`
         : `Verificação às ${checkedAt}: sem alertas reportados pelos ${statuses.length} cards monitorizados; isto não confirma disponibilidade histórica das fontes.`;
     }
+    recordSourceHealth(statuses);
     const items = document.getElementById("dataOverviewItems");
     if (!items) return;
     const visibleIssues = issues.slice(0, 5);

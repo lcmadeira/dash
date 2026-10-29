@@ -39,6 +39,36 @@ function isValidPayload(path, payload) {
       && /^https:\/\//i.test(article.link));
 }
 
+async function readBoundedBody(response, maxBytes) {
+  const declared = Number(response.headers.get("Content-Length"));
+  if (Number.isFinite(declared) && declared > maxBytes) throw new Error("Resposta do fornecedor excede o limite");
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error("Resposta do fornecedor excede o limite");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 function decodeXml(value) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&#(x[\da-f]+|\d+);/gi, (_, code) => {
@@ -165,7 +195,9 @@ export async function handleRequest(request, env = {}, ctx = {}) {
       if (stale) return stale;
       return jsonResponse({ error: "Fornecedor indisponível", upstreamStatus: response.status }, 502, headers);
     }
-    const payload = newsFeed ? { articles: parseNewsRss(await response.text()) } : await response.json();
+    const maxBytes = url.pathname === "/v1/geopolitics" ? 1_500_000 : newsFeed ? 500_000 : 250_000;
+    const body = await readBoundedBody(response, maxBytes);
+    const payload = newsFeed ? { articles: parseNewsRss(body) } : JSON.parse(body);
     if (!isValidPayload(url.pathname, payload)) {
       const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
       if (stale) return stale;

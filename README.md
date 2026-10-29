@@ -1,16 +1,17 @@
 # Painel Pessoal · Portugal
 
-Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — funciona sem backend e aceita um gateway serverless opcional. Mantém cache local (`localStorage`) com TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
+Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — funciona sem backend próprio e usa um gateway serverless para um conjunto limitado de fontes. Mantém cache local (`localStorage`) com TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
 
 ## O que inclui
 
 - **Cards modulares** (Portugal, Mercados Financeiros, Notícias e outros módulos do painel).
-- **Responsivo (mobile/tablet/desktop)** com grid adaptativo e touch targets.
+- **Responsivo (mobile/tablet/desktop)** com grid adaptativo, controlos de toque maiores no resumo e smoke check do viewport móvel sem overflow horizontal.
 - **Skeleton Screens & Shimmer**: Carregamento visual fluido com animações GPU-accelerated (60fps).
 - **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers, **preferências de conforto visual e pesquisa em tempo-real**) aplicado em tempo-real **sem recarregar a página**.
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS. O alerta de preço da gasolina 95 é opcional, desligado por omissão, só considera observações até 72h e guarda apenas limite/estado/data do último aviso neste browser. Notificações do sistema pedem permissão após clique e só são avaliadas com o dashboard aberto; push com a página fechada requer Worker agendado e chaves VAPID configuradas.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
 - **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro. Quando os metadados existem, mostra também fonte e hora da observação. Para IPMA, combustíveis, câmbio, IHPC e Euribor, limites de idade da observação são avaliados separadamente da idade da cache local. O resumo regista a hora da última verificação e quantos cards reportam erro ou dados antigos; ausência de alertas não equivale a monitorização histórica da fonte.
+- **Histórico local da saúde dos dados**: guarda até 30 resumos diários das visitas deste browser e mostra os últimos sete dias observados. Não faz sondagens em background, não sincroniza dispositivos e não mede disponibilidade contínua dos fornecedores.
 - **Portugal hoje**: síntese personalizável de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual. As preferências ficam neste browser. Inclui uma estimativa opcional de custo mensal de gasolina baseada nos litros indicados na página; não persiste o consumo.
 - **Alterações desde a visita anterior**: compara indicadores recentes com o último snapshot observado neste browser. Só compara observações atuais; o primeiro acesso cria a referência, guardada ao sair da página.
 - **Alterações relevantes**: filtra diferenças pequenas com limites próprios por indicador (2 °C/20 pp na meteorologia, €0,01/L no combustível, €1 no cabaz, 0,1 pp no IHPC e 0,05 pp na Euribor); a comparação não é uma recomendação nem usa dados antigos como atuais.
@@ -70,7 +71,7 @@ python3 dev_server.py
 
 Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máquina, limita CORS a páginas locais, rejeita nomes DNS sem endereços públicos e inclui um endpoint `/proxy` para contornar CORS em desenvolvimento.
 
-### Gateway de dados opcional
+### Gateway de dados
 
 `worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko, GDELT e feeds RSS fixos de notícias PT/Mundo. Não aceita URLs fornecidos pelo chamador. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
 
@@ -78,7 +79,11 @@ Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máq
 npx wrangler deploy --config worker/wrangler.toml
 ```
 
-O Worker de produção está publicado em `https://dash-data-gateway.luiscarlosmadeira.workers.dev` e `CFG.DATA_API_BASE` já aponta para esse endereço. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. A integração Cloudflare com este repositório publica alterações automaticamente na branch de produção. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
+O Worker de produção está publicado em `https://dash-data-gateway.luiscarlosmadeira.workers.dev` e `CFG.DATA_API_BASE` já aponta para esse endereço. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. A integração Cloudflare com este repositório publica alterações automaticamente na branch de produção. O gateway rejeita respostas acima de limites por rota (250 KB cripto, 1,5 MB geopolítica, 500 KB notícias), além de validar payloads antes de os guardar.
+
+Uma expansão para o INE foi avaliada e adiada: o endpoint do indicador `0009494` consultado em 29/10/2026 devolveu apenas o 3.º trimestre de 2021 e não uma série nacional agregada. Isso é mais antigo e menos adequado do que a referência Q3 2025 apresentada pelo card; encaminhar essa resposta como dado live criaria uma regressão de atualidade. O card mantém o fallback identificado até existir um indicador INE correto e recente.
+
+O card PSI mantém o link direto para a [página oficial da Euronext](https://live.euronext.com/en/product/indices/pting0200002-xlis). A Euronext descreve acesso a dados atrasados sem custo no enquadramento de MiFIR, mas a documentação dos acordos também sujeita a exibição pública de dados atrasados a licença de redistribuição. Não se assumiu que acesso gratuito equivale a autorização para redistribuir no dashboard; a [página de acesso](https://www.euronext.com/en/data/real-time-data/how-access-market-data) e os [tipos de acordo](https://www.euronext.com/en/data/pricing-specs-agreements/data-agreements-types) devem ser confirmados antes de ativar cotações.
 
 Também é possível publicar pela GitHub Action manual **Deploy data gateway**. Configura os secrets de repositório `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` e inicia o workflow em Actions. A Action publica o Worker e verifica as rotas e o CORS; a integração Cloudflare ligada ao repositório é o método automático de produção.
 

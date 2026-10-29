@@ -150,6 +150,7 @@ test("dashboard profile filters cards without changing preferences and can resto
 
 test("data overview groups failing and stale cards by distinct provider", async () => {
   const values = new Map();
+  const stored = new Map();
   const items = { innerHTML: "", dataset: {}, addEventListener() {} };
   const panel = {};
   const statuses = [
@@ -163,10 +164,11 @@ test("data overview groups failing and stale cards by distinct provider", async 
       querySelectorAll() { return statuses; },
     },
     window: {},
+    localStorage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value) },
   });
   context.window = context;
   ["dataCountProvenance", "dataCountAvailable", "dataCountAttention", "dataCountLoading", "dataCountSourceIssues", "dataSourceHealth"]
-    .forEach(id => values.set(id, { textContent: "" }));
+    .concat("dataSourceHistory").forEach(id => values.set(id, { textContent: "" }));
   vm.runInContext(await readFile("src/ui.js", "utf8"), context);
   context.updateDataOverview();
   assert.equal(values.get("dataCountSourceIssues").textContent, "2");
@@ -174,6 +176,13 @@ test("data overview groups failing and stale cards by distinct provider", async 
   assert.match(values.get("dataSourceHealth").textContent, /Verificação às \d{2}:\d{2}/);
   assert.match(values.get("dataSourceHealth").textContent, /cards com erro/);
   assert.equal(values.get("dataCountAttention").textContent, "3");
+  assert.match(values.get("dataSourceHistory").textContent, /Histórico local/);
+  const history = JSON.parse(stored.get("dash_v15_source_health_history_v1"));
+  assert.equal(history.length, 1);
+  assert.equal(history[0].attention, 3);
+  statuses[0].dataset.state = "loading";
+  context.updateDataOverview();
+  assert.equal(JSON.parse(stored.get("dash_v15_source_health_history_v1")).length, 1);
 });
 
 test("food basket includes the latest verified weekly DECO values", async () => {
