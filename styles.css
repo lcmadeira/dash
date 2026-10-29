@@ -121,6 +121,12 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.data-overview-counts{display:flex;gap:10px;flex-wrap:wrap;font-size:.58rem;color:var(--t2)}
 	.data-count{display:inline-flex;align-items:center;gap:4px}.data-count b{font-family:var(--mono);font-size:.68rem}
 	.data-count-ok b{color:var(--green)}.data-count-warn b{color:var(--accent)}.data-count-loading b{color:var(--blue)}
+	.data-count-source b{color:var(--purple,var(--t2))}
+	.dashboard-views{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px;color:var(--t3);font-size:.62rem}
+	.dashboard-views button{min-height:32px;padding:4px 10px;border:1px solid var(--b);border-radius:8px;background:var(--surface);color:var(--t2);font:inherit;cursor:pointer}
+	.dashboard-views button.on,.dashboard-views button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-dim,var(--b2));color:var(--text)}
+	.dashboard-views button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+	#main-grid [data-card-id].profile-hidden{display:none!important}
 	.data-overview-items{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;color:var(--t3);font-size:.58rem}
 	.data-overview-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;padding:5px 8px;border:1px solid var(--b);border-radius:8px;background:var(--b2);color:var(--t2);font:inherit;text-align:left;cursor:pointer}
 	.data-overview-item small{color:var(--t3);font-size:.52rem;white-space:normal}

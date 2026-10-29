@@ -133,7 +133,11 @@
 - [x] Usar GDELT DOC como fonte JSON CORS para geopolítica e permitir pedidos diretos ao endpoint público CoinGecko. ✅ (29/10/2026)
 - [x] Guardar proveniência opcional no envelope de cache e distinguir estado parcial/fallback da idade da consulta; envelopes anteriores permanecem compatíveis. ✅ (29/10/2026)
 - [x] Preparar gateway opcional Cloudflare Worker para CoinGecko/GDELT, com validação de origem, payload e cache na edge; o endpoint fica opt-in até ser publicado/configurado. ✅ (29/10/2026)
-- [ ] Publicar o Worker de dados e definir `CFG.DATA_API_BASE` no dashboard alojado.
+- [x] Preparar publicação manual do Worker via GitHub Actions, com verificação automática de rotas e CORS após deploy; requer secrets Cloudflare no repositório. ✅ (29/10/2026)
+- [ ] Publicar o Worker no ambiente Cloudflare do proprietário e definir `CFG.DATA_API_BASE` no dashboard alojado (requer credenciais e URL de produção).
+- [ ] Selecionar e licenciar uma fonte de cotações PSI para apresentação pública; não usar proxies como substituto de licença de redistribuição.
+- [ ] Implementar push com o dashboard fechado: requer endpoint agendado, chaves VAPID e armazenamento seguro das subscrições; notificações atuais continuam dependentes da página aberta.
+- [x] Criar vistas contextuais Tudo/Portugal/Mercados/Mundo e indicador de cobertura de proveniência. ✅ (29/10/2026)
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos
@@ -369,7 +373,10 @@
 
 ### Próximas melhorias
 
-- [ ] Gateway Cloudflare opcional: publicar e configurar `CFG.DATA_API_BASE` para cripto e geopolítica; ainda não ativado em produção. O código já serve snapshot stale identificado quando o fornecedor falha.
+- [ ] Gateway Cloudflare opcional: o workflow de deploy e a verificação pós-publicação estão preparados; falta publicar no ambiente Cloudflare do proprietário e configurar `CFG.DATA_API_BASE`. O código já serve snapshot stale identificado quando o fornecedor falha.
+- [ ] Fonte PSI licenciada: selecionar fornecedor e termos compatíveis com apresentação pública antes de ativar preços dinâmicos.
+- [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; não está implementado por as notificações atuais dependerem da página aberta.
+- ✅ Vistas contextuais do dashboard e cobertura de fonte/data no resumo de saúde (29/10/2026).
 - [ ] PSI 20: selecionar uma fonte de cotações de Lisboa estável e autorizada para exibição pública. A Euronext disponibiliza opções de feed e sujeita a exibição pública a políticas de dados; não foi ativado um endpoint não licenciado.
 - [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados e comparações simples.
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.

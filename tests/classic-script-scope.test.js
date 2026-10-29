@@ -116,6 +116,36 @@ test("static economic fallback references declare a review period", async () => 
   }
 });
 
+test("dashboard profile filters cards without changing preferences and can restore all", async () => {
+  const makeCard = id => {
+    const classes = new Set();
+    return { dataset: { cardId: id }, classList: {
+      toggle(name, force) { if (force) classes.add(name); else classes.delete(name); },
+      contains(name) { return classes.has(name); },
+    } };
+  };
+  const cards = [makeCard("weather"), makeCard("psi20")];
+  const makeButton = profile => ({ dataset: { dashboardProfile: profile }, attrs: {},
+    setAttribute(name, value) { this.attrs[name] = value; },
+    classList: { toggle() {} }, addEventListener() {},
+  });
+  const buttons = ["all", "portugal", "markets", "world"].map(makeButton);
+  const stored = new Map();
+  const context = vm.createContext({
+    document: { querySelectorAll(selector) { return selector.includes("main-grid") ? cards : buttons; }, getElementById: () => null },
+    localStorage: { getItem: key => stored.get(key) ?? null, setItem: (key, value) => stored.set(key, value) },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/ui.js", "utf8"), context);
+
+  assert.equal(context.setDashboardProfile("markets"), "markets");
+  assert.equal(cards[0].classList.contains("profile-hidden"), true);
+  assert.equal(cards[1].classList.contains("profile-hidden"), false);
+  assert.equal(stored.get("dash_v15_dashboard_profile_v1"), "markets");
+  context.setDashboardProfile("all");
+  assert.equal(cards.some(card => card.classList.contains("profile-hidden")), false);
+});
+
 test("food basket includes the latest verified weekly DECO values", async () => {
   const source = await readFile("src/app.js", "utf8");
   assert.match(source, /\["2026-10-21", 253\.99,/);

@@ -191,7 +191,11 @@
     if (!panel) return;
     const counts = { live: 0, cache: 0, stale: 0, static: 0, error: 0, loading: 0, idle: 0 };
     const issues = [];
-    document.querySelectorAll(".card-status[data-status-for]").forEach((el) => {
+    const statuses = Array.from(document.querySelectorAll(".card-status[data-status-for]"));
+    const provenanceCount = statuses.filter((el) => /· Fonte:|· referência de /.test(el.title || "")).length;
+    const provenanceEl = document.getElementById("dataCountProvenance");
+    if (provenanceEl) provenanceEl.textContent = `${provenanceCount}/${statuses.length}`;
+    statuses.forEach((el) => {
       const state = Object.prototype.hasOwnProperty.call(counts, el.dataset.state) ? el.dataset.state : "idle";
       counts[state]++;
       if (["error", "stale", "static"].includes(state)) {
@@ -225,10 +229,45 @@
         const button = event.target.closest("[data-summary-target]");
         if (!button) return;
         const card = getCardElById(button.dataset.summaryTarget);
+        if (card?.classList.contains("profile-hidden")) setDashboardProfile("all");
         card?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
       items.dataset.bound = "true";
     }
+  }
+
+  const DASHBOARD_PROFILES = {
+    all: null,
+    portugal: new Set(["weather", "fuel", "cabaz", "gas-pt", "elec", "airquality", "dams", "euribor", "imob", "inf", "transp", "exp", "div", "smn"]),
+    markets: new Set(["oil", "gas-eu", "gas-pt", "elec", "euribor", "inf", "rec", "psi20", "finance", "heatmap", "fx", "crypto", "mstats", "cal", "div"]),
+    world: new Set(["conflicts", "geo", "press", "news-pt", "news-world", "ormuz", "air", "co2", "fng", "agri", "seis"]),
+  };
+  const DASHBOARD_PROFILE_KEY = "dash_v15_dashboard_profile_v1";
+
+  function setDashboardProfile(profile) {
+    const selected = Object.hasOwn(DASHBOARD_PROFILES, profile) ? profile : "all";
+    const allow = DASHBOARD_PROFILES[selected];
+    document.querySelectorAll("#main-grid [data-card-id]").forEach((card) => {
+      card.classList.toggle("profile-hidden", Boolean(allow && !allow.has(card.dataset.cardId)));
+    });
+    document.querySelectorAll("[data-dashboard-profile]").forEach((button) => {
+      const active = button.dataset.dashboardProfile === selected;
+      button.setAttribute("aria-pressed", String(active));
+      button.classList.toggle("on", active);
+    });
+    try { localStorage.setItem(DASHBOARD_PROFILE_KEY, selected); } catch {}
+    return selected;
+  }
+
+  function initDashboardProfiles() {
+    document.querySelectorAll("[data-dashboard-profile]").forEach((button) => {
+      if (button.dataset.profileBound) return;
+      button.addEventListener("click", () => setDashboardProfile(button.dataset.dashboardProfile));
+      button.dataset.profileBound = "true";
+    });
+    let saved = "all";
+    try { saved = localStorage.getItem(DASHBOARD_PROFILE_KEY) || "all"; } catch {}
+    return setDashboardProfile(saved);
   }
 
   function escapeHTML(value) {
@@ -450,6 +489,8 @@
   window.getCabazMeta = getCabazMeta;
   window.refreshAllCardStatuses = refreshAllCardStatuses;
   window.applyStickyScrollCards = applyStickyScrollCards;
+  window.setDashboardProfile = setDashboardProfile;
+  window.initDashboardProfiles = initDashboardProfiles;
   window.enhanceRefreshButtonLabels = enhanceRefreshButtonLabels;
 })();
 

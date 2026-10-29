@@ -2053,6 +2053,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Aplicar configurações salvas
   perfMark('apply-settings-start');
   applySettings();
+  window.initDashboardProfiles?.();
   perfMeasure('Aplicar configurações', 'apply-settings-start');
   
   // Enter para adicionar ticker

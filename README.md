@@ -72,9 +72,13 @@ npx wrangler deploy --config worker/wrangler.toml
 
 Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. Se a base ficar vazia (predefinição), o dashboard usa os fornecedores e fallbacks do browser. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
 
+Também é possível publicar pela GitHub Action manual **Deploy data gateway**. Configura os secrets de repositório `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID`, inicia o workflow em Actions e confirma o passo automático de verificação das rotas e do CORS. A Action publica o Worker, mas não altera o site nem define `CFG.DATA_API_BASE`: essa ativação permanece um passo explícito após confirmar o URL `workers.dev`.
+
 Quando um fornecedor falha, o Worker pode servir um snapshot de contingência guardado por até 24 horas. A resposta inclui `_meta.state: "stale"`, `X-Dash-Cache: STALE` e `Warning: 110`; os cards preservam esse estado para não apresentar a contingência como cotação atual. Esta proteção só existe depois de o Worker estar publicado e configurado.
 
 ### Cache e consola do browser
+
+Os botões de vista **Tudo**, **Portugal**, **Mercados** e **Mundo** filtram os cards sem alterar a personalização guardada de ordem/visibilidade; a escolha fica no armazenamento local deste browser. O resumo de dados também mostra quantos estados já incluem fonte ou data observada. Estes indicadores são uma medida de cobertura de proveniência, não uma garantia de que a fonte esteja atualizada.
 
 O GitHub Pages pode manter HTML, CSS e JavaScript em cache durante alguns minutos. Ao alterar `styles.css`, `src/widgets/market-clock.js` ou `src/app.js`, atualiza o parâmetro `v` nas respetivas tags `<link>`/`<script>` em `index.html`; isso força o browser a pedir os ficheiros novos. Para confirmar uma publicação, faz uma atualização forçada (`Ctrl+Shift+R`). O HTML atual não declara recursos `preload`; ao investigar avisos desse tipo, verifica o URL completo, pois widgets e folhas de estilo externas também podem criar as suas próprias sugestões de carregamento.
 

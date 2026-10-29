@@ -6,7 +6,7 @@ export async function checkPublishedSite(base, request = fetch) {
   if (!response.ok) throw new Error(`Dashboard respondeu HTTP ${response.status}: ${baseUrl}`);
 
   const html = await response.text();
-  for (const marker of ['id="dataOverview"', 'id="briefingBody"', 'id="main-grid"']) {
+  for (const marker of ['id="dataOverview"', 'id="briefingBody"', 'id="main-grid"', 'data-dashboard-profile="portugal"', 'id="dataCountProvenance"']) {
     if (!html.includes(marker)) throw new Error(`Marcador obrigatório ausente: ${marker}`);
   }
 
