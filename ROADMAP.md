@@ -115,6 +115,7 @@
       MIBGAS−TTF por mês. Sem fetch extra (reutiliza cache TTF). ✅ (20/03/2026)
 - [x] **Qualidade do Ar** — Open-Meteo / Copernicus CAMS, sem chave, CORS nativo.
       AQI Europeu (EEA), PM2.5, PM10, NO₂, O₃, SO₂, UV Index, previsão 8h. ✅ (20/03/2026)
+- [x] Corrigir variáveis de poluentes da API Air Quality e evitar pedido ao proxy local de UV no GitHub Pages; encaminhar Yahoo Finance pelos proxies CORS no browser hospedado. ✅ (29/10/2026)
 - [x] **Tráfego marítimo (Estreito de Ormuz)** — AIS data com mapa interactivo TopoJSON.
       Simulação dinâmica de alta fidelidade (movimento baseado em UTC/hora real) com
       rotas de precisão (V2) para evitar terra. Tooltips com detalhes de navios. ✅ (24/03/2026)

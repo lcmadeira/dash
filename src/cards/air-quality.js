@@ -1,4 +1,4 @@
-/* global CFG, $, skeletonKPIs, lsGet, lsSet, fetchJsonFirstOk, fetchViaLocalProxy, fetch, AbortSignal, er, notifyNonCriticalError, window */
+/* global CFG, $, skeletonKPIs, lsGet, lsSet, fetchJsonFirstOk, AbortSignal, er, notifyNonCriticalError, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    QUALIDADE DO AR — Open-Meteo / Copernicus CAMS
@@ -87,6 +87,15 @@ function estimateEuropeanAqiFromPols(pols) {
   return Math.max(...scores);
 }
 
+function normalizeAirQualityPayload(data) {
+  const hourly = data?.hourly;
+  if (!hourly) return data;
+  hourly.no2 ??= hourly.nitrogen_dioxide;
+  hourly.o3 ??= hourly.ozone;
+  hourly.so2 ??= hourly.sulphur_dioxide;
+  return data;
+}
+
 async function loadAirQuality(force=false) {
   const el = $("aq-body");
   if (!el) return;
@@ -101,45 +110,14 @@ async function loadAirQuality(force=false) {
 
   if (!data) {
     try {
-      /* Air Quality API — alguns parâmetros mudam/falham consoante o backend.
-         Estratégia: tentar variantes (forecast_hours vs forecast_days, domains) e,
-         em localhost, usar proxy local primeiro para evitar rate limits externos. */
+      /* Air Quality API usa os nomes completos para NO₂, O₃ e SO₂. */
       const base = `https://air-quality-api.open-meteo.com/v1/air-quality`
         + `?latitude=${coords.lat}&longitude=${coords.lon}`
         + `&timezone=Europe%2FLisbon`;
-
-      const hourlySets = [
-        "european_aqi,pm10,pm2_5,no2,o3,so2",
-        "pm10,pm2_5,no2,o3,so2",
-        "pm10,pm2_5",
-      ];
-
-      const variants = [];
-      hourlySets.forEach(hs => {
-        const b = `${base}&hourly=${encodeURIComponent(hs)}`;
-        variants.push(`${b}&forecast_hours=24`);
-        variants.push(`${b}&forecast_days=1`);
-        variants.push(`${b}&forecast_hours=24&domains=cams_europe`);
-        variants.push(`${b}&forecast_hours=24&domains=cams_global`);
-      });
-
-      async function tryFetchJson(url){
-        return fetchJsonFirstOk(
-          url,
-          {},
-          10000,
-          ["local","direct"]
-        );
-      }
-
-      let lastErr = null;
-      for(const u of variants){
-        try{
-          data = await tryFetchJson(u);
-          break;
-        }catch(e){ lastErr = e; }
-      }
-      if(!data) throw new Error(`Open-Meteo AQ indisponível (${lastErr?.message||"tentativas esgotadas"})`);
+      const variables = "european_aqi,pm10,pm2_5,nitrogen_dioxide,ozone,sulphur_dioxide";
+      const url = `${base}&hourly=${encodeURIComponent(variables)}&forecast_hours=24`;
+      data = await fetchJsonFirstOk(url, {}, 10000, ["local", "direct"],
+        value => Boolean(value?.hourly?.time?.length));
 
       if (data.error) throw new Error(`Open-Meteo AQ: ${data.reason||data.error}`);
 
@@ -148,15 +126,12 @@ async function loadAirQuality(force=false) {
         const uvUrl = `https://api.open-meteo.com/v1/forecast`
           + `?latitude=${coords.lat}&longitude=${coords.lon}`
           + `&hourly=uv_index&forecast_days=1&timezone=Europe%2FLisbon`;
-        let ru = null;
-        try { ru = await fetchViaLocalProxy(uvUrl, {signal: AbortSignal.timeout(8000)}); } catch {}
-        if(!ru || !ru.ok) ru = await fetch(uvUrl, {signal: AbortSignal.timeout(8000)});
-        if (ru.ok) {
-          const ju = await ru.json();
-          if (ju.hourly?.uv_index) data._uv = ju.hourly.uv_index;
-        }
+        const ju = await fetchJsonFirstOk(uvUrl, {signal: AbortSignal.timeout(8000)}, 8000,
+          ["direct"], value => Boolean(value?.hourly?.uv_index?.length));
+        if (ju.hourly?.uv_index) data._uv = ju.hourly.uv_index;
       } catch {}
 
+      data = normalizeAirQualityPayload(data);
       lsSet(ck, data);
     } catch(e) {
       el.innerHTML = er(e, { context: "Qualidade do ar", action: "clique em ↺ para nova tentativa" });
@@ -164,6 +139,8 @@ async function loadAirQuality(force=false) {
       return;
     }
   }
+
+  data = normalizeAirQualityPayload(data);
 
   const hourly = data.hourly || {};
   const now = new Date();

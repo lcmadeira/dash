@@ -60,7 +60,8 @@
       const h = new URL(u).hostname.toLowerCase();
       return h.includes("stooq") || h.includes("news.google.com") || h.includes("apambiente") || h.includes("ecb.europa.eu") ||
              h.includes("eurostat") || h.includes("opensky-network") || h.includes("aishub") ||
-             h.includes("ren.pt") || h.includes("usgs.gov") || h.includes("ine.pt") || h.includes("coingecko");
+             h.includes("ren.pt") || h.includes("usgs.gov") || h.includes("ine.pt") || h.includes("coingecko") ||
+             h.endsWith("finance.yahoo.com");
     };
 
     const out = [];

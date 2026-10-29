@@ -97,6 +97,53 @@ test("air quality card loads alongside a cached AQI_EU declaration", async () =>
   assert.doesNotThrow(() => vm.runInContext("const APP_AQI_EU = AQI_EU;", context));
 });
 
+test("air quality requests use Open-Meteo variable names and skip the local proxy on Pages", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  const now = new Date();
+  const day = now.toISOString().slice(0, 10);
+  const times = Array.from({ length: 24 }, (_, hour) => `${day}T${String(hour).padStart(2, "0")}:00`);
+  const hourly = {
+    time: times,
+    european_aqi: Array(24).fill(18),
+    pm10: Array(24).fill(12),
+    pm2_5: Array(24).fill(5),
+    nitrogen_dioxide: Array(24).fill(11),
+    ozone: Array(24).fill(32),
+    sulphur_dioxide: Array(24).fill(3),
+  };
+  const calls = [];
+  let savedData = null;
+  context.AbortSignal = AbortSignal;
+  context.CFG = { IPMA_CITY_ID: 1110600 };
+  context.$ = id => id === "aq-body" ? body : null;
+  context.skeletonKPIs = () => "loading";
+  context.lsGet = () => null;
+  context.lsSet = (_key, value) => { savedData = value; };
+  context.er = () => "error";
+  context.notifyNonCriticalError = () => {};
+  context.fetchJsonFirstOk = async (url, _options, _timeout, sources) => {
+    calls.push({ url, sources });
+    return url.includes("/v1/forecast") ? { hourly: { uv_index: Array(24).fill(2) } } : { hourly };
+  };
+
+  const source = await readFile("src/cards/air-quality.js", "utf8");
+  vm.runInContext(source, context);
+  await context.loadAirQuality();
+
+  const airCall = calls.find(call => call.url.includes("/v1/air-quality"));
+  const uvCall = calls.find(call => call.url.includes("/v1/forecast"));
+  assert.ok(airCall);
+  assert.match(airCall.url, /nitrogen_dioxide%2C/);
+  assert.match(airCall.url, /%2Cozone%2Csulphur_dioxide/);
+  assert.deepEqual(Array.from(airCall.sources), ["local", "direct"]);
+  assert.deepEqual(Array.from(uvCall.sources), ["direct"]);
+  assert.equal(savedData.hourly.no2[0], 11);
+  assert.equal(savedData.hourly.o3[0], 32);
+  assert.equal(savedData.hourly.so2[0], 3);
+  assert.match(body.innerHTML, /Qualidade/);
+});
+
 test("economic calendar loads alongside cached date data and event handlers", async () => {
   const context = createBrowserContext();
   vm.runInContext('const FOMC_DATES_2026 = ["cached app"]; function switchCal() {}', context);
@@ -1031,6 +1078,18 @@ test("proxy authorization failures are cooled down across fetches and page reloa
   assert.deepEqual(await reloadedTab.fetchJsonFirstOk("https://example.com/other", {}, 100, sources), { ok: true });
   assert.equal(requests.length, 3);
   assert.ok(requests[2].startsWith("https://api.codetabs.com/"));
+});
+
+test("Yahoo Finance requests skip a known CORS-blocked direct source on hosted pages", async () => {
+  const context = vm.createContext({
+    URL, URLSearchParams, location: { protocol: "https:", hostname: "dashboard.example", search: "" },
+    localStorage: { getItem: () => null },
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/fetch.js", "utf8"), context);
+
+  const plan = context.buildFetchPlan("https://query1.finance.yahoo.com/v8/finance/chart/ABC", ["direct", "allorigins", "corsproxy"]);
+  assert.deepEqual(Array.from(plan, step => step.source), ["allorigins", "corsproxy"]);
 });
 
 test("proxy cooldown prevents queued concurrent requests from repeating an unauthorized proxy", async () => {

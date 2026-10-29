@@ -80,6 +80,8 @@ O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), in
 Notas:
 
 - Alguns endpoints recorrem a **proxies CORS públicos** (ex.: `allorigins`, `corsproxy`, `thingproxy`) e podem falhar por indisponibilidade/limites.
+- A API Air Quality da Open-Meteo usa `nitrogen_dioxide`, `ozone` e `sulphur_dioxide` para os poluentes; o card converte estes campos para os nomes internos `no2`, `o3` e `so2`. No GitHub Pages, a previsão UV usa CORS direto e não o proxy local de desenvolvimento.
+- No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - Certas funcionalidades (ex.: notificações periódicas) estão condicionadas por CORS — ver `ROADMAP.md`.
 
 ## Roadmap
