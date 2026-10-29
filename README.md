@@ -14,7 +14,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Portugal hoje**: síntese de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual.
 - **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
-- **Proveniência da cache**: novas gravações podem guardar fonte, estado (`live`, `partial`, `static`, `fallback`) e hora observada. O tooltip distingue cache recente de observação recente; envelopes antigos continuam compatíveis.
+- **Proveniência da cache**: gravações podem guardar fonte, estado (`live`, `partial`, `stale`, `static`, `fallback`) e hora observada. IPMA, combustíveis, câmbio, IHPC e Euribor registam metadados de origem; o tooltip distingue cache recente de observação recente e envelopes antigos continuam compatíveis.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.

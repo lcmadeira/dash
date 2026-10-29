@@ -378,6 +378,8 @@
 
 - ✅ Worker guarda um snapshot de contingência até 24 horas e só o serve quando o fornecedor falha; a resposta declara `state: stale`, cabeçalho `Warning` e não é novamente guardada pelo browser.
 - ✅ Cards de cripto e geopolítica mantêm o estado stale do gateway na proveniência/cache e no resumo de saúde, sem rotular a resposta como live.
+- ✅ Normalizador da cache passa a preservar o estado `stale`; regressão coberta por teste para que a contingência continue identificada após leitura local.
+- ✅ Metadados de fonte/observação acrescentados a IPMA, API Aberta, MITECO/MINETUR, Frankfurter/ExchangeRate-API, Eurostat e BCE; cache antiga continua aceite.
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
 - ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial e seis recursos locais críticos; falhas de publicação passam a produzir uma execução falhada e visível em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.

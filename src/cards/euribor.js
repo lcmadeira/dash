@@ -156,6 +156,7 @@ async function loadEuriborFromBCE(){
 
   return {
     updated: updatedDate, rates, hist,
+    _observedAt: latestPeriod ? Date.parse(`${latestPeriod}-01T00:00:00Z`) : null,
     bce: keyRates || EURIBOR_FALLBACK.bce,
     peak: EURIBOR_FALLBACK.peak,
     bceNext: EURIBOR_FALLBACK.bceNext,
@@ -373,7 +374,11 @@ async function initEuribor(force=false){
     console.log("📐 Euribor: a actualizar do BCE em background...");
     const live=await loadEuriborFromBCE();
     EURIBOR_DATA=live;
-    lsSet(CK,live);
+    lsSet(CK, live, {
+      source: "BCE · Euribor",
+      state: "live",
+      observedAt: live._observedAt,
+    });
     if(ref) ref.textContent=live.updated+" \u25cf live";
     renderEuribor();
     console.log("\u2705 Euribor BCE actualizado:",live.updated);

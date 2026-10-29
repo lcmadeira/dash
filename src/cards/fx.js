@@ -32,6 +32,7 @@ async function loadFX(force=false){
     let data = force ? null : lsGet("fx");
     if(!isValidFXData(data)) data = null;
     if (!data) {
+      let source = "Frankfurter (BCE)";
       try {
         const j = await fetchJsonFirstOk("https://api.frankfurter.dev/v1/latest?base=EUR", {}, 6000);
         data = { rates: j.rates, date: j.date };
@@ -41,12 +42,17 @@ async function loadFX(force=false){
         try {
           const j2 = await fetchJsonFirstOk("https://open.er-api.com/v6/latest/EUR", {}, 8000);
           data = { rates: j2.rates, date: "" };
+          source = "ExchangeRate-API";
           if(!isValidFXData(data)) throw new Error("Resposta de fallback inválida");
         } catch (_e2) {
           throw new Error("Câmbio indisponível");
         }
       }
-      if (data) lsSet("fx", data);
+      if (data) lsSet("fx", data, {
+        source,
+        state: "live",
+        observedAt: data.date || undefined,
+      });
     }
     fxRates=data.rates||{};
     renderFX(data.date);

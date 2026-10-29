@@ -80,6 +80,11 @@ test("cache preserves validated source provenance without breaking legacy envelo
   assert.equal(meta.dataMeta.state, "partial");
   assert.equal(meta.sourceTs, observedAt);
 
+  context.lsSet("gateway-stale", { price: 10 }, {
+    source: "Gateway", state: "stale", observedAt, reason: "Fornecedor indisponível",
+  });
+  assert.equal(context.getCacheMeta("gateway-stale").dataMeta.state, "stale");
+
   context.lsSet("legacy", { value: 1 });
   assert.equal(context.getCacheMeta("legacy").dataMeta, null);
   context.lsSet("future", { value: 2 }, { source: "Provider", observedAt: Date.now() + 60000 });

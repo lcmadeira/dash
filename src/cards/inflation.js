@@ -3,6 +3,14 @@
 let INFLATION_DATA = null;
 let INFLATION_SOURCE = 'static'; // 'static' | 'eurostat_live'
 
+function inflationObservationTimestamp(label) {
+  const match = /^([A-Za-zÀ-ÿ]{3})\.?\s+(\d{4})$/.exec(String(label || "").trim());
+  if (!match) return null;
+  const month = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+    .indexOf(match[1].toLowerCase());
+  return month < 0 ? null : Date.UTC(Number(match[2]), month, 1);
+}
+
 /* ── Parser JSON-stat do Eurostat ────────────────────────────── */
 function parseEurostatInflation(json){
   try{
@@ -120,7 +128,11 @@ async function initInflation(force=false){
     if(rows){
       INFLATION_DATA   = rows;
       INFLATION_SOURCE = 'eurostat_live';
-      lsSet(CK, {rows, source: 'eurostat_live'});
+      lsSet(CK, {rows, source: 'eurostat_live'}, {
+        source: "Eurostat · IHPC",
+        state: "live",
+        observedAt: inflationObservationTimestamp(rows[0]?.m),
+      });
       renderInflation();
       console.log('✅ Inflação Eurostat actualizada:', rows[0].m);
     } else {

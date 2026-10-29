@@ -10,7 +10,11 @@ async function loadWeather(force=false){
       const { r } = await fetchFirstOk(`https://api.ipma.pt/open-data/forecast/meteorology/cities/daily/${id}.json`, {}, 8000, ["direct", "allorigins"]);
       if(!r.ok)throw new Error(`IPMA ${r.status}`);
       data=await r.json();
-      lsSet(key,data);
+      lsSet(key, data, {
+        source: "IPMA",
+        state: "live",
+        observedAt: data.dataUpdate,
+      });
     }
     const city=IPMA_CITIES[id]||`#${id}`,days=data.data||[];
     if(!days.length)throw new Error("Sem dados");

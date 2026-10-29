@@ -186,7 +186,11 @@ async function renderFuel(force=false){
     try {
       const j = await fetchJsonFirstOk("https://api.apiaberta.pt/v1/fuel/prices", {}, 12000);
       pt = j.data || j;
-      if (pt) lsSet("fuel", pt);
+      if (pt) lsSet("fuel", pt, {
+        source: "API Aberta",
+        state: "live",
+        observedAt: pt.map(item => Date.parse(item?.updated_at || "")).filter(Number.isFinite).sort((a, b) => b - a)[0],
+      });
     } catch(e) {
       console.warn("⚠️ Fuel API falhou:", e.message);
     }
@@ -207,7 +211,11 @@ async function renderFuel(force=false){
         if(!nAny){
           throw new Error("ES: sem preços (campos inesperados)");
         }
-        lsSet("fuel_es",es);
+        lsSet("fuel_es", es, {
+          source: "MITECO/MINETUR",
+          state: "live",
+          observedAt: es.ts,
+        });
       }
     }catch(e){es=null;esErr=e;}
     const esBy=es?.items||{};

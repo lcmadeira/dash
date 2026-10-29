@@ -52,7 +52,7 @@
   /** Normaliza a proveniência opcional guardada com cada resposta de fornecedor. */
   function normalizeCacheMeta(meta) {
     if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
-    const allowedStates = new Set(["live", "partial", "static", "fallback"]);
+    const allowedStates = new Set(["live", "partial", "stale", "static", "fallback"]);
     const state = allowedStates.has(meta.state) ? meta.state : null;
     const toTimestamp = (value) => {
       if (typeof value === "number" && Number.isFinite(value) && value > 0 && value <= Date.now()) return value;
@@ -134,7 +134,7 @@
    * Guarda dados com timestamp e tenta limpar entradas antigas se o armazenamento estiver cheio.
    * @param {string} k Chave lógica, sem o prefixo interno.
    * @param {*} d Dados serializáveis a guardar.
-   * @param {{source?: string, state?: "live"|"partial"|"static"|"fallback", observedAt?: string|number, reason?: string}} [meta] Proveniência e estado da resposta.
+   * @param {{source?: string, state?: "live"|"partial"|"stale"|"static"|"fallback", observedAt?: string|number, reason?: string}} [meta] Proveniência e estado da resposta.
    * @returns {boolean} Indica se a gravação foi concluída.
    */
   function lsSet(k, d, meta) {
