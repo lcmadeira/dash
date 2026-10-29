@@ -385,7 +385,7 @@
 - ✅ Fallbacks económicos selecionados declaram fonte, data e prazo de revisão; o resumo assinala referências antigas sem as apresentar como atuais.
 - ✅ Simulador de custo mensal da gasolina 95 calcula consumo × média observada apenas na memória da página; sem persistência de valores introduzidos.
 - ✅ Briefing “Portugal hoje” compara gasolina 95 PT/ES apenas quando ambas as observações têm menos de 72 horas; mostra diferença e data da média espanhola.
-- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial, seis recursos locais críticos e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
+- ✅ Novo workflow diário/manual verifica GitHub Pages, conteúdo essencial, sete recursos locais críticos e inicialização da UI em Chromium com fornecedores externos isolados; falhas de publicação/runtime ficam visíveis em Actions.
 - ✅ Teste cobre indisponibilidade do fornecedor com resposta stale válida; teste de briefing cobre comparação recente PT/ES.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
@@ -408,6 +408,17 @@
 - ✅ Preferência do alerta guarda apenas o limiar, estado ativo e timestamp do último aviso no browser; o simulador continua sem persistir os litros indicados.
 - ✅ Proveniência acrescentada a notícias RSS, qualidade do ar Open-Meteo/CAMS, Fear & Greed Alternative.me, spread FRED e eventos USGS; a qualidade do ar é identificada como parcial por poder estimar o AQI.
 - ✅ Testes de regressão cobrem ativação do alerta, limiar, deduplicação e a ausência de alerta sem adesão explícita.
+
+### 29/10/2026 — Gateway, briefing pessoal e contratos de dados
+
+- ✅ Gateway acrescenta feeds Google News RSS PT/Mundo em rotas fixas com cache de edge, validação de payload e fallback stale; URLs arbitrários fornecidos por clientes continuam rejeitados.
+- ✅ Card de notícias usa gateway configurado e preserva o fallback RSS existente; títulos e fontes são escapados e links só abrem destinos HTTPS sem credenciais.
+- ✅ Resumo de saúde mostra fonte e data observada nas incidências quando a proveniência está disponível.
+- ✅ “Portugal hoje” permite selecionar indicadores e guarda a seleção apenas no browser.
+- ✅ Alerta de combustível pode pedir permissão explícita para mostrar uma notificação do sistema enquanto o dashboard está aberto.
+- ✅ Fixtures RSS exercitam parser/validação do Worker; testes do card cobrem conteúdo malicioso, destinos inseguros e preferências locais.
+- ⏳ Publicar/configurar Worker para ativar as novas rotas no dashboard alojado; notificações push com a página fechada ainda requerem VAPID, armazenamento de subscrições e execução agendada.
+- ⏳ Selecionar fonte de cotações PSI com licença de exibição pública confirmada.
 
 ### v2.0.0 — Futuro
 

@@ -4,6 +4,9 @@
   const MAX_WEATHER_AGE_HOURS = 36;
   const MAX_FUEL_AGE_HOURS = 72;
   const FUEL_ALERT_KEY = (window.PFX || "dash_v15_") + "fuel_alert_v1";
+  const BRIEFING_PREF_KEY = (window.PFX || "dash_v15_") + "briefing_preferences_v1";
+  const BRIEFING_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
+  let briefingPreferencesMemory = null;
   let currentFuelPrice = null;
   let currentFuelObserved = null;
 
@@ -23,13 +26,14 @@
     if (weather && Number.isFinite(weatherObserved) && now >= weatherObserved && now - weatherObserved <= MAX_WEATHER_AGE_HOURS * 3600000 &&
         /^\d{4}-\d{2}-\d{2}$/.test(forecastDate) && Number.isFinite(tempMax)) {
       observations.push({
+        group: "weather",
         title: "Meteorologia",
         value: `${Math.round(tempMax)}°C de máxima${Number.isFinite(rain) ? ` · ${Math.round(rain)}% de precipitação` : ""}`,
         detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · previsão ${formatDate(forecastDate)} · IPMA atualizada ${formatDateTime(weatherObserved)}`,
         href: "#card-weather",
       });
     } else if (weatherCache?.age > MAX_WEATHER_AGE_HOURS * 3600000) {
-      observations.push({ title: "Meteorologia", value: "Previsão desatualizada", detail: `Cache local há ${window.fmtAgeShort?.(weatherCache.age) || "mais de 36h"}`, href: "#card-weather", stale: true });
+      observations.push({ group: "weather", title: "Meteorologia", value: "Previsão desatualizada", detail: `Cache local há ${window.fmtAgeShort?.(weatherCache.age) || "mais de 36h"}`, href: "#card-weather", stale: true });
     }
 
     const fuel = window.lsGet?.("fuel");
@@ -51,13 +55,14 @@
         ? ` · ${fuelPrice >= esPrice ? "+" : "−"}€${Math.abs(fuelPrice - esPrice).toFixed(3).replace(".", ",")}/L vs Espanha`
         : "";
       observations.push({
+        group: "fuel",
         title: "Combustível",
         value: `Gasolina 95 · ${fuelPrice.toFixed(3).replace(".", ",")} €/L${comparison}`,
         detail: `${Number(gas95.station_count) || 0} postos${esIsFresh ? ` · média espanhola ${esPrice.toFixed(3).replace(".", ",")} €/L (${formatDate(esObserved)})` : ""} · API Aberta · observada ${formatDateTime(fuelObserved)}`,
         href: "#card-fuel",
       });
     } else if (fuelCache?.age > MAX_FUEL_AGE_HOURS * 3600000) {
-      observations.push({ title: "Combustível", value: "Preço desatualizado", detail: `Cache local há ${window.fmtAgeShort?.(fuelCache.age) || "mais de 72h"}`, href: "#card-fuel", stale: true });
+      observations.push({ group: "fuel", title: "Combustível", value: "Preço desatualizado", detail: `Cache local há ${window.fmtAgeShort?.(fuelCache.age) || "mais de 72h"}`, href: "#card-fuel", stale: true });
     }
 
     const inflation = window.lsGet?.("inflation_eurostat_v2");
@@ -78,6 +83,7 @@
         ? `${monthlyChange > 0 ? "+" : ""}${monthlyChange.toFixed(1).replace(".", ",")} pp face ao mês anterior`
         : "";
       observations.push({
+        group: "inflation",
         title: "Inflação · IHPC",
         value: `Portugal ${latestInflation.pt.toFixed(1).replace(".", ",")}% · zona euro ${latestInflation.eu.toFixed(1).replace(".", ",")}%`,
         detail: `${formatDate(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
@@ -92,6 +98,7 @@
     if (euribor?._source === "bce_live" && euriborDate && now >= euriborDate && now - euriborDate <= 75 * 86400000 &&
         Number.isFinite(threeMonth) && Number.isFinite(twelveMonth)) {
       observations.push({
+        group: "euribor",
         title: "Euribor",
         value: `3M ${threeMonth.toFixed(3).replace(".", ",")}% · 12M ${twelveMonth.toFixed(3).replace(".", ",")}%`,
         detail: `BCE · observação ${formatDate(euriborDate)}`,
@@ -110,6 +117,7 @@
         const delta = currentValue - previousValue;
         const change = delta > 0 ? `+€${delta.toFixed(2).replace(".", ",")}` : delta < 0 ? `−€${Math.abs(delta).toFixed(2).replace(".", ",")}` : "sem variação";
         observations.push({
+          group: "basket",
           title: "Cabaz alimentar",
           value: `€${currentValue.toFixed(2).replace(".", ",")} · ${change} face ao registo anterior`,
           detail: `Observação ${formatDate(latest[0])} · registo do histórico do painel`,
@@ -118,13 +126,43 @@
       }
     }
 
-    root.innerHTML = observations.length
-      ? observations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("")
-      : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>';
+    bindBriefingPreferences(now);
+    const selected = readBriefingPreferences();
+    const visibleObservations = observations.filter(item => selected.includes(item.group));
+    root.innerHTML = visibleObservations.length
+      ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("")
+      : observations.length
+        ? '<p class="briefing-empty">Nenhum indicador recente está selecionado. Altere as preferências do resumo.</p>'
+        : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>';
     const updated = document.getElementById("briefingUpdated");
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
     updateFuelImpact();
     bindFuelAlert();
+  }
+
+  function readBriefingPreferences() {
+    try {
+      const value = JSON.parse(window.localStorage?.getItem(BRIEFING_PREF_KEY) || "null");
+      if (Array.isArray(value)) return BRIEFING_GROUPS.filter(group => value.includes(group));
+    } catch {}
+    return briefingPreferencesMemory ? [...briefingPreferencesMemory] : [...BRIEFING_GROUPS];
+  }
+
+  function bindBriefingPreferences(now) {
+    const controls = BRIEFING_GROUPS.map(group => document.getElementById(`briefingPref${group[0].toUpperCase()}${group.slice(1)}`));
+    if (controls.some(control => !control) || controls[0].dataset.bound) return;
+    const selected = readBriefingPreferences();
+    controls.forEach((control, index) => {
+      const group = BRIEFING_GROUPS[index];
+      control.checked = selected.includes(group);
+      control.addEventListener("change", () => {
+        const next = controls.flatMap((item, index) => item.checked ? [BRIEFING_GROUPS[index]] : []);
+        briefingPreferencesMemory = next;
+        try { window.localStorage?.setItem(BRIEFING_PREF_KEY, JSON.stringify(next)); } catch {}
+        renderPortugalBriefing(now);
+      });
+      control.dataset.bound = "true";
+    });
   }
 
   function updateFuelImpact() {
@@ -151,6 +189,7 @@
       const threshold = Number(value?.threshold);
       return {
         enabled: value?.enabled === true,
+        desktopEnabled: value?.desktopEnabled === true,
         threshold: Number.isFinite(threshold) && threshold >= 0.5 && threshold <= 5 ? threshold : 1.5,
         lastNotifiedAt: Number(value?.lastNotifiedAt) || 0,
       };
@@ -166,6 +205,7 @@
   function bindFuelAlert() {
     const input = document.getElementById("fuelAlertThreshold");
     const button = document.getElementById("fuelAlertToggle");
+    const desktopButton = document.getElementById("fuelDesktopToggle");
     if (!input || !button || button.dataset.bound) return;
     const status = document.getElementById("fuelAlertStatus");
     const state = readFuelAlert();
@@ -173,8 +213,12 @@
     const render = () => {
       button.textContent = state.enabled ? "Desativar alerta" : "Ativar alerta";
       button.setAttribute("aria-pressed", String(state.enabled));
+      if (desktopButton) {
+        desktopButton.textContent = state.desktopEnabled ? "Desativar aviso no computador" : "Ativar aviso no computador";
+        desktopButton.setAttribute("aria-pressed", String(state.desktopEnabled));
+      }
       if (status) status.textContent = state.enabled
-        ? `Ativo: aviso quando o preço observado for ≤ ${state.threshold.toFixed(2).replace(".", ",")} €/L. Guardado apenas neste browser.`
+        ? `Ativo: aviso quando o preço observado for ≤ ${state.threshold.toFixed(2).replace(".", ",")} €/L. Guardado apenas neste browser.${state.desktopEnabled ? " O aviso do computador depende da permissão do browser e do dashboard aberto." : ""}`
         : "Desativado. O limite fica guardado apenas neste browser.";
     };
     input.addEventListener("change", () => {
@@ -192,6 +236,31 @@
       if (state.enabled && currentFuelPrice !== null) state.lastNotifiedAt = checkFuelAlert(currentFuelPrice, currentFuelObserved) || state.lastNotifiedAt;
     });
     button.dataset.bound = "true";
+    if (desktopButton && !desktopButton.dataset.bound) {
+      desktopButton.addEventListener("click", async () => {
+        const NotificationApi = window.Notification;
+        if (!NotificationApi) {
+          if (status) status.textContent = "Este browser não suporta notificações do sistema.";
+          return;
+        }
+        if (!state.desktopEnabled && NotificationApi.permission !== "granted") {
+          try {
+            const permission = await NotificationApi.requestPermission();
+            if (permission !== "granted") {
+              if (status) status.textContent = "Permissão de notificações não concedida; os avisos continuam no dashboard.";
+              return;
+            }
+          } catch {
+            if (status) status.textContent = "Não foi possível pedir permissão ao browser.";
+            return;
+          }
+        }
+        state.desktopEnabled = !state.desktopEnabled;
+        writeFuelAlert(state);
+        render();
+      });
+      desktopButton.dataset.bound = "true";
+    }
     render();
   }
 
@@ -202,6 +271,14 @@
     if (typeof window.addNotification !== "function") return 0;
     const timestamp = new Date(observedAt).toISOString();
     window.addNotification("energy", "Gasolina 95 abaixo do limite", `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L (limite ${state.threshold.toFixed(2).replace(".", ",")} €/L).`, "medium", { source: "API Aberta", observedAt: timestamp });
+    if (state.desktopEnabled && window.Notification?.permission === "granted") {
+      try {
+        new window.Notification("Gasolina 95 abaixo do limite", {
+          body: `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L.`,
+          tag: "dash-fuel-" + observedAt,
+        });
+      } catch {}
+    }
     state.lastNotifiedAt = observedAt;
     writeFuelAlert(state);
     return observedAt;

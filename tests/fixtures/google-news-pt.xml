@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Portugal hoje</title>
+  <item><title>Notícia de teste &amp; verificação</title><link>https://example.test/noticia-1</link><pubDate>Thu, 29 Oct 2026 10:00:00 GMT</pubDate><source>Jornal de Teste</source></item>
+  <item><title><![CDATA[Outro título <em>codificado</em>]]></title><link>https://example.test/noticia-2</link><pubDate>Thu, 29 Oct 2026 09:00:00 GMT</pubDate><source>Fonte de Teste</source></item>
+  <item><title>Link inválido</title><link>javascript:alert(1)</link></item>
+  <item><title>Data no futuro</title><link>https://example.test/futuro</link><pubDate>Thu, 29 Oct 2100 10:00:00 GMT</pubDate></item>
+</channel></rss>

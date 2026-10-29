@@ -8,10 +8,10 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Responsivo (mobile/tablet/desktop)** com grid adaptativo e touch targets.
 - **Skeleton Screens & Shimmer**: Carregamento visual fluido com animações GPU-accelerated (60fps).
 - **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers, **preferências de conforto visual e pesquisa em tempo-real**) aplicado em tempo-real **sem recarregar a página**.
-- **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS. O alerta de preço da gasolina 95 é opcional, desligado por omissão, só considera observações até 72h e guarda apenas limite/estado/data do último aviso neste browser.
+- **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS. O alerta de preço da gasolina 95 é opcional, desligado por omissão, só considera observações até 72h e guarda apenas limite/estado/data do último aviso neste browser. Notificações do sistema pedem permissão após clique e só são avaliadas com o dashboard aberto; push com a página fechada requer Worker agendado e chaves VAPID configuradas.
 - **Estado e idade dos dados por card**: badges mostram a idade da gravação local, dados antigos, carregamento e erros; quando a fonte fornece uma data reconhecível, o tooltip distingue-a da gravação em cache. Envelopes inválidos ou com timestamps futuros não são apresentados como válidos.
-- **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro. Para IPMA, combustíveis, câmbio, IHPC e Euribor, limites de idade da observação são avaliados separadamente da idade da cache local.
-- **Portugal hoje**: síntese de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual. Inclui uma estimativa opcional de custo mensal de gasolina baseada nos litros indicados na página; não persiste o consumo.
+- **Resumo de saúde dos dados**: no topo do painel, agrega os cards disponíveis, a carregar e que precisam de atenção; permite saltar diretamente para cards com dados antigos, parciais, de referência ou erro. Quando os metadados existem, mostra também fonte e hora da observação. Para IPMA, combustíveis, câmbio, IHPC e Euribor, limites de idade da observação são avaliados separadamente da idade da cache local.
+- **Portugal hoje**: síntese personalizável de observações recentes da previsão IPMA, gasolina 95 (com comparação PT/ES quando ambas as fontes são recentes), histórico do cabaz e, quando as fontes live estão disponíveis, IHPC Eurostat e Euribor BCE — sempre com data/fonte e sem tratar cache antiga como dado atual. As preferências ficam neste browser. Inclui uma estimativa opcional de custo mensal de gasolina baseada nos litros indicados na página; não persiste o consumo.
 - **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: gravações podem guardar fonte, estado (`live`, `partial`, `stale`, `static`, `fallback`) e hora observada. IPMA, combustíveis, câmbio, IHPC, Euribor, notícias, qualidade do ar, Fear & Greed, spread FRED e sismos registam metadados de origem; o tooltip distingue cache recente de observação recente e envelopes antigos continuam compatíveis.
@@ -64,13 +64,13 @@ Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máq
 
 ### Gateway de dados opcional
 
-`worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko e GDELT. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
+`worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko, GDELT e feeds RSS fixos de notícias PT/Mundo. Não aceita URLs fornecidos pelo chamador. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
 
 ```bash
 npx wrangler deploy --config worker/wrangler.toml
 ```
 
-Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. Se ficar vazia (predefinição), o dashboard continua a consultar os fornecedores diretamente e não depende do Cloudflare. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
+Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. Se a base ficar vazia (predefinição), o dashboard usa os fornecedores e fallbacks do browser. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
 
 Quando um fornecedor falha, o Worker pode servir um snapshot de contingência guardado por até 24 horas. A resposta inclui `_meta.state: "stale"`, `X-Dash-Cache: STALE` e `Warning: 110`; os cards preservam esse estado para não apresentar a contingência como cotação atual. Esta proteção só existe depois de o Worker estar publicado e configurado.
 
@@ -125,7 +125,7 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
-Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os seis recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
+Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os sete recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
 
 ### Executar lint localmente
 

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
+import { readFile } from "node:fs/promises";
 import { handleRequest } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
@@ -92,4 +93,39 @@ test("gateway returns recent GDELT JSON and rejects unapproved origins", async (
   assert.equal(payload.articles[0].title, "Diplomatic talks");
   assert.equal(payload._meta.source, "GDELT DOC");
   assert.equal(upstreamCalls, 1);
+});
+
+test("gateway parses fixed Google News feeds, drops unsafe links, and stamps source time", async () => {
+  const fixture = await readFile(new URL("./fixtures/google-news-pt.xml", import.meta.url), "utf8");
+  let requestedUrl = "";
+  globalThis.fetch = async url => {
+    requestedUrl = String(url);
+    return new Response(fixture, { headers: { "Content-Type": "application/rss+xml" } });
+  };
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/news-pt", {
+    headers: { Origin: env.DASH_ORIGIN },
+  }), env);
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.match(requestedUrl, /^https:\/\/news\.google\.com\/rss\/search\?/);
+  assert.equal(payload.articles.length, 2);
+  assert.equal(payload.articles[0].title, "Notícia de teste & verificação");
+  assert.equal(payload.articles[1].title, "Outro título codificado");
+  assert.equal(payload.articles[0].source, "Jornal de Teste");
+  assert.equal(payload._meta.source, "Google News RSS · Portugal");
+  assert.equal(payload._meta.observedAt, Date.parse("Thu, 29 Oct 2026 10:00:00 GMT"));
+
+  const status = await handleRequest(new Request("https://dash-data.test/v1/status"), env);
+  const statusPayload = await status.json();
+  assert.ok(statusPayload.routes.includes("/v1/news-pt"));
+  assert.ok(statusPayload.routes.includes("/v1/news-world"));
+});
+
+test("gateway never proxies caller supplied news URLs", async () => {
+  let upstreamCalls = 0;
+  globalThis.fetch = async () => { upstreamCalls++; return Response.json({}); };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/news?url=https://attacker.test"));
+  assert.equal(response.status, 404);
+  assert.equal(upstreamCalls, 0);
 });

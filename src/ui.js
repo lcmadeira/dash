@@ -195,7 +195,13 @@
       const state = Object.prototype.hasOwnProperty.call(counts, el.dataset.state) ? el.dataset.state : "idle";
       counts[state]++;
       if (["error", "stale", "static"].includes(state)) {
-        issues.push({ id: el.dataset.statusFor, label: CARD_LABELS[el.dataset.statusFor] || el.dataset.statusFor, state, text: el.childNodes[0]?.textContent?.trim() || state });
+        const tooltip = el.title || "";
+        const source = /Fonte: (.+?)(?= · Observado:| · Idade baseada|$)/.exec(tooltip)?.[1]
+          || /^(.+?) · referência de /.exec(tooltip)?.[1] || "";
+        const observed = /Observado: ([^·]+)/.exec(tooltip)?.[1]?.trim()
+          || /referência de ([^·]+)/.exec(tooltip)?.[1]?.trim() || "";
+        const detail = [source ? "Fonte: " + source : "", observed ? "Observado: " + observed : ""].filter(Boolean).join(" · ");
+        issues.push({ id: el.dataset.statusFor, label: CARD_LABELS[el.dataset.statusFor] || el.dataset.statusFor, state, text: el.childNodes[0]?.textContent?.trim() || state, detail, tooltip });
       }
     });
     const available = counts.live + counts.cache;
@@ -208,7 +214,11 @@
     if (!items) return;
     const visibleIssues = issues.slice(0, 5);
     items.innerHTML = visibleIssues.length
-      ? visibleIssues.map((item) => `<button type="button" class="data-overview-item" data-summary-target="${escapeAttribute(item.id)}" data-state="${item.state}" title="${escapeAttribute(item.text)}">${escapeHTML(item.label)} · ${item.state === "error" ? "erro" : item.state === "stale" ? "desatualizado/parcial" : "referência"}</button>`).join("") + (issues.length > visibleIssues.length ? `<span>+${issues.length - visibleIssues.length} outros</span>` : "")
+      ? visibleIssues.map((item) => {
+        const statusText = item.state === "error" ? "erro" : item.state === "stale" ? "desatualizado/parcial" : "referência";
+        const detail = item.detail ? `<small>${escapeHTML(item.detail)}</small>` : "";
+        return `<button type="button" class="data-overview-item" data-summary-target="${escapeAttribute(item.id)}" data-state="${item.state}" title="${escapeAttribute(item.tooltip || item.text)}" aria-label="${escapeAttribute(item.label + ", " + statusText + (item.detail ? ", " + item.detail : ""))}"><span>${escapeHTML(item.label)} · ${statusText}</span>${detail}</button>`;
+      }).join("") + (issues.length > visibleIssues.length ? `<span>+${issues.length - visibleIssues.length} outros</span>` : "")
       : (available ? "Sem alertas de atualidade nos cards monitorizados." : "A recolher estado dos cards…");
     if (!items.dataset.bound) {
       items.addEventListener("click", (event) => {

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261029-4"/>
+<link rel="stylesheet" href="styles.css?v=20261029-5"/>
 </head>
 <body>
 <!-- Container de Toast Notifications -->
@@ -388,6 +388,16 @@
     <div><h2 id="briefingTitle">Portugal hoje</h2><p>Observações recentes com fonte e data; sem recomendações automáticas.</p></div>
     <span class="briefing-updated" id="briefingUpdated">Atualizado a partir da cache disponível</span>
   </div>
+  <details class="briefing-preferences">
+    <summary>Escolher indicadores deste resumo</summary>
+    <div class="briefing-preference-options" role="group" aria-label="Indicadores visíveis no resumo">
+      <label><input type="checkbox" id="briefingPrefWeather" checked> Meteorologia</label>
+      <label><input type="checkbox" id="briefingPrefFuel" checked> Combustível</label>
+      <label><input type="checkbox" id="briefingPrefBasket" checked> Cabaz</label>
+      <label><input type="checkbox" id="briefingPrefInflation" checked> IHPC</label>
+      <label><input type="checkbox" id="briefingPrefEuribor" checked> Euribor</label>
+    </div>
+  </details>
   <div class="briefing-impact" aria-labelledby="fuelImpactTitle">
     <label for="fuelMonthlyLitres"><strong id="fuelImpactTitle">Estimativa mensal de gasolina 95</strong><span>Calculada no browser; o consumo não é guardado.</span></label>
     <div class="briefing-impact-control"><input id="fuelMonthlyLitres" type="number" inputmode="decimal" min="1" max="5000" step="1" placeholder="Litros por mês" aria-label="Consumo mensal de gasolina 95 em litros"><output id="fuelMonthlyCost" aria-live="polite">Indique o consumo mensal</output></div>
@@ -395,6 +405,8 @@
       <summary>Alerta opcional de preço</summary>
       <label for="fuelAlertThreshold">Avisar quando a gasolina 95 atingir ou ficar abaixo de (€/L)</label>
       <div class="briefing-impact-control"><input id="fuelAlertThreshold" type="number" inputmode="decimal" min="0.5" max="5" step="0.01" value="1.50" aria-label="Limite de preço da gasolina 95 em euros por litro"><button type="button" id="fuelAlertToggle" aria-pressed="false">Ativar alerta</button></div>
+      <button type="button" id="fuelDesktopToggle" aria-pressed="false">Ativar aviso no computador</button>
+      <span class="briefing-fuel-alert-note">O browser só pode mostrar o aviso enquanto o dashboard estiver aberto e a atualizar dados.</span>
       <span id="fuelAlertStatus" aria-live="polite">Desativado. O limite fica guardado apenas neste browser.</span>
     </details>
   </div>
@@ -957,11 +969,11 @@
  <script src="src/core.js"></script>
  <script src="src/cache.js?v=20261029-4"></script>
  <script src="src/fetch.js?v=20261029-7"></script>
- <script src="src/ui.js?v=20261029-8"></script>
+ <script src="src/ui.js?v=20261029-9"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
- <script src="src/cards/briefing.js?v=20261029-4" integrity="sha384-09r2P0DeFCUEaqwJJccHRDicvGC01xujxpIGjMsQGyI1YhMSRmBQVBH/3Qg2qVid"></script>
+ <script src="src/cards/briefing.js?v=20261029-6" integrity="sha384-ZiiNDSLUl+dlAbq41dnUGPHZXijTTbua+RzLIb5gDgYOF1PbwrPOs87WoiYR3p1C"></script>
  <script src="src/cards/elec.js"></script>
- <script src="src/cards/news.js?v=20261029-2"></script>
+ <script src="src/cards/news.js?v=20261029-3"></script>
  <script src="src/cards/seis.js?v=20261029-2"></script>
  <script src="src/cards/dams.js"></script>
  <script src="src/cards/fuel.js?v=20261029-2"></script>

@@ -1,4 +1,4 @@
-/* global DOMParser, $, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonNews, window */
+/* global AbortSignal, DOMParser, $, fetchJsonFirstOk, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonNews, window */
 /* Google News RSS cards (moved out of index.html) */
 (function () {
   function parseRSS(xml) {
@@ -13,7 +13,10 @@
         "#",
       source: el.querySelector("source")?.textContent?.trim() || "—",
       pubDate: el.querySelector("pubDate")?.textContent?.trim() || "",
-    }));
+    })).filter(article => {
+      const publishedAt = Date.parse(article.pubDate);
+      return !Number.isFinite(publishedAt) || publishedAt <= Date.now() + 5 * 60 * 1000;
+    });
   }
 
   function agoRSS(s) {
@@ -41,6 +44,25 @@
     return parseRSS(xml);
   }
 
+  async function fetchGatewayNews(scope) {
+    const route = scope === "pt" ? "v1/news-pt" : "v1/news-world";
+    const gatewayUrl = window.dataApiUrl?.(route);
+    if (!gatewayUrl) return null;
+    try {
+      const payload = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
+        ["direct"], value => Array.isArray(value?.articles) && value.articles.length > 0);
+      const articles = payload.articles.map(article => ({
+        title: String(article.title || "").slice(0, 300),
+        link: safeArticleUrl(article.link),
+        source: String(article.source || "Google News").slice(0, 80),
+        pubDate: String(article.pubDate || "").slice(0, 100),
+      })).filter(article => article.title && article.link);
+      return articles.length ? { articles, meta: payload._meta || null } : null;
+    } catch {
+      return null;
+    }
+  }
+
   /** Carrega e apresenta notícias RSS portuguesas ou mundiais, recorrendo ao cache em caso de falha.
    * @param {"pt"|"world"} scope Seleciona o feed e o card de destino.
    * @param {boolean} [force=false] Se true, ignora o cache válido.
@@ -58,10 +80,18 @@
         const url = isPT
           ? "https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT:pt"
           : "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
-        arts = (await fetchRSS(url)).slice(0, 8);
+        const gateway = await fetchGatewayNews(scope);
+        arts = (gateway?.articles || await fetchRSS(url)).slice(0, 8);
         if (arts.length) {
           const latestPublished = arts.map(article => Date.parse(article.pubDate || "")).filter(Number.isFinite).reduce((latest, value) => Math.max(latest, value), 0);
-          lsSet(cKey, arts, {source:"Google News RSS",state:"partial",observedAt:latestPublished || undefined,reason:"Feed agregado; publicação individual por artigo"});
+          const observedAt = gateway?.meta?.observedAt || latestPublished || undefined;
+          const state = gateway ? (gateway.meta?.state === "stale" ? "stale" : "live") : "partial";
+          lsSet(cKey, arts, {
+            source: gateway?.meta?.source || "Google News RSS",
+            state,
+            observedAt,
+            reason: state === "stale" ? "Snapshot do gateway; verificar data das notícias" : "Feed agregado; publicação individual por artigo",
+          });
         }
       }
 
@@ -117,19 +147,34 @@
   function renderNewsItems(arts, isPT, stale = false) {
     return `<div class="news-wrap">${arts
       .map(
-        (a) => `
-        <div class="ni" onclick="window.open('${a.link.replace(/'/g, "\\'")}','_blank')">
-          <div class="ni-meta"><span class="ni-src">${(a.source || "—").slice(0, 24)}</span>
+        (a) => {
+          const link = safeArticleUrl(a.link);
+          if (!link) return "";
+          return `
+        <a class="ni" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">
+          <div class="ni-meta"><span class="ni-src">${escapeHTML((a.source || "—").slice(0, 24))}</span>
             <span class="ni-tag ${isPT ? "tpt" : "twld"}">${isPT ? "PT" : "WORLD"}</span>
             <span class="ni-time">${agoRSS(a.pubDate)}</span></div>
-          <div class="ni-title">${a.title}</div>
-        </div>`,
+          <div class="ni-title">${escapeHTML(a.title)}</div>
+        </a>`;
+        },
       )
       .join("")}</div>
       <div class="src">✦ Google News RSS · ${stale ? "cache" : new Date().toLocaleTimeString("pt-PT", {
         hour: "2-digit",
         minute: "2-digit",
       })} · Clica para ler</div>`;
+  }
+
+  function safeArticleUrl(value) {
+    try {
+      const url = new URL(String(value || ""));
+      return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
+    } catch { return ""; }
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   }
 
   window.loadNews = loadNews;

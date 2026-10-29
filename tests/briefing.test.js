@@ -3,19 +3,23 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "" }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi }) {
   const root = { innerHTML: "" };
   const updated = { textContent: "" };
   const impact = { textContent: "" };
   const input = { value: fuelLitres, dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
   const threshold = { value: "1.50", dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
   const toggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
+  const desktopToggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
   const status = { textContent: "" };
-  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelAlertStatus: status };
+  const preferences = Object.fromEntries(["Weather", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
+    "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
+  ]));
+  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, ...preferences };
   const store = new Map();
   const notices = [];
   const context = vm.createContext({
-    Date, Intl, Number, String, Math, Array,
+    Date, Intl, Number, String, Math, Array, Notification: notificationApi,
     document: { getElementById: id => elements[id] || null },
     CFG: { IPMA_CITY_ID: 1060300 },
     IPMA_CITIES: { 1060300: city },
@@ -31,7 +35,7 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, status, store, notices };
+  return { html: root.innerHTML, root, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, desktopToggle, preferences, status, store, notices };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -85,6 +89,41 @@ test("fuel price alert is opt-in, thresholded, and deduplicated by observation",
   result.toggle.handler();
   assert.equal(result.notices.length, 1);
   assert.match(result.status.textContent, /Ativo/);
+});
+
+test("Portugal briefing indicators can be selected locally", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
+    basket: [["2026-10-21", 253], ["2026-10-28", 254]],
+  });
+  assert.match(result.html, /Gasolina 95/);
+  result.preferences.briefingPrefFuel.checked = false;
+  result.preferences.briefingPrefFuel.handler();
+  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")), ["weather", "basket", "inflation", "euribor"]);
+  assert.doesNotMatch(result.root.innerHTML, /Gasolina 95/);
+  assert.match(result.root.innerHTML, /Cabaz alimentar/);
+  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")).includes("fuel"), false);
+});
+
+test("desktop fuel notifications require a user click and browser permission", async () => {
+  const shown = [];
+  class NotificationApi {
+    static permission = "default";
+    static async requestPermission() { this.permission = "granted"; return this.permission; }
+    constructor(title, options) { shown.push({ title, options }); }
+  }
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now, notificationApi: NotificationApi,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.42, updated_at: new Date(now - 3600000).toISOString() }],
+  });
+  assert.equal(shown.length, 0);
+  await result.desktopToggle.handler();
+  result.toggle.handler();
+  assert.equal(shown.length, 1);
+  assert.equal(shown[0].title, "Gasolina 95 abaixo do limite");
 });
 
 test("Portugal briefing omits expired observations instead of presenting stale values as current", async () => {

@@ -16,6 +16,7 @@ export async function checkPublishedSite(base, request = fetch) {
     "src/cache.js",
     "src/ui.js",
     "src/cards/briefing.js",
+    "src/cards/news.js",
     "src/app.js",
   ];
   const references = [...html.matchAll(/(?:src|href)=["']([^"']+)["']/g)].map(match => match[1]);
