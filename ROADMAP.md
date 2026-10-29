@@ -351,6 +351,12 @@
 - ✅ **Semântica dos controlos HTML** — botões sem submissão declaram `type="button"`, pesquisa e conversor têm nomes acessíveis e as opções de exportação usam conteúdo permitido em botões (13/10/2026)
 - ✅ **Diálogos fechados inertes** — notificações, definições, exportação, detalhe de combustíveis e editor do cabaz deixam de permitir foco/interação enquanto estão fechados (13/10/2026)
 
+### v1.2.5 — Estado e idade dos dados
+
+- ✅ Badges de estado incluem as caches de barragens e inflação, além dos cards já cobertos.
+- ✅ Metadados rejeitam envelopes incompletos, malformados e timestamps futuros antes de exibir a idade.
+- ✅ Teste de regressão cobre os limites de validade dos metadados da cache.
+
 ### Próximas melhorias
 
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
@@ -363,5 +369,5 @@
 
 ---
 
-**Última atualização**: 13 de Outubro de 2026
+**Última atualização**: 29 de Outubro de 2026
 **Mantido por**: LCMadeira

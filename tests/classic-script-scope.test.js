@@ -26,6 +26,31 @@ test("market clock loads alongside a cached classic script declaring MARKETS", a
   assert.doesNotThrow(() => vm.runInContext("const APP_MARKETS = MARKETS;", context));
 });
 
+test("card status cache metadata rejects malformed and future cache envelopes", async () => {
+  const values = new Map();
+  const context = createBrowserContext();
+  context.localStorage = {
+    getItem: key => values.get(key) ?? null,
+  };
+  context.PFX = "dash_v15_";
+  context.getTTL = () => 60000;
+
+  const source = await readFile("src/ui.js", "utf8");
+  vm.runInContext(source, context);
+
+  const now = Date.now();
+  values.set("dash_v15_valid", JSON.stringify({ d: { ok: true }, ts: now - 5000 }));
+  values.set("dash_v15_missing-data", JSON.stringify({ ts: now - 5000 }));
+  values.set("dash_v15_future", JSON.stringify({ d: {}, ts: now + 60000 }));
+  values.set("dash_v15_array", JSON.stringify([{ d: {}, ts: now }]));
+
+  assert.equal(context.getCacheMeta("valid").age >= 5000, true);
+  assert.equal(context.getCacheMeta("valid").expired, false);
+  assert.equal(context.getCacheMeta("missing-data"), null);
+  assert.equal(context.getCacheMeta("future"), null);
+  assert.equal(context.getCacheMeta("array"), null);
+});
+
 test("fuel card loads alongside a cached classic script declaring FUEL_SLUGS", async () => {
   const context = createBrowserContext();
   vm.runInContext('const FUEL_SLUGS = ["cached app"];', context);

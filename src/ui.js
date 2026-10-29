@@ -49,7 +49,9 @@
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       const ts = Number(parsed?.ts);
-      if (!Number.isFinite(ts)) return null;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)
+        || !Object.prototype.hasOwnProperty.call(parsed, "d")
+        || !Number.isFinite(ts) || ts < 0 || ts > Date.now()) return null;
       const ttl = window.getTTL ? window.getTTL(k) : 0;
       const age = Date.now() - ts;
       return { ts, ttl, age, expired: ttl ? age >= ttl : false };
@@ -291,6 +293,7 @@
       weather: `ipma_${cityId}`,
       airquality: `aq_v3_${cityId}`,
       fuel: "fuel",
+      dams: "dams_v1",
       "gas-eu": "ttf_live_v1",
       "gas-pt": "ttf_live_v1",
       elec: "elec_v3",
@@ -310,6 +313,7 @@
       "news-pt": "rss_pt",
       "news-world": "rss_world",
       co2: "co2_ren_v1",
+      inf: "inflation_eurostat_v2",
     };
 
     Object.entries(byId).forEach(([cardId, cacheKey]) => refreshCardStatusFromCache(cardId, cacheKey));

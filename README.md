@@ -9,6 +9,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Skeleton Screens & Shimmer**: Carregamento visual fluido com animações GPU-accelerated (60fps).
 - **Personalização Instantânea**: Painel de settings (toggle cards, drag & drop, localização IPMA, tickers, **preferências de conforto visual e pesquisa em tempo-real**) aplicado em tempo-real **sem recarregar a página**.
 - **Notificações** (centro + badge + persistência) — com limitações conhecidas de CORS.
+- **Estado e idade dos dados por card**: badges mostram atualização, idade da cache, dados antigos, carregamento e erros; envelopes de cache inválidos ou com timestamps futuros não são apresentados como válidos.
 - **Exportação** (PNG/PDF/CSV/JSON) — base implementada; PNG/PDF pode falhar em conteúdo em iframes (ex.: widgets TradingView).
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.
