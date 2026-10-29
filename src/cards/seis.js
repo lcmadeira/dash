@@ -24,7 +24,8 @@
         );
         d = j.features || [];
         if (d.length) {
-          lsSet(ck, d);
+          const latestEvent = d.reduce((latest, event) => Math.max(latest, Number(event?.properties?.time) || 0), 0);
+          lsSet(ck, d, {source:"USGS · FDSN GeoJSON",state:"live",observedAt:latestEvent || undefined});
           fetched = true;
         }
       } catch {

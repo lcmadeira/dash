@@ -3,7 +3,9 @@
   const MAX_CABAZ_AGE_DAYS = 14;
   const MAX_WEATHER_AGE_HOURS = 36;
   const MAX_FUEL_AGE_HOURS = 72;
+  const FUEL_ALERT_KEY = (window.PFX || "dash_v15_") + "fuel_alert_v1";
   let currentFuelPrice = null;
+  let currentFuelObserved = null;
 
   function renderPortugalBriefing(now = Date.now()) {
     const root = document.getElementById("briefingBody");
@@ -37,8 +39,11 @@
     const fuelObserved = Date.parse(gas95?.updated_at || "");
     const fuelPrice = Number(gas95?.avg_price_eur);
     currentFuelPrice = null;
+    currentFuelObserved = null;
     if (gas95 && Number.isFinite(fuelObserved) && now >= fuelObserved && now - fuelObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(fuelPrice) && fuelPrice > 0) {
       currentFuelPrice = fuelPrice;
+      currentFuelObserved = fuelObserved;
+      checkFuelAlert(fuelPrice, fuelObserved);
       const esObserved = Number(fuelEs?.ts);
       const esPrice = Number(fuelEs?.items?.gasoline_95?.avg);
       const esIsFresh = Number.isFinite(esObserved) && now >= esObserved && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(esPrice) && esPrice > 0;
@@ -119,6 +124,7 @@
     const updated = document.getElementById("briefingUpdated");
     if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
     updateFuelImpact();
+    bindFuelAlert();
   }
 
   function updateFuelImpact() {
@@ -137,6 +143,68 @@
     } else {
       output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(litres * currentFuelPrice)} / mês`;
     }
+  }
+
+  function readFuelAlert() {
+    try {
+      const value = JSON.parse(window.localStorage?.getItem(FUEL_ALERT_KEY) || "null");
+      const threshold = Number(value?.threshold);
+      return {
+        enabled: value?.enabled === true,
+        threshold: Number.isFinite(threshold) && threshold >= 0.5 && threshold <= 5 ? threshold : 1.5,
+        lastNotifiedAt: Number(value?.lastNotifiedAt) || 0,
+      };
+    } catch {
+      return { enabled: false, threshold: 1.5, lastNotifiedAt: 0 };
+    }
+  }
+
+  function writeFuelAlert(value) {
+    try { window.localStorage?.setItem(FUEL_ALERT_KEY, JSON.stringify(value)); } catch { /* storage can be unavailable */ }
+  }
+
+  function bindFuelAlert() {
+    const input = document.getElementById("fuelAlertThreshold");
+    const button = document.getElementById("fuelAlertToggle");
+    if (!input || !button || button.dataset.bound) return;
+    const status = document.getElementById("fuelAlertStatus");
+    const state = readFuelAlert();
+    input.value = state.threshold.toFixed(2);
+    const render = () => {
+      button.textContent = state.enabled ? "Desativar alerta" : "Ativar alerta";
+      button.setAttribute("aria-pressed", String(state.enabled));
+      if (status) status.textContent = state.enabled
+        ? `Ativo: aviso quando o preço observado for ≤ ${state.threshold.toFixed(2).replace(".", ",")} €/L. Guardado apenas neste browser.`
+        : "Desativado. O limite fica guardado apenas neste browser.";
+    };
+    input.addEventListener("change", () => {
+      const threshold = Number(input.value);
+      if (Number.isFinite(threshold) && threshold >= 0.5 && threshold <= 5) state.threshold = threshold;
+      else input.value = state.threshold.toFixed(2);
+      writeFuelAlert(state);
+      render();
+      if (currentFuelPrice !== null) state.lastNotifiedAt = checkFuelAlert(currentFuelPrice, currentFuelObserved) || state.lastNotifiedAt;
+    });
+    button.addEventListener("click", () => {
+      state.enabled = !state.enabled;
+      writeFuelAlert(state);
+      render();
+      if (state.enabled && currentFuelPrice !== null) state.lastNotifiedAt = checkFuelAlert(currentFuelPrice, currentFuelObserved) || state.lastNotifiedAt;
+    });
+    button.dataset.bound = "true";
+    render();
+  }
+
+  function checkFuelAlert(price, observedAt) {
+    if (!Number.isFinite(price) || !Number.isFinite(observedAt)) return 0;
+    const state = readFuelAlert();
+    if (!state.enabled || price > state.threshold || observedAt <= state.lastNotifiedAt) return 0;
+    if (typeof window.addNotification !== "function") return 0;
+    const timestamp = new Date(observedAt).toISOString();
+    window.addNotification("energy", "Gasolina 95 abaixo do limite", `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L (limite ${state.threshold.toFixed(2).replace(".", ",")} €/L).`, "medium", { source: "API Aberta", observedAt: timestamp });
+    state.lastNotifiedAt = observedAt;
+    writeFuelAlert(state);
+    return observedAt;
   }
 
   function formatDate(value) {

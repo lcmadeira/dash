@@ -48,7 +48,7 @@ async function loadRec(force=false){
       const rows=csv.trim().split("\n").slice(1)
         .map(l=>{const[dt,v]=l.split(",");return[dt,parseFloat(v)];})
         .filter(x=>Number.isFinite(x[1]));
-      if(rows.length>20){data=rows.slice(-90);lsSet(ck,data);}
+      if(rows.length>20){data=rows.slice(-90);lsSet(ck,data,{source:"FRED · T10Y2Y",state:"live",observedAt:data[data.length-1]?.[0]});}
     }catch{}
     if(!data||!data.length) data=REC_FALLBACK_DATA;
   }

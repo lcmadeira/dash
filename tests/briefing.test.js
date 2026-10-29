@@ -8,7 +8,12 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const updated = { textContent: "" };
   const impact = { textContent: "" };
   const input = { value: fuelLitres, dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
-  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact };
+  const threshold = { value: "1.50", dataset: {}, addEventListener(event, handler) { this.handler = handler; } };
+  const toggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
+  const status = { textContent: "" };
+  const elements = { briefingBody: root, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelAlertStatus: status };
+  const store = new Map();
+  const notices = [];
   const context = vm.createContext({
     Date, Intl, Number, String, Math, Array,
     document: { getElementById: id => elements[id] || null },
@@ -19,12 +24,14 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
     getCacheMeta: () => null,
     fmtAgeShort: age => `${Math.round(age / 3600000)}h`,
     getCabazBriefingData: () => basket,
+    localStorage: { getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value) },
+    addNotification: (...args) => notices.push(args),
     window: {},
   });
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input };
+  return { html: root.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, threshold, toggle, status, store, notices };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -60,6 +67,24 @@ test("Portugal briefing includes only dated recent observations and escapes prov
   result.input.value = "6000";
   result.input.handler();
   assert.match(result.impactEl.textContent, /Indique 1–5 000 litros/);
+});
+
+test("fuel price alert is opt-in, thresholded, and deduplicated by observation", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.42, updated_at: new Date(now - 3600000).toISOString() }],
+  });
+  assert.equal(result.notices.length, 0);
+  assert.equal(result.toggle["aria-pressed"], "false");
+  result.toggle.handler();
+  assert.equal(result.notices.length, 1);
+  assert.equal(result.notices[0][0], "energy");
+  assert.equal(result.store.get("dash_v15_fuel_alert_v1") !== undefined, true);
+  result.toggle.handler();
+  result.toggle.handler();
+  assert.equal(result.notices.length, 1);
+  assert.match(result.status.textContent, /Ativo/);
 });
 
 test("Portugal briefing omits expired observations instead of presenting stale values as current", async () => {

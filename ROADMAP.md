@@ -402,6 +402,13 @@
 - ✅ Calendário Euronext 2026 e fontes/limites de dados públicos documentados; não foi ligada uma fonte de bolsa sem licença de exibição pública confirmada.
 - ✅ Testes de regressão para limite de sessão/feriados e para inclusão de dados recentes versus observações antigas no briefing.
 
+### 29/10/2026 — Alertas locais e proveniência ampliada
+
+- ✅ Alerta opcional de gasolina 95 por limiar; desligado por omissão, limitado a preços observados nas últimas 72h e sem repetição para a mesma observação.
+- ✅ Preferência do alerta guarda apenas o limiar, estado ativo e timestamp do último aviso no browser; o simulador continua sem persistir os litros indicados.
+- ✅ Proveniência acrescentada a notícias RSS, qualidade do ar Open-Meteo/CAMS, Fear & Greed Alternative.me, spread FRED e eventos USGS; a qualidade do ar é identificada como parcial por poder estimar o AQI.
+- ✅ Testes de regressão cobrem ativação do alerta, limiar, deduplicação e a ausência de alerta sem adesão explícita.
+
 ### v2.0.0 — Futuro
 
 - [ ] PWA (Progressive Web App) com Service Worker

@@ -59,7 +59,10 @@
           ? "https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT:pt"
           : "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
         arts = (await fetchRSS(url)).slice(0, 8);
-        if (arts.length) lsSet(cKey, arts);
+        if (arts.length) {
+          const latestPublished = arts.map(article => Date.parse(article.pubDate || "")).filter(Number.isFinite).reduce((latest, value) => Math.max(latest, value), 0);
+          lsSet(cKey, arts, {source:"Google News RSS",state:"partial",observedAt:latestPublished || undefined,reason:"Feed agregado; publicação individual por artigo"});
+        }
       }
 
       if (notificationSettings.news.enabled && isPT && arts && arts.length > 0) {

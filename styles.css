@@ -137,6 +137,11 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-impact input{width:135px;padding:6px 8px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font: .62rem var(--mono)}
 	.briefing-impact input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 	.briefing-impact output{min-width:125px;color:var(--green);font:700 .68rem var(--mono)}
+	.briefing-fuel-alert{display:grid;gap:6px;flex-basis:100%;padding-top:7px;border-top:1px solid var(--b);font-size:.58rem;color:var(--t2)}
+	.briefing-fuel-alert summary{cursor:pointer;color:var(--blue)}
+	.briefing-fuel-alert label{display:block}
+	.briefing-fuel-alert button{padding:6px 9px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font-size:.58rem;cursor:pointer}
+	#fuelAlertStatus{color:var(--t3)}
 	.briefing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 	.briefing-item{display:flex;min-width:0;flex-direction:column;gap:5px;padding:10px 11px;border:1px solid var(--b);border-radius:var(--rs);background:var(--card);text-decoration:none;transition:border-color .2s,transform .2s}
 	.briefing-item:hover,.briefing-item:focus-visible{border-color:var(--accent);transform:translateY(-1px);outline:2px solid transparent}

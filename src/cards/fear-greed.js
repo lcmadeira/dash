@@ -11,7 +11,7 @@ async function loadFng(force){
         {signal:AbortSignal.timeout(8000)});
       if(!r.ok)throw new Error("HTTP "+r.status);
       const j=await r.json();
-      d=j.data; if(d?.length)lsSet(ck,d);
+      d=j.data; if(d?.length)lsSet(ck,d,{source:"Alternative.me · Fear & Greed",state:"live",observedAt:Number(d[0]?.timestamp)*1000});
     }catch(e){el.innerHTML=er(e,{context:"Fear & Greed",action:"tente novo refresh em alguns segundos"});notifyNonCriticalError("Fear & Greed",e,"tente novo refresh em alguns segundos");return;}
   }
   if(!d?.length)return;
