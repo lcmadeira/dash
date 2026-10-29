@@ -357,6 +357,7 @@
 - ✅ Metadados rejeitam envelopes incompletos, malformados e timestamps futuros antes de exibir a idade.
 - ✅ Tooltip distingue a idade da gravação local da última atualização reportada pelo IPMA e pela API de combustíveis PT, quando disponível.
 - ✅ Teste de regressão cobre os limites de validade dos metadados da cache.
+- ✅ Cabaz DECO atualizado até 28/10/2026 (€253,55), com seis observações semanais e comparação homóloga; fonte Lusa publicada pelo DNOTICIAS: https://www.dnoticias.pt/2026/10/28/510767-cabaz-alimentar-desce-44-centimos-para-25355-euros-na-ultima-semana/.
 
 ### Próximas melhorias
 

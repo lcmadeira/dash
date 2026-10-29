@@ -55,6 +55,14 @@ test("card status cache metadata rejects malformed and future cache envelopes", 
   assert.equal(context.getCacheMeta("array"), null);
 });
 
+test("food basket includes the latest verified weekly DECO values", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  assert.match(source, /\["2026-10-21", 253\.99,/);
+  assert.match(source, /\["2026-10-28", 253\.55,/);
+  assert.match(source, /\["2025-10-28", 243\.68,/);
+  assert.match(source, /Ver atualização de 28 Out \(Lusa\)/);
+});
+
 test("fuel card loads alongside a cached classic script declaring FUEL_SLUGS", async () => {
   const context = createBrowserContext();
   vm.runInContext('const FUEL_SLUGS = ["cached app"];', context);

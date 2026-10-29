@@ -3909,11 +3909,11 @@ const CABAZ_ANUAL=[
   {y:2023, v:228.60, label:"2023", note:"Pico inflação alimentar · IVA zero aplicado"},
   {y:2024, v:237.00, label:"2024", note:"Estabilização · inflação a ceder"},
   {y:2025, v:243.50, label:"2025", note:"Subida moderada · 2.3% IPC médio"},
-  {y:2026, v:254.18, label:"2026", note:"Média parcial Jan-Set · ref. 16 Set 2026"},
+  {y:2026, v:254.18, label:"2026", note:"Média parcial Jan-Set · última série média disponível"},
 ];
 
 /* Histórico semanal (format: [data_iso, valor_eur, nota_opcional])
-   Fonte: DECO PROteste comunicados · Renascença · ECO · RTP · Agroportal
+   Fonte: DECO PROteste comunicados · Lusa · Renascença · ECO · RTP · Agroportal
    Pontos chave reconstituídos de artigos publicados (2022-2026) */
 const CABAZ_HIST_BASE=[
   /* 2022 */
@@ -3944,6 +3944,7 @@ const CABAZ_HIST_BASE=[
   ["2025-03-01", 239.50, ""],
   ["2025-06-01", 237.87, "Cabaz 1 ano antes: 237.87 (ref. Fev 2026)"],
   ["2025-09-01", 241.00, ""],
+  ["2025-10-28", 243.68, "Referência homóloga implícita no comunicado DECO/Lusa de 28 Out 2026 (+9.87€)"],
   ["2025-11-26", 243.65, "ref. Alvorada Nov 2025"],
   ["2025-12-17", 244.37, ""],
   /* 2026 — dados confirmados em artigos */
@@ -3977,6 +3978,12 @@ const CABAZ_HIST_BASE=[
   ["2026-09-02", 254.73, "Sobe 2.11€ na semana"],
   ["2026-09-09", 255.26, "Segunda semana consecutiva a subir"],
   ["2026-09-16", 255.97, "Terceira semana consecutiva a subir"],
+  ["2026-09-23", 254.11, "Desce 1.86€ · Jornal Económico, 23 Set 2026"],
+  ["2026-09-30", 254.22, "Sobe 0.11€ · Observador/Lusa, 30 Set 2026"],
+  ["2026-10-07", 255.56, "Sobe 1.34€ · Lusa, 7 Out 2026"],
+  ["2026-10-14", 256.26, "Sobe 0.70€ · RTP/Lusa, 14 Out 2026"],
+  ["2026-10-21", 253.99, "Desce 2.27€ · DECO PROteste, 21 Out 2026"],
+  ["2026-10-28", 253.55, "Desce 0.44€ · DECO PROteste/Lusa, 28 Out 2026"],
 ];
 
 const CABAZ_CK = "cabaz_deco_v1";
@@ -4172,8 +4179,8 @@ function renderCabaz(){
        padding:7px 10px;font-size:.63rem;color:#F59E0B;line-height:1.5">
     ⚠ Dados actualizados manualmente. A DECO PROteste publica às <b>quartas-feiras</b>.
     Clica em <b>✏️</b> para adicionar o valor da semana corrente.
-    <a href="https://www.deco.proteste.pt/familia-consumo/supermercado/noticias/precos-estao-aumentar-alimentos"
-       target="_blank" style="color:#F59E0B;text-decoration:underline">Ver em deco.proteste.pt →</a>
+    <a href="https://www.dnoticias.pt/2026/10/28/510767-cabaz-alimentar-desce-44-centimos-para-25355-euros-na-ultima-semana/"
+       target="_blank" rel="noopener noreferrer" style="color:#F59E0B;text-decoration:underline">Ver atualização de 28 Out (Lusa) →</a>
   </div>`;
 }
 
