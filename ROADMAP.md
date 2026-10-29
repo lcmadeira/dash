@@ -355,6 +355,7 @@
 
 - ✅ Badges de estado incluem as caches de barragens e inflação, além dos cards já cobertos.
 - ✅ Metadados rejeitam envelopes incompletos, malformados e timestamps futuros antes de exibir a idade.
+- ✅ Tooltip distingue a idade da gravação local da última atualização reportada pelo IPMA e pela API de combustíveis PT, quando disponível.
 - ✅ Teste de regressão cobre os limites de validade dos metadados da cache.
 
 ### Próximas melhorias

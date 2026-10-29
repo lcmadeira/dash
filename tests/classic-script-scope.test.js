@@ -39,13 +39,17 @@ test("card status cache metadata rejects malformed and future cache envelopes", 
   vm.runInContext(source, context);
 
   const now = Date.now();
-  values.set("dash_v15_valid", JSON.stringify({ d: { ok: true }, ts: now - 5000 }));
+  values.set("dash_v15_valid", JSON.stringify({
+    d: { ok: true, dataUpdate: new Date(now - 3600000).toISOString() },
+    ts: now - 5000,
+  }));
   values.set("dash_v15_missing-data", JSON.stringify({ ts: now - 5000 }));
   values.set("dash_v15_future", JSON.stringify({ d: {}, ts: now + 60000 }));
   values.set("dash_v15_array", JSON.stringify([{ d: {}, ts: now }]));
 
   assert.equal(context.getCacheMeta("valid").age >= 5000, true);
   assert.equal(context.getCacheMeta("valid").expired, false);
+  assert.equal(context.getCacheMeta("valid").sourceTs <= now - 3599000, true);
   assert.equal(context.getCacheMeta("missing-data"), null);
   assert.equal(context.getCacheMeta("future"), null);
   assert.equal(context.getCacheMeta("array"), null);

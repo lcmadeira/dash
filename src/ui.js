@@ -42,6 +42,19 @@
     return `${d}d`;
   }
 
+  function getSourceTimestamp(key, data) {
+    let candidates = [];
+    if (String(key).startsWith("ipma_") && typeof data?.dataUpdate === "string") {
+      candidates = [data.dataUpdate];
+    } else if (key === "fuel" && Array.isArray(data)) {
+      candidates = data.map((item) => item?.updated_at).filter((value) => typeof value === "string");
+    }
+    const timestamps = candidates.map((value) => Date.parse(value)).filter((ts) =>
+      Number.isFinite(ts) && ts >= 0 && ts <= Date.now(),
+    );
+    return timestamps.length ? Math.max(...timestamps) : null;
+  }
+
   function getCacheMeta(k) {
     try {
       const pfx = window.PFX || "dash_v15_";
@@ -54,7 +67,7 @@
         || !Number.isFinite(ts) || ts < 0 || ts > Date.now()) return null;
       const ttl = window.getTTL ? window.getTTL(k) : 0;
       const age = Date.now() - ts;
-      return { ts, ttl, age, expired: ttl ? age >= ttl : false };
+      return { ts, ttl, age, expired: ttl ? age >= ttl : false, sourceTs: getSourceTimestamp(k, parsed.d) };
     } catch {
       return null;
     }
@@ -185,7 +198,11 @@
     }
     const ageLbl = fmtAgeShort(meta.age);
     const t = new Date(meta.ts);
-    const title = `Atualizado há ${ageLbl} · ${t.toLocaleString("pt-PT")}`;
+    const sourceTs = meta.sourceTs ? new Date(meta.sourceTs) : null;
+    const sourceInfo = sourceTs
+      ? ` · Fonte: ${sourceTs.toLocaleString("pt-PT")} (há ${fmtAgeShort(Date.now() - meta.sourceTs)})`
+      : " · Idade baseada na gravação local; a fonte não forneceu timestamp reconhecível";
+    const title = `Cache local gravada há ${ageLbl} · ${t.toLocaleString("pt-PT")}${sourceInfo}`;
     if (meta.expired) setCardStatus(cardId, "stale", `Stale · há ${ageLbl}`, { title, force: true });
     else setCardStatus(cardId, "cache", `Cache · há ${ageLbl}`, { title, force: true });
   }
