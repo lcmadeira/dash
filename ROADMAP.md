@@ -130,6 +130,7 @@
 - [x] **Inflação PT/EU** — fallbacks centralizados e automação Eurostat validada. ✅ (21/04/2026)
 - [x] **PSI20 constituintes** — centralizados em `config.js` e fetch otimizado (weekend check). ✅ (21/04/2026)
 - [x] Reduzir falhas de atualização no PSI 20 com Stooq em lote antes do Yahoo, proxies alternativos e ocultação de valores de referência sem cotação atual. ✅ (29/10/2026)
+- [x] Usar GDELT DOC como fonte JSON CORS para geopolítica e permitir pedidos diretos ao endpoint público CoinGecko. ✅ (29/10/2026)
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos

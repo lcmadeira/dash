@@ -918,6 +918,73 @@ test("PSI 20 hides static fallback prices and marks its card header unavailable"
   assert.doesNotMatch(body.innerHTML, /4\.12€/);
 });
 
+test("CoinGecko uses its direct CORS endpoint before public proxies", async () => {
+  const requests = [];
+  let saved = null;
+  const body = { innerHTML: "" };
+  const context = vm.createContext({
+    AbortSignal, Date, Intl, PFX: "dash_", URL, URLSearchParams,
+    document: { getElementById: () => null },
+    localStorage: { getItem: () => null },
+    $: id => id === "crypto-body" ? body : null,
+    skeletonKPIs: () => "loading",
+    chg: value => `${value}%`,
+    fmtP: value => String(value),
+    lsGet: () => null,
+    lsSet: (key, value) => { saved = { key, value }; },
+    fetchFirstOk: async (_url, _options, _timeout, sources) => {
+      requests.push(Array.from(sources));
+      return { r: { ok: true, json: async () => ({ bitcoin: { eur: 60000 }, ethereum: { eur: 3000 } }) } };
+    },
+    notifyNonCriticalError() {},
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/cards/crypto.js", "utf8"), context);
+  await context.loadCrypto();
+
+  assert.equal(requests.length, 1);
+  assert.deepEqual(requests[0], ["direct", "allorigins", "corsproxy", "codetabs"]);
+  assert.equal(saved.key, "cg");
+  assert.match(body.innerHTML, /Bitcoin/);
+});
+
+test("geopolitics loads recent GDELT JSON directly before fallback RSS feeds", async () => {
+  const body = { innerHTML: "" };
+  let requestedSources = null;
+  let saved = null;
+  const context = vm.createContext({
+    AbortSignal, Date, URL, URLSearchParams,
+    console: { log() {}, warn() {} },
+    document: { querySelectorAll: () => [] },
+    $: () => body,
+    skeletonGeneric: () => "loading",
+    lsGet: () => null,
+    lsSet: (key, value) => { saved = { key, value }; },
+    fetchJsonFirstOk: async (url, _options, _timeout, sources) => {
+      requestedSources = Array.from(sources);
+      assert.match(url, /api\.gdeltproject\.org\/api\/v2\/doc\/doc/);
+      return { articles: Array.from({ length: 8 }, (_, index) => ({
+        title: `Global conflict headline ${index}`,
+        url: `https://news.example/story-${index}`,
+        seendate: "20261029T110000Z",
+      })) };
+    },
+    fetchTextFirstOk: async () => { throw new Error("RSS fallback should not be needed"); },
+    notifyNonCriticalError() {},
+    er: () => "error",
+  });
+  context.window = context;
+
+  vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
+  await context.loadGeo();
+
+  assert.deepEqual(requestedSources, ["direct"]);
+  assert.equal(saved.key, "geo_v10");
+  assert.equal(saved.value[0].id, "gdelt");
+  assert.match(body.innerHTML, /GDELT/);
+  assert.match(body.innerHTML, /Global conflict headline/);
+});
+
 test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
   const body = { innerHTML: "" };
   let fetchCalls = 0;
@@ -1166,6 +1233,9 @@ test("Yahoo Finance requests skip a known CORS-blocked direct source on hosted p
 
   const plan = context.buildFetchPlan("https://query1.finance.yahoo.com/v8/finance/chart/ABC", ["direct", "allorigins", "corsproxy"]);
   assert.deepEqual(Array.from(plan, step => step.source), ["allorigins", "corsproxy"]);
+
+  const cryptoPlan = context.buildFetchPlan("https://api.coingecko.com/api/v3/simple/price", ["direct", "allorigins"]);
+  assert.deepEqual(Array.from(cryptoPlan, step => step.source), ["direct", "allorigins"]);
 });
 
 test("proxy cooldown prevents queued concurrent requests from repeating an unauthorized proxy", async () => {

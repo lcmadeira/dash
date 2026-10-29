@@ -1,6 +1,7 @@
-/* global AbortSignal, $, DOMParser, URL, console, document, er, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
+/* global AbortSignal, $, DOMParser, URL, URLSearchParams, console, document, er, fetchJsonFirstOk, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
 (() => {
 const GEO_FEEDS = [
+  { id: "gdelt", label: "GDELT · Mundo", color: "#22D3EE", url: "https://www.gdeltproject.org/", api: true },
   { id: "icg", label: "Crisis Group", color: "#EF4444", url: "https://www.crisisgroup.org/rss/139", proxy: true },
   { id: "gpf", label: "Geop. Futures", color: "#F59E0B", url: "https://geopoliticalfutures.com/feed/", proxy: true },
   { id: "fa", label: "BBC World", color: "#8B5CF6", url: "https://feeds.bbci.co.uk/news/world/rss.xml", proxy: false },
@@ -18,10 +19,30 @@ async function loadGeo(force = false) {
     let cached = force ? null : sanitizeGeoItems(lsGet(cacheKey));
     if (!cached?.length) {
       const articles = [];
-      for (const feed of GEO_FEEDS) {
+      const params = new URLSearchParams({
+        query: "(geopolitics OR conflict OR war OR diplomacy OR sanctions)",
+        mode: "ArtList", format: "json", maxrecords: "30", sort: "DateDesc", timespan: "7d",
+      });
+      try {
+        const url = `https://api.gdeltproject.org/api/v2/doc/doc?${params}`;
+        const result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
+          ["direct"], payload => Array.isArray(payload?.articles));
+        result.articles.slice(0, 24).forEach((article, index) => {
+          const title = String(article?.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+          const dt = parseGdeltDate(article?.seendate) || Date.now() - index * 60000;
+          if (title.length > 8 && typeof article?.url === "string") {
+            articles.push({ id: "gdelt", title, link: article.url, dt });
+          }
+        });
+      } catch (error) {
+        console.warn("geo feed GDELT", error);
+      }
+
+      for (const feed of GEO_FEEDS.filter(source => !source.api)) {
+        if (articles.length >= 8) break;
         let raw = null;
         try {
-          const sources = feed.proxy ? ["corsproxy", "allorigins"] : ["direct", "corsproxy", "allorigins"];
+          const sources = feed.proxy ? ["corsproxy", "allorigins", "codetabs"] : ["direct", "corsproxy", "allorigins", "codetabs"];
           raw = await fetchTextFirstOk(feed.url, { signal: AbortSignal.timeout(10000) }, 10000,
             sources, text => text.includes("<item>"));
           if (!raw) continue;
@@ -102,6 +123,14 @@ function sanitizeGeoItems(items) {
     if (title.length <= 8 || !Number.isFinite(timestamp) || timestamp <= 0) return null;
     return { id: feed.id, title, link: url.href, dt: timestamp };
   }).filter(Boolean).sort((a, b) => b.dt - a.dt);
+}
+
+function parseGdeltDate(value) {
+  const match = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$/.exec(String(value || ""));
+  if (!match) return 0;
+  const [year, month, day, hour, minute, second] = match.slice(1).map(Number);
+  const timestamp = Date.UTC(year, month - 1, day, hour, minute, second);
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function escapeHTML(value) {

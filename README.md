@@ -83,6 +83,7 @@ Notas:
 - A API Air Quality da Open-Meteo usa `nitrogen_dioxide`, `ozone` e `sulphur_dioxide` para os poluentes; o card converte estes campos para os nomes internos `no2`, `o3` e `so2`. No GitHub Pages, a previsão UV usa CORS direto e não o proxy local de desenvolvimento.
 - No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - O card PSI 20 tenta primeiro obter as cotações em lote da Stooq, usa Yahoo Finance para símbolos em falta e oculta os valores de referência quando os proxies não devolvem cotações atuais. A ligação oficial da Euronext permanece disponível como consulta alternativa.
+- O card de geopolítica usa GDELT DOC JSON diretamente, com CORS, antes de tentar as feeds RSS de reserva. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
 - Certas funcionalidades (ex.: notificações periódicas) estão condicionadas por CORS — ver `ROADMAP.md`.
 
 ## Roadmap

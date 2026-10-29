@@ -122,7 +122,8 @@ async function loadCrypto(force=false){
       const ids=CRYPTO_IDS.map(c=>c.id).join(",");
       const cgUrl=`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`;
       try{
-        const { r } = await fetchFirstOk(cgUrl, { headers: { Accept: "application/json" } }, 8000, ["direct", "allorigins"]);
+        const { r } = await fetchFirstOk(cgUrl, { headers: { Accept: "application/json" } }, 8000,
+          ["direct", "allorigins", "corsproxy", "codetabs"]);
         if(r.ok)data=await r.json();
       }catch{}
       if(!isValidCryptoData(data))throw new Error("Crypto fetch failed");
