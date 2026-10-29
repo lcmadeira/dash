@@ -7,7 +7,7 @@ const CFG = {
   LOCAL_PROXY_PORT: 8000,
 
   // Opcional: URL base do Worker em worker/ (vazio mantém chamadas diretas).
-  DATA_API_BASE: ""
+  DATA_API_BASE: "https://dash-data-gateway.luiscarlosmadeira.workers.dev"
 };
 
 /* Períodos de referência dos fallbacks; rever quando os valores abaixo forem atualizados. */

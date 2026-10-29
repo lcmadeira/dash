@@ -132,9 +132,9 @@
 - [x] Reduzir falhas de atualização no PSI 20 com Stooq em lote antes do Yahoo, proxies alternativos e ocultação de valores de referência sem cotação atual. ✅ (29/10/2026)
 - [x] Usar GDELT DOC como fonte JSON CORS para geopolítica e permitir pedidos diretos ao endpoint público CoinGecko. ✅ (29/10/2026)
 - [x] Guardar proveniência opcional no envelope de cache e distinguir estado parcial/fallback da idade da consulta; envelopes anteriores permanecem compatíveis. ✅ (29/10/2026)
-- [x] Preparar gateway opcional Cloudflare Worker para CoinGecko/GDELT, com validação de origem, payload e cache na edge; o endpoint fica opt-in até ser publicado/configurado. ✅ (29/10/2026)
+- [x] Preparar e publicar gateway Cloudflare Worker para CoinGecko/GDELT, com validação de origem, payload e cache na edge; integrado no dashboard. ✅ (29/10/2026)
 - [x] Preparar publicação manual do Worker via GitHub Actions, com verificação automática de rotas e CORS após deploy; requer secrets Cloudflare no repositório. ✅ (29/10/2026)
-- [ ] Publicar o Worker no ambiente Cloudflare do proprietário e definir `CFG.DATA_API_BASE` no dashboard alojado (requer credenciais e URL de produção).
+- [x] Publicar o Worker de produção e definir `CFG.DATA_API_BASE` no dashboard alojado; deploy integrado com o repositório. ✅ (29/10/2026)
 - [ ] Selecionar e licenciar uma fonte de cotações PSI para apresentação pública; não usar proxies como substituto de licença de redistribuição.
 - [ ] Implementar push com o dashboard fechado: requer endpoint agendado, chaves VAPID e armazenamento seguro das subscrições; notificações atuais continuam dependentes da página aberta.
 - [x] Criar vistas contextuais Tudo/Portugal/Mercados/Mundo e indicador de cobertura de proveniência. ✅ (29/10/2026)
@@ -142,7 +142,7 @@
 - [x] Centralizar contratos de fonte e limites de atualidade, manter TTL local separado e filtrar variações pequenas no resumo entre visitas. ✅ (29/10/2026)
 - [x] Preparar PWA com cache limitado ao shell/recursos do próprio site, banner offline e testes que excluem proxies/fornecedores. ✅ (29/10/2026)
 - [x] Acrescentar estimativa local opcional para compras, eletricidade e combustível; valores introduzidos ficam apenas na página. ✅ (29/10/2026)
-- [ ] Ativar o Worker publicado e configurar `CFG.DATA_API_BASE`; secrets Cloudflare não estão disponíveis no ambiente local atual.
+- [x] Ativar o Worker publicado e configurar `CFG.DATA_API_BASE`. ✅ (29/10/2026)
 - [ ] Push persistente continua condicionado a execução agendada, armazenamento de subscrições e segredos VAPID de produção.
 - [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
@@ -379,7 +379,7 @@
 
 ### Próximas melhorias
 
-- [ ] Gateway Cloudflare opcional: o workflow de deploy e a verificação pós-publicação estão preparados; falta publicar no ambiente Cloudflare do proprietário e configurar `CFG.DATA_API_BASE`. O código já serve snapshot stale identificado quando o fornecedor falha.
+- [x] Gateway Cloudflare: publicação de produção ativa, `CFG.DATA_API_BASE` configurado e snapshot stale identificado quando o fornecedor falha. ✅ (29/10/2026)
 - [ ] Fonte PSI licenciada: selecionar fornecedor e termos compatíveis com apresentação pública antes de ativar preços dinâmicos.
 - [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; não está implementado por as notificações atuais dependerem da página aberta.
 - ✅ Vistas contextuais do dashboard e cobertura de fonte/data no resumo de saúde (29/10/2026).
@@ -406,10 +406,10 @@
 - ✅ Resumo de saúde carimba a hora da avaliação e distingue quantidade de cards com erro de dados antigos; texto esclarece que uma verificação sem alertas não é histórico de disponibilidade.
 - ✅ Faixa offline informa quantos cards apresentam cache/referência e liga diretamente ao resumo de estado e idade; APIs continuam explicitamente indisponíveis offline.
 - ✅ PSI mostra quando a consulta que forneceu os valores foi recebida, sem sugerir que esse instante é a hora exata da negociação.
-- ✅ Testes cobrem o texto do resumo e o comportamento acessível da faixa offline; gateway próprio permanece preparado, mas depende dos secrets Cloudflare do proprietário para reduzir a dependência de proxies públicos em produção.
+- ✅ Testes cobrem o texto do resumo e o comportamento acessível da faixa offline; gateway próprio publicado para reduzir a dependência de proxies públicos nos endpoints que suporta.
 - ✅ “Portugal hoje” guarda até 90 dias de observações recentes por dia e apresenta variações desde o último ponto local disponível; histórico começa a acumular a partir da atualização e não é sincronizado entre dispositivos.
 - ✅ Quando offline e sem observações recentes carregáveis, o briefing apresenta o último snapshot datado da visita anterior e avisa explicitamente que os valores podem estar antigos.
-- ⏳ Gateway e fonte PSI licenciada continuam dependentes, respetivamente, de credenciais Cloudflare no GitHub e de escolha/termos do fornecedor.
+- ✅ Gateway Cloudflare ativo; fonte PSI licenciada continua dependente da escolha/termos do fornecedor.
 
 ### 29/10/2026 — Síntese de saúde e pedidos concorrentes
 

@@ -78,11 +78,11 @@ Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máq
 npx wrangler deploy --config worker/wrangler.toml
 ```
 
-Depois de publicar, define `CFG.DATA_API_BASE` em `src/config.js` com a URL `workers.dev` atribuída ao Worker. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. Se a base ficar vazia (predefinição), o dashboard usa os fornecedores e fallbacks do browser. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
+O Worker de produção está publicado em `https://dash-data-gateway.luiscarlosmadeira.workers.dev` e `CFG.DATA_API_BASE` já aponta para esse endereço. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. A integração Cloudflare com este repositório publica alterações automaticamente na branch de produção. O Worker não inclui a bolsa PSI: cotações fiáveis para Lisboa requerem uma fonte de mercado escolhida e autorizada.
 
-Também é possível publicar pela GitHub Action manual **Deploy data gateway**. Configura os secrets de repositório `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID`, inicia o workflow em Actions e confirma o passo automático de verificação das rotas e do CORS. A Action publica o Worker, mas não altera o site nem define `CFG.DATA_API_BASE`: essa ativação permanece um passo explícito após confirmar o URL `workers.dev`.
+Também é possível publicar pela GitHub Action manual **Deploy data gateway**. Configura os secrets de repositório `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` e inicia o workflow em Actions. A Action publica o Worker e verifica as rotas e o CORS; a integração Cloudflare ligada ao repositório é o método automático de produção.
 
-O workflow está preparado, mas a publicação depende dos dois secrets Cloudflare no GitHub. Não guardes nem comites estes valores no repositório.
+O workflow manual depende dos dois secrets Cloudflare no GitHub. Não guardes nem comites estes valores no repositório. O Wrangler mantém `workers.dev` ativo e desativa URLs de preview para este Worker.
 
 Quando um fornecedor falha, o Worker pode servir um snapshot de contingência guardado por até 24 horas. A resposta inclui `_meta.state: "stale"`, `X-Dash-Cache: STALE` e `Warning: 110`; os cards preservam esse estado para não apresentar a contingência como cotação atual. Esta proteção só existe depois de o Worker estar publicado e configurado.
 
