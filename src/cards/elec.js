@@ -1,4 +1,5 @@
 /* Eletricidade card: OMIE Portugal + estimate from the user's own contract. */
+/* global $, PFX, _setOnByDataAttr, addToHistory, document, er, fetchJsonFirstOk, fmtAgeShort, getHistory, getStaleCache, localStorage, lsGet, lsSet, renderTrendChart, skeletonKPIs, window */
 (function () {
   const TREND_KEY = "elec_pt_omie_spot_day";
   const PREF_KEY = "elec_estimate_v1";
