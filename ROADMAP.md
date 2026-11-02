@@ -464,7 +464,7 @@
 
 - ✅ Card substitui a série REE genérica pelo ficheiro oficial OMIE `MARGINALPDBCPT`, zona portuguesa, servido por `/v1/electricity?date=AAAA-MM-DD` com validação de data, períodos e limite de resposta.
 - ✅ Períodos OMIE de 15 minutos são preservados para preço do período e janela de três horas; o gráfico e a média diária agregam em horas e exibem a zona/fuso de mercado.
-- ✅ Ficam separados preço grossista, média/min/máx do dia, preços de amanhã quando publicados, e a estimativa doméstica introduzida pelo utilizador.
+- ✅ Ficam separados preço grossista, média/min/máx do dia de mercado, preços do próximo dia de mercado quando publicados, e a estimativa doméstica introduzida pelo utilizador.
 - ✅ Removidos preços ERSE hardcoded e custos mensais sem metodologia reproduzível. O estimador local usa consumo mensal, preço de energia e termo de potência do contrato; assinala subtotais parciais e exclui IVA/outros encargos.
 - ✅ Tendência passa a acumular médias diárias OMIE PT localmente, sem misturar a série anterior, de origem/geografia não verificadas.
 - ✅ Cache/estado stale preservados; fonte/limitações, horários regulados e atualização de períodos em 2027 documentados.
