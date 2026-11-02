@@ -10,6 +10,7 @@ const NEWS_FEEDS = {
     source: "Google News RSS · Mundo",
   },
 };
+const ELECTRICITY_PATH = "/v1/electricity";
 const LOCAL_ORIGINS = new Set(["http://localhost:8000", "http://127.0.0.1:8000"]);
 const COIN_IDS = ["bitcoin", "ethereum", "solana", "cardano", "ripple", "binancecoin"];
 
@@ -28,6 +29,12 @@ function jsonResponse(data, status, headers) {
 }
 
 function isValidPayload(path, payload) {
+  if (path === ELECTRICITY_PATH) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(payload?.date || "")
+      && [23, 24, 25, 92, 96, 100].includes(payload?.periods?.length)
+      && payload.periods.every((period, index) => period.period === index + 1
+        && Number.isFinite(period.priceMwh) && period.priceMwh >= -500 && period.priceMwh <= 5000);
+  }
   if (path === "/v1/crypto") {
     return COIN_IDS.some(id => Number.isFinite(payload?.[id]?.eur) && payload[id].eur > 0);
   }
@@ -37,6 +44,26 @@ function isValidPayload(path, payload) {
     && payload.articles.every(article => typeof article?.title === "string"
       && article.title.length > 3 && typeof article?.link === "string"
       && /^https:\/\//i.test(article.link));
+}
+
+export function parseOmieElectricity(text, expectedDate) {
+  if (typeof text !== "string" || !/^MARGINALPDBCPT;/.test(text.trimStart())) return null;
+  const periods = [];
+  const [year, month, day] = expectedDate.split("-").map(Number);
+  for (const line of text.split(/\r?\n/)) {
+    const fields = line.split(";");
+    if (fields.length < 6 || Number(fields[0]) !== year
+        || Number(fields[1]) !== month || Number(fields[2]) !== day) continue;
+    const period = Number(fields[3]);
+    const priceMwh = Number(fields[4]);
+    if (!Number.isInteger(period) || period < 1 || period > 100
+        || !Number.isFinite(priceMwh) || priceMwh < -500 || priceMwh > 5000) continue;
+    periods.push({ period, priceMwh });
+  }
+  periods.sort((a, b) => a.period - b.period);
+  if (![23, 24, 25, 92, 96, 100].includes(periods.length)
+      || periods.some((item, index) => item.period !== index + 1)) return null;
+  return { date: expectedDate, periods };
 }
 
 async function readBoundedBody(response, maxBytes) {
@@ -162,19 +189,33 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS)] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ELECTRICITY_PATH] }, 200, headers);
+  }
+
+  let electricityDate = null;
+  if (url.pathname === ELECTRICITY_PATH) {
+    electricityDate = url.searchParams.get("date") || "";
+    const parsedDate = new Date(`${electricityDate}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(electricityDate)
+        || !Number.isFinite(parsedDate.getTime())
+        || parsedDate.toISOString().slice(0, 10) !== electricityDate) {
+      return jsonResponse({ error: "Data inválida" }, 400, headers);
+    }
   }
 
   const newsFeed = NEWS_FEEDS[url.pathname];
-  const upstream = url.pathname === "/v1/crypto" ? COINGECKO_URL
+  const upstream = url.pathname === ELECTRICITY_PATH
+    ? `https://www.omie.es/en/file-download?parents=marginalpdbcpt&filename=marginalpdbcpt_${electricityDate.replaceAll("-", "")}.1`
+    : url.pathname === "/v1/crypto" ? COINGECKO_URL
     : url.pathname === "/v1/geopolitics" ? GDELT_URL : newsFeed?.url || null;
   if (!upstream) return jsonResponse({ error: "Rota não encontrada" }, 404, headers);
 
-  const ttl = url.pathname === "/v1/crypto" ? 90 : newsFeed ? 300 : 600;
+  const ttl = url.pathname === "/v1/crypto" ? 90 : url.pathname === ELECTRICITY_PATH ? 300 : newsFeed ? 300 : 600;
   const cacheControl = `public, max-age=30, s-maxage=${ttl}`;
   const cache = globalThis.caches?.default;
-  const cacheKey = new Request(`${url.origin}${url.pathname}`, { method: "GET" });
-  const staleKey = staleCacheKey(`${url.origin}${url.pathname}`);
+  const cacheUrl = url.pathname === ELECTRICITY_PATH ? `${url.origin}${url.pathname}?date=${electricityDate}` : `${url.origin}${url.pathname}`;
+  const cacheKey = new Request(cacheUrl, { method: "GET" });
+  const staleKey = staleCacheKey(cacheUrl);
   if (cache) {
     const cached = await getCached(cache, cacheKey);
     if (cached) {
@@ -187,7 +228,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
 
   try {
     const response = await fetch(upstream, {
-      headers: { Accept: newsFeed ? "application/rss+xml, application/xml, text/xml" : "application/json" },
+      headers: { Accept: newsFeed ? "application/rss+xml, application/xml, text/xml" : url.pathname === ELECTRICITY_PATH ? "text/plain, application/octet-stream" : "application/json" },
       signal: AbortSignal.timeout(9000),
     });
     if (!response.ok) {
@@ -195,16 +236,19 @@ export async function handleRequest(request, env = {}, ctx = {}) {
       if (stale) return stale;
       return jsonResponse({ error: "Fornecedor indisponível", upstreamStatus: response.status }, 502, headers);
     }
-    const maxBytes = url.pathname === "/v1/geopolitics" ? 1_500_000 : newsFeed ? 500_000 : 250_000;
+    const maxBytes = url.pathname === "/v1/geopolitics" ? 1_500_000 : url.pathname === ELECTRICITY_PATH ? 100_000 : newsFeed ? 500_000 : 250_000;
     const body = await readBoundedBody(response, maxBytes);
-    const payload = newsFeed ? { articles: parseNewsRss(body) } : JSON.parse(body);
+    const payload = url.pathname === ELECTRICITY_PATH ? parseOmieElectricity(body, electricityDate)
+      : newsFeed ? { articles: parseNewsRss(body) } : JSON.parse(body);
     if (!isValidPayload(url.pathname, payload)) {
       const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
       if (stale) return stale;
       return jsonResponse({ error: "Resposta inválida do fornecedor" }, 502, headers);
     }
 
-    const output = url.pathname === "/v1/crypto"
+    const output = url.pathname === ELECTRICITY_PATH
+      ? { ...payload, _meta: { source: "OMIE · MARGINALPDBCPT · zona portuguesa", state: "live", checkedAt: Date.now() } }
+      : url.pathname === "/v1/crypto"
       ? { ...payload, _meta: { source: "CoinGecko", state: "live", checkedAt: Date.now() } }
       : newsFeed
         ? { ...payload, _meta: { source: newsFeed.source, state: "live", observedAt: latestNewsTimestamp(payload.articles), checkedAt: Date.now() } }

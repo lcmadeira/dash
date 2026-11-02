@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 
-const REQUIRED_ROUTES = ["/v1/crypto", "/v1/geopolitics", "/v1/news-pt", "/v1/news-world"];
+const REQUIRED_ROUTES = ["/v1/crypto", "/v1/geopolitics", "/v1/news-pt", "/v1/news-world", "/v1/electricity"];
 
 export async function checkDataGateway(base, request = fetch) {
   const url = new URL("/v1/status", base);

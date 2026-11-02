@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest } from "../worker/src/index.js";
+import { handleRequest, parseOmieElectricity } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -120,6 +120,46 @@ test("gateway parses fixed Google News feeds, drops unsafe links, and stamps sou
   const statusPayload = await status.json();
   assert.ok(statusPayload.routes.includes("/v1/news-pt"));
   assert.ok(statusPayload.routes.includes("/v1/news-world"));
+});
+
+test("OMIE Portugal parser validates dated 15-minute periods and selects the Portuguese file", async () => {
+  const date = "2026-11-02";
+  const rows = Array.from({ length: 96 }, (_, index) => {
+    const period = index + 1;
+    return `2026;11;02;${period};${period === 46 ? "12.5" : `${period}.25`};0;`;
+  }).join("\n");
+  const fixture = `MARGINALPDBCPT;\n${rows}\n*\n`;
+  const parsed = parseOmieElectricity(fixture, date);
+  assert.equal(parsed.date, date);
+  assert.equal(parsed.periods.length, 96);
+  assert.deepEqual(parsed.periods[45], { period: 46, priceMwh: 12.5 });
+  assert.equal(parseOmieElectricity(fixture, "2026-11-03"), null);
+
+  let requested;
+  globalThis.fetch = async url => {
+    requested = new URL(String(url));
+    return new Response(fixture, { headers: { "Content-Type": "application/octet-stream" } });
+  };
+  const response = await handleRequest(new Request(`https://dash-data.test/v1/electricity?date=${date}`, {
+    headers: { Origin: "https://lcmadeira.github.io" },
+  }), { DASH_ORIGIN: "https://lcmadeira.github.io" });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(requested.hostname, "www.omie.es");
+  assert.equal(requested.searchParams.get("parents"), "marginalpdbcpt");
+  assert.match(requested.searchParams.get("filename"), /marginalpdbcpt_20261102\.1$/);
+  assert.equal(payload.periods[45].priceMwh, 12.5);
+  assert.equal(payload._meta.source, "OMIE · MARGINALPDBCPT · zona portuguesa");
+});
+
+test("electricity gateway rejects arbitrary dates and malformed OMIE series", async () => {
+  let upstreamCalls = 0;
+  globalThis.fetch = async () => { upstreamCalls++; return new Response("MARGINALPDBCPT;\n*"); };
+  const invalidDate = await handleRequest(new Request("https://dash-data.test/v1/electricity?date=2026-02-30"));
+  assert.equal(invalidDate.status, 400);
+  const invalidSeries = await handleRequest(new Request("https://dash-data.test/v1/electricity?date=2026-11-02"));
+  assert.equal(invalidSeries.status, 502);
+  assert.equal(upstreamCalls, 1);
 });
 
 test("gateway never proxies caller supplied news URLs", async () => {

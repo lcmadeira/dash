@@ -460,7 +460,17 @@
 - [ ] Backend leve para chaves de API e notificações push
 - [ ] Modo claro/escuro
 
+### 02/11/2026 — Eletricidade Portugal: fonte e estimativas revistas
+
+- ✅ Card substitui a série REE genérica pelo ficheiro oficial OMIE `MARGINALPDBCPT`, zona portuguesa, servido por `/v1/electricity?date=AAAA-MM-DD` com validação de data, períodos e limite de resposta.
+- ✅ Períodos OMIE de 15 minutos são preservados para preço do período e janela de três horas; o gráfico e a média diária agregam em horas e exibem a zona/fuso de mercado.
+- ✅ Ficam separados preço grossista, média/min/máx do dia, preços de amanhã quando publicados, e a estimativa doméstica introduzida pelo utilizador.
+- ✅ Removidos preços ERSE hardcoded e custos mensais sem metodologia reproduzível. O estimador local usa consumo mensal, preço de energia e termo de potência do contrato; assinala subtotais parciais e exclui IVA/outros encargos.
+- ✅ Tendência passa a acumular médias diárias OMIE PT localmente, sem misturar a série anterior, de origem/geografia não verificadas.
+- ✅ Cache/estado stale preservados; fonte/limitações, horários regulados e atualização de períodos em 2027 documentados.
+- ✅ Testes cobrem parser OMIE, integridade de períodos, zona/fonte, validação de datas, janela de três horas e indexação de períodos de 15 minutos.
+
 ---
 
-**Última atualização**: 29 de Outubro de 2026
+**Última atualização**: 2 de Novembro de 2026
 **Mantido por**: LCMadeira

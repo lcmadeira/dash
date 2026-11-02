@@ -21,6 +21,7 @@ export async function checkPublishedSite(base, request = fetch) {
     "src/cache.js",
     "src/ui.js",
     "src/cards/briefing.js",
+    "src/cards/elec.js",
     "src/cards/news.js",
     "src/app.js",
   ];

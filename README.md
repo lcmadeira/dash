@@ -18,6 +18,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Tendência local de Portugal**: guarda até 90 dias de observações diárias recentes de meteorologia, combustível, cabaz, IHPC e Euribor neste browser; mostra a diferença desde a observação local anterior e mantém fonte/data nos cartões. O histórico começa a acumular após a atualização e não sincroniza entre dispositivos.
 - **Custos do agregado**: estimativa opcional baseada apenas nas compras e eletricidade introduzidas e no combustível calculado pelos litros mensais e por um preço recente. Mostra que percentagem estes custos representam do rendimento líquido indicado; não é um orçamento completo e não guarda os valores.
 - **Contexto PSI 20**: distingue fim de semana/feriado, fora do horário normal e falta de cotação durante sessão; valores de referência permanecem ocultos. Quando há preços, o card indica a hora em que a consulta foi recebida (não a hora exata do negócio).
+- **Eletricidade em Portugal**: preços do mercado diário OMIE na zona portuguesa, obtidos do ficheiro oficial `MARGINALPDBCPT`; períodos de 15 minutos são agregados em médias horárias e a janela mais barata é calculada sobre períodos consecutivos. O preço OMIE é grossista e não representa a fatura doméstica. O simulador opcional usa consumo e preços do contrato introduzidos pelo utilizador, guardados apenas neste browser, e identifica os encargos que exclui. A tendência é local e começa a acumular depois da atualização.
 - **Pedidos de card sem duplicação simultânea**: PSI, cripto e geopolítica partilham a mesma operação quando carregamentos automáticos, lazy loading ou refresh coincidem.
 - **Proveniência da cache**: gravações podem guardar fonte, estado (`live`, `partial`, `stale`, `static`, `fallback`) e hora observada. IPMA, combustíveis, câmbio, IHPC, Euribor, notícias, qualidade do ar, Fear & Greed, spread FRED e sismos registam metadados de origem; o tooltip distingue cache recente de observação recente e envelopes antigos continuam compatíveis.
 - **Validade de referências estáticas**: EMMI, IHPC de referência, habitação, agricultura, spread FRED e TTF têm fonte/período e limite de revisão em `STATIC_REFERENCE_POLICY`; o resumo assinala referências que ultrapassam esse prazo.
@@ -73,13 +74,13 @@ Depois abrir `http://localhost:8000`. O servidor liga apenas ao loopback da máq
 
 ### Gateway de dados
 
-`worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko, GDELT e feeds RSS fixos de notícias PT/Mundo. Não aceita URLs fornecidos pelo chamador. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
+`worker/` contém um Cloudflare Worker com rotas limitadas a CoinGecko, GDELT, feeds RSS fixos de notícias PT/Mundo e ficheiros diários OMIE para a zona portuguesa. Não aceita URLs fornecidos pelo chamador. O gateway valida a origem, valida o formato das respostas e guarda respostas no cache da edge. Para o publicar, é necessário um projeto Cloudflare:
 
 ```bash
 npx wrangler deploy --config worker/wrangler.toml
 ```
 
-O Worker de produção está publicado em `https://dash-data-gateway.luiscarlosmadeira.workers.dev` e `CFG.DATA_API_BASE` já aponta para esse endereço. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt` e `/v1/news-world`; a lista também está em `/v1/status`. A integração Cloudflare com este repositório publica alterações automaticamente na branch de produção. O gateway rejeita respostas acima de limites por rota (250 KB cripto, 1,5 MB geopolítica, 500 KB notícias), além de validar payloads antes de os guardar.
+O Worker de produção está publicado em `https://dash-data-gateway.luiscarlosmadeira.workers.dev` e `CFG.DATA_API_BASE` já aponta para esse endereço. As rotas atuais são `/v1/crypto`, `/v1/geopolitics`, `/v1/news-pt`, `/v1/news-world` e `/v1/electricity?date=AAAA-MM-DD`; a lista também está em `/v1/status`. A rota elétrica constrói o nome do ficheiro OMIE a partir de uma data validada, aceita apenas períodos completos e guarda cada dia separadamente. A integração Cloudflare com este repositório publica alterações automaticamente na branch de produção. O gateway rejeita respostas acima de limites por rota (250 KB cripto, 1,5 MB geopolítica, 500 KB notícias, 100 KB eletricidade), além de validar payloads antes de os guardar.
 
 Uma expansão para o INE foi avaliada e adiada: o endpoint do indicador `0009494` consultado em 29/10/2026 devolveu apenas o 3.º trimestre de 2021 e não uma série nacional agregada. Isso é mais antigo e menos adequado do que a referência Q3 2025 apresentada pelo card; encaminhar essa resposta como dado live criaria uma regressão de atualidade. O card mantém o fallback identificado até existir um indicador INE correto e recente.
 
@@ -113,6 +114,7 @@ O painel combina múltiplas fontes públicas/sem chave (e algumas opcionais), in
 - **api.apiaberta.pt** (combustíveis PT) e **MITECO/MINETUR** (combustíveis ES)
 - **BCE/ECB (SDMX)** e **Eurostat** (séries macroeconómicas)
 - **CoinGecko**, **Stooq**, **Yahoo Finance** (mercados)
+- **OMIE** (preços do mercado diário, zona portuguesa; ficheiros `MARGINALPDBCPT`)
 - **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar)
 - **OpenSky Network** (tráfego aéreo) e **AISHub** (tráfego marítimo / fallback simulado)
 - **USGS** (sismos), **Google News RSS** + feeds de geopolítica
@@ -126,6 +128,7 @@ Dados fora do gateway continuam dependentes dos fornecedores e proxies públicos
 - No GitHub Pages, os pedidos ao Yahoo Finance passam pelos proxies CORS configurados, porque o endpoint não permite pedidos diretos do browser.
 - O card PSI 20 tenta primeiro obter as cotações em lote da Stooq, usa Yahoo Finance para símbolos em falta e oculta os valores de referência quando os proxies não devolvem cotações atuais. A ligação oficial da Euronext permanece disponível como consulta alternativa.
 - O card de geopolítica tenta primeiro o gateway para GDELT; quando este está configurado mas indisponível, não repete a consulta diretamente no browser e passa às feeds RSS de reserva. O feed BBC também usa proxies CORS. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- O card de eletricidade usa o ficheiro diário oficial OMIE `MARGINALPDBCPT` da zona portuguesa pelo gateway. O OMIE passou a publicar períodos de 15 minutos em outubro de 2025; a média diária e o gráfico usam agregação horária, enquanto a janela de três horas é calculada sobre os períodos originais. Horas de mercado são apresentadas no fuso CET/CEST (uma hora à frente de Portugal continental). O spot é grossista; não se infere a fatura nem se apresentam tarifas fixas hardcoded. O estimador doméstico calcula apenas o subtotal com os preços contratuais introduzidos localmente. Ver [preços OMIE](https://www.omie.es/pt/market-results/daily/daily-market/day-ahead-price) e [tarifas/horários ERSE](https://www.erse.pt/atividade/regulacao/tarifas-e-precos-eletricidade/).
 - As notícias Google RSS já não tentam o proxy Jina, que devolve 403 neste feed. O histórico Stooq do gás evita `corsproxy.io`, que devolve 401 para este endpoint; mantém AllOrigins/Codetabs como alternativas.
 - O pedido SNIRH de barragens limita cada tentativa de proxy a 8 segundos para reduzir a espera quando o fornecedor não responde; mantém cache e fallback identificados.
 - O contexto de sessão da Euronext Lisboa usa o [calendário oficial de feriados](https://www.euronext.com/en/trading/trading-hours-holidays) e o horário regular publicado pelo [Santander](https://www.santander.pt/onebroker); em 24 e 31 de dezembro de 2026 identifica sessão curta sem assumir a hora de fecho, ainda por confirmar pela Euronext.
@@ -150,7 +153,7 @@ Pipeline GitHub Actions (`.github/workflows/ci.yml`) executado em push e PR:
 | `cdn-health` | curl nos CDNs críticos (Chart.js, html2canvas, jspdf, Google Fonts) | HTTP != 200 |
 | `file-size` | Tamanho do `index.html` | Warning se > 700KB |
 
-Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os doze recursos locais críticos, e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
+Um workflow separado, agendado diariamente e executável manualmente, verifica a página publicada e os treze recursos locais críticos (incluindo o card de eletricidade), e corre um smoke test Chromium sem depender dos fornecedores de dados externos. Para repetir a verificação HTTP noutro endereço: `DASHBOARD_URL=https://exemplo.test/ npm run check:published`.
 
 ### Executar lint localmente
 

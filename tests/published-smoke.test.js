@@ -11,6 +11,7 @@ test("published-site smoke check validates dashboard markers and critical assets
     'src="src/cards/news.js?v=1"',
     'href="styles.css?v=20261029-9"', 'href="./manifest.webmanifest"', 'src="sw.js"',
     'src="src/config.js?v=20261029-3"', 'src="src/offline.js?v=20261029-2"',
+    'src="src/cards/elec.js?v=20261102-1"',
     'src="src/fetch.js?v=1"', 'src="src/cache.js?v=1"',
     'src="sw.js"',
     'src="src/ui.js?v=1"', 'src="src/cards/briefing.js?v=1"', 'src="src/app.js?v=1"',
@@ -23,10 +24,11 @@ test("published-site smoke check validates dashboard markers and critical assets
     return new Response(body, { status: 200 });
   };
 
-  assert.equal(await checkPublishedSite("https://example.test/dash/", fakeFetch), 12);
-  assert.equal(paths.length, 13);
+  assert.equal(await checkPublishedSite("https://example.test/dash/", fakeFetch), 13);
+  assert.equal(paths.length, 14);
   assert.ok(paths.includes("/dash/src/cards/briefing.js"));
   assert.ok(paths.includes("/dash/src/cards/news.js"));
+  assert.ok(paths.includes("/dash/src/cards/elec.js"));
 });
 
 test("published-site smoke check fails when a critical asset is missing", async () => {
