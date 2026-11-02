@@ -45,6 +45,7 @@ test("OMIE parser rejects incomplete, wrong-date, or non-finite daily data", asy
 test("electricity card renders Portuguese zone, correct 3-hour window and contract-only estimate", async () => {
   const storage = new Map();
   const elements = new Map();
+  const windowObject = {};
   const body = { innerHTML: "" };
   for (const id of ["elecTrendStatus", "elecTrendDays", "elecTrendCanvas", "elecEstimateKwh", "elecEstimateRate", "elecEstimatePower", "elecEstimateResult"]) {
     elements.set(id, { value: "", textContent: "", _chart: null });
@@ -82,12 +83,11 @@ test("electricity card renders Portuguese zone, correct 3-hour window and contra
       assert.equal(validate(payload), true);
       return payload;
     },
-    window: { CFG: { DATA_API_BASE: "https://gateway.example" } },
+    window: windowObject,
+    CFG: { DATA_API_BASE: "https://gateway.example" },
   });
-  context.window = context;
-  context.CFG = { DATA_API_BASE: "https://gateway.example" };
   vm.runInContext(await readFile("src/cards/elec.js", "utf8"), context);
-  await context.loadElec(false);
+  await windowObject.loadElec(false);
 
   assert.match(body.innerHTML, /OMIE · zona portuguesa/);
   assert.match(body.innerHTML, /Janela mais barata de 3h: <strong[^>]*>11:00–14:00 hora de mercado/);

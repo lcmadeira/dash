@@ -11,7 +11,7 @@ test("published-site smoke check validates dashboard markers and critical assets
     'src="src/cards/news.js?v=1"',
     'href="styles.css?v=20261029-9"', 'href="./manifest.webmanifest"', 'src="sw.js"',
     'src="src/config.js?v=20261029-3"', 'src="src/offline.js?v=20261029-2"',
-    'src="src/cards/elec.js?v=20261102-1"',
+    'src="src/cards/elec.js?v=20261102-2"',
     'src="src/fetch.js?v=1"', 'src="src/cache.js?v=1"',
     'src="sw.js"',
     'src="src/ui.js?v=1"', 'src="src/cards/briefing.js?v=1"', 'src="src/app.js?v=1"',

@@ -1,5 +1,5 @@
 /* Eletricidade card: OMIE Portugal + estimate from the user's own contract. */
-/* global $, PFX, _setOnByDataAttr, addToHistory, document, er, fetchJsonFirstOk, fmtAgeShort, getHistory, getStaleCache, localStorage, lsGet, lsSet, renderTrendChart, skeletonKPIs, window */
+/* global $, CFG, PFX, _setOnByDataAttr, addToHistory, document, er, fetchJsonFirstOk, fmtAgeShort, getHistory, getStaleCache, localStorage, lsGet, lsSet, renderTrendChart, skeletonKPIs, window */
 (function () {
   const TREND_KEY = "elec_pt_omie_spot_day";
   const PREF_KEY = "elec_estimate_v1";
@@ -152,8 +152,8 @@
     const key = `omie_electricity_${date}`;
     const cached = force ? null : lsGet(key);
     if (isValidPeriods(cached)) return Promise.resolve({ ...cached, cache: true });
-    const base = String(window.CFG?.DATA_API_BASE || "").replace(/\/$/, "");
-    if (!base) return Promise.reject(new Error("Gateway de dados não configurado"));
+    const configuredBase = typeof CFG !== "undefined" ? CFG?.DATA_API_BASE : window.CFG?.DATA_API_BASE;
+    const base = String(configuredBase || "https://dash-data-gateway.luiscarlosmadeira.workers.dev").trim().replace(/\/+$/, "");
     const url = `${base}/v1/electricity?date=${encodeURIComponent(date)}`;
     return fetchJsonFirstOk(url, {}, 12000, ["direct", "local"], isValidPeriods)
       .then((payload) => {
