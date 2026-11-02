@@ -119,7 +119,7 @@
 - [x] **Tráfego marítimo (Estreito de Ormuz)** — AIS data com mapa interactivo TopoJSON.
       Simulação dinâmica de alta fidelidade (movimento baseado em UTC/hora real) com
       rotas de precisão (V2) para evitar terra. Tooltips com detalhes de navios. ✅ (24/03/2026)
-- [x] **Dados de barragens (níveis de água)** — SNIRH com parser automático via `src/cards/dams.js`. ✅ (21/04/2026)
+- [x] **Dados de barragens (níveis de água)** — SNIRH com parser automático via `src/cards/dams.js`; sem cache real verificável, o card não apresenta números aproximados. ✅ (02/11/2026)
 - [ ] Índice UV e pólen *(UV coberto pelo card Qualidade do Ar)*
 - [x] Tráfego aéreo em tempo real (OpenSky API — CORS proxy) ✅ (24/03/2026)
 - [ ] Tráfego rodoviário em tempo real (Google Maps API — requer chave paga)
@@ -135,16 +135,11 @@
 - [x] Preparar e publicar gateway Cloudflare Worker para CoinGecko/GDELT, com validação de origem, payload e cache na edge; integrado no dashboard. ✅ (29/10/2026)
 - [x] Preparar publicação manual do Worker via GitHub Actions, com verificação automática de rotas e CORS após deploy; requer secrets Cloudflare no repositório. ✅ (29/10/2026)
 - [x] Publicar o Worker de produção e definir `CFG.DATA_API_BASE` no dashboard alojado; deploy integrado com o repositório. ✅ (29/10/2026)
-- [ ] Selecionar e licenciar uma fonte de cotações PSI para apresentação pública; não usar proxies como substituto de licença de redistribuição.
-- [ ] Implementar push com o dashboard fechado: requer endpoint agendado, chaves VAPID e armazenamento seguro das subscrições; notificações atuais continuam dependentes da página aberta.
 - [x] Criar vistas contextuais Tudo/Portugal/Mercados/Mundo e indicador de cobertura de proveniência. ✅ (29/10/2026)
 - [x] Comparar o briefing recente com o snapshot da visita anterior e agregar fontes identificáveis associadas a erros/dados antigos. ✅ (29/10/2026)
 - [x] Centralizar contratos de fonte e limites de atualidade, manter TTL local separado e filtrar variações pequenas no resumo entre visitas. ✅ (29/10/2026)
 - [x] Preparar PWA com cache limitado ao shell/recursos do próprio site, banner offline e testes que excluem proxies/fornecedores. ✅ (29/10/2026)
 - [x] Acrescentar estimativa local opcional para compras, eletricidade e combustível; valores introduzidos ficam apenas na página. ✅ (29/10/2026)
-- [x] Ativar o Worker publicado e configurar `CFG.DATA_API_BASE`. ✅ (29/10/2026)
-- [ ] Push persistente continua condicionado a execução agendada, armazenamento de subscrições e segredos VAPID de produção.
-- [x] **Dados de barragens (níveis de água)** — integração SNIRH/APA via scraping resiliente (allorigins fallback). ✅ (21/04/2026)
 
 #### 5.3 Dados Históricos
 
@@ -380,13 +375,19 @@
 
 ### Próximas melhorias
 
-- [x] Gateway Cloudflare: publicação de produção ativa, `CFG.DATA_API_BASE` configurado e snapshot stale identificado quando o fornecedor falha. ✅ (29/10/2026)
-- [ ] Fonte PSI licenciada: auditoria confirma que acesso a dados atrasados não basta para concluir que a redistribuição pública é permitida; pedir confirmação/termos à Euronext ou a um fornecedor antes de ativar preços dinâmicos.
-- [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; não está implementado por as notificações atuais dependerem da página aberta.
-- ✅ Vistas contextuais do dashboard e cobertura de fonte/data no resumo de saúde (29/10/2026).
-- [ ] PSI 20: selecionar uma fonte de cotações de Lisboa estável e autorizada para exibição pública. A Euronext disponibiliza opções de feed e sujeita a exibição pública a políticas de dados; não foi ativado um endpoint não licenciado.
+- [ ] Cotações PSI: selecionar uma fonte estável e confirmar por escrito a licença de exibição pública antes de ativar preços dinâmicos.
+- [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; as notificações atuais dependem da página aberta.
 - [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados e comparações simples.
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
+
+### 02/11/2026 — Referências estáticas e falhas de fontes
+
+- ✅ Referências TTF, hubs, reservas e tarifas antigas identificadas por período; comparações de snapshots não são descritas como variações diárias.
+- ✅ Card de gás PT deixa de gravar referências estáticas como observações recentes e deixa de apresentar uma série de sete dias sem dados recentes.
+- ✅ Card de barragens deixou de fabricar níveis aproximados; usa uma leitura guardada com data quando disponível ou mostra indisponibilidade com ligação SNIRH.
+- ✅ Falhas de feeds geopolíticos são agregadas e sinalizadas como estado parcial quando algumas fontes continuam a fornecer artigos.
+- ✅ Tarefas pendentes de PSI licenciado e push consolidadas na lista “Próximas melhorias”; histórico e marcos concluídos foram preservados.
+- ✅ Testes de regressão cobrem ausência de números inventados, deduplicação de pedidos e rótulos de snapshots.
 
 ### 29/10/2026 — Resiliência e monitorização publicada
 

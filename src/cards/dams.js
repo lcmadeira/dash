@@ -4,12 +4,18 @@
  * @param {boolean} [force=false] Se true, ignora o cache válido e volta a consultar a fonte.
  * @returns {Promise<void>}
  */
-async function loadDams(force = false) {
+function loadDams(force = false) {
+  const run = window.runSingleFlight || ((_key, task) => Promise.resolve().then(task));
+  return run("card:dams", () => loadDamsOnce(force));
+}
+
+async function loadDamsOnce(force = false) {
   const el = document.getElementById("dams-body");
   if (!el) return;
   
   const CK = "dams_v1";
-  let cache = force ? null : window.lsGet(CK);
+  const lastKnown = window.lsGet(CK);
+  let cache = force ? null : lastKnown;
 
   if (!cache) {
     el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${window.ld()}</div>`;
@@ -68,32 +74,33 @@ async function loadDams(force = false) {
       window.lsSet(CK, cache);
     } catch (e) {
       console.warn("⚠️ Dams error:", e.message);
-      if (!cache) {
-        cache = {
-          basins: [
-            { name: "GUADIANA", val: 92, avg: 63 },
-            { name: "TEJO", val: 76, avg: 71 },
-            { name: "SADO", val: 74, avg: 68 },
-            { name: "MONDEGO", val: 74, avg: 66 },
-            { name: "DOURO", val: 54, avg: 59 },
-            { name: "AVE", val: 48, avg: 55 },
-            { name: "MINHO", val: 85, avg: 74 },
-            { name: "LIMA", val: 71, avg: 66 },
-            { name: "CAVADO", val: 64, avg: 65 },
-            { name: "MIRA", val: 63, avg: 60 },
-            { name: "ALGARVE", val: 63, avg: 53 },
-            { name: "VOUGA", val: 47, avg: 54 },
-          ],
-          totalVal: 67.6,
-          totalAvg: 63.7,
-          ts: 0,
-        };
-        el.innerHTML = `<div style="padding:8px 10px;font-size:.52rem;color:var(--t3);display:flex;align-items:center;gap:5px;margin-bottom:6px;border-bottom:1px solid var(--b)">
-          <span>⚠️ SNIRH offline</span><span style="opacity:.5">· dados aprox.</span>
+      if (lastKnown && Array.isArray(lastKnown.basins) && lastKnown.basins.length > 0
+          && lastKnown.basins.every(basin => typeof basin?.name === "string"
+            && Number.isFinite(basin.val) && Number.isFinite(basin.avg))
+          && Number.isFinite(lastKnown.totalVal) && Number.isFinite(lastKnown.totalAvg)) {
+        cache = lastKnown;
+        const observed = Number.isFinite(lastKnown.ts) && lastKnown.ts > 0
+          ? new Date(lastKnown.ts).toLocaleString("pt-PT") : "data desconhecida";
+        window.setCardStatus?.("dams", "stale", "SNIRH indisponível", {
+          title: `A mostrar a última leitura guardada: ${observed}`,
+          force: true,
+        });
+        const staleNotice = `<div style="padding:8px 10px;font-size:.58rem;color:#F59E0B;margin-bottom:6px;border-bottom:1px solid var(--b)">
+          ⚠️ SNIRH indisponível · última leitura guardada: ${observed}
         </div>`;
-        renderDams(cache);
+        renderDams(cache, staleNotice);
         return;
       }
+      window.setCardStatus?.("dams", "error", "SNIRH indisponível", {
+        title: "Sem observação atual nem cache verificável.",
+        force: true,
+      });
+      el.innerHTML = `<div style="padding:14px 10px;font-size:.7rem;color:var(--t3);line-height:1.5">
+        <strong style="color:#F59E0B">SNIRH indisponível</strong><br>
+        Sem uma observação verificável, não há valores de armazenamento para apresentar.
+        <div style="margin-top:6px"><a href="https://snirh.apambiente.pt/index.php?idMain=1&amp;idItem=1.3" target="_blank" rel="noopener noreferrer">Consultar dados do SNIRH</a></div>
+      </div>`;
+      return;
     }
   }
 
@@ -103,14 +110,14 @@ async function loadDams(force = false) {
 /** Desenha o resumo nacional e as oito bacias com menor armazenamento.
  * @param {{basins: {name: string, val: number, avg: number}[], totalVal: number, totalAvg: number}} data Dados calculados pelo carregador.
  */
-function renderDams(data) {
+function renderDams(data, statusHtml = "") {
   const el = document.getElementById("dams-body");
   if (!el || !data) return;
 
   const { basins, totalVal, totalAvg } = data;
   const isCritical = basins.some(b => b.val < 30);
 
-  let html = `
+  let html = statusHtml + `
     <div style="margin-bottom:12px;background:var(--b2);padding:10px;border-radius:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
         <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Média Nacional (Armazenamento)</div>

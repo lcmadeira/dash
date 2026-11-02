@@ -29,7 +29,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) e Marítimo (Estreito de Ormuz) com mapas interactivos em Canvas/TopoJSON.
 - **Combustíveis PT vs ES**: Comparação de preços entre Portugal e Espanha, com detalhe de postos, timestamps e preferências de combustível.
 - **Simulação de Alta Fidelidade**: Tráfego marítimo dinâmico baseado no tempo real (UTC) para contornar limitações de APIs públicas de AIS.
-- **Dados de Barragens**: Níveis de água por bacia hidrográfica via SNIRH/APA.
+- **Dados de Barragens**: Níveis de água por bacia hidrográfica via SNIRH/APA; sem fonte nem cache verificável, o card mostra indisponibilidade em vez de percentagens aproximadas.
 
 ## Stack / dependências
 
@@ -132,6 +132,8 @@ Dados fora do gateway continuam dependentes dos fornecedores e proxies públicos
 - As notícias Google RSS já não tentam o proxy Jina, que devolve 403 neste feed. O histórico Stooq do gás evita `corsproxy.io`, que devolve 401 para este endpoint; mantém AllOrigins/Codetabs como alternativas.
 - O pedido SNIRH de barragens limita cada tentativa de proxy a 8 segundos para reduzir a espera quando o fornecedor não responde; mantém cache e fallback identificados.
 - Quando Stooq e Yahoo não respondem, o card TTF usa o último ponto manual da série (78,5 €/MWh, setembro de 2026) e identifica-o como referência estática; esse valor não deve ser interpretado como cotação atual. A série e a política de validade em `src/config.js` precisam de revisão quando forem atualizadas as referências.
+- Os hubs secundários e as reservas europeias no card do gás são snapshots históricos de março de 2026, não cotações atuais. O card de gás PT identifica as referências de setembro de 2026, não grava snapshots como observações recentes e só mostra o histórico de sete dias quando consegue obtê-lo da fonte.
+- As tarifas ERSE 2025-2026 no card do gás são mantidas apenas como referência histórica, dado que o período regulatório terminou em outubro de 2026. Falhas das feeds de geopolítica são agregadas num único aviso e marcadas como estado parcial quando ainda existem artigos de outras fontes.
 - O contexto de sessão da Euronext Lisboa usa o [calendário oficial de feriados](https://www.euronext.com/en/trading/trading-hours-holidays) e o horário regular publicado pelo [Santander](https://www.santander.pt/onebroker); em 24 e 31 de dezembro de 2026 identifica sessão curta sem assumir a hora de fecho, ainda por confirmar pela Euronext.
 - Não há uma fonte pública de cotações do PSI autorizada/configurada. A Euronext apresenta opções de dados/feeds e indica que a exibição pública está sujeita a políticas de licença; dados atrasados gratuitos são para uso interno, pelo que o painel mantém as cotações ausentes ocultas até existir uma fonte compatível com publicação pública ([políticas Euronext](https://www.euronext.com/en/data/real-time-data/pricing-specs-agreements/market-data-pricing-policies), [Euronext Stream API](https://www.euronext.com/en/products-services/euronext-stream-api)).
 - O envelope local mantém `{d, ts}` e aceita `meta` opcional com `source`, `state`, `observedAt` e `reason`; `ts` continua a indicar quando o browser guardou a resposta, não quando o fornecedor observou o dado.

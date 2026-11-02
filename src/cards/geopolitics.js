@@ -24,6 +24,7 @@ async function loadGeoOnce(force = false) {
     let cached = force ? null : sanitizeGeoItems(lsGet(cacheKey));
     if (!cached?.length) {
       const articles = [];
+      const failedFeeds = [];
       const params = new URLSearchParams({
         query: "(geopolitics OR conflict OR war OR diplomacy OR sanctions)",
         mode: "ArtList", format: "json", maxrecords: "30", sort: "DateDesc", timespan: "7d",
@@ -38,7 +39,9 @@ async function loadGeoOnce(force = false) {
           result = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
             ["direct"], payload => Array.isArray(payload?.articles));
           gatewayMeta = result?._meta || null;
-        } catch {}
+        } catch (error) {
+          failedFeeds.push(`gateway GDELT (${error?.message || "erro"})`);
+        }
       }
       try {
         if (!result && !gatewayConfigured) {
@@ -54,7 +57,7 @@ async function loadGeoOnce(force = false) {
           }
         });
       } catch (error) {
-        console.warn("geo feed GDELT", error);
+        failedFeeds.push(`GDELT (${error?.message || "erro"})`);
       }
 
       for (const feed of GEO_FEEDS.filter(source => !source.api)) {
@@ -79,9 +82,11 @@ async function loadGeoOnce(force = false) {
             if (title.length > 8) articles.push({ id: feed.id, title, link, dt: timestamp });
           }
         } catch (error) {
-          console.warn("geo feed", feed.id, error);
+          failedFeeds.push(`${feed.label} (${error?.message || "erro"})`);
         }
       }
+
+      if (failedFeeds.length) console.warn("Geopolítica: fontes indisponíveis", failedFeeds);
 
       cached = sanitizeGeoItems(articles);
       if (!cached.length) throw new Error("Feeds indisponíveis");
@@ -89,9 +94,10 @@ async function loadGeoOnce(force = false) {
       const observedAt = Math.max(...cached.map(item => item.dt));
       lsSet(cacheKey, cached, {
         source: sources.map(id => GEO_FEEDS.find(feed => feed.id === id)?.label || id).join(", "),
-        state: sources.length > 1 ? "partial" : gatewayMeta?.state === "stale" ? "stale" : "live",
+        state: failedFeeds.length || sources.length > 1 ? "partial" : gatewayMeta?.state === "stale" ? "stale" : "live",
         observedAt,
-        reason: gatewayMeta?.state === "stale" ? "Fornecedor indisponível; snapshot do gateway" : undefined,
+        reason: failedFeeds.length ? `Fontes indisponíveis: ${failedFeeds.map(item => item.split(" (")[0]).join(", ")}`
+          : gatewayMeta?.state === "stale" ? "Fornecedor indisponível; snapshot do gateway" : undefined,
       });
     }
     GEO_DATA = cached;

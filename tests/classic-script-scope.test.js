@@ -1145,9 +1145,10 @@ test("geopolitics does not repeat GDELT in the browser when the configured gatew
   const jsonRequests = [];
   const textRequests = [];
   const textSources = [];
+  const warnings = [];
   const context = vm.createContext({
     AbortSignal, Date, URL, URLSearchParams,
-    console: { log() {}, warn() {} },
+    console: { log() {}, warn: (...args) => warnings.push(args) },
     document: { querySelectorAll: () => [] },
     $: () => body,
     skeletonGeneric: () => "loading",
@@ -1176,6 +1177,55 @@ test("geopolitics does not repeat GDELT in the browser when the configured gatew
   ]);
   assert.deepEqual(textSources[2], ["corsproxy", "allorigins", "codetabs"]);
   assert.match(body.innerHTML, /error/);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0][0], /fontes indisponíveis/i);
+});
+
+test("dams card deduplicates failed refreshes and does not invent storage values", async () => {
+  const body = { innerHTML: "" };
+  const calls = [];
+  const warnings = [];
+  const inFlight = new Map();
+  const statuses = [];
+  let lastKnown = null;
+  const context = vm.createContext({
+    console: { warn: (...args) => warnings.push(args) },
+    document: { getElementById: id => id === "dams-body" ? body : null },
+  });
+  context.window = context;
+  context.ld = () => "loading";
+  context.lsGet = () => lastKnown;
+  context.setCardStatus = (...args) => statuses.push(args);
+  context.fetchWithCORS = async () => {
+    calls.push("SNIRH");
+    throw new Error("offline");
+  };
+  context.runSingleFlight = (key, task) => {
+    if (inFlight.has(key)) return inFlight.get(key);
+    const promise = Promise.resolve().then(task);
+    inFlight.set(key, promise);
+    return promise.finally(() => inFlight.delete(key));
+  };
+
+  vm.runInContext(await readFile("src/cards/dams.js", "utf8"), context);
+  await Promise.all([context.loadDams(), context.loadDams(true)]);
+
+  assert.equal(calls.length, 1);
+  assert.equal(warnings.length, 1);
+  assert.match(body.innerHTML, /SNIRH indisponível/);
+  assert.match(body.innerHTML, /Sem uma observação verificável/);
+  assert.doesNotMatch(body.innerHTML, /92%|67\.6%|dados aprox\./);
+  assert.match(body.innerHTML, /snirh\.apambiente\.pt/);
+  assert.equal(statuses[0][1], "error");
+
+  lastKnown = {
+    basins: [{ name: "Tejo", val: 55, avg: 60 }],
+    totalVal: 55, totalAvg: 60, ts: Date.now() - 3600000,
+  };
+  await context.loadDams(true);
+  assert.match(body.innerHTML, /última leitura guardada/);
+  assert.match(body.innerHTML, /55\.0%/);
+  assert.equal(statuses[1][1], "stale");
 });
 
 test("geopolitics card escapes RSS content and rejects unsafe article links", async () => {
@@ -1245,6 +1295,39 @@ test("gas markets card rejects malformed TTF cache and keeps its global handlers
   assert.match(body.innerHTML, /78\.5/);
   assert.match(body.innerHTML, /estático · ref\. Set 26/);
   assert.doesNotThrow(() => vm.runInContext("const APP_GAS_MARKETS = true;", context));
+});
+
+test("gas PT fallback labels its September snapshot and omits a fabricated seven-day trend", async () => {
+  const body = { innerHTML: "" };
+  let historyWrites = 0;
+  const context = createBrowserContext();
+  context.window = context;
+  context.localStorage = { getItem: () => null, setItem() {} };
+  context.PFX = "test_";
+  context.lsGet = () => null;
+  context.addToHistory = () => { historyWrites++; };
+  context.getHistory = () => [];
+  context._setOnByDataAttr = () => {};
+  context.fetchStooqDailySeries = async () => [];
+  context._lastN = (items, count) => items.slice(-count);
+  context.renderTrendChart = () => {};
+  context.GAS_TARIFAS = {
+    esc1: { label: "Esc. 1", desc: "Baixo", kwh: 0.0974 },
+    esc2: { label: "Esc. 2", desc: "Normal", kwh: 0.0716 },
+    mibgasSpot: 81.2, mibgasPrev: 57.3, mibgas7d: [68.5, 72, 74.8, 77.4, 79.1, 80.5, 81.2],
+    ttfSpot: 78.5, ttfPrev: 53.3, spread: 2.7, redes: 0.0821,
+    totalEsc1: 0.1694, totalEsc2: 0.1527, termoFixo: 3.42,
+  };
+  context.document = { getElementById: id => id === "gaspt-body" ? body : null };
+
+  vm.runInContext(await readFile("src/cards/gas-markets.js", "utf8"), context);
+  await context.loadGasPT();
+
+  assert.match(body.innerHTML, /MIBGAS ref\. Set 2026/);
+  assert.match(body.innerHTML, /Referências MIBGAS e TTF de setembro de 2026/);
+  assert.match(body.innerHTML, /\+2\.70/);
+  assert.doesNotMatch(body.innerHTML, /últimos 7 dias|vs semana/);
+  assert.equal(historyWrites, 0);
 });
 
 

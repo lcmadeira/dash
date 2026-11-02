@@ -140,6 +140,7 @@ function loadTTF(force=false){
     {c:"🇵🇱",name:"Polónia", pct:88.5,col:"#10B981"},
   ];
   const EU_AVG=68, EU_PREV=85;
+  const STATIC_HUBS_REF = "Mar 2026";
 
   /* ── Fetch TTF via Stooq CSV (tg.f = EUR/MWh) ──────────── */
   async function fetchTTFStooq(){
@@ -199,6 +200,9 @@ function loadTTF(force=false){
     const ttfLo    = ttfData?.lo    ?? ttfPrice*0.99;
     const ttfChg   = ttfData?.chg   ?? ((ttfPrice-ttfPrev)/ttfPrev*100);
     const isLive   = ttfData?.live  ?? false;
+    const ttfVariationLabel = isLive
+      ? (ttfData?.src === "Stooq" ? "vs abertura" : "vs fecho ant.")
+      : `vs ref. ant. (${staticPrevious[0]})`;
 
     /* Sparkline TTF histórico */
     const histWithLive = [...TTF_HIST];
@@ -228,7 +232,7 @@ function loadTTF(force=false){
       <div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
-               letter-spacing:.5px">TTF Day-ahead · EUR/MWh</div>
+               letter-spacing:.5px">${isLive ? "TTF Day-ahead" : "TTF · referência mensal"} · EUR/MWh</div>
           ${sourceBadge}
         </div>
         <div style="display:flex;align-items:flex-end;gap:5px">
@@ -237,10 +241,10 @@ function loadTTF(force=false){
           <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
         </div>
         <div style="font-size:.68rem;font-weight:600;color:${chgCol};margin-top:2px">
-          ${chgArr} ${Math.abs(ttfChg).toFixed(1)}% vs fecho anterior
+          ${chgArr} ${Math.abs(ttfChg).toFixed(1)}% ${ttfVariationLabel}
         </div>
         <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);margin-top:2px">
-          H ${ttfHi.toFixed(1)} · L ${ttfLo.toFixed(1)} · ant. ${ttfPrev.toFixed(1)}
+          ${isLive ? `H ${ttfHi.toFixed(1)} · L ${ttfLo.toFixed(1)} · ant. ${ttfPrev.toFixed(1)}` : `Referência anterior: ${ttfPrev.toFixed(1)} €/MWh`}
         </div>
       </div>
       <div style="text-align:right">
@@ -275,8 +279,8 @@ function loadTTF(force=false){
 
     <!-- Tabela hubs (TTF live + restantes estáticos) -->
     <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-      🌍 Hubs europeus · spot
-      <span style="font-size:.52rem;font-weight:400;color:var(--t3)"> · TTF live · outros ref. Mar 2026</span>
+      🌍 Hubs europeus · referências históricas
+      <span style="font-size:.52rem;font-weight:400;color:var(--t3)"> · TTF ${isLive ? "live" : `ref. ${staticLatest[0]}`} · outros: snapshot ${STATIC_HUBS_REF}</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
       <!-- TTF com dados live -->
@@ -315,7 +319,7 @@ function loadTTF(force=false){
 
     <!-- Reservas EU -->
     <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-      🏭 Reservas de gás · EU · ref. Mar 2026
+      🏭 Reservas de gás · EU · snapshot ${STATIC_HUBS_REF}
       <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
     </div>
     ${RESERVAS.map(r=>`
@@ -329,7 +333,7 @@ function loadTTF(force=false){
              color:${r.col}">${r.pct}%</div>
       </div>`).join("")}
     <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
-      ⚠️ Reservas EU abaixo da média histórica. Meta: 90% até Nov 2026.
+      ⚠️ Valores históricos; não representam níveis atuais de armazenamento.
     </div>`;
 
     loadTTFTrend(false).catch(()=>{});
@@ -489,17 +493,19 @@ function loadGasPT(_force=false){
   /* Reutilizar cache TTF (já carregado pelo card Gás Natural · Hubs Europeus) */
   const cachedTTF=lsGet("ttf_live_v1");
   const ttfCache=isValidTTFData(cachedTTF)?cachedTTF:null;
-  const ttfPrice =ttfCache?.price??null;
-  const ttfPrev  =ttfCache?.prev ??null;
-  const ttfSrc   =ttfCache?.src  ??null;
   const isLive   =!!(ttfCache?.live);
+  const ttfPrice =isLive?ttfCache.price:null;
+  const ttfPrev  =isLive?ttfCache.prev:null;
+  const ttfSrc   =isLive?ttfCache.src:null;
 
   /* MIBGAS estimado */
   const mibSpot = G.mibgasSpot || 50;
   const mibEst =ttfPrice !== null?+(ttfPrice+spreadActual).toFixed(2):null;
   const mibPrev=ttfPrev !== null?+(ttfPrev +spreadActual).toFixed(2):(G.mibgasPrev || mibSpot);
   const mibRef =mibEst??mibSpot;
-  try{ if (Number.isFinite(mibRef)) addToHistory('gaspt_mibgas_est', mibRef); }catch{}
+  if(isLive){
+    try{ if (Number.isFinite(mibRef)) addToHistory('gaspt_mibgas_est', mibRef); }catch{}
+  }
 
   /* Variações */
   const mibChg=mibPrev ? ((mibRef-mibPrev)/mibPrev*100) : 0;
@@ -507,29 +513,19 @@ function loadGasPT(_force=false){
   const mibCol=mibChg>=0?"#EF4444":"#10B981";
   const ttfCol=ttfChg>=0?"#EF4444":"#10B981";
 
-  /* Sparkline 7 dias */
-  const mib7 = G.mibgas7d || [mibSpot, mibSpot, mibSpot, mibSpot, mibSpot, mibSpot, mibSpot];
-  const spark7=isLive&&ttfPrice
-    ?mib7.map(v=>+(v+spreadActual*0.95).toFixed(1))
-    :mib7;
-  const wkChg=spark7[0] ? ((mibRef-spark7[0])/spark7[0]*100) : 0;
-  const spread=ttfPrice?(mibRef-ttfPrice).toFixed(2):spreadActual.toFixed(2);
-
-  const SW=120,SH=32;
-  const s7min=Math.min(...spark7),s7max=Math.max(...spark7),s7rng=s7max-s7min||1;
-  const spx=i=>Math.round(i/(spark7.length-1)*SW);
-  const spy=v=>Math.round(SH-(v-s7min)/s7rng*(SH-4)+2);
-  const spPts =spark7.map((v,i)=>`${spx(i)},${spy(v)}`).join(" ");
-  const spFill=spPts+` ${SW},${SH+2} 0,${SH+2}`;
+  /* Referência de spread coerente com a fonte disponível. */
+  const spread=ttfPrice !== null ? (mibRef-ttfPrice).toFixed(2)
+    : Number.isFinite(G.spread) ? G.spread.toFixed(2)
+      : (mibSpot - Number(G.ttfSpot || 0)).toFixed(2);
 
   /* Badge de fonte */
   const sourceBadge=isLive
     ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
-    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 est\u00e1tico \u00b7 ref. ${G.mibgasSpot.toFixed(2)}\u20ac</span>`;
+    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
 
   const mibLabel=isLive
     ?`MIBGAS est. (TTF+${spreadActual.toFixed(1)}\u20ac/MWh spread ${MESES[mes]})`
-    :`MIBGAS ref. est\u00e1tico`;
+    :`MIBGAS ref. Set 2026`;
 
   const trendPref = getGasPTTrendPref();
   el.innerHTML=`
@@ -553,10 +549,7 @@ function loadGasPT(_force=false){
       </div>
       <div style="font-size:.62rem;color:var(--t3);margin-top:1px">${mibLabel}</div>
       <div style="font-size:.7rem;font-weight:700;color:${mibCol};margin-top:3px">
-        ${mibChg>=0?"\u25b2":"\u25bc"} ${Math.abs(mibChg).toFixed(1)}% vs fecho ant.
-      </div>
-      <div style="font-size:.62rem;color:${wkChg>=0?"#EF4444":"#10B981"};margin-top:1px">
-        ${wkChg>=0?"\u25b2":"\u25bc"} ${Math.abs(wkChg).toFixed(1)}% vs semana
+        ${mibChg>=0?"\u25b2":"\u25bc"} ${Math.abs(mibChg).toFixed(1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
       </div>
     </div>
     <div style="background:var(--b)"></div>
@@ -573,7 +566,7 @@ function loadGasPT(_force=false){
         <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
       <div style="font-size:.7rem;font-weight:700;color:${ttfCol};margin-top:2px">
-        ${ttfChg>=0?"\u25b2":"\u25bc"} ${Math.abs(ttfChg).toFixed(1)}% vs fecho ant.
+        ${ttfChg>=0?"\u25b2":"\u25bc"} ${Math.abs(ttfChg).toFixed(1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
       </div>
       <div style="font-size:.62rem;color:#F59E0B;margin-top:1px">
         Spread MIBGAS\u2212TTF: +${spread} \u20ac/MWh
@@ -582,26 +575,9 @@ function loadGasPT(_force=false){
     </div>
   </div>
 
-  <!-- Sparkline 7 dias -->
-  <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="font-size:.6rem;color:var(--t3)">MIBGAS estimado \u00b7 \u00faltimos 7 dias</div>
-      <div style="font-size:.6rem;color:#F97316;font-weight:600">
-        ${spark7[0].toFixed(1)} \u2192 ${mibRef.toFixed(1)} \u20ac/MWh</div>
-    </div>
-    <svg width="${SW}" height="${SH+4}" style="display:block;width:100%">
-      <defs><linearGradient id="mg2" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#F97316" stop-opacity=".3"/>
-        <stop offset="100%" stop-color="#F97316" stop-opacity="0"/>
-      </linearGradient></defs>
-      <polygon points="${spFill}" fill="url(#mg2)"/>
-      <polyline points="${spPts}" fill="none" stroke="#F97316" stroke-width="2"/>
-      <circle cx="${spx(spark7.length-1)}" cy="${spy(spark7[spark7.length-1])}"
-              r="3" fill="#F97316"/>
-    </svg>
-    ${!isLive?`<div style="font-size:.52rem;color:#F59E0B;margin-top:3px">
-      \u26a0 Sparkline estimado (aguarda carregamento do TTF)</div>`:""}
-  </div>
+  ${!isLive?`<div style="font-size:.58rem;color:#F59E0B;background:var(--b2);border-radius:7px;padding:8px 10px;margin-bottom:10px">
+    Referências MIBGAS e TTF de setembro de 2026; sem observações recentes disponíveis.
+  </div>`:""}
 
   <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
@@ -620,11 +596,11 @@ function loadGasPT(_force=false){
   <!-- Spread sazonal visual -->
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
     <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-      \uD83D\uDCCA Spread MIBGAS\u2212TTF \u00b7 sazonalidade
+      \uD83D\uDCCA Spread sazonal de referência MIBGAS\u2212TTF
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
       <div style="font-size:.82rem;font-weight:800;color:#F97316">${spreadActual.toFixed(1)} \u20ac/MWh</div>
-      <div style="font-size:.62rem;color:var(--t3)">spread ${MESES[mes]} \u2192 est\u00e1vel \u00b1 2 \u20ac/MWh</div>
+      <div style="font-size:.62rem;color:var(--t3)">modelo ${MESES[mes]} · estimativa sazonal</div>
     </div>
     <div style="display:flex;gap:1px;height:10px;border-radius:4px;overflow:hidden;margin-bottom:3px">
       ${GASPT_SPREAD_MENSAL.map((s,i)=>{
@@ -646,7 +622,7 @@ function loadGasPT(_force=false){
 
   <!-- Tarifas ERSE -->
   <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    \uD83D\uDCCB Tarifas ERSE 2025-2026 \u00b7 consumidor doméstico BTN
+    \uD83D\uDCCB Tarifas ERSE 2025-2026 \u00b7 referência histórica; período terminou em Out 2026
   </div>
   ${[G.esc1,G.esc2].map(e=>`
     <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
