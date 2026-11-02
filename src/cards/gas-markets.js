@@ -191,8 +191,10 @@ function loadTTF(force=false){
   /* ── Render com dados TTF (live ou estático) ─────────────── */
   function render(ttfData, sourceLabel){
     const trendPref = getTTFTrendPref();
-    const ttfPrice = ttfData?.price ?? 38.5;
-    const ttfPrev  = ttfData?.prev  ?? 40.2;
+    const staticLatest = TTF_HIST[TTF_HIST.length - 1];
+    const staticPrevious = TTF_HIST[TTF_HIST.length - 2];
+    const ttfPrice = ttfData?.price ?? staticLatest[1];
+    const ttfPrev  = ttfData?.prev  ?? staticPrevious[1];
     const ttfHi    = ttfData?.hi    ?? ttfPrice*1.01;
     const ttfLo    = ttfData?.lo    ?? ttfPrice*0.99;
     const ttfChg   = ttfData?.chg   ?? ((ttfPrice-ttfPrev)/ttfPrev*100);
@@ -217,7 +219,7 @@ function loadTTF(force=false){
 
     const sourceBadge = isLive
       ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
-      : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. Mar 2026</span>`;
+      : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. ${staticLatest[0]}</span>`;
 
     el.innerHTML=`
     <!-- Header: TTF actual + sparkline -->

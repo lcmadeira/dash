@@ -1242,7 +1242,8 @@ test("gas markets card rejects malformed TTF cache and keeps its global handlers
   assert.equal(typeof context.setTTFTrendDays, "function");
   await context.loadTTF();
   assert.doesNotMatch(body.innerHTML, /invalid/);
-  assert.match(body.innerHTML, /38\.5/);
+  assert.match(body.innerHTML, /78\.5/);
+  assert.match(body.innerHTML, /estático · ref\. Set 26/);
   assert.doesNotThrow(() => vm.runInContext("const APP_GAS_MARKETS = true;", context));
 });
 
