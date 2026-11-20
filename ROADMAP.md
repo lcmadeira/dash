@@ -22,7 +22,6 @@
 **Impacto**: Segurança, fiabilidade e manutenibilidade imediatas ✅
 
 **Data de conclusão**: 16/03/2026
-**Documentação**: Ver `CORRECOES_URGENTES.md` para detalhes completos
 
 ---
 
@@ -46,7 +45,6 @@
 **Impacto**: Tornar o painel utilizável em qualquer dispositivo ✅
 
 **Data de conclusão**: 13/03/2026
-**Documentação**: Ver `RESPONSIVIDADE.md` para detalhes completos
 
 ---
 
@@ -116,17 +114,17 @@
 - [x] **Qualidade do Ar** — Open-Meteo / Copernicus CAMS, sem chave, CORS nativo.
       AQI Europeu (EEA), PM2.5, PM10, NO₂, O₃, SO₂, UV Index, previsão 8h. ✅ (20/03/2026)
 - [x] Corrigir variáveis de poluentes da API Air Quality e evitar pedido ao proxy local de UV no GitHub Pages; encaminhar Yahoo Finance pelos proxies CORS no browser hospedado. ✅ (29/10/2026)
-- [x] **Tráfego marítimo (Estreito de Ormuz)** — AIS data com mapa interactivo TopoJSON.
+- [x] **Tráfego marítimo (Estreito de Ormuz)** — mapa interactivo TopoJSON. *(20/11/2026: a conta pública AISHub deixou de ser aceite; o card mostra apenas a simulação, identificada como tal.)*
       Simulação dinâmica de alta fidelidade (movimento baseado em UTC/hora real) com
       rotas de precisão (V2) para evitar terra. Tooltips com detalhes de navios. ✅ (24/03/2026)
-- [x] **Dados de barragens (níveis de água)** — SNIRH com parser automático via `src/cards/dams.js`; sem cache real verificável, o card não apresenta números aproximados. ✅ (02/11/2026)
+- [x] **Dados de barragens (níveis de água)** — SNIRH com parser automático via `src/cards/dams.js`; sem cache real verificável, o card não apresenta números aproximados. ✅ (02/11/2026) · *20/11/2026: o SNIRH passou a mapa e recusa servidores; dados do boletim mensal (`tabelageral.php`) em `data/dams.json`, gerado no portátil.*
 - [ ] Índice UV e pólen *(UV coberto pelo card Qualidade do Ar)*
 - [x] Tráfego aéreo em tempo real (OpenSky API — CORS proxy) ✅ (24/03/2026)
 - [ ] Tráfego rodoviário em tempo real (Google Maps API — requer chave paga)
 
 #### 5.2 Automação de dados estáticos
 
-- [x] **Euribor** — taxas oficiais do BCE (DFR, MRO, MLF) automatizadas via ECB SDMX API. ✅ (21/04/2026)
+- [x] **Euribor** — taxas oficiais do BCE (DFR, MRO, MLF) automatizadas via ECB SDMX API. ✅ (21/04/2026) · *20/11/2026: taxas-chave via Banco de Portugal (API Aberta); Euribor 1M–12M via gateway (`/v1/euribor`).*
 - [x] **Inflação PT/EU** — fallbacks centralizados e automação Eurostat validada. ✅ (21/04/2026)
 - [x] **PSI20 constituintes** — centralizados em `config.js` e fetch otimizado (weekend check). ✅ (21/04/2026)
 - [x] Reduzir falhas de atualização no PSI 20 com Stooq em lote antes do Yahoo, proxies alternativos e ocultação de valores de referência sem cotação atual. ✅ (29/10/2026)
@@ -151,6 +149,14 @@
 ## 🎨 4. UX/UI
 
 ### Parcialmente Concluído ✅
+
+#### 4.0 Sistema visual e organização → ✅ **CONCLUÍDO** (20/11/2026)
+
+- [x] Uma fonte (Inter, algarismos tabulares), tamanho mínimo ~11 px, tokens de cor no `:root`, cor só com significado (dados/interação, subida/descida, avisos)
+- [x] Cartões neutros (sem faixas nem fundos coloridos), cabeçalho e badge de estado comuns a todos os cards
+- [x] Quatro secções com título (Portugal · dia a dia, Economia, Mercados, Mundo) e vistas iguais às secções
+- [x] Grelha em mosaico de 6 colunas sem buracos (`src/layout.js`); "Portugal hoje" e "Estado dos dados" compactos
+- [ ] Integrar o bloco "Sistema visual v2" nas regras originais de `styles.css` (adiado: inverteria a precedência face às media queries antigas)
 
 #### 4.1 Skeleton Screens → ✅ **CONCLUÍDO** (16/03/2026)
 
@@ -194,7 +200,7 @@
 
 ## 🔧 7. Melhorias Técnicas
 
-### Prioridade: **Média** 🟡 *(lógica principal em `src/app.js`, ~4 200 linhas após extrações)*
+### Prioridade: **Média** 🟡 *(lógica principal em `src/app.js`, ~3 900 linhas após extrações e remoção de código morto)*
 
 > ℹ️ O markup está em `index.html`; a lógica principal está em `src/app.js` e os helpers/cards em `src/`. A modularização incremental começou em v1.2.0.
 
@@ -378,7 +384,31 @@
 - [ ] Cotações PSI: selecionar uma fonte estável e confirmar por escrito a licença de exibição pública antes de ativar preços dinâmicos.
 - [ ] Push em background: desenhar e operar agendamento, subscrições e gestão de chaves VAPID; as notificações atuais dependem da página aberta.
 - [ ] Briefing editorial: gerar destaques interpretativos apenas quando existirem observações comparáveis, atuais e com fonte identificada. A vista atual limita-se a resumir valores observados e comparações simples.
+- [ ] Imobiliário: automatizar também transações e regiões NUTS III (outros indicadores INE); hoje são referência do 3.º trimestre de 2025.
+- [ ] Atualizadores de `data/`: dependem do cron do portátil (fontes que recusam servidores). Avaliar correr também no homeserver para não depender de o portátil estar ligado.
+- [ ] Cripto e GDELT recusam pedidos da Cloudflare (o browser lê o CoinGecko diretamente e a geopolítica usa os feeds RSS); procurar alternativas se deixarem de funcionar no browser.
+- [ ] Modo claro/escuro (ver 3.1).
 - A separação de JavaScript em ES Modules continua opcional; ver secção **7. Melhorias Técnicas**.
+
+### 20/11/2026 — Revisão visual, fontes estáveis e dados automáticos
+
+**Design e organização** (PR #2–#4, #10)
+- ✅ Sistema visual comum (fonte, tamanhos, tokens, cor com significado, badges compactos com detalhe no tooltip).
+- ✅ Secções com título, grelha em mosaico sem buracos, vistas iguais às secções (com Economia), topo compacto.
+- ✅ Cores fixas substituídas por tokens; ~460 linhas de código morto removidas; lint de 79 avisos para 0; `scripts/bump-asset-versions.py` para `?v=` e SRI.
+
+**Gateway** (PR #5, #8, #12)
+- ✅ Dia OMIE ainda não publicado passa a `200 {published:false}` (deixa de dar 502).
+- ✅ Tabela de rotas com fornecedores por ordem, `User-Agent` e cópia de reserva por rota; novas rotas `/v1/feed-*`, `/v1/ttf`, `/v1/agri`, `/v1/euribor`, `/v1/dams`.
+- ✅ Diagnóstico: Google News, CoinGecko, SNIRH e GDELT recusam a Cloudflare; notícias passam a RTP/Público/BBC primeiro.
+- ✅ Deploy manual com secrets Cloudflare configurados no repositório.
+
+**Fontes e dados** (PR #6, #7, #9, #11–#13)
+- ✅ Sismos do IPMA e taxas do Banco de Portugal via API Aberta; avisos meteorológicos IPMA; card Proteção Civil; alertas Carris Metropolitana.
+- ✅ Correção dos IDs IPMA (várias cidades mostravam a previsão de outra).
+- ✅ Euribor em direto (chave `RT`, sem o prazo 1S descontinuado), próxima reunião BCE pelo calendário oficial; futuros agrícolas em direto.
+- ✅ IHPC na série nova `PRC_HICP_MINR` (a antiga parou em dez/2025); spread 10Y−2Y pelo Tesouro dos EUA (a FRED deixou de responder; o card mostrava uma inversão de março).
+- ✅ `data/*.json` gerados por `scripts/update-data.mjs` no cron do portátil: barragens (SNIRH), cabaz DECO (consenso de notícias Lusa) e habitação (INE 0012234).
 
 ### 02/11/2026 — Referências estáticas e falhas de fontes
 
@@ -452,7 +482,7 @@
 - ✅ Hierarquia visual do estado dos dados e do resumo “Portugal hoje” reforçada para melhorar leitura, contraste e separação dos indicadores em desktop e mobile, sem alterar a lógica dos dados.
 - ✅ Alerta de combustível pode pedir permissão explícita para mostrar uma notificação do sistema enquanto o dashboard está aberto.
 - ✅ Fixtures RSS exercitam parser/validação do Worker; testes do card cobrem conteúdo malicioso, destinos inseguros e preferências locais.
-- ⏳ Publicar/configurar Worker para ativar as novas rotas no dashboard alojado; notificações push com a página fechada ainda requerem VAPID, armazenamento de subscrições e execução agendada.
+- ✅ Worker publicado e configurado (deploy manual pelo workflow desde 20/11/2026); notificações push com a página fechada ainda requerem VAPID, armazenamento de subscrições e execução agendada.
 - ⏳ Selecionar fonte de cotações PSI com licença de exibição pública confirmada.
 
 ### v2.0.0 — Futuro
@@ -473,5 +503,5 @@
 
 ---
 
-**Última atualização**: 2 de Novembro de 2026
+**Última atualização**: 20 de Novembro de 2026
 **Mantido por**: LCMadeira
