@@ -19,6 +19,10 @@ const RSS_FEEDS = {
   fa: { url: "https://feeds.bbci.co.uk/news/world/rss.xml", source: "BBC World" },
 };
 const YAHOO_TTF = ["query1", "query2"].map(host => `https://${host}.finance.yahoo.com/v8/finance/chart/TTF=F?range=5d&interval=1d`);
+/* Euribor (médias mensais) no BCE: a API demora 5-15 s por série, por isso fica em cache no gateway. */
+const EURIBOR_TENORS = { "1M": "EURIBOR1MD_", "3M": "EURIBOR3MD_", "6M": "EURIBOR6MD_", "12M": "EURIBOR1YD_" };
+/* Futuros agrícolas (CBOT/ICE) do cartão "Preços agrícolas"; lista fixa, nunca vinda do cliente. */
+const AGRI_SYMBOLS = ["ZW=F", "ZC=F", "ZS=F", "KC=F", "SB=F", "CT=F"];
 const SNIRH_PAGE = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
 const SNIRH_TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/tabelas/tabelageral.php";
 /* Alguns fornecedores recusam pedidos sem User-Agent vindos de servidores. */
@@ -66,8 +70,8 @@ function isValidDams(payload) {
     && Number.isFinite(payload.totalVal) && /^\d{4}-\d{2}$/.test(payload.period || "");
 }
 
-/** Lê o TTF (EUR/MWh) do gráfico Yahoo Finance. */
-export function parseYahooTtf(body) {
+/** Lê a última cotação de um gráfico Yahoo Finance (/v8/finance/chart). */
+export function parseYahooChart(body) {
   const meta = JSON.parse(body)?.chart?.result?.[0]?.meta;
   if (!meta) return null;
   const price = Number(meta.regularMarketPrice);
@@ -76,9 +80,69 @@ export function parseYahooTtf(body) {
     price, prev,
     hi: Number.isFinite(Number(meta.regularMarketDayHigh)) ? Number(meta.regularMarketDayHigh) : price,
     lo: Number.isFinite(Number(meta.regularMarketDayLow)) ? Number(meta.regularMarketDayLow) : price,
+    volume: Number.isFinite(Number(meta.regularMarketVolume)) ? Number(meta.regularMarketVolume) : null,
     currency: meta.currency,
     marketTime: Number.isFinite(Number(meta.regularMarketTime)) ? Number(meta.regularMarketTime) * 1000 : null,
   };
+}
+
+/** Lê o TTF (EUR/MWh) do gráfico Yahoo Finance. */
+export const parseYahooTtf = parseYahooChart;
+
+function isValidQuote(q) {
+  return Number.isFinite(q?.price) && q.price > 0 && Number.isFinite(q?.prev) && q.prev > 0;
+}
+
+function isValidAgri(payload) {
+  return Array.isArray(payload?.quotes) && payload.quotes.length === AGRI_SYMBOLS.length
+    && payload.quotes.filter(q => isValidQuote(q)).length >= 4;
+}
+
+/** Série SDMX-JSON do BCE → [{period, value}] por ordem cronológica. */
+export function parseEcbSeries(body) {
+  const json = JSON.parse(body);
+  const periods = json?.structure?.dimensions?.observation?.[0]?.values || [];
+  const series = Object.values(json?.dataSets?.[0]?.series || {})[0];
+  if (!series) return [];
+  return Object.entries(series.observations || {})
+    .map(([index, values]) => ({ period: periods[Number(index)]?.id, value: Number(values?.[0]) }))
+    .filter(row => /^\d{4}-\d{2}$/.test(row.period || "") && Number.isFinite(row.value))
+    .sort((a, b) => a.period.localeCompare(b.period));
+}
+
+function isValidEuribor(payload) {
+  const ok = term => Array.isArray(payload?.series?.[term]) && payload.series[term].length >= 2;
+  return ok("3M") && ok("12M");
+}
+
+async function fetchEuriborSeries(route) {
+  const entries = await Promise.all(Object.entries(EURIBOR_TENORS).map(async ([term, code]) => {
+    try {
+      const url = `https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT.MM.${code}.HSTA?format=jsondata&lastNObservations=9`;
+      const response = await fetchUpstream(url, "application/json", 20000);
+      if (!response.ok) return [term, []];
+      return [term, parseEcbSeries(await readBoundedBody(response, route.maxBytes))];
+    } catch {
+      return [term, []];
+    }
+  }));
+  return { payload: { series: Object.fromEntries(entries) } };
+}
+
+/** Cotações dos futuros agrícolas, cada uma com alternativa query1 → query2. */
+async function fetchAgriQuotes(route) {
+  const quotes = await Promise.all(AGRI_SYMBOLS.map(async symbol => {
+    for (const host of ["query1", "query2"]) {
+      try {
+        const response = await fetchUpstream(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=5d&interval=1d`, route.accept, 6000);
+        if (!response.ok) continue;
+        const quote = parseYahooChart(await readBoundedBody(response, route.maxBytes));
+        if (isValidQuote(quote)) return { symbol, ...quote };
+      } catch { /* tenta o anfitrião seguinte */ }
+    }
+    return { symbol, price: null, prev: null };
+  }));
+  return { payload: { quotes } };
 }
 
 const SNIRH_MONTHS = ["OUT", "NOV", "DEZ", "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET"];
@@ -321,6 +385,16 @@ function routeFor(url) {
       observedAt: p => p.marketTime,
       upstreams: YAHOO_TTF.map(u => ({ url: u, source: "Yahoo Finance · TTF=F (ICE Endex)", timeout: 6000, parse: parseYahooTtf })) };
   }
+  if (path === "/v1/euribor") {
+    return { key: path, ttl: 12 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "application/json", valid: isValidEuribor,
+      observedAt: p => Date.parse(`${p.series["3M"].at(-1).period}-15T12:00:00Z`),
+      upstreams: [{ source: "BCE · Euribor (médias mensais)", run: fetchEuriborSeries }] };
+  }
+  if (path === "/v1/agri") {
+    return { key: path, ttl: 900, staleTtl: 7 * day, maxBytes: 250_000, accept: "application/json", valid: isValidAgri,
+      observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
+      upstreams: [{ source: "Yahoo Finance · futuros CBOT/ICE", run: fetchAgriQuotes }] };
+  }
   if (path === "/v1/dams") {
     return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
       observedAt: p => Date.parse(`${p.period}-15T12:00:00Z`),
@@ -385,7 +459,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/dams", ELECTRICITY_PATH] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", ELECTRICITY_PATH] }, 200, headers);
   }
 
   let electricityDate = null;

@@ -283,3 +283,43 @@ test("committed dams snapshot is valid for the dashboard card", async () => {
   assert.match(data.period, /^\d{4}-\d{2}$/);
   assert.equal(data._meta.observedAt, Date.parse(`${data.period}-15T12:00:00Z`));
 });
+
+test("agri route reads the fixed futures list and tolerates one missing quote", async () => {
+  const requested = [];
+  globalThis.fetch = async url => {
+    requested.push(String(url));
+    if (String(url).includes("CT%3DF")) return new Response("down", { status: 503 });
+    const symbol = decodeURIComponent(String(url).split("/chart/")[1].split("?")[0]);
+    return Response.json({ chart: { result: [{ meta: {
+      symbol, currency: "USX", regularMarketPrice: 500, chartPreviousClose: 490, regularMarketVolume: 1000, regularMarketTime: 1795174019,
+    } }] } });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/agri"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.quotes.length, 6);
+  assert.equal(payload.quotes.find(q => q.symbol === "ZW=F").price, 500);
+  assert.equal(payload.quotes.find(q => q.symbol === "CT=F").price, null);
+  assert.equal(requested.filter(u => u.includes("CT%3DF")).length, 2, "tries query1 then query2");
+  assert.equal(payload._meta.source, "Yahoo Finance · futuros CBOT/ICE");
+});
+
+test("euribor route returns the ECB monthly series per tenor", async () => {
+  const requested = [];
+  globalThis.fetch = async url => {
+    requested.push(String(url));
+    if (String(url).includes("EURIBOR1MD_")) return new Response("{}", { status: 404 });
+    return Response.json({
+      structure: { dimensions: { observation: [{ values: [{ id: "2026-09" }, { id: "2026-10" }] }] } },
+      dataSets: [{ series: { "0:0:0:0:0:0": { observations: { 1: [2.6346818], 0: [2.6350455] } } } }],
+    });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/euribor"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(requested.length, 4);
+  assert.ok(requested.every(u => u.includes(".RT.MM.")));
+  assert.equal(JSON.stringify(payload.series["3M"].map(r => r.period)), JSON.stringify(["2026-09", "2026-10"]));
+  assert.equal(payload.series["1M"].length, 0);
+  assert.equal(payload._meta.observedAt, Date.parse("2026-10-15T12:00:00Z"));
+});

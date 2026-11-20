@@ -50,8 +50,6 @@ const REF_DATE = {
 const EURIBOR_FALLBACK = {
   updated: "17 Set 2026",
   rates: [
-    { term: "1S",  termFull: "1 Semana", val: 2.240, prev: 2.149, color: "#06B6D4", hipot: false,
-     desc: "Ref. overnight e swaps curtos" },
     { term: "1M",  termFull: "1 Mês",    val: 2.460, prev: 2.221, color: "#22D3EE", hipot: false,
      desc: "Ref. produtos curtos, tesouraria" },
     { term: "3M",  termFull: "3 Meses",  val: 2.682, prev: 2.513, color: "#3B82F6", hipot: true,
