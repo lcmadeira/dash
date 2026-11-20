@@ -69,8 +69,8 @@ function renderFX(date){
       <div class="fx-flag">${p.flag}</div>
       <div class="fx-info">
         <div class="fx-pair">EUR → ${p.code}</div>
-        <div class="fx-rate" style="color:${p.color}">${conv.toLocaleString("pt-PT",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})} <span style="font-size:.62rem;color:var(--t2)">${p.code}</span></div>
-        <div style="font-family:var(--mono);font-size:.54rem;color:var(--t3)">1 EUR = ${rate.toFixed(p.code==="JPY"?2:4)}</div>
+        <div class="fx-rate" style="color:${p.color}">${conv.toLocaleString("pt-PT",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})} <span style="font-size:.74rem;color:var(--t2)">${p.code}</span></div>
+        <div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">1 EUR = ${rate.toFixed(p.code==="JPY"?2:4)}</div>
       </div>
     </div>`;
   }).join("")}</div>
@@ -193,13 +193,13 @@ async function loadFXTrend(force = false) {
     });
 
     statusEl.innerHTML = `
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
         ${pref.days}D · EUR→${pref.code}
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
         ${sign}${pct.toFixed(1)}%
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
         último: ${last.toFixed(pref.code === 'JPY' ? 2 : 4)}
       </span>`;
   } catch (e) {

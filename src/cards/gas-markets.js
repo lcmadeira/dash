@@ -70,13 +70,13 @@ async function loadTTFTrend(force = false) {
     });
 
     statusEl.innerHTML = `
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
         ${pref.days}D · TTF
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
         ${sign}${pct.toFixed(1)}%
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
         último: ${last.toFixed(1)} €/MWh
       </span>`;
   } catch (e) {
@@ -222,8 +222,8 @@ function loadTTF(force=false){
     const chgArr = ttfChg>=0?"▲":"▼";
 
     const sourceBadge = isLive
-      ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
-      : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. ${staticLatest[0]}</span>`;
+      ? `<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
+      : `<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. ${staticLatest[0]}</span>`;
 
     el.innerHTML=`
     <!-- Header: TTF actual + sparkline -->
@@ -231,24 +231,24 @@ function loadTTF(force=false){
          background:var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:10px">
       <div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+          <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
                letter-spacing:.5px">${isLive ? "TTF Day-ahead" : "TTF · referência mensal"} · EUR/MWh</div>
           ${sourceBadge}
         </div>
         <div style="display:flex;align-items:flex-end;gap:5px">
           <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
             ${ttfPrice.toFixed(1)}</div>
-          <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
+          <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
         </div>
-        <div style="font-size:.68rem;font-weight:600;color:${chgCol};margin-top:2px">
+        <div style="font-size:.74rem;font-weight:600;color:${chgCol};margin-top:2px">
           ${chgArr} ${Math.abs(ttfChg).toFixed(1)}% ${ttfVariationLabel}
         </div>
-        <div style="font-family:var(--mono);font-size:.55rem;color:var(--t3);margin-top:2px">
+        <div style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-top:2px">
           ${isLive ? `H ${ttfHi.toFixed(1)} · L ${ttfLo.toFixed(1)} · ant. ${ttfPrev.toFixed(1)}` : `Referência anterior: ${ttfPrev.toFixed(1)} €/MWh`}
         </div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:.6rem;color:var(--t3);margin-bottom:4px">
+        <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">
           Jan 2024 → ${histWithLive[histWithLive.length-1][0]}
         </div>
         <svg width="${SW}" height="${SH+4}" style="display:block">
@@ -278,9 +278,9 @@ function loadTTF(force=false){
     </div>
 
     <!-- Tabela hubs (TTF live + restantes estáticos) -->
-    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       🌍 Hubs europeus · referências históricas
-      <span style="font-size:.52rem;font-weight:400;color:var(--t3)"> · TTF ${isLive ? "live" : `ref. ${staticLatest[0]}`} · outros: snapshot ${STATIC_HUBS_REF}</span>
+      <span style="font-size:.74rem;font-weight:400;color:var(--t3)"> · TTF ${isLive ? "live" : `ref. ${staticLatest[0]}`} · outros: snapshot ${STATIC_HUBS_REF}</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
       <!-- TTF com dados live -->
@@ -288,12 +288,12 @@ function loadTTF(force=false){
            border-left:3px solid #3B82F6">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
-            <div style="font-size:.7rem;font-weight:700;color:#3B82F6">🇳🇱 TTF</div>
-            <div style="font-size:.52rem;color:var(--t3);margin-top:1px">Title Transfer Facility</div>
+            <div style="font-size:.74rem;font-weight:700;color:#3B82F6">🇳🇱 TTF</div>
+            <div style="font-size:.74rem;color:var(--t3);margin-top:1px">Title Transfer Facility</div>
           </div>
           <div style="text-align:right">
             <div style="font-size:.75rem;font-weight:700;color:var(--text)">${ttfPrice.toFixed(1)}</div>
-            <div style="font-size:.54rem;color:${chgCol}">${chgArr}${Math.abs(ttfChg).toFixed(1)}%</div>
+            <div style="font-size:.74rem;color:${chgCol}">${chgArr}${Math.abs(ttfChg).toFixed(1)}%</div>
           </div>
         </div>
       </div>
@@ -301,16 +301,15 @@ function loadTTF(force=false){
       ${HUBS_STATIC.map(hub=>{
         const hChg=((hub.price-hub.prev)/hub.prev*100);
         const hCol=hChg>=0?"#EF4444":"#10B981";
-        return `<div style="background:var(--b2);border-radius:7px;padding:6px 8px;
-             border-left:3px solid ${hub.col}">
+        return `<div style="background:var(--surface);border:1px solid var(--b);border-radius:7px;padding:6px 8px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
             <div>
-              <div style="font-size:.7rem;font-weight:700;color:${hub.col}">${hub.country} ${hub.name}</div>
-              <div style="font-size:.52rem;color:var(--t3);margin-top:1px">${hub.full}</div>
+              <div style="font-size:.74rem;font-weight:700;color:var(--text)">${hub.country} ${hub.name}</div>
+              <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${hub.full}</div>
             </div>
             <div style="text-align:right">
               <div style="font-size:.75rem;font-weight:700;color:var(--text)">${hub.price.toFixed(1)}</div>
-              <div style="font-size:.54rem;color:${hCol}">${hChg>=0?"▲":"▼"}${Math.abs(hChg).toFixed(1)}%</div>
+              <div style="font-size:.74rem;color:${hCol}">${hChg>=0?"▲":"▼"}${Math.abs(hChg).toFixed(1)}%</div>
             </div>
           </div>
         </div>`;
@@ -318,21 +317,21 @@ function loadTTF(force=false){
     </div>
 
     <!-- Reservas EU -->
-    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       🏭 Reservas de gás · EU · snapshot ${STATIC_HUBS_REF}
-      <span style="font-size:.55rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
+      <span style="font-size:.74rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
     </div>
     ${RESERVAS.map(r=>`
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
         <div style="min-width:22px;font-size:.75rem">${r.c}</div>
-        <div style="min-width:55px;font-size:.62rem;color:var(--t2)">${r.name}</div>
+        <div style="min-width:55px;font-size:.74rem;color:var(--t2)">${r.name}</div>
         <div style="flex:1;background:var(--b2);border-radius:3px;height:7px;overflow:hidden">
           <div style="width:${r.pct}%;height:100%;background:${r.col};border-radius:3px"></div>
         </div>
-        <div style="min-width:36px;text-align:right;font-size:.65rem;font-weight:600;
+        <div style="min-width:36px;text-align:right;font-size:.74rem;font-weight:600;
              color:${r.col}">${r.pct}%</div>
       </div>`).join("")}
-    <div style="font-size:.55rem;color:var(--t3);margin-top:4px;line-height:1.4">
+    <div style="font-size:.74rem;color:var(--t3);margin-top:4px;line-height:1.4">
       ⚠️ Valores históricos; não representam níveis atuais de armazenamento.
     </div>`;
 
@@ -462,13 +461,13 @@ function loadGasPT(_force=false){
       });
 
       statusEl.innerHTML = `
-        <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
           ${pref.days}D · MIBGAS est.
         </span>
-        <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+        <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
           ${sign}${pct.toFixed(1)}%
         </span>
-        <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
           último: ${last.toFixed(1)} €/MWh
         </span>`;
     } catch (e) {
@@ -520,8 +519,8 @@ function loadGasPT(_force=false){
 
   /* Badge de fonte */
   const sourceBadge=isLive
-    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
-    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
+    ?`<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
+    :`<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
 
   const mibLabel=isLive
     ?`MIBGAS est. (TTF+${spreadActual.toFixed(1)}\u20ac/MWh spread ${MESES[mes]})`
@@ -535,9 +534,9 @@ function loadGasPT(_force=false){
     <!-- MIBGAS -->
     <div style="padding:10px 12px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+        <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
              letter-spacing:.5px">MIBGAS \u00b7 Spot D
-          <span style="font-size:.5rem;background:#F9731622;color:#F97316;
+          <span style="font-size:.74rem;background:#F9731622;color:#F97316;
                 border-radius:3px;padding:1px 4px;margin-left:3px">PT/ES</span>
         </div>
         ${sourceBadge}
@@ -545,37 +544,37 @@ function loadGasPT(_force=false){
       <div style="display:flex;align-items:flex-end;gap:6px">
         <div style="font-size:2rem;font-weight:900;color:#F97316;line-height:1">
           ${mibRef.toFixed(2)}</div>
-        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
-      <div style="font-size:.62rem;color:var(--t3);margin-top:1px">${mibLabel}</div>
-      <div style="font-size:.7rem;font-weight:700;color:${mibCol};margin-top:3px">
+      <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${mibLabel}</div>
+      <div style="font-size:.74rem;font-weight:700;color:${mibCol};margin-top:3px">
         ${mibChg>=0?"\u25b2":"\u25bc"} ${Math.abs(mibChg).toFixed(1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
       </div>
     </div>
     <div style="background:var(--b)"></div>
     <!-- TTF -->
     <div style="padding:10px 12px">
-      <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+      <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
            letter-spacing:.5px;margin-bottom:4px">TTF Day-ahead
-        <span style="font-size:.5rem;background:#3B82F622;color:#3B82F6;
+        <span style="font-size:.74rem;background:#3B82F622;color:#3B82F6;
               border-radius:3px;padding:1px 4px;margin-left:3px">\uD83C\uDDF3\uD83C\uDDF1 ref.</span>
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
         <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
           ${ttfPrice !== null?ttfPrice.toFixed(2):G.ttfSpot.toFixed(2)}</div>
-        <div style="font-size:.7rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
-      <div style="font-size:.7rem;font-weight:700;color:${ttfCol};margin-top:2px">
+      <div style="font-size:.74rem;font-weight:700;color:${ttfCol};margin-top:2px">
         ${ttfChg>=0?"\u25b2":"\u25bc"} ${Math.abs(ttfChg).toFixed(1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
       </div>
-      <div style="font-size:.62rem;color:#F59E0B;margin-top:1px">
+      <div style="font-size:.74rem;color:#F59E0B;margin-top:1px">
         Spread MIBGAS\u2212TTF: +${spread} \u20ac/MWh
         <span class="help-tip" title="Spread MIBGAS-TTF: diferença entre o preço ibérico estimado e o hub europeu TTF; reflete custos regionais.">?</span>
       </div>
     </div>
   </div>
 
-  ${!isLive?`<div style="font-size:.58rem;color:#F59E0B;background:var(--b2);border-radius:7px;padding:8px 10px;margin-bottom:10px">
+  ${!isLive?`<div style="font-size:.74rem;color:#F59E0B;background:var(--b2);border-radius:7px;padding:8px 10px;margin-bottom:10px">
     Referências MIBGAS e TTF de setembro de 2026; sem observações recentes disponíveis.
   </div>`:""}
 
@@ -595,12 +594,12 @@ function loadGasPT(_force=false){
 
   <!-- Spread sazonal visual -->
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:10px">
-    <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       \uD83D\uDCCA Spread sazonal de referência MIBGAS\u2212TTF
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
       <div style="font-size:.82rem;font-weight:800;color:#F97316">${spreadActual.toFixed(1)} \u20ac/MWh</div>
-      <div style="font-size:.62rem;color:var(--t3)">modelo ${MESES[mes]} · estimativa sazonal</div>
+      <div style="font-size:.74rem;color:var(--t3)">modelo ${MESES[mes]} · estimativa sazonal</div>
     </div>
     <div style="display:flex;gap:1px;height:10px;border-radius:4px;overflow:hidden;margin-bottom:3px">
       ${GASPT_SPREAD_MENSAL.map((s,i)=>{
@@ -611,49 +610,49 @@ function loadGasPT(_force=false){
           title="${MESES[i]}: +${s}\u20ac"></div>`;
       }).join("")}
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:.52rem;color:var(--t3)">
+    <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--t3)">
       ${GASPT_SPREAD_MENSAL.map((_,i)=>`<span>${MESES[i]}</span>`).join("")}
     </div>
-    <div style="font-size:.56rem;color:var(--t3);margin-top:5px;line-height:1.4">
+    <div style="font-size:.74rem;color:var(--t3);margin-top:5px;line-height:1.4">
       Spread inclui: terminais GNL Sines/Huelva/Bilbau + custo transporte ibérico.
       Inverno: maior procura \u2192 spread alto. Verão: armazenamento alto \u2192 spread baixo.
     </div>
   </div>
 
   <!-- Tarifas ERSE -->
-  <div style="font-size:.62rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+  <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
     \uD83D\uDCCB Tarifas ERSE 2025-2026 \u00b7 referência histórica; período terminou em Out 2026
   </div>
   ${[G.esc1,G.esc2].map(e=>`
     <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:.65rem;font-weight:600;color:var(--text)">${e.label}</div>
-          <div style="font-size:.56rem;color:var(--t3)">${e.desc}</div>
+          <div style="font-size:.74rem;font-weight:600;color:var(--text)">${e.label}</div>
+          <div style="font-size:.74rem;color:var(--t3)">${e.desc}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:.75rem;font-weight:700;color:#10B981">${e.kwh.toFixed(4)} \u20ac/kWh</div>
-          <div style="font-size:.54rem;color:var(--t3)">energia</div>
+          <div style="font-size:.74rem;color:var(--t3)">energia</div>
         </div>
       </div>
     </div>`).join("")}
   <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
     <div style="display:flex;justify-content:space-between">
-      <div style="font-size:.65rem;color:var(--t2)">Tarifa de acesso às redes</div>
-      <div style="font-size:.65rem;font-weight:600;color:var(--text)">${G.redes.toFixed(4)} \u20ac/kWh</div>
+      <div style="font-size:.74rem;color:var(--t2)">Tarifa de acesso às redes</div>
+      <div style="font-size:.74rem;font-weight:600;color:var(--text)">${G.redes.toFixed(4)} \u20ac/kWh</div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
       <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc1.toFixed(4)} \u20ac/kWh</div>
-      <div style="font-size:.54rem;color:var(--t3)">Total Esc. 1 c/ IVA 6%</div>
+      <div style="font-size:.74rem;color:var(--t3)">Total Esc. 1 c/ IVA 6%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
       <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc2.toFixed(4)} \u20ac/kWh</div>
-      <div style="font-size:.54rem;color:var(--t3)">Total Esc. 2 c/ IVA 6%</div>
+      <div style="font-size:.74rem;color:var(--t3)">Total Esc. 2 c/ IVA 6%</div>
     </div>
   </div>
-  <div style="font-size:.56rem;color:var(--t3);margin-top:4px">
+  <div style="font-size:.74rem;color:var(--t3);margin-top:4px">
     Termo fixo: ${G.termoFixo.toFixed(2)} €/mês · IVA 6% incluído · Fonte: ERSE Deliberação Oct 2025
   </div>`;
 

@@ -6,15 +6,15 @@
 const /* Dívida Pública — Eurostat EDP, dados anuais 2024 (publicados Out 2025)
    Fonte: ec.europa.eu/eurostat/web/products-euro-indicators */
 DIV_PAISES=[
-  {n:"Grécia",  v:154.2,c:"#EF4444"},
-  {n:"Itália",  v:134.9,c:"#F97316"},
-  {n:"França",  v:113.2,c:"#EAB308"},
-  {n:"Bélgica", v:103.9,c:"#F59E0B"},
-  {n:"Espanha", v:101.6,c:"#F59E0B"},
-  {n:"Portugal",v:94.6, c:"#84CC16",hl:true},
-  {n:"Zona Euro",v:87.1,c:"#8B5CF6"},
-  {n:"Alemanha",v:62.4, c:"#3B82F6"},
-  {n:"Holanda", v:43.8, c:"#06B6D4"},
+  {n:"Grécia",  v:154.2,c:"var(--data-muted)"},
+  {n:"Itália",  v:134.9,c:"var(--data-muted)"},
+  {n:"França",  v:113.2,c:"var(--data-muted)"},
+  {n:"Bélgica", v:103.9,c:"var(--data-muted)"},
+  {n:"Espanha", v:101.6,c:"var(--data-muted)"},
+  {n:"Portugal",v:94.6, c:"var(--accent)",hl:true},
+  {n:"Zona Euro",v:87.1,c:"var(--data-muted)"},
+  {n:"Alemanha",v:62.4, c:"var(--data-muted)"},
+  {n:"Holanda", v:43.8, c:"var(--data-muted)"},
 ];
 const DIV_TREND=[
   {y:"14",v:130.6},{y:"15",v:128.8},{y:"16",v:129.2},{y:"17",v:124.8},
@@ -35,11 +35,11 @@ function renderDiv(){
     const mx=sorted[0].v;
     el.innerHTML=`<div style="margin-top:6px">${sorted.map(r=>`
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
-        <div style="font-size:.67rem;color:${r.hl?"var(--text)":"var(--t2)"};width:68px;${r.hl?"font-weight:700":""};white-space:nowrap">${r.n}</div>
+        <div style="font-size:.74rem;color:${r.hl?"var(--text)":"var(--t2)"};width:68px;${r.hl?"font-weight:700":""};white-space:nowrap">${r.n}</div>
         <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
-          <div style="width:${(r.v/mx*100).toFixed(1)}%;height:100%;background:${r.c};border-radius:3px;${r.hl?`box-shadow:0 0 6px ${r.c}88`:""}"></div>
+          <div style="width:${(r.v/mx*100).toFixed(1)}%;height:100%;background:${r.c};border-radius:3px"></div>
         </div>
-        <div style="font-size:.67rem;font-weight:600;color:${r.hl?"var(--text)":"var(--t2)"};width:44px;text-align:right">${r.v}%</div>
+        <div style="font-size:.74rem;font-weight:600;color:${r.hl?"var(--text)":"var(--t2)"};width:44px;text-align:right">${r.v}%</div>
       </div>`).join("")}</div>`;
   }else{
     const vals=DIV_TREND.map(x=>x.v);
@@ -50,14 +50,14 @@ function renderDiv(){
     const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ");
     const fill=vals.map((v,i)=>`${px(i)},${py(v)}`).join(" ")+` ${W},${H+2} 0,${H+2}`;
     el.innerHTML=`<div style="margin-top:4px">
-      <div style="font-size:.7rem;color:var(--t2);margin-bottom:4px">Portugal · Dívida % PIB · 2014–2024</div>
+      <div style="font-size:.74rem;color:var(--t2);margin-bottom:4px">Portugal · Dívida % PIB · 2014–2024</div>
       <svg viewBox="0 0 ${W} ${H+22}" style="width:100%;height:76px">
-        <polygon points="${fill}" fill="#84CC1622"/>
-        <polyline points="${pts}" fill="none" stroke="#84CC16" stroke-width="2"/>
+        <polygon points="${fill}" fill="color-mix(in srgb, var(--accent) 15%, transparent)"/>
+        <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
         ${DIV_TREND.map((x,i)=>`
-          <circle cx="${px(i)}" cy="${py(x.v)}" r="3" fill="#84CC16"/>
+          <circle cx="${px(i)}" cy="${py(x.v)}" r="3" fill="var(--accent)"/>
           <text x="${px(i)}" y="${H+14}" font-size="8" fill="#6E7A96" text-anchor="middle">${x.y}</text>
-          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" fill="#A3E635" text-anchor="middle">${x.v}</text>
+          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" fill="var(--text)" text-anchor="middle">${x.v}</text>
         `).join("")}
       </svg>
     </div>`;

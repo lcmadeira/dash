@@ -202,9 +202,9 @@
         if ([7, 30, 90].includes(pref?.days)) trendDays = pref.days;
       } catch {}
       const staleNotice = today.stale
-        ? `<div style="margin-bottom:8px;color:#F59E0B;font-size:.62rem">${Number.isFinite(today.cacheAge) ? `Dados em cache local com ${fmtAgeShort(today.cacheAge)} de idade` : "O gateway serviu um snapshot de contingência"}; OMIE indisponível.</div>`
+        ? `<div style="margin-bottom:8px;color:#F59E0B;font-size:.74rem">${Number.isFinite(today.cacheAge) ? `Dados em cache local com ${fmtAgeShort(today.cacheAge)} de idade` : "O gateway serviu um snapshot de contingência"}; OMIE indisponível.</div>`
         : today.cache
-          ? `<div style="margin-bottom:8px;color:var(--t3);font-size:.6rem">Cache local · preços do dia de mercado ${periodDateLabel(date)}.</div>`
+          ? `<div style="margin-bottom:8px;color:var(--t3);font-size:.74rem">Cache local · preços do dia de mercado ${periodDateLabel(date)}.</div>`
           : "";
 
       const currentMarketTime = periodIndex === null ? null : marketPeriodTime(periodIndex, today.periods.length);
@@ -233,46 +233,46 @@
         ${staleNotice}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
           <div style="background:${avgColor}18;border:1px solid ${avgColor}44;border-radius:10px;padding:10px 12px">
-            <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">OMIE · zona portuguesa · dia de mercado ${periodDateLabel(date)}</div>
-            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:5px"><strong style="font-size:1.8rem;color:${current === null ? avgColor : avgColor};line-height:1">${(current ?? avg).toFixed(1)}</strong><span style="font-size:.66rem;color:var(--t3);margin-bottom:3px">€/MWh</span></div>
-            <div style="font-size:.62rem;color:var(--t2);margin-top:5px">${current === null ? "média diária · hora de mercado" : `período atual · ${currentMarketTime} hora de mercado`}</div>
-            <div style="font-size:.58rem;color:var(--t3);margin-top:3px">Média ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)} €/MWh</div>
+            <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">OMIE · zona portuguesa · dia de mercado ${periodDateLabel(date)}</div>
+            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:5px"><strong style="font-size:1.8rem;color:${current === null ? avgColor : avgColor};line-height:1">${(current ?? avg).toFixed(1)}</strong><span style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/MWh</span></div>
+            <div style="font-size:.74rem;color:var(--t2);margin-top:5px">${current === null ? "média diária · hora de mercado" : `período atual · ${currentMarketTime} hora de mercado`}</div>
+            <div style="font-size:.74rem;color:var(--t3);margin-top:3px">Média ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)} €/MWh</div>
           </div>
           <div style="background:var(--b2);border-radius:10px;padding:10px 12px">
-            <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">Próximo dia de mercado · ${periodDateLabel(tomorrowDate)}</div>
+            <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">Próximo dia de mercado · ${periodDateLabel(tomorrowDate)}</div>
             ${priceTomorrow === null
               ? `<div style="font-size:.82rem;font-weight:700;color:var(--t2);margin-top:8px">Ainda não publicado</div>`
-              : `<div style="font-size:1.2rem;font-weight:800;color:#10B981;margin-top:5px">${priceTomorrow.toFixed(1)} €/MWh</div><div style="font-size:.59rem;color:var(--t3)">média dos ${tomorrow.periods.length} períodos</div>`}
-            <div style="font-size:.58rem;color:var(--t3);margin-top:8px">Preço grossista; não é o preço final da fatura.</div>
+              : `<div style="font-size:1.2rem;font-weight:800;color:#10B981;margin-top:5px">${priceTomorrow.toFixed(1)} €/MWh</div><div style="font-size:.74rem;color:var(--t3)">média dos ${tomorrow.periods.length} períodos</div>`}
+            <div style="font-size:.74rem;color:var(--t3);margin-top:8px">Preço grossista; não é o preço final da fatura.</div>
           </div>
         </div>
-        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.64rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:#10B981">${cheapestStart}–${cheapestEnd} hora de mercado</strong> · média ${cheapest.average.toFixed(1)} €/MWh</div>` : ""}
+        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.74rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:#10B981">${cheapestStart}–${cheapestEnd} hora de mercado</strong> · média ${cheapest.average.toFixed(1)} €/MWh</div>` : ""}
         <div style="display:flex;align-items:flex-end;gap:1px;height:46px;margin:10px 0 2px">${hourlyBars}</div>
-        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.5rem;color:var(--t3);margin-bottom:3px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
-        <div style="font-size:.56rem;color:var(--t3)">Preços por hora de mercado · fonte em intervalos OMIE de ${today.periods.length >= 90 ? "15 min" : "1 h"} · zona PT · hora de mercado CET/CEST (Portugal continental: menos 1h)</div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-bottom:3px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
+        <div style="font-size:.74rem;color:var(--t3)">Preços por hora de mercado · fonte em intervalos OMIE de ${today.periods.length >= 90 ? "15 min" : "1 h"} · zona PT · hora de mercado CET/CEST (Portugal continental: menos 1h)</div>
         <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><div id="elecTrendStatus" style="flex:1;min-width:0;font-size:.59rem;color:var(--t3)"></div><div id="elecTrendDays" style="display:flex;gap:4px"><button class="rbtn ${trendDays === 7 ? "on" : ""}" data-days="7" onclick="setElecTrendDays(7)">7D</button><button class="rbtn ${trendDays === 30 ? "on" : ""}" data-days="30" onclick="setElecTrendDays(30)">30D</button><button class="rbtn ${trendDays === 90 ? "on" : ""}" data-days="90" onclick="setElecTrendDays(90)">90D</button></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><div id="elecTrendStatus" style="flex:1;min-width:0;font-size:.74rem;color:var(--t3)"></div><div id="elecTrendDays" style="display:flex;gap:4px"><button class="rbtn ${trendDays === 7 ? "on" : ""}" data-days="7" onclick="setElecTrendDays(7)">7D</button><button class="rbtn ${trendDays === 30 ? "on" : ""}" data-days="30" onclick="setElecTrendDays(30)">30D</button><button class="rbtn ${trendDays === 90 ? "on" : ""}" data-days="90" onclick="setElecTrendDays(90)">90D</button></div></div>
           <div style="height:120px"><canvas id="elecTrendCanvas"></canvas></div>
         </div>
         <details style="margin-top:10px;background:var(--b2);border-radius:8px;padding:8px 10px">
-          <summary style="cursor:pointer;font-size:.68rem;font-weight:700;color:var(--t2)">Estimar o meu custo mensal</summary>
-          <div style="font-size:.6rem;color:var(--t3);margin:6px 0">Usa os preços da tua ficha contratual. A estimativa não inclui IVA, taxas, serviços ou descontos.</div>
+          <summary style="cursor:pointer;font-size:.74rem;font-weight:700;color:var(--t2)">Estimar o meu custo mensal</summary>
+          <div style="font-size:.74rem;color:var(--t3);margin:6px 0">Usa os preços da tua ficha contratual. A estimativa não inclui IVA, taxas, serviços ou descontos.</div>
           <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
-            <label style="font-size:.57rem;color:var(--t3)">Consumo kWh/mês<input id="elecEstimateKwh" type="number" min="0" max="10000" step="1" value="${prefs.monthlyKwh}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
-            <label style="font-size:.57rem;color:var(--t3)">Energia €/kWh<input id="elecEstimateRate" type="number" min="0" max="10" step="0.0001" value="${prefs.energyRate}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
-            <label style="font-size:.57rem;color:var(--t3)">Potência €/dia<input id="elecEstimatePower" type="number" min="0" max="100" step="0.0001" value="${prefs.powerDaily}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
+            <label style="font-size:.74rem;color:var(--t3)">Consumo kWh/mês<input id="elecEstimateKwh" type="number" min="0" max="10000" step="1" value="${prefs.monthlyKwh}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
+            <label style="font-size:.74rem;color:var(--t3)">Energia €/kWh<input id="elecEstimateRate" type="number" min="0" max="10" step="0.0001" value="${prefs.energyRate}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
+            <label style="font-size:.74rem;color:var(--t3)">Potência €/dia<input id="elecEstimatePower" type="number" min="0" max="100" step="0.0001" value="${prefs.powerDaily}" onchange="setElecEstimate()" style="display:block;width:100%;margin-top:3px"></label>
           </div>
-          <div id="elecEstimateResult" aria-live="polite" style="font-size:.64rem;color:var(--t2);margin-top:7px">Introduz os preços da tua ficha contratual para calcular a estimativa.</div>
+          <div id="elecEstimateResult" aria-live="polite" style="font-size:.74rem;color:var(--t2);margin-top:7px">Introduz os preços da tua ficha contratual para calcular a estimativa.</div>
         </details>
-        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:7px;font-size:.57rem;color:var(--t3)"><span>Fonte: OMIE · MARGINALPDBCPT · zona portuguesa</span><span data-state="${sourceState}" title="Estado dos dados">${statusText}</span></div>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:5px">O spot só afeta diretamente contratos indexados. Em tarifas fixas, consulta o preço contratual. Horários bi/tri-horários dependem do ciclo e da época; <a href="https://www.erse.pt/atividade/regulacao/tarifas-e-precos-eletricidade/" target="_blank" rel="noopener">ver tarifas e períodos na ERSE</a>.</div>
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:7px;font-size:.74rem;color:var(--t3)"><span>Fonte: OMIE · MARGINALPDBCPT · zona portuguesa</span><span data-state="${sourceState}" title="Estado dos dados">${statusText}</span></div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:5px">O spot só afeta diretamente contratos indexados. Em tarifas fixas, consulta o preço contratual. Horários bi/tri-horários dependem do ciclo e da época; <a href="https://www.erse.pt/atividade/regulacao/tarifas-e-precos-eletricidade/" target="_blank" rel="noopener">ver tarifas e períodos na ERSE</a>.</div>
       `;
       renderTrend(trendDays);
       setEstimatePrefs();
     } catch (error) {
       const stale = getStaleCache(`omie_electricity_${marketDateAt(new Date())}`);
       const staleText = stale ? " · sem dados OMIE recentes disponíveis" : "";
-      body.innerHTML = `${er(`Preço OMIE Portugal indisponível${staleText}`)}<div style="margin-top:8px;font-size:.63rem;color:var(--t3)">O preço grossista não substitui a tarifa do teu contrato. <a href="https://www.omie.es/pt/market-results/daily/daily-market/day-ahead-price" target="_blank" rel="noopener">Consultar o OMIE</a>.</div>`;
+      body.innerHTML = `${er(`Preço OMIE Portugal indisponível${staleText}`)}<div style="margin-top:8px;font-size:.74rem;color:var(--t3)">O preço grossista não substitui a tarifa do teu contrato. <a href="https://www.omie.es/pt/market-results/daily/daily-market/day-ahead-price" target="_blank" rel="noopener">Consultar o OMIE</a>.</div>`;
       console.warn("Falha ao carregar preços OMIE Portugal:", error);
     }
   }

@@ -68,13 +68,13 @@ function loadPress(_force){
     <!-- COLUNA 1: RSF Press Freedom -->
     <div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.72rem;font-weight:700;color:#8B5CF6;text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
-        <div style="font-size:.58rem;color:var(--t3)">RSF 2026 · variação face a 2025</div>
+        <div style="font-size:.74rem;font-weight:700;color:#8B5CF6;text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
+        <div style="font-size:.74rem;color:var(--t3)">RSF 2026 · variação face a 2025</div>
       </div>
 
       <!-- Distribuição global -->
       <div style="margin-bottom:8px">
-        <div style="font-size:.6rem;color:var(--t3);margin-bottom:3px">Distribuição global RSF 2024 (${GLOBAL.total} países)</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">Distribuição global RSF 2024 (${GLOBAL.total} países)</div>
         <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px">
           ${Object.entries({Livre:GLOBAL.livre,"Satisf.":GLOBAL.satisfatorio,"Problem.":GLOBAL.problematico,"Difícil":GLOBAL.dificil,"M.Grave":GLOBAL.muitoGrave})
             .map(([k,v],i)=>{
@@ -82,15 +82,15 @@ function loadPress(_force){
               return `<div style="flex:${v};background:${cols[i]}" title="${k}: ${v}%"></div>`;
             }).join("")}
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:.55rem;color:var(--t3);margin-top:2px">
+        <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--t3);margin-top:2px">
           <span style="color:#10B981">Livre ${GLOBAL.livre}%</span>
           <span style="color:#EF4444">M.Grave ${GLOBAL.muitoGrave}%</span>
         </div>
-        <div style="font-size:.6rem;color:#F59E0B;margin-top:3px">${GLOBAL.tendencia}</div>
+        <div style="font-size:.74rem;color:#F59E0B;margin-top:3px">${GLOBAL.tendencia}</div>
       </div>
 
       <!-- Tabela países seleccionados -->
-      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
+      <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
       ${RSF.map(r=>{
         const col=statusCol[r.status]||"#6E7A96";
         const trendIcon=r.trend>0?"↑":r.trend<0?"↓":"→";
@@ -99,14 +99,14 @@ function loadPress(_force){
         return `<div style="display:grid;grid-template-columns:16px 80px 30px 1fr 36px 24px;
                      align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
           <span style="font-size:.8rem">${r.c}</span>
-          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
+          <span style="font-size:.74rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
                 font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
-          <span style="font-size:.58rem;color:var(--t3)">#${r.rank}</span>
+          <span style="font-size:.74rem;color:var(--t3)">#${r.rank}</span>
           <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
             <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
           </div>
-          <span style="font-size:.58rem;color:var(--t2);text-align:right">${r.score.toFixed(2)}</span>
-          <span style="font-size:.6rem;color:${trendCol};text-align:right" title="Variação da posição face a 2025">${trendIcon}${Math.abs(r.trend)||""}</span>
+          <span style="font-size:.74rem;color:var(--t2);text-align:right">${r.score.toFixed(2)}</span>
+          <span style="font-size:.74rem;color:${trendCol};text-align:right" title="Variação da posição face a 2025">${trendIcon}${Math.abs(r.trend)||""}</span>
         </div>`;
       }).join("")}
     </div>
@@ -114,8 +114,8 @@ function loadPress(_force){
     <!-- COLUNA 2: EIU Democracy + Regiões -->
     <div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.72rem;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
-        <div style="font-size:.58rem;color:var(--t3)">EIU 2024 · histórico</div>
+        <div style="font-size:.74rem;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
+        <div style="font-size:.74rem;color:var(--t3)">EIU 2024 · histórico</div>
       </div>
 
       <!-- Categorias EIU -->
@@ -123,44 +123,44 @@ function loadPress(_force){
         ${[["Democracia plena","#10B981","8-10"],["Dem. com falhas","#84CC16","6-8"],
            ["Regime híbrido","#F59E0B","4-6"],["Reg. autoritário","#EF4444","0-4"]].map(([lbl,col,range])=>
           `<div style="background:${col}18;border:1px solid ${col}33;border-radius:5px;padding:4px 6px">
-            <div style="font-size:.58rem;font-weight:600;color:${col}">${lbl}</div>
-            <div style="font-size:.55rem;color:var(--t3)">${range} / 10</div>
+            <div style="font-size:.74rem;font-weight:600;color:${col}">${lbl}</div>
+            <div style="font-size:.74rem;color:var(--t3)">${range} / 10</div>
           </div>`).join("")}
       </div>
 
       <!-- Países EIU -->
-      <div style="font-size:.65rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
+      <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:4px">Países seleccionados:</div>
       ${EIU.map(r=>{
         const col=r.score>=8?"#10B981":r.score>=6?"#84CC16":r.score>=4?"#F59E0B":"#EF4444";
         const barW=Math.round(r.score*10);
         return `<div style="display:grid;grid-template-columns:16px 90px 1fr 30px;
                      align-items:center;gap:4px;padding:2px 0;border-bottom:1px solid var(--b)">
           <span style="font-size:.8rem">${r.c}</span>
-          <span style="font-size:.63rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
+          <span style="font-size:.74rem;color:${r.n==="Portugal"?"#fff":"var(--text)"};
                 font-weight:${r.n==="Portugal"?"700":"400"}">${r.n}</span>
           <div style="background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
             <div style="width:${barW}%;height:100%;background:${col};border-radius:2px"></div>
           </div>
-          <span style="font-size:.63rem;color:${col};font-weight:600;text-align:right">${r.score.toFixed(1)}</span>
+          <span style="font-size:.74rem;color:${col};font-weight:600;text-align:right">${r.score.toFixed(1)}</span>
         </div>`;
       }).join("")}
 
       <!-- Score médio mundial -->
       <div style="background:var(--b2);border-radius:6px;padding:6px 8px;margin-top:8px;
-           font-size:.63rem;color:var(--t2)">
+           font-size:.74rem;color:var(--t2)">
         <b style="color:var(--text)">Média mundial 2024: 5.17</b> /10 · mínimo histórico
-        <div style="font-size:.58rem;color:var(--t3);margin-top:1px">Apenas 7.8% da pop. mundial vive em democracia plena</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:1px">Apenas 7.8% da pop. mundial vive em democracia plena</div>
       </div>
 
       <!-- Score regiões -->
       <div style="margin-top:8px">
-        <div style="font-size:.63rem;font-weight:600;color:var(--t2);margin-bottom:4px">Score por região RSF 2024:</div>
+        <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:4px">Score por região RSF 2024:</div>
         ${REGIONS.map(r=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
-          <span style="font-size:.6rem;color:var(--t3);width:70px;flex-shrink:0">${r.r}</span>
+          <span style="font-size:.74rem;color:var(--t3);width:70px;flex-shrink:0">${r.r}</span>
           <div style="flex:1;background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
             <div style="width:${r.score}%;height:100%;background:${r.col};border-radius:2px"></div>
           </div>
-          <span style="font-size:.6rem;color:${r.col};font-weight:600;width:30px;text-align:right">${r.score}</span>
+          <span style="font-size:.74rem;color:${r.col};font-weight:600;width:30px;text-align:right">${r.score}</span>
         </div>`).join("")}
       </div>
     </div>

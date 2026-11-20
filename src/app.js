@@ -693,7 +693,7 @@ window.buildConflictMap=function(){
   const wrap=document.getElementById("cmap-content");
   if(!wrap)return;
   wrap.innerHTML='<canvas id="cmap-canvas" style="width:100%;height:100%;display:block;border-radius:6px"></canvas>'
-    +'<div id="cmap-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;padding:6px 10px;border-radius:6px;font-size:.72rem;color:#DDE3F0;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:180px;line-height:1.4"></div>';
+    +'<div id="cmap-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;padding:6px 10px;border-radius:6px;font-size:.74rem;color:#DDE3F0;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:180px;line-height:1.4"></div>';
 
   const canvas=document.getElementById("cmap-canvas");
   const tip=document.getElementById("cmap-tip");
@@ -881,7 +881,7 @@ function buildStats(){
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Risco nuclear</div><div class="cmap-stat-val" style="color:#3b82f6">'+byType.nuclear+'</div><div class="cmap-stat-sub">cenários escalação</div></div>';
   html+='</div>';
 
-  html+='<div style="font-family:var(--mono);font-size:.5rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Distribuição por região</div>';
+  html+='<div style="font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Distribuição por região</div>';
   regions.forEach(function(r){
     const col=regionColors[r[0]]||"#6b7280";
     html+='<div class="cmap-region-row">'
@@ -894,14 +894,14 @@ function buildStats(){
   /* Índice de intensidade global */
   const intensity=Math.round((byType.war*4+byType.nuclear*3+byType.high*2+byType.tension)/total*25);
   html+='<div style="margin-top:12px;padding:10px;background:var(--c2);border:1px solid var(--b);border-radius:var(--rs)">';
-  html+='<div style="font-family:var(--mono);font-size:.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Índice de tensão global</div>';
+  html+='<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Índice de tensão global</div>';
   html+='<div style="display:flex;align-items:center;gap:10px">';
   html+='<div style="font-size:1.6rem;font-weight:700;color:#ef4444">'+intensity+'</div>';
   html+='<div>';
   html+='<div style="width:160px;height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:3px">';
   html+='<div style="width:'+intensity+'%;height:100%;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444);border-radius:4px"></div>';
   html+='</div>';
-  html+='<div style="font-family:var(--mono);font-size:.48rem;color:var(--t3)">Elevado · tendência crescente desde 2022</div>';
+  html+='<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">Elevado · tendência crescente desde 2022</div>';
   html+='</div></div></div>';
 
   wrap.innerHTML=html;
@@ -1828,7 +1828,7 @@ function renderTickerList() {
   container.innerHTML = '';
   
   if (currentConfig.tickers.length === 0) {
-    container.innerHTML = '<p style="font-size:.7rem;color:var(--t3);text-align:center;padding:20px">Nenhum ticker adicionado. Use as sugestões acima.</p>';
+    container.innerHTML = '<p style="font-size:.74rem;color:var(--t3);text-align:center;padding:20px">Nenhum ticker adicionado. Use as sugestões acima.</p>';
     return;
   }
   
@@ -3090,29 +3090,29 @@ function renderFuelModal(){
   body.innerHTML = `
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
       <div style="display:flex;gap:4px;align-items:center">
-        <span style="font-family:var(--mono);font-size:.58rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">Δ</span>
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">Δ</span>
         ${btn(prefs.deltaMode==="abs","Δ€","setFuelPrefs({deltaMode:'abs'})")}
         ${btn(prefs.deltaMode==="pct","Δ%","setFuelPrefs({deltaMode:'pct'})","Percentagem vs PT")}
       </div>
       <div style="display:flex;gap:4px;align-items:center">
-        <span style="font-family:var(--mono);font-size:.58rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">ES G95</span>
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">ES G95</span>
         ${btn(prefs.esGas95==="auto","Auto","setFuelPrefs({esGas95:'auto'})","Usa E5/E10 conforme disponível")}
         ${btn(prefs.esGas95==="e5","E5","setFuelPrefs({esGas95:'e5'})")}
         ${btn(prefs.esGas95==="e10","E10","setFuelPrefs({esGas95:'e10'})")}
       </div>
       <div style="display:flex;gap:4px;align-items:center">
-        <span style="font-family:var(--mono);font-size:.58rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">ES G98</span>
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">ES G98</span>
         ${btn(prefs.esGas98==="auto","Auto","setFuelPrefs({esGas98:'auto'})","Usa E5/E10 conforme disponível")}
         ${btn(prefs.esGas98==="e5","E5","setFuelPrefs({esGas98:'e5'})")}
         ${btn(prefs.esGas98==="e10","E10","setFuelPrefs({esGas98:'e10'})")}
       </div>
       <div style="display:flex;gap:4px;align-items:center">
-        <span style="font-family:var(--mono);font-size:.58rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">PT</span>
+        <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);letter-spacing:.6px;text-transform:uppercase">PT</span>
         ${btn(prefs.showColored,"Colorido: ON",`setFuelPrefs({showColored:true})`,"Mostra Gasóleo Colorido (PT)")}
         ${btn(!prefs.showColored,"Colorido: OFF",`setFuelPrefs({showColored:false})`,"Esconde Gasóleo Colorido (PT)")}
       </div>
     </div>
-    <div style="font-family:var(--mono);font-size:.63rem;color:var(--t2);line-height:1.7;margin-bottom:10px">
+    <div style="font-family:var(--mono);font-size:.74rem;color:var(--t2);line-height:1.7;margin-bottom:10px">
       <div><span style="color:var(--t3)">PT</span> · API Aberta · data ${ptDate} · atualizado ${ptUpd} · cache ${ptAge}</div>
       <div><span style="color:var(--t3)">ES</span> · MITECO/MINETUR · ${esWhen} · cache ${esAge}</div>
     </div>
@@ -3848,7 +3848,7 @@ function showTrendModal(title, historyKey, options = {}) {
           <canvas id="trend-chart" width="600" height="300"></canvas>
         </div>
         <div id="trend-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px"></div>
-        <div style="font-size:0.7rem;color:var(--t3);text-align:center" id="trend-footer"></div>
+        <div style="font-size:.74rem;color:var(--t3);text-align:center" id="trend-footer"></div>
       </div>
     </div>`;
     
@@ -3869,19 +3869,19 @@ function showTrendModal(title, historyKey, options = {}) {
   
   document.getElementById('trend-stats').innerHTML = `
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Atual</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Atual</div>
       <div style="font-size:1.3rem;font-weight:700;color:${options.borderColor || '#E9A520'}">${current.toFixed(dec)}${unit}</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Variação</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Variação</div>
       <div style="font-size:1.3rem;font-weight:700;color:${change >= 0 ? '#EF4444' : '#10B981'}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Mínimo</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Mínimo</div>
       <div style="font-size:1.1rem;font-weight:600;color:#10B981">${min.toFixed(dec)}${unit}</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
-      <div style="font-size:0.65rem;color:var(--t3);margin-bottom:4px">Máximo</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Máximo</div>
       <div style="font-size:1.1rem;font-weight:600;color:#EF4444">${max.toFixed(dec)}${unit}</div>
     </div>
   `;
@@ -4077,10 +4077,10 @@ function renderCabaz(){
   el.innerHTML=`
   <!-- Hero: valor actual + variações -->
   <div style="background:var(--b2);border-radius:10px;padding:11px 14px;margin-bottom:10px">
-    <div style="font-size:.58rem;color:var(--t3);text-transform:uppercase;
+    <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
          letter-spacing:.5px;margin-bottom:3px">
       Cabaz 63 produtos · ${fmtDate(cur[0])}
-      <span style="font-size:.5rem;background:#F59E0B22;color:#F59E0B;
+      <span style="font-size:.74rem;background:#F59E0B22;color:#F59E0B;
             border-radius:3px;padding:1px 5px;margin-left:5px">⚠ dados manuais</span>
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
@@ -4090,12 +4090,12 @@ function renderCabaz(){
       <div style="flex:1"></div>
       <div style="text-align:right">
         <div style="font-size:.75rem;font-weight:700;color:${wCol}">
-          ${wArr} ${Math.abs(weekChg).toFixed(2)}€ <span style="font-size:.62rem;font-weight:400">(${Math.abs(weekPct).toFixed(2)}%)</span>
+          ${wArr} ${Math.abs(weekChg).toFixed(2)}€ <span style="font-size:.74rem;font-weight:400">(${Math.abs(weekPct).toFixed(2)}%)</span>
         </div>
-        <div style="font-size:.6rem;color:var(--t3)">vs semana anterior</div>
+        <div style="font-size:.74rem;color:var(--t3)">vs semana anterior</div>
       </div>
     </div>
-    ${cur[2]?`<div style="font-size:.65rem;color:var(--t3);border-top:1px solid var(--b);
+    ${cur[2]?`<div style="font-size:.74rem;color:var(--t3);border-top:1px solid var(--b);
        padding-top:5px;margin-top:2px">💬 ${cur[2]}</div>`:""}
   </div>
 
@@ -4103,30 +4103,30 @@ function renderCabaz(){
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px">
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:${wCol}">${wArr}${Math.abs(weekPct).toFixed(1)}%</div>
-      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">semana</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">semana</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:${wColYTD}">
         ${ytdChg>=0?"+":""}${ytdChg.toFixed(2)}€</div>
-      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">desde Jan ${curYear}</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">desde Jan ${curYear}</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:${wColYear}">
         ${yearChg>=0?"+":""}${Math.abs(yearChg).toFixed(2)}€</div>
-      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">vs 1 ano atrás</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">vs 1 ano atrás</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:#EF4444">
         +${Math.abs(totalPct).toFixed(1)}%</div>
-      <div style="font-size:.55rem;color:var(--t3);margin-top:2px">desde Jan 2022</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">desde Jan 2022</div>
     </div>
   </div>
 
   <!-- Sparkline histórico completo -->
   <div style="background:var(--b2);border-radius:8px;padding:10px 12px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-      <div style="font-size:.62rem;font-weight:600;color:var(--t2)">Evolução Jan 2022 → Hoje</div>
-      <div style="font-size:.6rem;color:var(--t3)">${hist.length} registos</div>
+      <div style="font-size:.74rem;font-weight:600;color:var(--t2)">Evolução Jan 2022 → Hoje</div>
+      <div style="font-size:.74rem;color:var(--t3)">${hist.length} registos</div>
     </div>
     <svg viewBox="0 0 ${SW} ${SH+18}" style="width:100%;height:${SH+18}px">
       <defs>
@@ -4157,30 +4157,30 @@ function renderCabaz(){
 
   <!-- Comparação anual em barras -->
   <div style="margin-bottom:10px">
-    <div style="font-size:.62rem;font-weight:600;color:var(--t2);margin-bottom:5px">
+    <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:5px">
       Média anual do cabaz
     </div>
     ${(()=>{
       const maxV=Math.max(...CABAZ_ANUAL.map(x=>x.v));
       return CABAZ_ANUAL.map(a=>{
         const bw=(a.v/maxV*100).toFixed(1);
-        const col=a.y===2022?"#3B82F6":a.y===2023?"#8B5CF6":a.y===2024?"#F59E0B":"#EF4444";
+        const col=a.y===CABAZ_ANUAL[CABAZ_ANUAL.length-1].y?"var(--accent)":"var(--data-muted)";
         return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
-          <div style="font-family:var(--mono);font-size:.62rem;color:var(--t2);min-width:32px">${a.y}</div>
+          <div style="font-family:var(--mono);font-size:.74rem;color:var(--t2);min-width:32px">${a.y}</div>
           <div style="flex:1;background:var(--b);border-radius:3px;height:7px">
             <div style="width:${bw}%;height:100%;background:${col};border-radius:3px"></div>
           </div>
-          <div style="font-family:var(--mono);font-size:.65rem;font-weight:600;color:${col};min-width:52px;text-align:right">
+          <div style="font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--text);min-width:52px;text-align:right">
             ${a.v.toFixed(2)}€</div>
         </div>
-        <div style="font-size:.55rem;color:var(--t3);margin:-2px 0 4px 39px">${a.note}</div>`;
+        <div style="font-size:.74rem;color:var(--t3);margin:-2px 0 4px 39px">${a.note}</div>`;
       }).join("");
     })()}
   </div>
 
   <!-- Aviso de metodologia e update -->
   <div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:7px;
-       padding:7px 10px;font-size:.63rem;color:#F59E0B;line-height:1.5">
+       padding:7px 10px;font-size:.74rem;color:#F59E0B;line-height:1.5">
     ⚠ Dados actualizados manualmente. A DECO PROteste publica às <b>quartas-feiras</b>.
     Clica em <b>✏️</b> para adicionar o valor da semana corrente.
     <a href="https://www.dnoticias.pt/2026/10/28/510767-cabaz-alimentar-desce-44-centimos-para-25355-euros-na-ultima-semana/"

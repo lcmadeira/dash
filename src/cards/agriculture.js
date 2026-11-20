@@ -86,24 +86,24 @@ async function loadAgri(force=false){
                  display:flex;flex-direction:column;gap:2px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:1.3rem">${s.ico}</span>
-        <span style="font-size:.58rem;color:var(--t3);background:var(--b2);
+        <span style="font-size:.74rem;color:var(--t3);background:var(--b2);
               border-radius:3px;padding:1px 5px">${s.unit}</span>
       </div>
-      <div style="font-size:.6rem;color:var(--t2);font-weight:700;
+      <div style="font-size:.74rem;color:var(--t2);font-weight:700;
            text-transform:uppercase;letter-spacing:.3px;margin-top:1px">${s.label}</div>
       <div style="font-size:1.35rem;font-weight:800;color:var(--text);
            line-height:1;letter-spacing:-.5px">${fmt(price)}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${col}">
+      <div style="font-size:.74rem;font-weight:700;color:${col}">
         ${hasChange?`${arr} ${Math.abs(chg).toFixed(2)}%`:"—"}
       </div>
       ${hi!==null&&hi!==undefined?`<div style="display:flex;justify-content:space-between;margin-top:3px;
-           font-size:.57rem;color:var(--t3)">
+           font-size:.74rem;color:var(--t3)">
         <span>H <b style="color:#6E7A96">${fmt(hi)}</b></span>
         <span>L <b style="color:#6E7A96">${fmt(lo)}</b></span>
       </div>`:""}</div>`;
   }).join("");
   if(isStatic){
-    el.innerHTML+=`<div style="grid-column:1/-1;font-size:.58rem;color:#F59E0B;padding:2px 0">
+    el.innerHTML+=`<div style="grid-column:1/-1;font-size:.74rem;color:#F59E0B;padding:2px 0">
       ⚠ Yahoo Finance / Stooq indisponíveis · valores referência Mar 2026</div>`;
   }
 }

@@ -98,15 +98,15 @@ async function loadFng(force){
       <!-- Stats 7d -->
       <div style="display:flex;gap:8px;margin-top:8px">
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
-          <div style="font-size:.55rem;color:var(--t3)">7d Mín</div>
+          <div style="font-size:.74rem;color:var(--t3)">7d Mín</div>
           <div style="font-size:.85rem;font-weight:700;color:${getCol(wMin)}">${wMin}</div>
         </div>
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
-          <div style="font-size:.55rem;color:var(--t3)">7d Méd</div>
+          <div style="font-size:.74rem;color:var(--t3)">7d Méd</div>
           <div style="font-size:.85rem;font-weight:700;color:${getCol(wAvg)}">${wAvg}</div>
         </div>
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
-          <div style="font-size:.55rem;color:var(--t3)">7d Máx</div>
+          <div style="font-size:.74rem;color:var(--t3)">7d Máx</div>
           <div style="font-size:.85rem;font-weight:700;color:${getCol(wMax)}">${wMax}</div>
         </div>
       </div>
@@ -115,7 +115,7 @@ async function loadFng(force){
 
   <!-- Sparkline 30d -->
   <div style="margin-bottom:6px">
-    <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--t3);margin-bottom:2px">
+    <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--t3);margin-bottom:2px">
       <span>30 dias</span>
       <span>${d[29]?new Date(+d[29].timestamp*1000).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"}):""} → hoje</span>
     </div>
@@ -131,9 +131,9 @@ async function loadFng(force){
       const isToday=x===d[0];
       return `<div style="background:${isToday?c+"22":"var(--b2)"};border:1px solid ${isToday?c+"55":"transparent"};
                    border-radius:5px;padding:4px 2px;text-align:center">
-        <div style="font-size:.55rem;color:var(--t3)">${day}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${day}</div>
         <div style="font-size:.82rem;font-weight:700;color:${c}">${v}</div>
-        <div style="font-size:.5rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${getLbl(v).split(" ")[0]}</div>
+        <div style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${getLbl(v).split(" ")[0]}</div>
       </div>`;
     }).join("")}
   </div>`;

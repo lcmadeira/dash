@@ -6,24 +6,24 @@
 const /* Exportações PT — INE/AICEP Jan-Nov 2024 (publicado Jan 2025) */
 EXP_DATA={
   destinos:[
-    {n:"Espanha",      v:25.9,c:"#EF4444"},
-    {n:"Alemanha",     v:12.6,c:"#F59E0B"},
-    {n:"França",       v:12.1,c:"#3B82F6"},
-    {n:"EUA",          v:6.7, c:"#8B5CF6"},
-    {n:"Reino Unido",  v:4.5, c:"#10B981"},
-    {n:"Angola",       v:3.2, c:"#F97316"},
-    {n:"Países Baixos",v:3.3, c:"#06B6D4"},
-    {n:"Itália",       v:3.0, c:"#84CC16"},
+    {n:"Espanha",      v:25.9,c:"var(--data)"},
+    {n:"Alemanha",     v:12.6,c:"var(--data)"},
+    {n:"França",       v:12.1,c:"var(--data)"},
+    {n:"EUA",          v:6.7, c:"var(--data)"},
+    {n:"Reino Unido",  v:4.5, c:"var(--data)"},
+    {n:"Angola",       v:3.2, c:"var(--data)"},
+    {n:"Países Baixos",v:3.3, c:"var(--data)"},
+    {n:"Itália",       v:3.0, c:"var(--data)"},
   ],
   produtos:[
-    {n:"Máquinas e Aparelhos",    v:14.8,c:"#3B82F6"},
-    {n:"Veículos e Transp.",      v:12.5,c:"#F59E0B"},
-    {n:"Produtos Agrícolas",      v:8.4, c:"#10B981"},
-    {n:"Produtos Químicos",       v:8.1, c:"#8B5CF6"},
-    {n:"Combustíveis Minerais",   v:7.8, c:"#EF4444"},
-    {n:"Calçado e Têxteis",       v:6.5, c:"#F97316"},
-    {n:"Cortiça e Madeira",       v:5.2, c:"#84CC16"},
-    {n:"Papel e Cartão",          v:3.5, c:"#06B6D4"},
+    {n:"Máquinas e Aparelhos",    v:14.8,c:"var(--data)"},
+    {n:"Veículos e Transp.",      v:12.5,c:"var(--data)"},
+    {n:"Produtos Agrícolas",      v:8.4, c:"var(--data)"},
+    {n:"Produtos Químicos",       v:8.1, c:"var(--data)"},
+    {n:"Combustíveis Minerais",   v:7.8, c:"var(--data)"},
+    {n:"Calçado e Têxteis",       v:6.5, c:"var(--data)"},
+    {n:"Cortiça e Madeira",       v:5.2, c:"var(--data)"},
+    {n:"Papel e Cartão",          v:3.5, c:"var(--data)"},
   ]
 };
 let EXP_MODE="destinos";
@@ -40,11 +40,11 @@ function renderExp(){
   el.innerHTML=`<div style="margin-top:6px">${items.map(r=>{
     const pct=(r.v/total*100).toFixed(1);
     return `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">
-      <div style="font-size:.67rem;color:var(--t2);width:128px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</div>
+      <div style="font-size:.74rem;color:var(--t2);width:128px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</div>
       <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
         <div style="width:${pct}%;height:100%;background:${r.c};border-radius:3px;transition:width .5s"></div>
       </div>
-      <div style="font-size:.67rem;color:var(--text);font-weight:600;width:36px;text-align:right">${r.v}%</div>
+      <div style="font-size:.74rem;color:var(--text);font-weight:600;width:36px;text-align:right">${r.v}%</div>
     </div>`;
   }).join("")}</div>`;
 }

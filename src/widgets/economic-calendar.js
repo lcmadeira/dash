@@ -159,13 +159,13 @@ function renderCalendar(){
   const upd=new Date().toLocaleDateString("pt-PT",{day:"2-digit",month:"short",year:"numeric"});
 
   const banner=`<div style="background:#3B82F612;border:1px solid #3B82F630;border-radius:6px;
-    padding:5px 10px;margin-bottom:8px;font-size:.6rem;color:#3B82F6;
+    padding:5px 10px;margin-bottom:8px;font-size:.74rem;color:#3B82F6;
     display:flex;align-items:center;justify-content:space-between">
     <span>📅 Calendário automático · Fed · BCE · INE · BLS · Eurostat · ${upd}</span>
   </div>`;
 
   if(!items.length){
-    $("cal-body").innerHTML=banner+`<div style="padding:16px;text-align:center;font-size:.72rem;color:var(--t3)">
+    $("cal-body").innerHTML=banner+`<div style="padding:16px;text-align:center;font-size:.74rem;color:var(--t3)">
       ${CAL_TAB==="past"?"Sem eventos concluídos.":"Sem eventos próximos."}
     </div>`;
     return;
@@ -180,7 +180,7 @@ function renderCalendar(){
         <div class="ev-meta">
           <span>${e.date} · ${e.time}</span>
           ${CAL_TAB==="past"
-            ?`<span style="font-size:.6rem;color:var(--green);font-weight:600">✓ concluído</span>`
+            ?`<span style="font-size:.74rem;color:var(--green);font-weight:600">✓ concluído</span>`
             :`<span class="ev-imp imp-${e.imp}">${e.imp==="h"?"Alto":e.imp==="m"?"Médio":"Baixo"}</span>`}
         </div>
       </div>

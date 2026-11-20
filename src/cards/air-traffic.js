@@ -91,31 +91,31 @@ async function loadAir(force=false){
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#3B82F6;line-height:1">${flying.length}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Em voo</div>
+        <div style="font-size:.74rem;color:var(--t3)">Em voo</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#6E7A96;line-height:1">${ground.length}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Em terra</div>
+        <div style="font-size:.74rem;color:var(--t3)">Em terra</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#10B981;line-height:1">▲${climbing}</div>
-        <div style="font-size:.55rem;color:var(--t3)">A subir</div>
+        <div style="font-size:.74rem;color:var(--t3)">A subir</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">▼${descending}</div>
-        <div style="font-size:.55rem;color:var(--t3)">A descer</div>
+        <div style="font-size:.74rem;color:var(--t3)">A descer</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Alt.méd m</div>
+        <div style="font-size:.74rem;color:var(--t3)">Alt.méd m</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${avgVel||"—"}</div>
-        <div style="font-size:.55rem;color:var(--t3)">km/h méd</div>
+        <div style="font-size:.74rem;color:var(--t3)">km/h méd</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${maxVel||"—"}</div>
-        <div style="font-size:.55rem;color:var(--t3)">km/h máx</div>
+        <div style="font-size:.74rem;color:var(--t3)">km/h máx</div>
       </div>
     </div>
 
@@ -123,19 +123,19 @@ async function loadAir(force=false){
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1020;margin-bottom:10px">
       <canvas id="air-map-canvas" style="width:100%;height:260px;display:block"></canvas>
       <div id="air-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <!-- Badge live -->
       <div style="position:absolute;top:6px;right:6px;background:#10B98122;border:1px solid #10B98144;
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:#10B981">
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:#10B981">
         🟢 Live · ${age}min
       </div>
     </div>
 
     <!-- Legenda altitude + barra distribuição -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.57rem;color:var(--t3)">
+      ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.74rem;color:var(--t3)">
         <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
         <span>${b.label} <b style="color:var(--t2)">${b.count}</b></span>
       </div>`).join("")}
@@ -150,11 +150,11 @@ async function loadAir(force=false){
     <div style="display:grid;grid-template-columns:1fr auto;gap:12px">
       <!-- Lista de voos -->
       <div>
-        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:4px">
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:4px">
           Voos activos · por altitude
         </div>
         <div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
-             font-family:var(--mono);font-size:.6rem;color:var(--t3);padding:0 0 3px;
+             font-family:var(--mono);font-size:.74rem;color:var(--t3);padding:0 0 3px;
              border-bottom:1px solid var(--b);margin-bottom:2px">
           <span>Voo</span><span>FL</span><span>Vel.</span><span></span><span>Operadora</span>
         </div>
@@ -169,32 +169,32 @@ async function loadAir(force=false){
           const al=airline(cs);
           return `<div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
                        align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid var(--b)">
-            <div style="font-size:.68rem;font-weight:700;color:var(--text);
+            <div style="font-size:.74rem;font-weight:700;color:var(--text);
                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cs)}</div>
-            <div style="font-size:.63rem;color:${altCol};font-weight:600">${fl}</div>
-            <div style="font-size:.6rem;color:var(--t2)">${vel}<span style="font-size:.54rem">km/h</span></div>
-            <div style="font-size:.63rem;color:${vrCol}">${vrIcon}</div>
-            <div style="font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;
+            <div style="font-size:.74rem;color:${altCol};font-weight:600">${fl}</div>
+            <div style="font-size:.74rem;color:var(--t2)">${vel}<span style="font-size:.74rem">km/h</span></div>
+            <div style="font-size:.74rem;color:${vrCol}">${vrIcon}</div>
+            <div style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;
                  text-overflow:ellipsis">${escapeHtml(al||s[2]||"")}</div>
           </div>`;
         }).join("")}
       </div>
       <!-- Top países + aeroportos -->
       <div style="min-width:110px">
-        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:4px">Por país</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:4px">Por país</div>
         ${topCtry.map(([c,n])=>`<div style="display:flex;justify-content:space-between;
              gap:8px;padding:3px 0;border-bottom:1px solid var(--b)">
-          <span style="font-family:var(--mono);font-size:.63rem;color:var(--t3)">${escapeHtml(c)}</span>
-          <span style="font-family:var(--mono);font-size:.63rem;font-weight:700;color:var(--text)">${n}</span>
+          <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">${escapeHtml(c)}</span>
+          <span style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--text)">${n}</span>
         </div>`).join("")}
-        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin:8px 0 4px">Aeroportos</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin:8px 0 4px">Aeroportos</div>
         ${AIRPORTS.filter(a=>a.code!=="MAD"&&a.code!=="BCN"&&a.lon>=-13&&a.lon<=5&&a.lat>=35&&a.lat<=44.5).map(a=>`<div style="display:flex;
              align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid var(--b)">
           <div style="width:6px;height:6px;border-radius:50%;background:${a.col};flex-shrink:0"></div>
-          <span style="font-family:var(--mono);font-size:.65rem;font-weight:700;color:${a.col}">${a.code}</span>
-          <span style="font-size:.58rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name.split(" ")[0]}</span>
+          <span style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:${a.col}">${a.code}</span>
+          <span style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name.split(" ")[0]}</span>
         </div>`).join("")}
-        <div style="font-size:.56rem;color:var(--t3);margin-top:6px">lon[-12,-5]<br>lat[36,44]</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:6px">lon[-12,-5]<br>lat[36,44]</div>
       </div>
     </div>`;
 
@@ -387,23 +387,23 @@ async function loadAir(force=false){
     {dest:"São Paulo",cod:"GRU",freq:"~5/dia",col:"#F97316"},
   ];
   el.innerHTML=`
-    <div style="font-size:.65rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
+    <div style="font-size:.74rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px">
       ${ANA.map(x=>`<div style="background:var(--b2);border-radius:8px;padding:8px 10px">
-        <div style="font-size:.6rem;color:var(--t2);margin-bottom:2px">${x.label}</div>
+        <div style="font-size:.74rem;color:var(--t2);margin-bottom:2px">${x.label}</div>
         <div style="font-size:1rem;font-weight:700;color:${x.col}">${x.val}</div>
-        <div style="font-size:.58rem;color:var(--t3)">${x.sub}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${x.sub}</div>
       </div>`).join("")}
     </div>
-    <div style="font-size:.68rem;font-weight:600;color:var(--t2);margin-bottom:5px">Top rotas Lisboa 2024</div>
+    <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:5px">Top rotas Lisboa 2024</div>
     ${ROTAS.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;
          padding:4px 0;border-bottom:1px solid var(--b)">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="width:6px;height:6px;border-radius:50%;background:${r.col}"></div>
-        <span style="font-size:.68rem;color:var(--text)">${r.dest}</span>
-        <span style="font-size:.62rem;color:var(--t3)">${r.cod}</span>
+        <span style="font-size:.74rem;color:var(--text)">${r.dest}</span>
+        <span style="font-size:.74rem;color:var(--t3)">${r.cod}</span>
       </div>
-      <span style="font-size:.67rem;color:var(--t2);font-weight:600">${r.freq}</span>
+      <span style="font-size:.74rem;color:var(--t2);font-weight:600">${r.freq}</span>
     </div>`).join("")}`;
 }
 

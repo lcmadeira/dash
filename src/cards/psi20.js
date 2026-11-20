@@ -53,13 +53,13 @@ async function loadPSI20Trend(force = false) {
     });
 
     statusEl.innerHTML = `
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
         ${pref.days}D · PSI 20
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
         ${sign}${pct.toFixed(1)}%
       </span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:var(--t3);margin-left:8px">
+      <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
         último: ${last.toFixed(0)}
       </span>`;
   } catch (e) {
@@ -75,7 +75,7 @@ async function loadPSI20Trend(force = false) {
 	async function loadPSI20Once(force=false){
 	  const el=document.getElementById("psi20-body");
 	  if(!el) return;
-	  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${ld()}</div>`;
+	  el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--t3);font-size:.74rem">${ld()}</div>`;
 
     const CK="psi20_v2";
 	  let cache=force?null:lsGet(CK);
@@ -192,10 +192,10 @@ async function loadPSI20Trend(force = false) {
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-bottom:8px;align-items:start">
     <div style="background:var(--b2);border-radius:10px;padding:10px 14px;min-width:160px;border-left:4px solid #10B981">
-      <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
+      <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
       <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.live ? psi.price.toFixed(0) : "—"}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : (window.getLisbonMarketContext?.()?.state === "closed" ? "Sem negociação hoje" : "Cotação indisponível")}</div>
-      <div style="display:flex;gap:8px;margin-top:4px;font-size:.55rem;color:var(--t3)">
+      <div style="font-size:.74rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : (window.getLisbonMarketContext?.()?.state === "closed" ? "Sem negociação hoje" : "Cotação indisponível")}</div>
+      <div style="display:flex;gap:8px;margin-top:4px;font-size:.74rem;color:var(--t3)">
         <span>H <b style="color:var(--t2)">${psi.live ? psi.hi.toFixed(0) : "—"}</b></span>
         <span>L <b style="color:var(--t2)">${psi.live ? psi.lo.toFixed(0) : "—"}</b></span>
       </div>
@@ -203,17 +203,17 @@ async function loadPSI20Trend(force = false) {
     </div>
 
     <div>
-      <div style="font-size:.58rem;font-weight:700;color:var(--t2);margin-bottom:4px">🌍 Bolsas europeias</div>
+      <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:4px">🌍 Bolsas europeias</div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px">
         ${EU_INDICES.slice(1).map((idx,i)=>{
           const q=cache.indices[i+1];
           const c=q.chg>=0?"var(--green)":"var(--red)";
           return `<div style="background:var(--b2);border-radius:6px;padding:5px 6px;text-align:center">
             <div style="font-size:.85rem">${idx.flag}</div>
-            <div style="font-size:.58rem;font-weight:700;color:${idx.col};white-space:nowrap">${idx.label}</div>
-            <div style="font-family:var(--mono);font-size:.68rem;font-weight:700;color:var(--text);margin:1px 0">
+            <div style="font-size:.74rem;font-weight:700;color:${idx.col};white-space:nowrap">${idx.label}</div>
+            <div style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--text);margin:1px 0">
               ${q.live ? (q.price>1000?q.price.toLocaleString("pt",{maximumFractionDigits:0}):q.price.toFixed(2)) : "—"}</div>
-            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação"}</div>
+            <div style="font-size:.74rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação"}</div>
           </div>`;
         }).join("")}
       </div>
@@ -232,7 +232,7 @@ async function loadPSI20Trend(force = false) {
     <div style="height:120px"><canvas id="psi20TrendCanvas"></canvas></div>
   </div>
 
-  <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">🏢 Constituintes · cotações do dia</div>
+  <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">🏢 Constituintes · cotações do dia</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
     ${PSI20_CONST.map((s,i)=>{
       const q=cache.stocks[i];
@@ -242,22 +242,22 @@ async function loadPSI20Trend(force = false) {
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
           <span style="font-size:.9rem">${s.ico}</span>
           <div style="flex:1">
-            <div style="font-size:.62rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.label}</div>
-            <div style="font-size:.5rem;color:var(--t3)">${s.sector}</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.label}</div>
+            <div style="font-size:.74rem;color:var(--t3)">${s.sector}</div>
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
           <div>
             <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${s.col}">
         ${q.live ? `${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€` : "—"}</div>
-            <div style="font-size:.6rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação atual"}</div>
+            <div style="font-size:.74rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação atual"}</div>
           </div>
           ${q.live ? miniBar(q.chg) : ""}
         </div>
       </div>`;
     }).join("")}
   </div>
-  <div style="font-size:.52rem;color:var(--t3);margin-top:6px;line-height:1.4">
+  <div style="font-size:.74rem;color:var(--t3);margin-top:6px;line-height:1.4">
     ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
     ${cache.live?(cache.src==="yahoo"?"Última cotação Yahoo (pode ter atraso)":"Último fecho devolvido pela Stooq")+` · consulta recebida ${new Date(cache.ts).toLocaleString("pt-PT")}`+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
   </div>`;

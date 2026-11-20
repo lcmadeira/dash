@@ -81,11 +81,11 @@ function loadTransp(_force){
     const tipoCol=t.tipo==="IC"?"#3B82F6":"#10B981";
     return `<div style="display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:5px;margin-bottom:2px;`
       +(isNext?`background:${accentCol}18;border:1px solid ${accentCol}44;`:isPast?`opacity:.38;`:`background:var(--b2);`)+`">
-      <span style="font-family:var(--mono);font-size:.72rem;font-weight:${isNext?700:400};color:${isPast?"var(--t3)":isNext?accentCol:"var(--text)"};min-width:38px">${t.p}</span>
-      <span style="font-size:.54rem;background:${tipoCol}22;color:${tipoCol};border-radius:3px;padding:1px 4px">${t.tipo}</span>
-      <span style="font-size:.54rem;color:var(--t3);flex:1">${t.obs}</span>
-      <span style="font-size:.56rem;color:var(--t3)">${t.c}</span>
-      ${isNext?`<span style="font-size:.52rem;color:${accentCol};font-weight:600">▶</span>`:""}
+      <span style="font-family:var(--mono);font-size:.74rem;font-weight:${isNext?700:400};color:${isPast?"var(--t3)":isNext?accentCol:"var(--text)"};min-width:38px">${t.p}</span>
+      <span style="font-size:.74rem;background:${tipoCol}22;color:${tipoCol};border-radius:3px;padding:1px 4px">${t.tipo}</span>
+      <span style="font-size:.74rem;color:var(--t3);flex:1">${t.obs}</span>
+      <span style="font-size:.74rem;color:var(--t3)">${t.c}</span>
+      ${isNext?`<span style="font-size:.74rem;color:${accentCol};font-weight:600">▶</span>`:""}
     </div>`;
   }
 
@@ -96,20 +96,20 @@ function loadTransp(_force){
   const htmlPasses=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
-        <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎫 Passe Navegante 2026</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎫 Passe Navegante 2026</div>
         ${PASSES.map(p=>`<div style="background:var(--b2);border-radius:7px;padding:7px 9px;margin-bottom:4px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div><div style="font-size:.68rem;font-weight:600;color:var(--text)">${p.ico} ${p.nome}</div>
-              <div style="font-size:.57rem;color:var(--t3);margin-top:1px">${p.desc}</div></div>
-            <div style="font-size:1.1rem;font-weight:800;color:#10B981;white-space:nowrap">${p.preco}<span style="font-size:.55rem;color:var(--t3)"> €/mês</span></div>
+            <div><div style="font-size:.74rem;font-weight:600;color:var(--text)">${p.ico} ${p.nome}</div>
+              <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${p.desc}</div></div>
+            <div style="font-size:1.1rem;font-weight:800;color:#10B981;white-space:nowrap">${p.preco}<span style="font-size:.74rem;color:var(--t3)"> €/mês</span></div>
           </div></div>`).join("")}
-        <div style="font-size:.55rem;color:var(--t3);margin:4px 0 6px">Preços municipais e metropolitano mantidos em 2026. A oferta regional no Alentejo varia por percurso e operador.</div>
-        <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:.61rem;color:var(--t2);line-height:1.5">
+        <div style="font-size:.74rem;color:var(--t3);margin:4px 0 6px">Preços municipais e metropolitano mantidos em 2026. A oferta regional no Alentejo varia por percurso e operador.</div>
+        <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:.74rem;color:var(--t2);line-height:1.5">
           💡 <b style="color:#10B981">Passe Metropolitano (40€/mês)</b> = ~25 viagens. Compensa a partir do 13.º dia útil com ida+volta.
         </div>
       </div>
       <div>
-        <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎟 Tarifas urbanas 2026</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎟 Tarifas urbanas 2026</div>
         <table class="tbl">
           <thead>
             <tr><td>Operador</td><td class="r">Simples</td><td class="r">Diário</td></tr>
@@ -122,41 +122,41 @@ function loadTransp(_force){
             </tr>`).join("")}
           </tbody>
         </table>
-        <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin:8px 0 5px">🚂 Ligações CP · tempos indicativos · consultar tarifa</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin:8px 0 5px">🚂 Ligações CP · tempos indicativos · consultar tarifa</div>
         ${LIGACOES.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 7px;background:var(--b2);border-radius:5px;margin-bottom:2px;border-left:2px solid ${l.col}">
-          <div><span style="font-size:.65rem;font-weight:600;color:var(--text)">${l.orig} → ${l.dest}</span>
-            <span style="font-size:.55rem;color:var(--t3);margin-left:4px">${l.tipo} · ${l.dur}</span></div>
-          <div style="font-size:.58rem;font-weight:600;color:${l.col}">Consultar CP</div>
+          <div><span style="font-size:.74rem;font-weight:600;color:var(--text)">${l.orig} → ${l.dest}</span>
+            <span style="font-size:.74rem;color:var(--t3);margin-left:4px">${l.tipo} · ${l.dur}</span></div>
+          <div style="font-size:.74rem;font-weight:600;color:${l.col}">Consultar CP</div>
         </div>`).join("")}
-        <div style="font-size:.55rem;color:var(--t3);margin-top:5px">Tarifários ocasionais 2026. CP Lisboa: preço simples para zona 1; o total depende das zonas. <a href="https://www.cp.pt/passageiros/pt" target="_blank" rel="noopener noreferrer">Consultar CP</a> · <a href="https://www.metrolisboa.pt/2025/12/19/novas-tarifas-2026/" target="_blank" rel="noopener noreferrer">Metro Lisboa</a> · <a href="https://andante.pt/comprar/andante-azul/" target="_blank" rel="noopener noreferrer">Andante</a></div>
-        <div style="background:var(--b2);border-radius:5px;padding:5px 7px;margin-top:6px;font-size:.58rem;color:var(--t2)">O estado operacional e os avisos de greve não são consultados em direto. Confirme junto dos operadores.</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:5px">Tarifários ocasionais 2026. CP Lisboa: preço simples para zona 1; o total depende das zonas. <a href="https://www.cp.pt/passageiros/pt" target="_blank" rel="noopener noreferrer">Consultar CP</a> · <a href="https://www.metrolisboa.pt/2025/12/19/novas-tarifas-2026/" target="_blank" rel="noopener noreferrer">Metro Lisboa</a> · <a href="https://andante.pt/comprar/andante-azul/" target="_blank" rel="noopener noreferrer">Andante</a></div>
+        <div style="background:var(--b2);border-radius:5px;padding:5px 7px;margin-top:6px;font-size:.74rem;color:var(--t2)">O estado operacional e os avisos de greve não são consultados em direto. Confirme junto dos operadores.</div>
       </div>
     </div>`;
 
   /* Tab 2: Horários CP Lisboa↔Évora */
   const htmlHor=`
-    <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:6px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:6px">
       🚆 Horários CP Lisboa↔Évora
-      <span style="font-size:.55rem;font-weight:400;color:var(--t3)"> · horário publicado para vigorar desde 14 Dez 2025 · confirmar alterações na CP</span>
+      <span style="font-size:.74rem;font-weight:400;color:var(--t3)"> · horário publicado para vigorar desde 14 Dez 2025 · confirmar alterações na CP</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div>
-        <div style="font-size:.62rem;font-weight:600;color:#F59E0B;margin-bottom:4px">Lisboa Or. → Évora</div>
+        <div style="font-size:.74rem;font-weight:600;color:#F59E0B;margin-bottom:4px">Lisboa Or. → Évora</div>
         ${HORARIOS_LX_EV.map(t=>trainRow(t,nextLX,"#F59E0B")).join("")}
-        <div style="font-size:.54rem;color:var(--t3);margin-top:3px">chegada Évora</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:3px">chegada Évora</div>
       </div>
       <div>
-        <div style="font-size:.62rem;font-weight:600;color:#10B981;margin-bottom:4px">Évora → Lisboa Or.</div>
+        <div style="font-size:.74rem;font-weight:600;color:#10B981;margin-bottom:4px">Évora → Lisboa Or.</div>
         ${HORARIOS_EV_LX.map(t=>trainRow(t,nextEV,"#10B981")).join("")}
-        <div style="font-size:.54rem;color:var(--t3);margin-top:3px">chegada Lisboa</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:3px">chegada Lisboa</div>
       </div>
     </div>
-    <div style="font-size:.54rem;color:var(--t3);margin-top:6px;line-height:1.5">
+    <div style="font-size:.74rem;color:var(--t3);margin-top:6px;line-height:1.5">
       IC = Intercidades · reserva obrigatória · tarifa varia por serviço · R = Regional · ▶ próxima partida
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:8px 10px;margin-top:8px">
-      <div style="font-size:.63rem;font-weight:700;color:#F59E0B;margin-bottom:3px">🏛️ Évora · Transportes</div>
-      <div style="font-size:.6rem;color:var(--t2);line-height:1.6">
+      <div style="font-size:.74rem;font-weight:700;color:#F59E0B;margin-bottom:3px">🏛️ Évora · Transportes</div>
+      <div style="font-size:.74rem;color:var(--t2);line-height:1.6">
         CP Lisboa↔Évora: ~6 comboios/dia · 1h33 · tarifa varia por serviço e data<br>
         Autocarros regionais: passes e preços variam por linha e operador<br>
         Táxi/TVDE: Bolt e Uber disponíveis em Évora cidade<br>
@@ -166,21 +166,21 @@ function loadTransp(_force){
 
   /* Tab 3: Autocarros regionais */
   const htmlBus=`
-    <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:6px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:6px">
       🚌 Autocarros regionais · partida de Évora
-      <span style="font-size:.55rem;font-weight:400;color:var(--t3)"> · RVTEJO · Rede Expressos · Rodalentejo</span>
+      <span style="font-size:.74rem;font-weight:400;color:var(--t3)"> · RVTEJO · Rede Expressos · Rodalentejo</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
       ${RVTEJO.map(r=>`<div style="background:var(--b2);border-radius:7px;padding:7px 9px;border:1px solid var(--b)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:.7rem;font-weight:600;color:var(--text)">${r.ico} ${r.dest}</span>
-          <span style="font-size:.7rem;font-weight:700;color:#10B981">${r.preco}</span>
+          <span style="font-size:.74rem;font-weight:600;color:var(--text)">${r.ico} ${r.dest}</span>
+          <span style="font-size:.74rem;font-weight:700;color:#10B981">${r.preco}</span>
         </div>
-        <div style="font-size:.55rem;color:var(--t3);margin-top:2px">${r.dur} · ${r.freq}</div>
-        <div style="font-size:.52rem;color:var(--t3)">${r.op}</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${r.dur} · ${r.freq}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${r.op}</div>
       </div>`).join("")}
     </div>
-    <div style="font-size:.54rem;color:var(--t3);margin-top:6px;line-height:1.5">
+    <div style="font-size:.74rem;color:var(--t3);margin-top:6px;line-height:1.5">
       Partida: Central de Camionagem de Évora · Av. Túlio Espanca · frequências e preços aproximados, confirmar no operador
     </div>`;
 
