@@ -90,31 +90,31 @@ async function loadAir(force=false){
     <!-- KPIs compactos numa linha -->
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#3B82F6;line-height:1">${flying.length}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${flying.length}</div>
         <div style="font-size:.74rem;color:var(--t3)">Em voo</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#6E7A96;line-height:1">${ground.length}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${ground.length}</div>
         <div style="font-size:.74rem;color:var(--t3)">Em terra</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#10B981;line-height:1">▲${climbing}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">▲${climbing}</div>
         <div style="font-size:.74rem;color:var(--t3)">A subir</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">▼${descending}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--red);line-height:1">▼${descending}</div>
         <div style="font-size:.74rem;color:var(--t3)">A descer</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
         <div style="font-size:.74rem;color:var(--t3)">Alt.méd m</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${avgVel||"—"}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${avgVel||"—"}</div>
         <div style="font-size:.74rem;color:var(--t3)">km/h méd</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${maxVel||"—"}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${maxVel||"—"}</div>
         <div style="font-size:.74rem;color:var(--t3)">km/h máx</div>
       </div>
     </div>
@@ -123,12 +123,12 @@ async function loadAir(force=false){
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1020;margin-bottom:10px">
       <canvas id="air-map-canvas" style="width:100%;height:260px;display:block"></canvas>
       <div id="air-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:var(--text);pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <!-- Badge live -->
       <div style="position:absolute;top:6px;right:6px;background:#10B98122;border:1px solid #10B98144;
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:#10B981">
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--green)">
         🟢 Live · ${age}min
       </div>
     </div>
@@ -387,7 +387,7 @@ async function loadAir(force=false){
     {dest:"São Paulo",cod:"GRU",freq:"~5/dia",col:"#F97316"},
   ];
   el.innerHTML=`
-    <div style="font-size:.74rem;color:#F59E0B;margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
+    <div style="font-size:.74rem;color:var(--amber);margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px">
       ${ANA.map(x=>`<div style="background:var(--b2);border-radius:8px;padding:8px 10px">
         <div style="font-size:.74rem;color:var(--t2);margin-bottom:2px">${x.label}</div>

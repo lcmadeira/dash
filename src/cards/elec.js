@@ -202,7 +202,7 @@
         if ([7, 30, 90].includes(pref?.days)) trendDays = pref.days;
       } catch {}
       const staleNotice = today.stale
-        ? `<div style="margin-bottom:8px;color:#F59E0B;font-size:.74rem">${Number.isFinite(today.cacheAge) ? `Dados em cache local com ${fmtAgeShort(today.cacheAge)} de idade` : "O gateway serviu um snapshot de contingência"}; OMIE indisponível.</div>`
+        ? `<div style="margin-bottom:8px;color:var(--amber);font-size:.74rem">${Number.isFinite(today.cacheAge) ? `Dados em cache local com ${fmtAgeShort(today.cacheAge)} de idade` : "O gateway serviu um snapshot de contingência"}; OMIE indisponível.</div>`
         : today.cache
           ? `<div style="margin-bottom:8px;color:var(--t3);font-size:.74rem">Cache local · preços do dia de mercado ${periodDateLabel(date)}.</div>`
           : "";
@@ -242,11 +242,11 @@
             <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">Próximo dia de mercado · ${periodDateLabel(tomorrowDate)}</div>
             ${priceTomorrow === null
               ? `<div style="font-size:.82rem;font-weight:700;color:var(--t2);margin-top:8px">Ainda não publicado</div>`
-              : `<div style="font-size:1.2rem;font-weight:800;color:#10B981;margin-top:5px">${priceTomorrow.toFixed(1)} €/MWh</div><div style="font-size:.74rem;color:var(--t3)">média dos ${tomorrow.periods.length} períodos</div>`}
+              : `<div style="font-size:1.2rem;font-weight:800;color:var(--green);margin-top:5px">${priceTomorrow.toFixed(1)} €/MWh</div><div style="font-size:.74rem;color:var(--t3)">média dos ${tomorrow.periods.length} períodos</div>`}
             <div style="font-size:.74rem;color:var(--t3);margin-top:8px">Preço grossista; não é o preço final da fatura.</div>
           </div>
         </div>
-        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.74rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:#10B981">${cheapestStart}–${cheapestEnd} hora de mercado</strong> · média ${cheapest.average.toFixed(1)} €/MWh</div>` : ""}
+        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.74rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:var(--green)">${cheapestStart}–${cheapestEnd} hora de mercado</strong> · média ${cheapest.average.toFixed(1)} €/MWh</div>` : ""}
         <div style="display:flex;align-items:flex-end;gap:1px;height:46px;margin:10px 0 2px">${hourlyBars}</div>
         <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-bottom:3px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
         <div style="font-size:.74rem;color:var(--t3)">Preços por hora de mercado · fonte em intervalos OMIE de ${today.periods.length >= 90 ? "15 min" : "1 h"} · zona PT · hora de mercado CET/CEST (Portugal continental: menos 1h)</div>

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261120-8"/>
+<link rel="stylesheet" href="styles.css?v=20261120-9"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -116,7 +116,7 @@
           <span>📊</span>
           <span>Escolher e Ordenar Cards</span>
         </div>
-        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p class="settings-hint">
           Arraste os cards para reordenar. Use os toggles para mostrar/ocultar.
         </p>
         <div class="card-search" role="search">
@@ -141,7 +141,7 @@
           <span>📍</span>
           <span>Localização Preferida</span>
         </div>
-        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p class="settings-hint">
           Escolha a cidade para meteorologia e informações locais.
         </p>
         <div class="location-grid" id="locationGrid"></div>
@@ -153,7 +153,7 @@
           <span>📈</span>
           <span>Tickers Favoritos</span>
         </div>
-        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p class="settings-hint">
           Adicione ações portuguesas para acompanhar no painel de finanças.
         </p>
         
@@ -347,18 +347,18 @@
     <div class="export-modal-body">
       <div style="display:grid;gap:12px">
         <div>
-          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Data</div>
+          <div class="field-label">Data</div>
           <input id="cabaz-input-data" type="date" class="ticker-input" style="width:100%">
         </div>
         <div>
-          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Valor (€)</div>
+          <div class="field-label">Valor (€)</div>
           <input id="cabaz-input-valor" type="text" inputmode="decimal" class="ticker-input" placeholder="Ex: 237.87" style="width:100%">
           <div style="margin-top:6px;font-size:.74rem;color:var(--t3);font-family:var(--mono);line-height:1.4">
             Aceita vírgula ou ponto (ex: 237,87).
           </div>
         </div>
         <div>
-          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Nota (opcional)</div>
+          <div class="field-label">Nota (opcional)</div>
           <textarea id="cabaz-input-nota" class="ticker-input" rows="3" placeholder="Ex: Fonte/observações" style="width:100%;resize:vertical"></textarea>
         </div>
         <div style="background:var(--surface);border:1px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.74rem;color:var(--t3);line-height:1.6">
@@ -461,7 +461,7 @@
         <button type="button" class="rbtn ico" id="wxhol-refresh" onclick="refreshCard('weather', getWeatherCacheKey, this, wxholRefresh)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
-    <div style="display:flex;gap:4px;margin:5px 0 8px">
+    <div class="card-tabs">
       <button type="button" class="rbtn on" id="wxhol-tab-wx"  onclick="switchWxHol('wx',this)">🌤 Tempo</button>
       <button type="button" class="rbtn"    id="wxhol-tab-res" onclick="switchWxHol('resumo',this)">📊 Resumo</button>
       <button type="button" class="rbtn"    id="wxhol-tab-hol" onclick="switchWxHol('feriados',this)">🗓 Feriados</button>
@@ -617,23 +617,23 @@
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Preço mediano nacional</div>
         <div class="imob-kpi-val" id="imob-preco-val">2 111 <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span></div>
-        <div class="imob-kpi-chg" id="imob-preco-chg" style="color:#10b981">▲ +17,7% homólogo</div>
+        <div class="imob-kpi-chg up" id="imob-preco-chg">▲ +17,7% homólogo</div>
         <div class="imob-kpi-sub" id="imobSub1">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Transações no trimestre</div>
         <div class="imob-kpi-val" id="imob-trans-val">42 481</div>
-        <div class="imob-kpi-chg" style="color:#10b981">▲ +3,8% homólogo</div>
+        <div class="imob-kpi-chg up">▲ +3,8% homólogo</div>
         <div class="imob-kpi-sub">€ 10,5 mil M vendas</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações novas</div>
-        <div class="imob-kpi-val" style="color:#0ea5e9">+14,1%</div>
+        <div class="imob-kpi-val" style="color:var(--blue)">+14,1%</div>
         <div class="imob-kpi-sub" id="imobSub2">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações existentes</div>
-        <div class="imob-kpi-val" style="color:#f59e0b">+19,1%</div>
+        <div class="imob-kpi-val" style="color:var(--amber)">+19,1%</div>
         <div class="imob-kpi-sub" id="imobSub3">...</div>
       </div>
     </div>
@@ -719,7 +719,7 @@
       <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('air','air_v8',this,loadAir,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
-    <div id="air-body" style="padding:4px 0"></div>
+    <div id="air-body" class="card-body-pad"></div>
     <div class="src">✦ OpenSky Network (live) · ANA Aeroportos 2024 (fallback)</div>
   </div>
 
@@ -729,7 +729,7 @@
       <span class="ch-lbl">Sismos · Ibéria · Açores · 7 dias</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('seis','seis_v10',this,loadSeis,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
-    <div id="seis-body" style="padding:4px 0"></div>
+    <div id="seis-body" class="card-body-pad"></div>
     <div class="src">✦ USGS Earthquake Hazards Program · mag ≥ 0.5 · 30 dias · Ibéria + Açores</div>
   </div>
 
@@ -740,7 +740,7 @@
       <span class="ch-lbl">Estreito de Ormuz · Tráfego Marítimo</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('ormuz','ormuz_v2',this,loadOrmuz,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
-    <div id="ormuz-body" style="padding:4px 0"></div>
+    <div id="ormuz-body" class="card-body-pad"></div>
     <div class="src">✦ AIS data · Golfo Pérsico · Estreito de Ormuz</div>
   </div>
 
@@ -874,7 +874,7 @@
         <button type="button" class="rbtn ico" onclick="refreshCard('cal',null,this,loadAndRenderCalendar,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
     </div>
-    <div style="display:flex;gap:4px;margin:6px 0 8px">
+    <div class="card-tabs">
       <button type="button" class="rbtn on" id="cal-tab-up" onclick="switchCal('upcoming',this)">Próximos</button>
       <button type="button" class="rbtn"    id="cal-tab-pa" onclick="switchCal('past',this)">Concluídos</button>
     </div>
@@ -897,10 +897,10 @@
     </div>
     <div id="cmap-content"></div>
     <div class="cmap-legend" id="cmap-legend">
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#EF4444"></div>Guerra activa</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#F59E0B"></div>Alta intensidade</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#8B5CF6"></div>Tensão</div>
-      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:#3B82F6"></div>Risco nuclear</div>
+      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:var(--red)"></div>Guerra activa</div>
+      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:var(--amber)"></div>Alta intensidade</div>
+      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:var(--purple)"></div>Tensão</div>
+      <div class="cmap-leg-item"><div class="cmap-leg-dot" style="background:var(--blue)"></div>Risco nuclear</div>
     </div>
     <div class="src">✦ ACLED · CFR · Crisis Group · UCDP · Mar 2026</div>
   </div>
@@ -929,7 +929,7 @@
     </span>
     <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('co2','co2_ren_v1',this,loadCO2,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
   </div>
-  <div id="co2-body" style="padding:4px 0"></div>
+  <div id="co2-body" class="card-body-pad"></div>
   <div class="src">✦ DGEG · REN Relatório Anual 2024 · Intensidade carbónica gCO₂/kWh</div>
 </div>
 
@@ -983,42 +983,42 @@
  <script src="src/core.js"></script>
  <script src="src/cache.js?v=20261029-5"></script>
  <script src="src/fetch.js?v=20261029-7"></script>
-<script src="src/ui.js?v=20261120-8" integrity="sha384-je7GEmdcyb+IHSBqjvfkTxrrEL2X3HSdLbzUDF6KaIQnbQBZVyAqlDYRi2bk0mQ0"></script>
+<script src="src/ui.js?v=20261120-9" integrity="sha384-je7GEmdcyb+IHSBqjvfkTxrrEL2X3HSdLbzUDF6KaIQnbQBZVyAqlDYRi2bk0mQ0"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261029-10" integrity="sha384-fbrB4xrv5mtkyQatlTFZ90Ikn6FeZI//NMkJiezqkXvs466wBbWAUPdoVKw8fz/z"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
- <script src="src/cards/elec.js?v=20261120-8"></script>
+ <script src="src/cards/elec.js?v=20261120-9"></script>
  <script src="src/cards/news.js?v=20261029-4"></script>
- <script src="src/cards/seis.js?v=20261120-8"></script>
- <script src="src/cards/dams.js?v=20261120-8"></script>
- <script src="src/cards/fuel.js?v=20261120-8"></script>
- <script src="src/cards/weather.js?v=20261120-8"></script>
- <script src="src/cards/holidays.js?v=20261120-8"></script>
- <script src="src/cards/air-quality.js?v=20261120-8"></script>
- <script src="src/cards/market-stats.js?v=20261120-8"></script>
- <script src="src/cards/real-estate.js?v=20261120-8"></script>
- <script src="src/cards/fear-greed.js?v=20261120-8"></script>
- <script src="src/cards/agriculture.js?v=20261120-8"></script>
- <script src="src/cards/exports.js?v=20261120-8"></script>
- <script src="src/cards/public-debt.js?v=20261120-8"></script>
- <script src="src/cards/recession.js?v=20261120-8"></script>
- <script src="src/cards/air-traffic.js?v=20261120-8"></script>
- <script src="src/cards/ormuz.js?v=20261120-8"></script>
- <script src="src/cards/co2.js?v=20261120-8"></script>
- <script src="src/cards/transport.js?v=20261120-8"></script>
- <script src="src/cards/press.js?v=20261120-8"></script>
- <script src="src/cards/smn.js?v=20261120-8"></script>
- <script src="src/cards/inflation.js?v=20261120-8"></script>
- <script src="src/cards/euribor.js?v=20261120-8"></script>
- <script src="src/cards/fx.js?v=20261120-8"></script>
- <script src="src/cards/crypto.js?v=20261120-8"></script>
- <script src="src/cards/psi20.js?v=20261120-8"></script>
- <script src="src/cards/geopolitics.js?v=20261120-8"></script>
- <script src="src/cards/gas-markets.js?v=20261120-8"></script>
- <script src="src/widgets/economic-calendar.js?v=20261120-8"></script>
+ <script src="src/cards/seis.js?v=20261120-9"></script>
+ <script src="src/cards/dams.js?v=20261120-9"></script>
+ <script src="src/cards/fuel.js?v=20261120-9"></script>
+ <script src="src/cards/weather.js?v=20261120-9"></script>
+ <script src="src/cards/holidays.js?v=20261120-9"></script>
+ <script src="src/cards/air-quality.js?v=20261120-9"></script>
+ <script src="src/cards/market-stats.js?v=20261120-9"></script>
+ <script src="src/cards/real-estate.js?v=20261120-9"></script>
+ <script src="src/cards/fear-greed.js?v=20261120-9"></script>
+ <script src="src/cards/agriculture.js?v=20261120-9"></script>
+ <script src="src/cards/exports.js?v=20261120-9"></script>
+ <script src="src/cards/public-debt.js?v=20261120-9"></script>
+ <script src="src/cards/recession.js?v=20261120-9"></script>
+ <script src="src/cards/air-traffic.js?v=20261120-9"></script>
+ <script src="src/cards/ormuz.js?v=20261120-9"></script>
+ <script src="src/cards/co2.js?v=20261120-9"></script>
+ <script src="src/cards/transport.js?v=20261120-9"></script>
+ <script src="src/cards/press.js?v=20261120-9"></script>
+ <script src="src/cards/smn.js?v=20261120-9"></script>
+ <script src="src/cards/inflation.js?v=20261120-9"></script>
+ <script src="src/cards/euribor.js?v=20261120-9"></script>
+ <script src="src/cards/fx.js?v=20261120-9"></script>
+ <script src="src/cards/crypto.js?v=20261120-9"></script>
+ <script src="src/cards/psi20.js?v=20261120-9"></script>
+ <script src="src/cards/geopolitics.js?v=20261120-9"></script>
+ <script src="src/cards/gas-markets.js?v=20261120-9"></script>
+ <script src="src/widgets/economic-calendar.js?v=20261120-9"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261120-8"></script>
-<script src="src/layout.js?v=20261120-1" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
+<script src="src/app.js?v=20261120-9"></script>
+<script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>

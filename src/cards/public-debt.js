@@ -52,12 +52,12 @@ function renderDiv(){
     el.innerHTML=`<div style="margin-top:4px">
       <div style="font-size:.74rem;color:var(--t2);margin-bottom:4px">Portugal · Dívida % PIB · 2014–2024</div>
       <svg viewBox="0 0 ${W} ${H+22}" style="width:100%;height:76px">
-        <polygon points="${fill}" fill="color-mix(in srgb, var(--accent) 15%, transparent)"/>
-        <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <polygon points="${fill}" style="fill:var(--ad)"/>
+        <polyline points="${pts}" fill="none" style="stroke:var(--accent)" stroke-width="2"/>
         ${DIV_TREND.map((x,i)=>`
-          <circle cx="${px(i)}" cy="${py(x.v)}" r="3" fill="var(--accent)"/>
+          <circle cx="${px(i)}" cy="${py(x.v)}" r="3" style="fill:var(--accent)"/>
           <text x="${px(i)}" y="${H+14}" font-size="8" fill="#6E7A96" text-anchor="middle">${x.y}</text>
-          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" fill="var(--text)" text-anchor="middle">${x.v}</text>
+          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" style="fill:var(--text)" text-anchor="middle">${x.v}</text>
         `).join("")}
       </svg>
     </div>`;

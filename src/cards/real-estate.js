@@ -35,7 +35,7 @@ async function loadImob(force=false){
 
     if(chg){
       const yoyStr=d.chgYoY!=null?`+${d.chgYoY.toFixed(1)}%`:"+17,7%";
-      const col=d.chgYoY>0?"#10b981":"#ef4444";
+      const col=d.chgYoY>0?"var(--green)":"var(--red)";
       chg.style.color=col;
       chg.textContent=`▲ ${yoyStr} homólogo`;
     }
@@ -47,8 +47,8 @@ async function loadImob(force=false){
 
     if(src){
       const badge=d.isLive
-        ?`<span style="color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.74rem">● INE API live</span>`
-        :`<span style="color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.74rem">⚠ estático · ref. Q3 2025</span>`;
+        ?`<span style="color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.74rem">● INE API live</span>`
+        :`<span style="color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.74rem">⚠ estático · ref. Q3 2025</span>`;
       src.innerHTML=`✦ INE · Estatísticas Preços Habitação · ${d.periodFull||d.period} ${badge}`;
     }
 

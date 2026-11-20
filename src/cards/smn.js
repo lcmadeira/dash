@@ -47,10 +47,10 @@ function loadSMN(_force){
         <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
              letter-spacing:.5px;margin-bottom:2px">SMN legal Portugal 2026 · bruto</div>
         <div style="display:flex;align-items:flex-end;gap:5px">
-          <div style="font-size:2.2rem;font-weight:900;color:#10B981;line-height:1">${smn}</div>
+          <div style="font-size:2.2rem;font-weight:900;color:var(--green);line-height:1">${smn}</div>
           <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/mês</div>
         </div>
-        <div style="font-size:.74rem;color:#10B981;font-weight:600;margin-top:1px">▲ ${yoy}% vs 2025 (870€) · 14 pagamentos/ano</div>
+        <div style="font-size:.74rem;color:var(--green);font-weight:600;margin-top:1px">▲ ${yoy}% vs 2025 (870€) · 14 pagamentos/ano</div>
         <svg viewBox="0 0 ${W} ${H+10}" style="width:100%;height:${H+10}px;margin-top:5px">
           <polygon points="${fill}" fill="#10B98118"/>
           <polyline points="${pts}" fill="none" stroke="#10B981" stroke-width="1.8"/>
@@ -68,14 +68,14 @@ function loadSMN(_force){
         const ispt=r.n==="Portugal";
         return `<div style="display:grid;grid-template-columns:16px 66px 1fr 38px;
                      align-items:center;gap:3px;padding:2px ${ispt?"4px":"0"};
-                     ${ispt?"background:"+r.col+"15;border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)"}">
+                     ${ispt?"background:var(--ad);border-radius:4px;margin:1px -4px;":"border-bottom:1px solid var(--b)"}">
           <span style="font-size:.76rem">${r.c}</span>
           <span style="font-size:.74rem;font-weight:${ispt?700:400};
                 color:${ispt?"#fff":"var(--t2)"}">${r.n}</span>
           <div style="background:var(--b2);border-radius:2px;height:4px;overflow:hidden">
-            <div style="width:${bw}%;height:100%;background:${r.col}"></div>
+            <div style="width:${bw}%;height:100%;background:${ispt?"var(--accent)":"var(--data-muted)"}"></div>
           </div>
-          <span style="font-size:.74rem;color:${r.col};font-weight:600;text-align:right">${r.v}€</span>
+          <span style="font-size:.74rem;color:${ispt?"var(--accent)":"var(--text)"};font-weight:600;text-align:right">${r.v}€</span>
         </div>`;
       }).join("")}
     </div>
@@ -87,7 +87,7 @@ function loadSMN(_force){
         <div style="font-size:.74rem;color:var(--t2);line-height:1.55">
           Em Portugal, o salário mínimo é pago em 14 prestações anuais. O valor legal de
           <b style="color:var(--text)">920€ × 14</b> corresponde a
-          <b style="color:#10B981">${smnEurostat}€ brutos/mês</b> quando distribuído por 12 meses,
+          <b style="color:var(--green)">${smnEurostat}€ brutos/mês</b> quando distribuído por 12 meses,
           como faz o Eurostat para comparar países.
         </div>
       </div>

@@ -693,7 +693,7 @@ window.buildConflictMap=function(){
   const wrap=document.getElementById("cmap-content");
   if(!wrap)return;
   wrap.innerHTML='<canvas id="cmap-canvas" style="width:100%;height:100%;display:block;border-radius:6px"></canvas>'
-    +'<div id="cmap-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;padding:6px 10px;border-radius:6px;font-size:.74rem;color:#DDE3F0;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:180px;line-height:1.4"></div>';
+    +'<div id="cmap-tip" style="position:absolute;background:#1E2340;border:1px solid #3D4560;padding:6px 10px;border-radius:6px;font-size:.74rem;color:var(--text);pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;max-width:180px;line-height:1.4"></div>';
 
   const canvas=document.getElementById("cmap-canvas");
   const tip=document.getElementById("cmap-tip");
@@ -875,10 +875,10 @@ function buildStats(){
   const regionColors={"Médio Oriente":"#ef4444","África":"#f59e0b","Ásia":"#8b5cf6","Europa":"#3b82f6","Américas":"#10b981"};
 
   let html='<div class="cmap-stat-grid">';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:#ef4444">'+total+'</div><div class="cmap-stat-sub">activos · Mar 2026</div></div>';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras activas</div><div class="cmap-stat-val" style="color:#ef4444">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Alta intensidade</div><div class="cmap-stat-val" style="color:#f59e0b">'+byType.high+'</div><div class="cmap-stat-sub">violência significativa</div></div>';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Risco nuclear</div><div class="cmap-stat-val" style="color:#3b82f6">'+byType.nuclear+'</div><div class="cmap-stat-sub">cenários escalação</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:var(--red)">'+total+'</div><div class="cmap-stat-sub">activos · Mar 2026</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras activas</div><div class="cmap-stat-val" style="color:var(--red)">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Alta intensidade</div><div class="cmap-stat-val" style="color:var(--amber)">'+byType.high+'</div><div class="cmap-stat-sub">violência significativa</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Risco nuclear</div><div class="cmap-stat-val" style="color:var(--blue)">'+byType.nuclear+'</div><div class="cmap-stat-sub">cenários escalação</div></div>';
   html+='</div>';
 
   html+='<div style="font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px">Distribuição por região</div>';
@@ -896,7 +896,7 @@ function buildStats(){
   html+='<div style="margin-top:12px;padding:10px;background:var(--c2);border:1px solid var(--b);border-radius:var(--rs)">';
   html+='<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Índice de tensão global</div>';
   html+='<div style="display:flex;align-items:center;gap:10px">';
-  html+='<div style="font-size:1.6rem;font-weight:700;color:#ef4444">'+intensity+'</div>';
+  html+='<div style="font-size:1.6rem;font-weight:700;color:var(--red)">'+intensity+'</div>';
   html+='<div>';
   html+='<div style="width:160px;height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:3px">';
   html+='<div style="width:'+intensity+'%;height:100%;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444);border-radius:4px"></div>';
@@ -3892,11 +3892,11 @@ function showTrendModal(title, historyKey, options = {}) {
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Mínimo</div>
-      <div style="font-size:1.1rem;font-weight:600;color:#10B981">${min.toFixed(dec)}${unit}</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--green)">${min.toFixed(dec)}${unit}</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Máximo</div>
-      <div style="font-size:1.1rem;font-weight:600;color:#EF4444">${max.toFixed(dec)}${unit}</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--red)">${max.toFixed(dec)}${unit}</div>
     </div>
   `;
   
@@ -4094,11 +4094,11 @@ function renderCabaz(){
     <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
          letter-spacing:.5px;margin-bottom:3px">
       Cabaz 63 produtos · ${fmtDate(cur[0])}
-      <span style="font-size:.74rem;background:#F59E0B22;color:#F59E0B;
+      <span style="font-size:.74rem;background:#F59E0B22;color:var(--amber);
             border-radius:3px;padding:1px 5px;margin-left:5px">⚠ dados manuais</span>
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
-      <div style="font-size:2.6rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">
+      <div style="font-size:2.6rem;font-weight:900;color:var(--green);line-height:1;letter-spacing:-1px">
         ${cur[1].toFixed(2)}</div>
       <div style="font-size:.85rem;color:var(--t3);margin-bottom:4px">€</div>
       <div style="flex:1"></div>
@@ -4130,7 +4130,7 @@ function renderCabaz(){
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">vs 1 ano atrás</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
-      <div style="font-size:1rem;font-weight:800;color:#EF4444">
+      <div style="font-size:1rem;font-weight:800;color:var(--red)">
         +${Math.abs(totalPct).toFixed(1)}%</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">desde Jan 2022</div>
     </div>
@@ -4194,11 +4194,11 @@ function renderCabaz(){
 
   <!-- Aviso de metodologia e update -->
   <div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:7px;
-       padding:7px 10px;font-size:.74rem;color:#F59E0B;line-height:1.5">
+       padding:7px 10px;font-size:.74rem;color:var(--amber);line-height:1.5">
     ⚠ Dados actualizados manualmente. A DECO PROteste publica às <b>quartas-feiras</b>.
     Clica em <b>✏️</b> para adicionar o valor da semana corrente.
     <a href="https://www.dnoticias.pt/2026/10/28/510767-cabaz-alimentar-desce-44-centimos-para-25355-euros-na-ultima-semana/"
-       target="_blank" rel="noopener noreferrer" style="color:#F59E0B;text-decoration:underline">Ver atualização de 28 Out (Lusa) →</a>
+       target="_blank" rel="noopener noreferrer" style="color:var(--amber);text-decoration:underline">Ver atualização de 28 Out (Lusa) →</a>
   </div>`;
 }
 

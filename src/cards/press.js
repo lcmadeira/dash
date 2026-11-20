@@ -68,7 +68,7 @@ function loadPress(_force){
     <!-- COLUNA 1: RSF Press Freedom -->
     <div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.74rem;font-weight:700;color:#8B5CF6;text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px">📰 Liberdade de Imprensa</div>
         <div style="font-size:.74rem;color:var(--t3)">RSF 2026 · variação face a 2025</div>
       </div>
 
@@ -83,10 +83,10 @@ function loadPress(_force){
             }).join("")}
         </div>
         <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--t3);margin-top:2px">
-          <span style="color:#10B981">Livre ${GLOBAL.livre}%</span>
-          <span style="color:#EF4444">M.Grave ${GLOBAL.muitoGrave}%</span>
+          <span style="color:var(--green)">Livre ${GLOBAL.livre}%</span>
+          <span style="color:var(--red)">M.Grave ${GLOBAL.muitoGrave}%</span>
         </div>
-        <div style="font-size:.74rem;color:#F59E0B;margin-top:3px">${GLOBAL.tendencia}</div>
+        <div style="font-size:.74rem;color:var(--amber);margin-top:3px">${GLOBAL.tendencia}</div>
       </div>
 
       <!-- Tabela países seleccionados -->
@@ -114,7 +114,7 @@ function loadPress(_force){
     <!-- COLUNA 2: EIU Democracy + Regiões -->
     <div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <div style="font-size:.74rem;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px">🗳️ Índice Democracia</div>
         <div style="font-size:.74rem;color:var(--t3)">EIU 2024 · histórico</div>
       </div>
 
@@ -158,9 +158,9 @@ function loadPress(_force){
         ${REGIONS.map(r=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
           <span style="font-size:.74rem;color:var(--t3);width:70px;flex-shrink:0">${r.r}</span>
           <div style="flex:1;background:var(--b2);border-radius:2px;height:5px;overflow:hidden">
-            <div style="width:${r.score}%;height:100%;background:${r.col};border-radius:2px"></div>
+            <div style="width:${r.score}%;height:100%;background:var(--data);border-radius:2px"></div>
           </div>
-          <span style="font-size:.74rem;color:${r.col};font-weight:600;width:30px;text-align:right">${r.score}</span>
+          <span style="font-size:.74rem;color:var(--text);font-weight:600;width:30px;text-align:right">${r.score}</span>
         </div>`).join("")}
       </div>
     </div>

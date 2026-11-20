@@ -57,11 +57,11 @@ function renderHolList(){
              color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
              ${isPast?"text-decoration:line-through;":""}">
-          ${isMunic?`<span style="font-size:.74rem;background:#8B5CF622;color:#8B5CF6;
+          ${isMunic?`<span style="font-size:.74rem;background:#8B5CF622;color:var(--purple);
             border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${h.city}</span>`:""}
           ${h.localName}
           ${isBridge&&!isPast?`<span style="font-size:.74rem;background:#F59E0B22;
-            color:#F59E0B;border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
+            color:var(--amber);border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
         </div>
         <div style="font-size:.74rem;color:var(--t3)">${dowFull}</div>
       </div>
@@ -274,7 +274,7 @@ async function loadHolidays(force=false){
         {lbl:"Esta semana",               v:wdThisWeek,  sub:"dias úteis restam",    col:"#F59E0B"},
         {lbl:"Próxima semana",            v:wdNextWeek,  sub:"dias úteis",           col:"#8B5CF6"},
       ].map(k=>`<div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
-        <div style="font-size:1.35rem;font-weight:900;color:${k.col};line-height:1">${k.v}</div>
+        <div style="font-size:1.35rem;font-weight:700;color:var(--text);line-height:1">${k.v}</div>
         <div style="font-size:.74rem;color:var(--t3);line-height:1.3;margin-top:2px">${k.lbl}</div>
         <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${k.sub}</div>
       </div>`).join("")}
@@ -283,7 +283,7 @@ async function loadHolidays(force=false){
     <!-- Pontes detectadas -->
     ${bridges.length?`
     <div style="margin-bottom:8px">
-      <div style="font-size:.74rem;font-weight:700;color:#F59E0B;margin-bottom:4px">
+      <div style="font-size:.74rem;font-weight:700;color:var(--amber);margin-bottom:4px">
         🌉 Pontes detectadas
       </div>
       ${bridges.map(b=>`
@@ -291,7 +291,7 @@ async function loadHolidays(force=false){
              padding:6px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px">
           <span style="font-size:1rem">🌉</span>
           <div>
-            <div style="font-size:.74rem;font-weight:700;color:#F59E0B">
+            <div style="font-size:.74rem;font-weight:700;color:var(--amber)">
               ${b.bridge} ${b.bridgeDate.slice(8)}/
               ${b.bridgeDate.slice(5,7)} é ponte
             </div>
@@ -324,7 +324,7 @@ async function loadHolidays(force=false){
       </div>
       <div style="display:flex;justify-content:space-between;font-size:.74rem;
            color:var(--t3);margin-top:3px">
-        <span>Barra destaca meses c/ ≥2 feriados <span style="color:#F59E0B">●</span></span>
+        <span>Barra destaca meses c/ ≥2 feriados <span style="color:var(--amber)">●</span></span>
         <span>Mês actual <span style="color:var(--accent)">●</span></span>
       </div>
     </div>

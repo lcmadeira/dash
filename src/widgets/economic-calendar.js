@@ -159,7 +159,7 @@ function renderCalendar(){
   const upd=new Date().toLocaleDateString("pt-PT",{day:"2-digit",month:"short",year:"numeric"});
 
   const banner=`<div style="background:#3B82F612;border:1px solid #3B82F630;border-radius:6px;
-    padding:5px 10px;margin-bottom:8px;font-size:.74rem;color:#3B82F6;
+    padding:5px 10px;margin-bottom:8px;font-size:.74rem;color:var(--blue);
     display:flex;align-items:center;justify-content:space-between">
     <span>📅 Calendário automático · Fed · BCE · INE · BLS · Eurostat · ${upd}</span>
   </div>`;

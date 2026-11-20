@@ -128,23 +128,23 @@ async function loadOrmuz(force=false){
     el.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#0EA5E9;line-height:1">${total}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--blue);line-height:1">${total}</div>
         <div style="font-size:.74rem;color:var(--t3)">Navios</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${Math.round(total*0.45)}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--red);line-height:1">${Math.round(total*0.45)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Petroleiros</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${Math.round(total*0.18)}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--amber);line-height:1">${Math.round(total*0.18)}</div>
         <div style="font-size:.74rem;color:var(--t3)">LNG</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#10B981;line-height:1">${Math.round(total*0.12)}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">${Math.round(total*0.12)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Graneleiros</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${age}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--cyan);line-height:1">${age}</div>
         <div style="font-size:.74rem;color:var(--t3)">min</div>
       </div>
     </div>
@@ -152,7 +152,7 @@ async function loadOrmuz(force=false){
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1520;margin-bottom:10px">
       <canvas id="ormuz-map-canvas" style="width:100%;height:200px;display:block"></canvas>
       <div id="ormuz-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:var(--text);pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:220px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;right:6px;background:${isSim?'#F59E0B22':'#0EA5E922'};
@@ -381,7 +381,7 @@ async function loadOrmuz(force=false){
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1520;margin-bottom:10px">
       <canvas id="ormuz-map-canvas" style="width:100%;height:180px;display:block"></canvas>
       <div id="ormuz-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:var(--text);pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;
            top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;left:6px;background:#0a1520cc;border:1px solid var(--b);

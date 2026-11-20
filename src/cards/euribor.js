@@ -224,8 +224,8 @@ function renderEuribor(){
   const expColor=bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
 
   const sourceTag=d._source==="bce_live"
-    ?`<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
-    :`<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${d.updated}</span>`;
+    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
+    :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${d.updated}</span>`;
 
   const periodoGraf=d.hist.length>0
     ?`${d.hist[d.hist.length-1][0]} \u2192 ${d.hist[0][0]}`:"—";
@@ -258,19 +258,19 @@ function renderEuribor(){
        background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Dep\u00f3sito</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#3B82F6">${d.bce.dep.toFixed(2)}%</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue)">${d.bce.dep.toFixed(2)}%</div>
       <div style="font-size:.74rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#EF4444">${d.peak.val.toFixed(3)}%</div>
-      <div style="font-size:.74rem;color:#10B981">\u25bc ${quedaPP}pp (${quedaPico}%)</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red)">${d.peak.val.toFixed(3)}%</div>
+      <div style="font-size:.74rem;color:var(--green)">\u25bc ${quedaPP}pp (${quedaPico}%)</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tend\u00eancia</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#10B981">\u25bc Descida</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--green)">\u25bc Descida</div>
       <div style="font-size:.74rem;color:var(--t3)">desde Out 2023</div>
     </div>
   </div>

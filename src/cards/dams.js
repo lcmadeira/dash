@@ -85,7 +85,7 @@ async function loadDamsOnce(force = false) {
           title: `A mostrar a última leitura guardada: ${observed}`,
           force: true,
         });
-        const staleNotice = `<div style="padding:8px 10px;font-size:.74rem;color:#F59E0B;margin-bottom:6px;border-bottom:1px solid var(--b)">
+        const staleNotice = `<div style="padding:8px 10px;font-size:.74rem;color:var(--amber);margin-bottom:6px;border-bottom:1px solid var(--b)">
           ⚠️ SNIRH indisponível · última leitura guardada: ${observed}
         </div>`;
         renderDams(cache, staleNotice);
@@ -96,7 +96,7 @@ async function loadDamsOnce(force = false) {
         force: true,
       });
       el.innerHTML = `<div style="padding:14px 10px;font-size:.74rem;color:var(--t3);line-height:1.5">
-        <strong style="color:#F59E0B">SNIRH indisponível</strong><br>
+        <strong style="color:var(--amber)">SNIRH indisponível</strong><br>
         Sem uma observação verificável, não há valores de armazenamento para apresentar.
         <div style="margin-top:6px"><a href="https://snirh.apambiente.pt/index.php?idMain=1&amp;idItem=1.3" target="_blank" rel="noopener noreferrer">Consultar dados do SNIRH</a></div>
       </div>`;
