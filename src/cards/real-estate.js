@@ -1,10 +1,11 @@
-/* global $, document, window, lsGet */
+/* global $, document, window, lsGet, lsSet, fetch */
 (() => {
 /* ═══ IMOBILIÁRIO PT ═══ */
 /* ══════════════════════════════════════════════════════════════
-   IMOBILIÁRIO PT — referência identificada até validar série INE atual
-   O endpoint 0009494 observado em 29/10/2026 só devolveu Q3 2021 e
-   registos geográficos desagregados; não serve para atualizar este agregado.
+   IMOBILIÁRIO PT
+   Preço: INE 0012234, valor mediano das vendas nos últimos 12 meses (€/m², total/novos/existentes),
+   lido por scripts/update-imob.mjs (cron no portátil) para data/imob.json.
+   Transações e regiões NUTS III continuam como referência Q3 2025 (outros indicadores).
    ══════════════════════════════════════════════════════════════ */
 async function loadImob(force=false){
   const CK="imob_ine_v1";
@@ -28,6 +29,9 @@ async function loadImob(force=false){
     const sub1 =$("imobSub1");
     const sub2 =$("imobSub2");
     const sub3 =$("imobSub3");
+    const newVal=$("imob-new-val");
+    const existVal=$("imob-exist-val");
+    const pct=v=>`${v>=0?"+":""}${v.toFixed(1).replace(".",",")}%`;
     const src  =$("imobRefSrc");
 
     if(preco) preco.innerHTML=`${d.price.toLocaleString("pt-PT")} <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span>`;
@@ -41,14 +45,22 @@ async function loadImob(force=false){
 
     if(ref) ref.textContent=`INE · ${d.period}`;
     if(sub1) sub1.textContent=`${d.period} · famílias`;
-    if(sub2) sub2.textContent=`var. homóloga ${d.period}`;
-    if(sub3) sub3.textContent=`var. homóloga ${d.period}`;
+    if(d.auto&&newVal&&Number.isFinite(d.newChgYoY)){
+      newVal.textContent=pct(d.newChgYoY);
+      if(sub2) sub2.textContent=`mediana ${d.newPrice.toLocaleString("pt-PT")} €/m² · homóloga ${d.period}`;
+    } else if(sub2) sub2.textContent=`var. homóloga ${d.period}`;
+    if(d.auto&&existVal&&Number.isFinite(d.existChgYoY)){
+      existVal.textContent=pct(d.existChgYoY);
+      if(sub3) sub3.textContent=`mediana ${d.existPrice.toLocaleString("pt-PT")} €/m² · homóloga ${d.period}`;
+    } else if(sub3) sub3.textContent=`var. homóloga ${d.period}`;
 
     if(src){
       const badge=d.isLive
-        ?`<span style="color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.74rem">● INE API live</span>`
+        ?`<span style="color:var(--green);border-radius:3px;padding:1px 6px;font-size:.74rem">● ${d.auto?"atualizado automaticamente":"INE API live"}</span>`
         :`<span style="color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.74rem">⚠ estático · ref. Q3 2025</span>`;
-      src.innerHTML=`✦ INE · Estatísticas Preços Habitação · ${d.periodFull||d.period} ${badge}`;
+      src.innerHTML=d.auto
+        ?`✦ INE · valor mediano das vendas nos últimos 12 meses · ${d.periodFull||d.period} ${badge} · transações e regiões: ref. Q3 2025`
+        :`✦ INE · Estatísticas Preços Habitação · ${d.periodFull||d.period} ${badge}`;
     }
 
     console.log(`🏠 Imobiliário: ${d.price} €/m² (${d.period})${d.isLive?" · live":""}`);
@@ -68,9 +80,26 @@ async function loadImob(force=false){
     }
   }
 
-  /* Manter a referência mais recente disponível; o endpoint 0009494 é antigo. */
+  /* data/imob.json (INE 0012234, atualizado pelo cron do portátil) */
+  try{
+    const url=new URL("data/imob.json",window.location.href).href;
+    const r=await fetch(url,{cache:"no-cache"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j=await r.json();
+    const L=j?.latest;
+    if(L&&Number.isFinite(L.price)&&L.price>0&&/^Q[1-4] \d{4}$/.test(L.period||"")){
+      const d={...FALLBACK,...L,isLive:true,auto:true};
+      const [, q, y]=/^Q([1-4]) (\d{4})$/.exec(L.period);
+      const quarterEnd=new Date(Date.UTC(Number(y), Number(q)*3, 0, 12)).toISOString();
+      try{ lsSet(CK,d,{source:j._meta?.source||"INE",state:"live",observedAt:quarterEnd}); }catch{ /* cache opcional */ }
+      updateDOM(d);
+      window.refreshCardStatusFromCache?.("imob", CK);
+      return;
+    }
+  }catch(e){
+    console.info("ℹ️ Imobiliário: data/imob.json indisponível, a usar referência Q3 2025:",e?.message||e);
+  }
   updateDOM(FALLBACK);
-  console.info("ℹ️ Imobiliário: a API candidata do INE (0009494) só tem observações até Q3 2021; mantida a referência Q3 2025.");
 }
 
 (function(){

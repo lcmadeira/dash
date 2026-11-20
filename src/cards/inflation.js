@@ -82,8 +82,10 @@ function parseEurostatInflation(json){
 
 /* ── Fetch Eurostat em background ──────────────────────────── */
 async function fetchEurostatInflation(){
-  const BASE = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/PRC_HICP_MANR';
-  const PARAMS = '?geo=PT&geo=EA20&geo=EA21&coicop=CP00&lastTimePeriod=8&lang=en';
+  /* Desde 2026 o IHPC usa a classificação ECOICOP v2: PRC_HICP_MANR ficou congelado em dez/2025
+     e foi substituído por PRC_HICP_MINR (unit=RCH_A, coicop18=TOTAL). */
+  const BASE = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/PRC_HICP_MINR';
+  const PARAMS = '?geo=PT&geo=EA20&geo=EA21&unit=RCH_A&coicop18=TOTAL&lastTimePeriod=8&lang=en';
   const url = BASE + PARAMS;
 
   try {
@@ -133,6 +135,7 @@ async function initInflation(force=false){
         state: "live",
         observedAt: inflationObservationTimestamp(rows[0]?.m),
       });
+      window.refreshCardStatusFromCache?.("inf", CK);
       renderInflation();
       console.log('✅ Inflação Eurostat actualizada:', rows[0].m);
     } else {
@@ -205,5 +208,6 @@ function renderInflation(){
 
 
 window.initInflation = initInflation;
+window.parseEurostatInflation = parseEurostatInflation;
 window.renderInflation = renderInflation;
 })();
