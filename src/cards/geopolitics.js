@@ -63,6 +63,22 @@ async function loadGeoOnce(force = false) {
       for (const feed of GEO_FEEDS.filter(source => !source.api)) {
         if (articles.length >= 8) break;
         let raw = null;
+        /* 1. Gateway próprio (feeds fixos por id, com cópia de reserva no servidor). */
+        const feedGateway = window.dataApiUrl?.(`v1/feed-${feed.id}`);
+        if (feedGateway) {
+          try {
+            const payload = await fetchJsonFirstOk(feedGateway, { signal: AbortSignal.timeout(10000) }, 10000,
+              ["direct"], value => Array.isArray(value?.articles) && value.articles.length > 0);
+            payload.articles.slice(0, 8).forEach((article, index) => {
+              const title = String(article.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+              const timestamp = Date.parse(article.pubDate || "") || Date.now() - index * 3600000;
+              if (title.length > 8 && typeof article.link === "string") articles.push({ id: feed.id, title, link: article.link, dt: timestamp });
+            });
+            continue;
+          } catch {
+            /* segue para os proxies públicos */
+          }
+        }
         try {
           const sources = feed.proxy ? ["corsproxy", "allorigins", "codetabs"] : ["direct", "corsproxy", "allorigins", "codetabs"];
           raw = await fetchTextFirstOk(feed.url, { signal: AbortSignal.timeout(10000) }, 10000,

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, marketToday, parseOmieElectricity } from "../worker/src/index.js";
+import { handleRequest, marketToday, parseOmieElectricity, parseSnirhTable, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -200,4 +200,74 @@ test("gateway rejects oversized upstream bodies before parsing or caching", asyn
   }), { DASH_ORIGIN: "https://lcmadeira.github.io" });
   assert.equal(response.status, 502);
   assert.equal((await response.json()).error, "Não foi possível consultar o fornecedor");
+});
+
+test("news route falls back to the next fixed feed and identifies the server", async () => {
+  const fixture = await readFile(new URL("./fixtures/google-news-pt.xml", import.meta.url), "utf8");
+  const requested = [];
+  globalThis.fetch = async (url, init) => {
+    requested.push(String(url));
+    assert.match(init.headers["User-Agent"], /dash-data-gateway/);
+    if (String(url).includes("news.google.com")) return new Response("blocked", { status: 503 });
+    return new Response(fixture.replace(/<source[^>]*>[^<]*<\/source>/g, ""), { headers: { "Content-Type": "application/rss+xml" } });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/news-pt"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(requested.length, 2);
+  assert.match(requested[1], /rtp\.pt/);
+  assert.equal(payload._meta.source, "RTP Notícias");
+  assert.equal(payload.articles[0].source, "RTP");
+});
+
+test("feed routes only serve whitelisted RSS feeds", async () => {
+  const fixture = await readFile(new URL("./fixtures/google-news-pt.xml", import.meta.url), "utf8");
+  const requested = [];
+  globalThis.fetch = async url => { requested.push(String(url)); return new Response(fixture); };
+  const unknown = await handleRequest(new Request("https://dash-data.test/v1/feed-attacker?url=https://attacker.test"));
+  assert.equal(unknown.status, 404);
+  assert.equal(requested.length, 0);
+  const icg = await handleRequest(new Request("https://dash-data.test/v1/feed-icg"));
+  assert.equal(icg.status, 200);
+  assert.match(requested[0], /^https:\/\/www\.crisisgroup\.org\//);
+  assert.equal((await icg.json())._meta.source, "Crisis Group");
+});
+
+test("TTF route reads Yahoo Finance EUR quotes and rejects other currencies", async () => {
+  const chart = currency => JSON.stringify({ chart: { result: [{ meta: {
+    currency, regularMarketPrice: 86.765, chartPreviousClose: 84.749, regularMarketDayHigh: 87, regularMarketDayLow: 85.5, regularMarketTime: 1795174019,
+  } }] } });
+  assert.equal(parseYahooTtf(chart("EUR")).price, 86.765);
+  globalThis.fetch = async () => new Response(chart("EUR"), { headers: { "Content-Type": "application/json" } });
+  const ok = await (await handleRequest(new Request("https://dash-data.test/v1/ttf"))).json();
+  assert.equal(ok.prev, 84.749);
+  assert.equal(ok._meta.observedAt, 1795174019000);
+  globalThis.fetch = async () => new Response(chart("USD"));
+  assert.equal((await handleRequest(new Request("https://dash-data.test/v1/ttf"))).status, 502);
+});
+
+test("SNIRH general table yields the latest month per basin with capacity-weighted totals", async () => {
+  const html = await readFile(new URL("./fixtures/snirh-tabelageral.html", import.meta.url), "latin1");
+  const parsed = parseSnirhTable(html, 2026);
+  assert.equal(parsed.period, "2026-10");
+  assert.equal(parsed.hydroYear, "2026/27");
+  assert.equal(parsed.basins.length, 12);
+  const tejo = parsed.basins.find(b => b.name === "Tejo");
+  assert.deepEqual([tejo.val, tejo.avg, tejo.capacity], [64.2, 62.4, 2546.4]);
+  assert.equal(parsed.basins.find(b => b.name.startsWith("Cávado")).name, "Cávado/Ribeiras Costeiras");
+  assert.equal(parsed.totalVal, 67.4);
+  assert.equal(parseSnirhTable("<table></table>", 2026), null);
+
+  const page = "<a href=\"javascript:ALBUFBOL_AbreTabelaGeral('2026','10','','','','')\">";
+  const requested = [];
+  globalThis.fetch = async url => {
+    requested.push(String(url));
+    return new Response(String(url).includes("tabelageral") ? html : page, { headers: { "Content-Type": "text/html" } });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/dams"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.match(requested[1], /anohi=2026&mes=10/);
+  assert.equal(payload.basins.length, 12);
+  assert.equal(payload._meta.source, "SNIRH · APA (albufeiras)");
 });
