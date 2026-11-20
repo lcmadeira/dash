@@ -610,7 +610,7 @@ test("Ormuz card expires stale AIS, validates positions and escapes vessel toolt
   vm.runInContext(source, context);
   assert.equal(typeof context.loadOrmuz, "function");
   await context.loadOrmuz();
-  assert.match(body.innerHTML, /Live/);
+  assert.match(body.innerHTML, /Ao vivo/);
   assert.match(body.innerHTML, /Distribuição estimada por tipo/);
   assert.match(body.innerHTML, /não classificadas a partir dos dados AIS/);
 
@@ -621,8 +621,8 @@ test("Ormuz card expires stale AIS, validates positions and escapes vessel toolt
 
   cached = { live: true, ts: Date.now() - 16 * 60 * 1000, vessels: [{}, ship] };
   await context.loadOrmuz();
-  assert.match(body.innerHTML, /Simulated/);
-  assert.doesNotMatch(body.innerHTML, /● Live/);
+  assert.match(body.innerHTML, /Simulação/);
+  assert.doesNotMatch(body.innerHTML, /● Ao vivo/);
 });
 
 test("CO2 card renders its reference mix without an unused network fetch", async () => {
@@ -1170,7 +1170,13 @@ test("geopolitics does not repeat GDELT in the browser when the configured gatew
   vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
   await context.loadGeo();
 
-  assert.deepEqual(jsonRequests, ["https://gateway.example/v1/geopolitics"]);
+  assert.deepEqual(jsonRequests, [
+    "https://gateway.example/v1/geopolitics",
+    "https://gateway.example/v1/feed-icg",
+    "https://gateway.example/v1/feed-gpf",
+    "https://gateway.example/v1/feed-fa",
+  ]);
+  assert.equal(jsonRequests.filter(url => /gdelt/i.test(url)).length, 0);
   assert.deepEqual(textRequests, [
     "https://www.crisisgroup.org/rss/139",
     "https://geopoliticalfutures.com/feed/",

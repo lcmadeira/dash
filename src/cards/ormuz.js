@@ -1,4 +1,4 @@
-/* global $, Date, fetchJsonFirstOk, ld, lsGet, lsSet, window */
+/* global $, Date, ld, lsGet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    ESTREITO DE ORMUZ — Tráfego Marítimo (AIS data)
@@ -23,18 +23,8 @@ async function loadOrmuz(force=false){
 
   /* Bounding box: Estreito de Ormuz (Golfo Pérsico) */
   /* Lat: 24°N - 27°N, Lon: 56°E - 58°E */
-  if(!d){
-    try {
-      const url = "https://data.aishub.net/ws.php?username=PUBLIC&format=1&output=json&latmin=24&latmax=27&lonmin=56&lonmax=58";
-      const j = await fetchJsonFirstOk(url, {}, 10000);
-      if(j && j.length > 1){
-        d=normalizeLiveData({ts:Date.now(),vessels:j,live:true});
-        if(d) lsSet(ck,d);
-      }
-    } catch(e) {
-      console.warn("⚠️ AISHub falhou:", e.message);
-    }
-  }
+  /* A conta pública da AISHub ("PUBLIC") deixou de ser aceite ("Invalid username or password").
+     Sem fonte AIS gratuita e estável, o card mostra uma simulação identificada como tal. */
 
   /* Fallback: Gerar tráfego em tempo-real simulado se API falhar */
   if(!d || !d.live){
@@ -158,7 +148,7 @@ async function loadOrmuz(force=false){
       <div style="position:absolute;top:6px;right:6px;background:${isSim?'#F59E0B22':'#0EA5E922'};
            border:1px solid ${isSim?'#F59E0B44':'#0EA5E944'};
            border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${isSim?'#F59E0B':'#0EA5E9'}">
-        ● ${isSim?'Simulated':'Live'} · ${age}min
+        ● ${isSim?'Simulação':'Ao vivo'} · ${age}min
       </div>
     </div>
 

@@ -20,6 +20,31 @@ async function loadDamsOnce(force = false) {
   if (!cache) {
     el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.74rem">${window.ld()}</div>`;
     try {
+      /* 1. Gateway próprio: lê a tabela mensal do SNIRH no servidor e guarda uma cópia de reserva. */
+      const gatewayUrl = window.dataApiUrl?.("v1/dams");
+      if (gatewayUrl) {
+        try {
+          const payload = await window.fetchJsonFirstOk(gatewayUrl, {}, 15000, ["direct"],
+            (p) => Array.isArray(p?.basins) && p.basins.length >= 8 && Number.isFinite(p?.totalVal));
+          cache = {
+            basins: payload.basins.map((b) => ({ name: String(b.name), val: Number(b.val), avg: Number.isFinite(b.avg) ? Number(b.avg) : null })),
+            totalVal: payload.totalVal,
+            totalAvg: Number.isFinite(payload.totalAvg) ? payload.totalAvg : null,
+            period: payload.period, hydroYear: payload.hydroYear, month: payload.month,
+            ts: Date.now(),
+          };
+          window.lsSet(CK, cache, {
+            source: payload._meta?.source || "SNIRH · APA",
+            state: payload._meta?.state === "stale" ? "stale" : "live",
+            observedAt: payload._meta?.observedAt,
+          });
+        } catch (gatewayError) {
+          console.warn("⚠️ Dams gateway:", gatewayError?.message || gatewayError);
+        }
+      }
+      if (cache) { window.refreshCardStatusFromCache?.("dams", CK); renderDams(cache); return; }
+
+      /* 2. Alternativa antiga (proxies públicos sobre a página do SNIRH). */
       const url = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
       /* Tentar obter o HTML via proxy */
       const r = await window.fetchWithCORS(url, { cache: "no-store" }, 8000);
@@ -76,8 +101,8 @@ async function loadDamsOnce(force = false) {
       console.warn("⚠️ Dams error:", e.message);
       if (lastKnown && Array.isArray(lastKnown.basins) && lastKnown.basins.length > 0
           && lastKnown.basins.every(basin => typeof basin?.name === "string"
-            && Number.isFinite(basin.val) && Number.isFinite(basin.avg))
-          && Number.isFinite(lastKnown.totalVal) && Number.isFinite(lastKnown.totalAvg)) {
+            && Number.isFinite(basin.val) && (basin.avg === null || Number.isFinite(basin.avg)))
+          && Number.isFinite(lastKnown.totalVal) && (lastKnown.totalAvg === null || Number.isFinite(lastKnown.totalAvg))) {
         cache = lastKnown;
         const observed = Number.isFinite(lastKnown.ts) && lastKnown.ts > 0
           ? new Date(lastKnown.ts).toLocaleString("pt-PT") : "data desconhecida";
@@ -114,21 +139,24 @@ function renderDams(data, statusHtml = "") {
   const el = document.getElementById("dams-body");
   if (!el || !data) return;
 
-  const { basins, totalVal, totalAvg } = data;
+  const { basins, totalVal } = data;
+  const totalAvg = Number.isFinite(data.totalAvg) ? data.totalAvg : null;
+  const MONTHS = { OUT: "out.", NOV: "nov.", DEZ: "dez.", JAN: "jan.", FEV: "fev.", MAR: "mar.", ABR: "abr.", MAI: "mai.", JUN: "jun.", JUL: "jul.", AGO: "ago.", SET: "set." };
+  const periodLabel = data.month ? `${MONTHS[data.month] || data.month} · ano hidrológico ${data.hydroYear || ""}`.trim() : "";
   const isCritical = basins.some(b => b.val < 30);
 
   let html = statusHtml + `
     <div style="margin-bottom:12px;background:var(--b2);padding:10px;border-radius:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
-        <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Média Nacional (Armazenamento)</div>
+        <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Armazenamento nacional</div>
         <div style="font-size:1rem;font-weight:900;color:var(--blue)">${totalVal.toFixed(1)}%</div>
       </div>
       <div style="height:10px;background:var(--b);border-radius:5px;overflow:hidden;position:relative">
-        <div style="position:absolute;left:${totalAvg}%;top:0;bottom:0;width:2px;background:var(--red);z-index:2;opacity:.6" title="Média histórica: ${totalAvg.toFixed(1)}%"></div>
-        <div style="height:100%;width:${totalVal}%;background:linear-gradient(90deg, #3B82F6, #06B6D4);border-radius:5px"></div>
+        ${totalAvg !== null ? `<div style="position:absolute;left:${totalAvg}%;top:0;bottom:0;width:2px;background:var(--text);z-index:2;opacity:.7" title="Média histórica: ${totalAvg.toFixed(1)}%"></div>` : ""}
+        <div style="height:100%;width:${totalVal}%;background:var(--data);border-radius:5px"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:5px">
-        <div style="font-size:.74rem;color:var(--t3)">Média histórica: <b>${totalAvg.toFixed(1)}%</b></div>
+        <div style="font-size:.74rem;color:var(--t3)">${totalAvg !== null ? `Média histórica: <b>${totalAvg.toFixed(1)}%</b>` : "Média histórica indisponível"}</div>
         <div style="font-size:.74rem;color:var(--t3)">${basins.length} bacias monitorizadas</div>
       </div>
     </div>
@@ -139,15 +167,15 @@ function renderDams(data, statusHtml = "") {
   /* Mostrar bacias ordenadas por volume (mais vazias primeiro para destaque) */
   const sorted = [...basins].sort((a,b) => a.val - b.val);
 
-  sorted.slice(0, 8).forEach(b => {
+  sorted.forEach(b => {
     const col = b.val < 30 ? "var(--red)" : b.val < 50 ? "var(--orange)" : "var(--blue)";
     const bg = b.val < 30 ? "rgba(239,68,68,0.08)" : "var(--b2)";
     html += `
-      <div style="background:${bg};padding:6px 8px;border-radius:8px;border:1px solid ${col}15;border-left:3px solid ${col}">
+      <div style="background:${bg};padding:6px 8px;border-radius:8px;border:1px solid var(--b);border-left:3px solid ${col}">
         <div style="font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
           <div style="font-family:var(--mono);font-size:.78rem;font-weight:800;color:${col}">${b.val.toFixed(0)}%</div>
-          <div style="font-size:.74rem;color:var(--t3)">Méd. ${b.avg.toFixed(0)}%</div>
+          <div style="font-size:.74rem;color:var(--t3)">${Number.isFinite(b.avg) ? `Méd. ${b.avg.toFixed(0)}%` : ""}</div>
         </div>
       </div>
     `;
@@ -155,7 +183,7 @@ function renderDams(data, statusHtml = "") {
 
   html += `</div>
     <div style="margin-top:10px;padding-top:6px;border-top:1px solid var(--b2);font-size:.74rem;color:var(--t3);display:flex;justify-content:space-between;align-items:center">
-      <span>APA / SNIRH · Resumo Semanal</span>
+      <span>APA / SNIRH · boletim mensal${periodLabel ? ` · ${periodLabel}` : ""} · total ponderado pela capacidade</span>
       <span class="badge ${isCritical?'warn':'live'}" style="font-size:.74rem">${isCritical ? "⚠️ ALERTA SECA" : "● NÍVEIS OK"}</span>
     </div>
   `;

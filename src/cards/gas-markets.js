@@ -171,6 +171,21 @@ function loadTTF(force=false){
     return null;
   }
 
+  /* ── Fetch TTF via gateway próprio (Yahoo Finance TTF=F no servidor, com cópia de reserva) ── */
+  async function fetchTTFGateway(){
+    const url=window.dataApiUrl?.("v1/ttf");
+    if(!url) return null;
+    try{
+      const j=await fetchJsonFirstOk(url,{},10000,["direct"],d=>Number.isFinite(d?.price)&&Number.isFinite(d?.prev));
+      const {price,prev}=j;
+      if(price>0&&price<500)
+        return {price,prev,hi:Number.isFinite(j.hi)?j.hi:price,lo:Number.isFinite(j.lo)?j.lo:price,
+                chg:prev?((price-prev)/prev*100):0,live:true,src:"Yahoo",
+                stale:j._meta?.state==="stale",observedAt:j._meta?.observedAt};
+    }catch{}
+    return null;
+  }
+
   /* ── Fetch TTF via Yahoo Finance (TTF=F) ────────────────────
      Yahoo cotado em EUR/MWh para TTF=F — confirmar unidade no resultado */
   async function fetchTTFYahoo(){
@@ -353,7 +368,19 @@ function loadTTF(force=false){
     /* 2. Mostrar estático imediatamente */
     render(null, "");
 
-    /* 3. Tentar Stooq em background */
+    /* 3. Gateway próprio (mais estável: sem proxies públicos) */
+    try{
+      const data = await fetchTTFGateway();
+      if(data){
+        lsSet(CK, data, {source:"Yahoo Finance · TTF=F (gateway)", state:data.stale?"stale":"live", observedAt:data.observedAt});
+        try{ addToHistory('ttf_eur_mwh', data.price); }catch{}
+        render(data, "Yahoo");
+        console.log("✅ TTF gateway: "+data.price.toFixed(1)+" €/MWh");
+        return;
+      }
+    }catch(e){ console.warn("TTF gateway falhou:", e.message); }
+
+    /* 4. Tentar Stooq em background */
     try{
       const data = await fetchTTFStooq();
       if(data){
@@ -365,7 +392,7 @@ function loadTTF(force=false){
       }
     }catch(e){ console.warn("TTF Stooq falhou:", e.message); }
 
-    /* 4. Fallback Yahoo Finance */
+    /* 5. Fallback Yahoo Finance via proxies públicos */
     try{
       const data = await fetchTTFYahoo();
       if(data){
