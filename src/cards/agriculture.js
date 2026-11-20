@@ -1,4 +1,4 @@
-/* global $, AbortSignal, fetchFirstOk, fetchTextFirstOk, ld, lsGet, lsSet, window */
+/* global $, AbortSignal, fetchFirstOk, fetchJsonFirstOk, fetchTextFirstOk, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    PREÇOS AGRÍCOLAS — Yahoo Finance com fallback Stooq
@@ -17,6 +17,27 @@ async function loadAgri(force=false){
   const ck="agri_v3";
   let cache=force?null:lsGet(ck);
 
+  /* 1. Gateway próprio: as 6 cotações Yahoo lidas no servidor, com cópia de reserva de 7 dias. */
+  if(!cache||!cache.length){
+    const gatewayUrl=window.dataApiUrl?.("v1/agri");
+    if(gatewayUrl){
+      try{
+        const j=await fetchJsonFirstOk(gatewayUrl,{},12000,["direct"],d=>Array.isArray(d?.quotes)&&d.quotes.length===AGRI_SYMS.length);
+        const bySym=new Map(j.quotes.map(q=>[q.symbol,q]));
+        const fromGateway=AGRI_SYMS.map(({sym})=>{
+          const q=bySym.get(sym);
+          if(!Number.isFinite(q?.price)) return {close:null,chg:null,hi:null,lo:null,vol:null};
+          return {close:q.price,chg:q.prev?((q.price-q.prev)/q.prev*100):null,hi:q.hi??q.price,lo:q.lo??q.price,vol:q.volume??null};
+        });
+        if(fromGateway.filter(x=>x.close).length>=4){
+          cache=fromGateway;
+          lsSet(ck,cache,{source:j._meta?.source||"Yahoo Finance (gateway)",state:j._meta?.state==="stale"?"stale":"live",observedAt:j._meta?.observedAt});
+        }
+      }catch{ /* segue para os proxies públicos */ }
+    }
+  }
+
+  /* 2. Alternativa antiga: Yahoo e Stooq via proxies públicos */
   if(!cache||!cache.length){
     async function fetchSym(sym){
       const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`;

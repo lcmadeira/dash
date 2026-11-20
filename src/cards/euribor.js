@@ -5,12 +5,13 @@
    CORS nativo · sem chave · sem proxy
    Fallback: dados estaticos EMMI se API inacessivel
 
-   Series BCE utilizadas:
-     1S  -> FM/M.U2.EUR.RT0.MM.EURIBOR1WD_.HSTA
-     1M  -> FM/M.U2.EUR.RT0.MM.EURIBOR1MD_.HSTA
-     3M  -> FM/M.U2.EUR.RT0.MM.EURIBOR3MD_.HSTA
-     6M  -> FM/M.U2.EUR.RT0.MM.EURIBOR6MD_.HSTA
-     12M -> FM/M.U2.EUR.RT0.MM.EURIBOR1YD_.HSTA
+   Series BCE utilizadas (médias mensais):
+     1M  -> FM/M.U2.EUR.RT.MM.EURIBOR1MD_.HSTA
+     3M  -> FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA
+     6M  -> FM/M.U2.EUR.RT.MM.EURIBOR6MD_.HSTA
+     12M -> FM/M.U2.EUR.RT.MM.EURIBOR1YD_.HSTA
+   A Euribor a 1 semana foi descontinuada pela EMMI em 2018 (o BCE responde 404).
+   As taxas-chave do BCE vêm do Banco de Portugal (refreshBdpRates).
    ══════════════════════════════════════════════════════════════ */
 
 /* Dados estaticos EMMI como fallback (ja centralizados em src/config.js) */
@@ -55,6 +56,20 @@ async function refreshBdpRates(force=false){
   return parsed;
 }
 
+/** Próxima reunião de política monetária do BCE (datas oficiais em src/widgets/economic-calendar.js). */
+function nextEcbMeeting(today = new Date().toISOString().slice(0, 10)){
+  const all = Array.isArray(window.ECB_MEETING_DATES) ? window.ECB_MEETING_DATES : [];
+  return all.filter(d => d >= today).sort()[0] || null;
+}
+
+/** "29 Out 2026" → "2026-10-29" (ou null). */
+function parsePtDate(text){
+  const months = {jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
+  const m = /^(\d{1,2})\s+([A-Za-z]{3})\w*\.?\s+(\d{4})$/.exec(String(text || "").trim());
+  const month = m && months[m[2].toLowerCase()];
+  return month ? `${m[3]}-${String(month).padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
+}
+
 function fmtRefDate(iso, opts){
   if(!iso) return "";
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString("pt-PT",opts||{day:"2-digit",month:"2-digit"});
@@ -64,9 +79,10 @@ function isBceEuriborLiveEnabled(){
   try {
     const qs = new URLSearchParams(location.search || "");
     if (qs.has("liveEuribor")) return (qs.get("liveEuribor") || "1") !== "0";
-    return localStorage.getItem(PFX + "live_euribor_bce") === "1";
+    /* Ligado por omissão; "0" em localStorage desliga (para depuração). */
+    return localStorage.getItem(PFX + "live_euribor_bce") !== "0";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -108,46 +124,18 @@ function fmtBCEperiod(p){
 /* ── Fetch de uma serie BCE (formato generico) ───────────────── */
 async function fetchBCEseries(fullKey, nObs=9){
   /* Se a chave nao for completa (ex: EURIBOR1YD_), assumir prefixo Euribor Mensal */
-  const key = fullKey.includes('.') ? fullKey : `M.U2.EUR.RT0.MM.${fullKey}.HSTA`;
+  const key = fullKey.includes('.') ? fullKey : `M.U2.EUR.RT.MM.${fullKey}.HSTA`;
   const url = `https://data-api.ecb.europa.eu/service/data/FM/${key}`
             + `?format=jsondata&lastNObservations=${nObs}`;
-  const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+  /* A API do BCE demora 5-8 s por série; o fallback já está visível entretanto. */
+  const r = await fetch(url, {signal: AbortSignal.timeout(15000)});
   if(!r.ok) throw new Error(`BCE HTTP ${r.status}`);
   return parseBCEseries(await r.json());
-}
-
-/* ── Buscar taxas oficiais do BCE (Key Rates) ────────────────── */
-async function fetchBCEKeyRates(){
-  /* DFR (Deposito), MRR (Refinanciamento), MLF (Cedencia) */
-  const key = "D.U2.EUR.4F.KR.DF+MRR_FR+MLFR.LEV";
-  const url = `https://data-api.ecb.europa.eu/service/data/FM/${key}?format=jsondata&lastNObservations=1`;
-  const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
-  if(!r.ok) return null;
-  const json = await r.json();
-  const ds = json.dataSets[0].series;
-  
-  /* Mapeamento manual baseado na posicao das dimensoes (simplificado) */
-  /* Nota: O formato JSON-stat seria mais robusto, mas mantemos o parser existente */
-  const findVal = (kPart) => {
-    const sKey = Object.keys(ds).find(k => k.includes(kPart));
-    if(!sKey) return null;
-    const obs = ds[sKey].observations;
-    const firstObs = Object.values(obs)[0];
-    return firstObs ? parseFloat(parseFloat(firstObs[0]).toFixed(2)) : null;
-  };
-
-  return {
-    dep:   findVal(".DF.")     ?? EURIBOR_FALLBACK.bce.dep,
-    refin: findVal(".MRR_FR.") ?? EURIBOR_FALLBACK.bce.refin,
-    margLend: findVal(".MLFR.") ?? EURIBOR_FALLBACK.bce.margLend
-  };
 }
 
 /* ── Carregar todas as maturidades em paralelo ───────────────── */
 async function loadEuriborFromBCE(){
   const SERIES=[
-    {term:"1S",  termFull:"1 Semana", key:"EURIBOR1WD_",color:"#06B6D4",hipot:false,
-     desc:"Ref. overnight e swaps curtos"},
     {term:"1M",  termFull:"1 M\u00eas",    key:"EURIBOR1MD_",color:"#22D3EE",hipot:false,
      desc:"Ref. produtos curtos, tesouraria"},
     {term:"3M",  termFull:"3 Meses",  key:"EURIBOR3MD_",color:"#3B82F6",hipot:true,
@@ -158,13 +146,21 @@ async function loadEuriborFromBCE(){
      desc:"Cr\u00e9dito habita\u00e7\u00e3o revis\u00e3o anual"},
   ];
 
-  /* Carregar Euribor e Key Rates em paralelo */
-  const [euriborRes, keyRates] = await Promise.all([
-    Promise.all(SERIES.map(s => fetchBCEseries(s.key, 9).catch(() => null))),
-    fetchBCEKeyRates().catch(() => null)
-  ]);
+  /* 1. Gateway próprio (séries do BCE em cache 12 h no servidor; o BCE demora 5-15 s por série).
+     2. Alternativa: pedir as séries diretamente ao BCE. */
+  let euriborRes = null;
+  const gatewayUrl = window.dataApiUrl?.("v1/euribor");
+  if (gatewayUrl) {
+    try {
+      const j = await fetchJsonFirstOk(gatewayUrl, {}, 25000, ["direct"],
+        d => Array.isArray(d?.series?.["3M"]) && d.series["3M"].length >= 2);
+      euriborRes = SERIES.map(s => (Array.isArray(j.series[s.term]) && j.series[s.term].length ? j.series[s.term] : null));
+    } catch { /* segue para o pedido direto */ }
+  }
+  if (!euriborRes) euriborRes = await Promise.all(SERIES.map(s => fetchBCEseries(s.key, 9).catch(() => null)));
+  const seriesOf = term => euriborRes[SERIES.findIndex(s => s.term === term)] || null;
 
-  const r3m = euriborRes[2], r12m = euriborRes[4];
+  const r3m = seriesOf("3M"), r12m = seriesOf("12M");
   if(!r3m || !r12m || r3m.length < 2 || r12m.length < 2)
     throw new Error("Dados BCE insuficientes");
 
@@ -181,15 +177,15 @@ async function loadEuriborFromBCE(){
     };
   });
 
-  const hist3m  = euriborRes[2] || [];
-  const hist6m  = euriborRes[3] || [];
-  const hist12m = euriborRes[4] || [];
+  const hist3m  = seriesOf("3M") || [];
+  const hist6m  = seriesOf("6M") || [];
+  const hist12m = seriesOf("12M") || [];
   const hist = hist3m.slice(-8).map(row => {
     const p = row.period;
     const v6m  = hist6m.find(r => r.period === p)?.value ?? null;
     const v12m = hist12m.find(r => r.period === p)?.value ?? null;
     return [fmtBCEperiod(p), row.value, v6m, v12m];
-  }).filter(r => r[1] !== null);
+  }).filter(r => r[1] !== null).reverse(); /* mais recente primeiro, como no fallback */
 
   const latestPeriod = hist3m[hist3m.length - 1]?.period || "";
   const updatedDate = latestPeriod
@@ -199,7 +195,7 @@ async function loadEuriborFromBCE(){
   return {
     updated: updatedDate, rates, hist,
     _observedAt: latestPeriod ? Date.parse(`${latestPeriod}-01T00:00:00Z`) : null,
-    bce: keyRates || EURIBOR_FALLBACK.bce,
+    bce: EURIBOR_FALLBACK.bce,
     peak: EURIBOR_FALLBACK.peak,
     bceNext: EURIBOR_FALLBACK.bceNext,
     spreadBancario: EURIBOR_FALLBACK.spreadBancario,
@@ -264,7 +260,14 @@ function renderEuribor(){
   const quedaPP=(peakVal-r12.val).toFixed(3);
   const sp=d.spreadBancario;
   const bce=d.bceNext;
-  const expColor=bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
+  const nextMeeting=nextEcbMeeting();
+  /* As expectativas de mercado são estáticas: só valem enquanto a reunião a que se referem for a próxima. */
+  const staticMeeting=parsePtDate(bce.date);
+  const showExpectations=Boolean(nextMeeting && staticMeeting === nextMeeting);
+  const meetingLabel=nextMeeting
+    ? new Date(`${nextMeeting}T12:00:00Z`).toLocaleDateString("pt-PT",{day:"numeric",month:"short",year:"numeric"})
+    : bce.date;
+  const expColor=!showExpectations?"var(--b2)":bce.expectativa==="Corte"?"var(--green)":bce.expectativa==="Subida"?"var(--red)":"var(--amber)";
 
   const sourceTag=d._source==="bce_live"
     ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
@@ -275,7 +278,7 @@ function renderEuribor(){
 
   el.innerHTML=`
   <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:8px">
     ${d.rates.map(r=>{
       const diff=r.val-r.prev;
       const dCol=diff<0?"#10B981":"#EF4444";
@@ -322,16 +325,16 @@ function renderEuribor(){
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
         <div style="font-size:.74rem;font-weight:700;color:var(--t2)">
-          \uD83C\uDFE6 Pr\u00f3xima reuni\u00e3o BCE \u00b7 ${bce.date}
+          \uD83C\uDFE6 Pr\u00f3xima reuni\u00e3o BCE \u00b7 ${meetingLabel}
         </div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${showExpectations?bce.nota:"Decis\u00e3o \u00e0s 13:45 (Lisboa). Sem expectativas de mercado atualizadas automaticamente."}</div>
       </div>
-      <div style="text-align:right;min-width:60px">
+      ${showExpectations?`<div style="text-align:right;min-width:60px">
         <div style="font-size:.74rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
         <div style="font-size:.74rem;color:var(--t3)">consenso</div>
-      </div>
+      </div>`:""}
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
+    ${showExpectations?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
       ${[
         {label:"Corte \u221225bp",prob:bce.probCorte,col:"#10B981"},
         {label:"Pausa",           prob:bce.probPausa, col:"#F59E0B"},
@@ -345,7 +348,7 @@ function renderEuribor(){
           <div style="width:${b.prob}%;height:100%;background:${b.col};border-radius:3px"></div>
         </div>
       </div>`).join("")}
-    </div>
+    </div>`:""}
   </div>
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
     <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
@@ -428,6 +431,7 @@ async function initEuribor(force=false){
       observedAt: live._observedAt,
     });
     if(ref) ref.textContent=live.updated+" \u25cf live";
+    window.refreshCardStatusFromCache?.("euribor", CK);
     renderEuribor();
     console.log("\u2705 Euribor BCE actualizado:",live.updated);
   }catch(e){
@@ -438,7 +442,9 @@ async function initEuribor(force=false){
 
 function isValidEuriborData(data){
   const finite = value => Number.isFinite(value);
-  const requiredTerms = ["1S", "1M", "3M", "6M", "12M"];
+  const requiredTerms = ["1M", "3M", "6M", "12M"];
+  /* Caches antigas com a Euribor a 1 semana (descontinuada) são descartadas. */
+  if(Array.isArray(data?.rates) && data.rates.some(rate => rate?.term === "1S")) return false;
   if(!data || typeof data.updated !== "string" || !Array.isArray(data.rates) ||
      !Array.isArray(data.hist) || data.hist.length < 2 ||
      !requiredTerms.every(term => data.rates.some(rate => rate?.term === term &&
@@ -459,5 +465,7 @@ function isValidEuriborData(data){
 
 window.initEuribor = initEuribor;
 window.parseBdpRates = parseBdpRates;
+window.nextEcbMeeting = nextEcbMeeting;
+window.parsePtDate = parsePtDate;
 window.renderEuribor = renderEuribor;
 })();
