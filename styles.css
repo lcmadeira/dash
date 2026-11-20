@@ -3451,3 +3451,59 @@ html.masonry .grid > *{grid-row-start:auto}
 .card-body-pad{padding:4px 0}
 .imob-kpi-chg.up{color:var(--green)}
 .imob-kpi-chg.down{color:var(--red)}
+
+/* Avisos meteorológicos IPMA (cores oficiais dos níveis de aviso) */
+:root{--lvl-yellow:#E6C33A;--lvl-orange:#F08A3C;--lvl-red:var(--red)}
+.wx-warnings{display:flex;flex-direction:column;gap:6px;margin:4px 0 12px}
+.wx-warning{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;border-radius:var(--rs);background:var(--surface);border:1px solid var(--b);border-left:3px solid var(--lvl-yellow);font-size:.8rem}
+.wx-warning[data-level="orange"]{border-left-color:var(--lvl-orange)}
+.wx-warning[data-level="red"]{border-left-color:var(--lvl-red)}
+.wx-warning-level{font-weight:600;color:var(--lvl-yellow)}
+.wx-warning[data-level="orange"] .wx-warning-level{color:var(--lvl-orange)}
+.wx-warning[data-level="red"] .wx-warning-level{color:var(--lvl-red)}
+.wx-warning-type{color:var(--text)}
+.wx-warning-when{margin-left:auto;color:var(--t3);font-size:.76rem}
+.wx-warning-note{font-size:.76rem;color:var(--t3)}
+
+/* Proteção Civil (ocorrências ANEPC e risco de incêndio IPMA, escala oficial 1–5) */
+:root{--risk-low:var(--green);--risk-moderate:var(--lvl-yellow);--risk-high:var(--lvl-orange);--risk-very-high:var(--red);--risk-max:#B3261E}
+.anpc-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.anpc-kpi{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 6px;text-align:center;min-width:0}
+.anpc-kpi b{display:block;font-size:1.15rem;font-weight:700;color:var(--text);line-height:1.15;overflow-wrap:anywhere}
+.anpc-kpi span{display:block;font-size:.74rem;color:var(--t3);margin-top:2px}
+.anpc-kpi[data-tone] b{font-size:.92rem}
+.anpc-kpi[data-tone="low"] b{color:var(--risk-low)}
+.anpc-kpi[data-tone="moderate"] b{color:var(--risk-moderate)}
+.anpc-kpi[data-tone="high"] b{color:var(--risk-high)}
+.anpc-kpi[data-tone="very-high"] b{color:var(--risk-very-high)}
+.anpc-kpi[data-tone="max"] b{color:var(--risk-max)}
+.anpc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.anpc-item{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 10px;font-size:.8rem;color:var(--text)}
+.anpc-res{font-size:.76rem;color:var(--t2);margin-top:2px}
+.anpc-muted{color:var(--t3);font-size:.76rem}
+.anpc-empty{font-size:.8rem;color:var(--t2);padding:8px 10px;border:1px dashed var(--b2);border-radius:var(--rs);margin-bottom:10px}
+.anpc-subtitle{font-size:.8rem;font-weight:600;color:var(--t2);margin:2px 0 6px}
+.anpc-risk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:4px}
+.anpc-risk{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--b);border-left:3px solid var(--risk-low);font-size:.76rem;color:var(--t2);min-width:0}
+.anpc-risk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anpc-risk b{color:var(--text)}
+.anpc-risk[data-tone="moderate"]{border-left-color:var(--risk-moderate)}
+.anpc-risk[data-tone="high"]{border-left-color:var(--risk-high)}
+.anpc-risk[data-tone="very-high"]{border-left-color:var(--risk-very-high)}
+.anpc-risk[data-tone="max"]{border-left-color:var(--risk-max)}
+.anpc-risk.is-mine{border-color:var(--b2);background:var(--card-h);color:var(--text)}
+.anpc-legend{font-size:.74rem;color:var(--t3);margin-top:6px}
+
+/* Alertas Carris Metropolitana (cartão Transportes) */
+.carris-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--t2);margin-bottom:8px}
+.carris-head b{color:var(--text)}
+.carris-head .carris-strike{color:var(--red)}
+.carris-head select{background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-size:.78rem;padding:4px 8px;max-width:100%}
+.carris-list{display:flex;flex-direction:column;gap:5px}
+.carris-item{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 10px}
+.carris-item.is-strike{border-left:3px solid var(--red)}
+.carris-meta{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--t3)}
+.carris-title{font-size:.8rem;color:var(--text);margin-top:2px;line-height:1.4}
+.carris-until{font-size:.74rem;color:var(--t3);margin-top:2px}
+.carris-more{font-size:.78rem;color:var(--t3);padding:4px 0}
+.carris-src{font-size:.74rem;color:var(--t3);margin-top:8px}

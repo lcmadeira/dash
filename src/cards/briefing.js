@@ -119,7 +119,7 @@
     if (!root) return;
     const observations = [];
 
-    const cityId = Number(window.CFG?.IPMA_CITY_ID || 1060300);
+    const cityId = Number(window.CFG?.IPMA_CITY_ID || 1110600);
     const weather = window.lsGet?.(`ipma_${cityId}`);
     const weatherCache = window.getCacheMeta?.(`ipma_${cityId}`);
     const weatherObserved = Date.parse(weather?.dataUpdate || "");

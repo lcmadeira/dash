@@ -11,12 +11,12 @@ const AQ_CITY_COORDS = {
   1010500: {lat:40.64, lon:-8.65, name:"Aveiro"},
   1020500: {lat:38.02, lon:-7.86, name:"Beja"},
   1030300: {lat:41.55, lon:-8.43, name:"Braga"},
-  1030800: {lat:41.81, lon:-6.76, name:"Bragança"},
-  1040200: {lat:39.82, lon:-7.49, name:"Castelo Branco"},
-  1050200: {lat:40.20, lon:-8.41, name:"Coimbra"},
-  1060300: {lat:38.57, lon:-7.91, name:"Évora"},
-  1070500: {lat:37.02, lon:-7.93, name:"Faro"},
-  1080500: {lat:40.54, lon:-7.27, name:"Guarda"},
+  1040200: {lat:41.81, lon:-6.76, name:"Bragança"},
+  1050200: {lat:39.82, lon:-7.49, name:"Castelo Branco"},
+  1060300: {lat:40.20, lon:-8.41, name:"Coimbra"},
+  1070500: {lat:38.57, lon:-7.91, name:"Évora"},
+  1080500: {lat:37.02, lon:-7.93, name:"Faro"},
+  1090700: {lat:40.54, lon:-7.27, name:"Guarda"},
   1100900: {lat:39.74, lon:-8.81, name:"Leiria"},
   1110600: {lat:38.72, lon:-9.14, name:"Lisboa"},
   1121400: {lat:39.30, lon:-7.44, name:"Portalegre"},
@@ -28,7 +28,7 @@ const AQ_CITY_COORDS = {
   1171400: {lat:41.30, lon:-7.74, name:"Vila Real"},
   1182300: {lat:40.66, lon:-7.91, name:"Viseu"},
   2310300: {lat:32.67, lon:-16.92, name:"Funchal"},
-  2320100: {lat:37.74, lon:-25.68, name:"Ponta Delgada"},
+  3420300: {lat:37.74, lon:-25.68, name:"Ponta Delgada"},
 };
 
 /* Limites European AQI (EEA) */
@@ -102,8 +102,8 @@ async function loadAirQuality(force=false) {
   el.innerHTML = skeletonKPIs(6);
 
   /* Coordenadas baseadas na cidade seleccionada */
-  const cityId = CFG.IPMA_CITY_ID || 1060300;
-  const coords = AQ_CITY_COORDS[cityId] || AQ_CITY_COORDS[1060300];
+  const cityId = CFG.IPMA_CITY_ID || 1110600;
+  const coords = AQ_CITY_COORDS[cityId] || AQ_CITY_COORDS[1110600];
   const ck = `aq_v3_${cityId}`;
 
   let data = force ? null : lsGet(ck);

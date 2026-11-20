@@ -15,6 +15,7 @@
     agri: "Agro commodities",
     air: "Tráfego aéreo",
     seis: "Sismos",
+    anpc: "Proteção Civil",
     ormuz: "Estreito de Ormuz",
     smn: "Mobilidade",
     transp: "Transportes",
@@ -319,7 +320,7 @@
   // Cada vista mostra uma secção do painel (ver CARD_SECTIONS em app.js).
   const DASHBOARD_PROFILES = {
     all: null,
-    portugal: new Set(["weather", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "seis", "air", "news-pt"]),
+    portugal: new Set(["weather", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "anpc", "seis", "air", "news-pt"]),
     economy: new Set(["euribor", "inf", "imob", "smn", "exp", "div", "co2", "cal"]),
     markets: new Set(["psi20", "fx", "crypto", "oil", "gas-eu", "agri", "mstats", "fng", "rec", "finance", "heatmap"]),
     world: new Set(["news-world", "conflicts", "geo", "press", "ormuz"]),
@@ -411,12 +412,12 @@
   }
 
   function getWeatherCacheKey() {
-    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     return `ipma_${id}`;
   }
 
   function getAirQualityCacheKey() {
-    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     return `aq_v3_${id}`;
   }
 
@@ -508,7 +509,7 @@
       setCardStatus(id, "static", "Estático", { title: "Dados estáticos (sem fetch)" }),
     );
 
-    const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     const byId = {
       weather: `ipma_${cityId}`,
       airquality: `aq_v3_${cityId}`,

@@ -677,7 +677,8 @@ test("transport card shows current urban reference fares and avoids claiming liv
   assert.match(body.innerHTML, /7\.25€/);
   assert.match(body.innerHTML, /1\.40€/);
   assert.match(body.innerHTML, /consultar tarifa/i);
-  assert.match(body.innerHTML, /estado operacional e os avisos de greve não são consultados em direto/);
+  assert.match(body.innerHTML, /estado operacional e os avisos de greve da CP e do Metro não são consultados em direto/);
+  assert.match(body.innerHTML, /alertas da Carris Metropolitana estão no separador/);
   assert.doesNotMatch(body.innerHTML, /Sem greves anunciadas|Circulação normal|Passe Alentejo/);
 
   context.switchTr("horarios", tabs[1]);

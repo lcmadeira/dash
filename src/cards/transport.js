@@ -1,14 +1,97 @@
-/* global Date, document, window */
+/* global Date, document, window, fetchJsonFirstOk, lsGet, lsSet */
 (() => {
 /* ══════════════════════════════════════════════════════
    TRANSPORTES PT
    ══════════════════════════════════════════════════════ */
 function switchTr(tab,btn){
-  document.querySelectorAll("#tr-tab-p,#tr-tab-h,#tr-tab-b").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll("#tr-tab-p,#tr-tab-h,#tr-tab-b,#tr-tab-a").forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
-  document.getElementById("tr-passes").style.display=     tab==="passes"?"":"none";
-  document.getElementById("tr-horarios").style.display=   tab==="horarios"?"":"none";
-  document.getElementById("tr-autocarros").style.display= tab==="autocarros"?"":"none";
+  [["tr-passes","passes"],["tr-horarios","horarios"],["tr-autocarros","autocarros"],["tr-alertas","alertas"]].forEach(([id,name])=>{
+    const panel=document.getElementById(id);
+    if(panel) panel.style.display=tab===name?"":"none";
+  });
+  if(tab==="alertas") loadCarrisAlerts();
+}
+
+/* ── Alertas Carris Metropolitana (API Aberta) ── */
+const CARRIS_ALERTS_URL="https://api.apiaberta.pt/v1/carris/alerts";
+const CARRIS_EFFECT={SIGNIFICANT_DELAYS:"Atrasos",DETOUR:"Desvio",REDUCED_SERVICE:"Serviço reduzido",NO_SERVICE:"Sem serviço",STOP_MOVED:"Paragem mudada",MODIFIED_SERVICE:"Serviço alterado",OTHER_EFFECT:"Alteração",UNKNOWN_EFFECT:"Alteração"};
+const CARRIS_CAUSE={STRIKE:"Greve",DEMONSTRATION:"Manifestação",CONSTRUCTION:"Obras",ACCIDENT:"Acidente",WEATHER:"Meteorologia",TECHNICAL_PROBLEM:"Avaria",OTHER_CAUSE:"Outra causa",UNKNOWN_CAUSE:"Outra causa"};
+const CARRIS_PRIORITY={NO_SERVICE:0,REDUCED_SERVICE:1,DETOUR:2,SIGNIFICANT_DELAYS:3};
+let carrisAlerts=null;
+
+function escTr(value){
+  return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+}
+
+/** Normaliza e ordena alertas: greves e cortes de serviço primeiro. */
+function normalizeCarrisAlerts(list){
+  return (Array.isArray(list)?list:[])
+    .filter(a=>a&&a.active!==false&&typeof a.header_pt==="string")
+    .map(a=>{
+      const parts=a.header_pt.split(" | ");
+      /* Só é concelho um prefixo de texto simples (sem números de linha nem "Área 4: …"). */
+      const hasMunicipality=parts.length>1&&/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s,'-]*$/.test(parts[0].trim())&&!/^(linhas?|área)\b/i.test(parts[0].trim());
+      return {
+        municipality: hasMunicipality?parts[0].trim():"Área metropolitana",
+        title: hasMunicipality?parts.slice(1).join(" | ").trim():a.header_pt.trim(),
+        description: String(a.description_pt||"").trim(),
+        effect: CARRIS_EFFECT[a.effect]||"Alteração",
+        cause: CARRIS_CAUSE[a.cause]||"",
+        strike: a.cause==="STRIKE",
+        rank: (a.cause==="STRIKE"?-1:0)+(CARRIS_PRIORITY[a.effect]??4),
+        lines: Array.isArray(a.lines)?a.lines:[],
+        until: a.active_to||null,
+      };
+    })
+    .sort((x,y)=>x.rank-y.rank||x.municipality.localeCompare(y.municipality,"pt"));
+}
+
+function renderCarrisAlerts(){
+  const box=document.getElementById("tr-alertas");
+  if(!box||!carrisAlerts) return;
+  const sel=document.getElementById("carris-mun");
+  const chosen=sel?sel.value:"";
+  const munis=[...new Set(carrisAlerts.flatMap(a=>a.municipality.split(/\s+e\s+|,\s*/).map(m=>m.trim())))].filter(Boolean).sort((a,b)=>a.localeCompare(b,"pt"));
+  const shown=chosen?carrisAlerts.filter(a=>a.municipality.includes(chosen)):carrisAlerts;
+  const strikes=carrisAlerts.filter(a=>a.strike).length;
+  box.innerHTML=`
+    <div class="carris-head">
+      <span><b>${carrisAlerts.length}</b> alertas ativos${strikes?` · <b class="carris-strike">${strikes} greve${strikes>1?"s":""}</b>`:""}</span>
+      <select id="carris-mun" aria-label="Filtrar alertas por concelho" onchange="renderCarrisAlerts()">
+        <option value="">Todos os concelhos</option>
+        ${munis.map(m=>`<option value="${escTr(m)}"${m===chosen?" selected":""}>${escTr(m)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="carris-list">${shown.slice(0,12).map(a=>`
+      <div class="carris-item${a.strike?" is-strike":""}" title="${escTr(a.description)}">
+        <div class="carris-meta"><span>${escTr(a.effect)}${a.cause?` · ${escTr(a.cause)}`:""}</span><span>${escTr(a.municipality)}</span></div>
+        <div class="carris-title">${escTr(a.title)}</div>
+        ${a.until?`<div class="carris-until">até ${new Date(a.until).toLocaleDateString("pt-PT",{day:"numeric",month:"short",year:"numeric"})}</div>`:""}
+      </div>`).join("")}
+      ${shown.length>12?`<div class="carris-more">+${shown.length-12} alertas · filtre por concelho</div>`:""}
+      ${shown.length?"":`<div class="carris-more">Sem alertas para este concelho.</div>`}
+    </div>
+    <div class="carris-src">Carris Metropolitana (TML) via <a href="https://apiaberta.pt/" target="_blank" rel="noopener noreferrer">API Aberta</a> · passe o rato para ver a descrição</div>`;
+}
+
+async function loadCarrisAlerts(force=false){
+  const box=document.getElementById("tr-alertas");
+  if(!box) return;
+  if(carrisAlerts&&!force){ renderCarrisAlerts(); return; }
+  box.innerHTML=`<div class="carris-more">A carregar alertas da Carris Metropolitana…</div>`;
+  try{
+    let raw=force?null:lsGet("carris_alerts_v1");
+    if(!Array.isArray(raw)){
+      const j=await fetchJsonFirstOk(CARRIS_ALERTS_URL,{},10000,["direct"],x=>Array.isArray(x?.data));
+      raw=j.data;
+      lsSet("carris_alerts_v1",raw,{source:"Carris Metropolitana via API Aberta",state:j.stale?"stale":"live"});
+    }
+    carrisAlerts=normalizeCarrisAlerts(raw);
+    renderCarrisAlerts();
+  }catch{
+    box.innerHTML=`<div class="carris-more">Alertas da Carris Metropolitana indisponíveis de momento. <a href="https://www.carrismetropolitana.pt/alertas" target="_blank" rel="noopener noreferrer">Ver no site da Carris Metropolitana</a></div>`;
+  }
 }
 function loadTransp(_force){
   const el=document.getElementById("transp-body");
@@ -129,7 +212,7 @@ function loadTransp(_force){
           <div style="font-size:.74rem;font-weight:600;color:var(--accent)">Consultar CP</div>
         </div>`).join("")}
         <div style="font-size:.74rem;color:var(--t3);margin-top:5px">Tarifários ocasionais 2026. CP Lisboa: preço simples para zona 1; o total depende das zonas. <a href="https://www.cp.pt/passageiros/pt" target="_blank" rel="noopener noreferrer">Consultar CP</a> · <a href="https://www.metrolisboa.pt/2025/12/19/novas-tarifas-2026/" target="_blank" rel="noopener noreferrer">Metro Lisboa</a> · <a href="https://andante.pt/comprar/andante-azul/" target="_blank" rel="noopener noreferrer">Andante</a></div>
-        <div style="background:var(--b2);border-radius:5px;padding:5px 7px;margin-top:6px;font-size:.74rem;color:var(--t2)">O estado operacional e os avisos de greve não são consultados em direto. Confirme junto dos operadores.</div>
+        <div style="background:var(--b2);border-radius:5px;padding:5px 7px;margin-top:6px;font-size:.74rem;color:var(--t2)">O estado operacional e os avisos de greve da CP e do Metro não são consultados em direto; os alertas da Carris Metropolitana estão no separador ⚠ Alertas. Confirme junto dos operadores.</div>
       </div>
     </div>`;
 
@@ -189,12 +272,17 @@ function loadTransp(_force){
       <button class="rbtn on" id="tr-tab-p" onclick="switchTr('passes',this)">🎫 Passes</button>
       <button class="rbtn"   id="tr-tab-h" onclick="switchTr('horarios',this)">🚆 Horários CP</button>
       <button class="rbtn"   id="tr-tab-b" onclick="switchTr('autocarros',this)">🚌 Autocarros</button>
+      <button class="rbtn"   id="tr-tab-a" onclick="switchTr('alertas',this)">⚠ Alertas</button>
     </div>
     <div id="tr-passes">${htmlPasses}</div>
     <div id="tr-horarios" style="display:none">${htmlHor}</div>
     <div id="tr-autocarros" style="display:none">${htmlBus}</div>
+    <div id="tr-alertas" style="display:none"></div>
   `;
+  carrisAlerts=_force?null:carrisAlerts;
 }
 window.switchTr = switchTr;
+window.renderCarrisAlerts = renderCarrisAlerts;
+window.normalizeCarrisAlerts = normalizeCarrisAlerts;
 window.loadTransp = loadTransp;
 })();
