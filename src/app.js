@@ -3573,18 +3573,62 @@ const CABAZ_HIST_BASE=[
 
 const CABAZ_CK = "cabaz_deco_v1";
 
-/* Carregar histórico persistido do localStorage (entradas manuais adicionadas pelo user) */
+/* Valores automáticos (data/cabaz.json): lidos das notícias semanais da Lusa sobre o boletim da
+   DECO PROteste, por consenso de títulos, por scripts/update-cabaz.mjs (cron no portátil). */
+let CABAZ_AUTO=[];
+
+/** Quarta-feira da semana de publicação da DECO (a mais recente ≤ data), para juntar entradas da mesma semana. */
+function cabazWeekKey(iso){
+  const d=new Date(`${iso}T12:00:00`);
+  if(!Number.isFinite(d.getTime())) return iso;
+  d.setDate(d.getDate()-((d.getDay()-3+7)%7));
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+/* Carregar histórico: base do código < entradas manuais (localStorage) < valores automáticos, uma entrada por semana */
 function loadCabazHist(){
   let extra=[];
   try{
     const s=localStorage.getItem(CABAZ_CK);
     if(s) extra=JSON.parse(s);
   }catch{}
-  /* Merge: base + extra, sem duplicados por data, ordenado */
-  const byDate={};
-  [...CABAZ_HIST_BASE,...extra].forEach(e=>{byDate[e[0]]=e;});
-  return Object.values(byDate).sort((a,b)=>a[0]>b[0]?1:-1);
+  const byWeek={};
+  const add=(rows,origin)=>rows.forEach(e=>{
+    if(!Array.isArray(e)||!/^\d{4}-\d{2}-\d{2}$/.test(e[0])||!Number.isFinite(Number(e[1]))) return;
+    const key=cabazWeekKey(e[0]);
+    byWeek[key]=[key,Number(e[1]),e[2]||"",e[3]||"",origin];
+  });
+  add(CABAZ_HIST_BASE,"base");
+  add(extra,"manual");
+  add(CABAZ_AUTO,"auto");
+  return Object.values(byWeek).sort((a,b)=>a[0]>b[0]?1:-1);
 }
+
+/** Origem e data da última entrada do cabaz (para o badge do card). */
+window.getCabazLatestInfo=()=>{
+  const hist=loadCabazHist();
+  const last=hist[hist.length-1];
+  return last?{date:last[0],origin:last[4],note:last[2]}:null;
+};
+
+/** Lê data/cabaz.json do próprio site e volta a desenhar o card. */
+async function loadCabazAuto(){
+  try{
+    const url=new URL("data/cabaz.json",window.location.href).href;
+    const r=await fetch(url,{cache:"no-cache"});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j=await r.json();
+    if(Array.isArray(j?.entries)){
+      CABAZ_AUTO=j.entries.filter(e=>Array.isArray(e)&&/^\d{4}-\d{2}-\d{2}$/.test(e[0])&&Number(e[1])>100&&Number(e[1])<500);
+    }
+  }catch(e){
+    console.warn("Cabaz automático indisponível:",e?.message||e);
+  }
+  renderCabaz();
+  window.refreshAllCardStatuses?.();
+}
+window.loadCabazAuto=loadCabazAuto;
 window.getCabazBriefingData = () => loadCabazHist()
   .filter(row => Array.isArray(row) && /^\d{4}-\d{2}-\d{2}$/.test(row[0]) && Number.isFinite(Number(row[1])))
   .map(row => [row[0], Number(row[1])]);
@@ -3662,9 +3706,9 @@ function renderCabaz(){
   <div style="background:var(--b2);border-radius:10px;padding:11px 14px;margin-bottom:10px">
     <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
          letter-spacing:.5px;margin-bottom:3px">
-      Cabaz 63 produtos · ${fmtDate(cur[0])}
-      <span style="font-size:.74rem;background:#F59E0B22;color:var(--amber);
-            border-radius:3px;padding:1px 5px;margin-left:5px">⚠ dados manuais</span>
+      Cabaz 63 produtos · semana de ${fmtDate(cur[0])}
+      ${cur[4]==="auto"?"":`<span style="font-size:.74rem;background:var(--od);color:var(--amber);
+            border-radius:3px;padding:1px 5px;margin-left:5px">${cur[4]==="manual"?"⚠ valor manual":"⚠ referência"}</span>`}
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
       <div style="font-size:2.6rem;font-weight:900;color:var(--green);line-height:1;letter-spacing:-1px">
@@ -3761,14 +3805,17 @@ function renderCabaz(){
     })()}
   </div>
 
-  <!-- Aviso de metodologia e update -->
-  <div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:7px;
-       padding:7px 10px;font-size:.74rem;color:var(--amber);line-height:1.5">
-    ⚠ Dados actualizados manualmente. A DECO PROteste publica às <b>quartas-feiras</b>.
-    Clica em <b>✏️</b> para adicionar o valor da semana corrente.
-    <a href="https://www.dnoticias.pt/2026/10/28/510767-cabaz-alimentar-desce-44-centimos-para-25355-euros-na-ultima-semana/"
-       target="_blank" rel="noopener noreferrer" style="color:var(--amber);text-decoration:underline">Ver atualização de 28 Out (Lusa) →</a>
-  </div>`;
+  <!-- Origem do último valor -->
+  ${cur[4]==="auto"
+    ?`<div style="background:var(--surface);border:1px solid var(--b);border-radius:7px;padding:7px 10px;font-size:.74rem;color:var(--t2);line-height:1.5">
+        Atualizado automaticamente a partir das notícias semanais (Lusa) sobre o boletim da DECO PROteste, publicado às <b>quartas-feiras</b>.
+        ${cur[3]?`<a href="${String(cur[3]).replace(/"/g,"&quot;")}" target="_blank" rel="noopener noreferrer">Ver notícia →</a>`:""}
+        <span style="color:var(--t3)">Pode corrigir um valor com ✏️.</span>
+      </div>`
+    :`<div style="background:var(--od);border:1px solid var(--b);border-radius:7px;padding:7px 10px;font-size:.74rem;color:var(--amber);line-height:1.5">
+        ⚠ Sem valor automático para esta semana. A DECO PROteste publica às <b>quartas-feiras</b>;
+        o painel atualiza a partir das notícias quando sai a notícia da Lusa. Clique em <b>✏️</b> para introduzir o valor à mão.
+      </div>`}`;
 }
 
 /* ── Modal de edição ── */
@@ -3852,4 +3899,5 @@ document.getElementById("cabaz-modal")?.addEventListener("click",function(e){
 
 /* Boot */
 renderCabaz();
+loadCabazAuto();
 

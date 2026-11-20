@@ -541,8 +541,17 @@
     enhanceRefreshButtonLabels();
     window.renderPortugalBriefing?.();
 
+    const latest = window.getCabazLatestInfo?.();
     const cm = getCabazMeta();
-    if (cm) {
+    if (latest?.origin === "auto") {
+      const ts = new Date(`${latest.date}T12:00:00`).getTime();
+      const age = Date.now() - ts;
+      const stale = age > 9 * 24 * 60 * 60 * 1000;
+      setCardStatus("cabaz", stale ? "stale" : "cache", `Notícias · há ${fmtAgeShort(age)}`, {
+        title: `Fonte: DECO PROteste via notícias (Lusa) · Observado: semana de ${new Date(ts).toLocaleDateString("pt-PT")} · ${latest.note}`,
+        force: true,
+      });
+    } else if (cm) {
       const ageLbl = fmtAgeShort(cm.age);
       const t = new Date(cm.ts);
       setCardStatus("cabaz", "static", `Manual · há ${ageLbl}`, {
