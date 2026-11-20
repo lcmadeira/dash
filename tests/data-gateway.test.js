@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, parseOmieElectricity } from "../worker/src/index.js";
+import { handleRequest, marketToday, parseOmieElectricity } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -160,6 +160,27 @@ test("electricity gateway rejects arbitrary dates and malformed OMIE series", as
   const invalidSeries = await handleRequest(new Request("https://dash-data.test/v1/electricity?date=2026-11-02"));
   assert.equal(invalidSeries.status, 502);
   assert.equal(upstreamCalls, 1);
+});
+
+test("electricity gateway reports a not-yet-published market day without an HTTP error", async () => {
+  const tomorrow = new Date(Date.now() + 36 * 3600 * 1000);
+  const date = marketToday(tomorrow);
+  globalThis.fetch = async () => new Response("<html>Not found</html>", { status: 404 });
+  const pending = await handleRequest(new Request(`https://dash-data.test/v1/electricity?date=${date}`));
+  assert.equal(pending.status, 200);
+  const payload = await pending.json();
+  assert.equal(payload.published, false);
+  assert.equal(payload.date, date);
+  assert.deepEqual(payload.periods, []);
+  assert.equal(payload._meta.state, "pending");
+
+  const past = await handleRequest(new Request("https://dash-data.test/v1/electricity?date=2026-01-05"));
+  assert.equal(past.status, 502);
+});
+
+test("market day follows the Madrid calendar", () => {
+  assert.equal(marketToday(new Date("2026-11-20T22:30:00Z")), "2026-11-20");
+  assert.equal(marketToday(new Date("2026-11-20T23:30:00Z")), "2026-11-21");
 });
 
 test("gateway never proxies caller supplied news URLs", async () => {
