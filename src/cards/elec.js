@@ -155,8 +155,11 @@
     const configuredBase = typeof CFG !== "undefined" ? CFG?.DATA_API_BASE : window.CFG?.DATA_API_BASE;
     const base = String(configuredBase || "https://dash-data-gateway.luiscarlosmadeira.workers.dev").trim().replace(/\/+$/, "");
     const url = `${base}/v1/electricity?date=${encodeURIComponent(date)}`;
-    return fetchJsonFirstOk(url, {}, 12000, ["direct", "local"], isValidPeriods)
+    const isPending = (payload) => payload?.published === false && payload?.date === date;
+    return fetchJsonFirstOk(url, {}, 12000, ["direct", "local"], (payload) => isValidPeriods(payload) || isPending(payload))
       .then((payload) => {
+        // Dia ainda não publicado pelo OMIE: sem dados e sem cache, para voltar a tentar mais tarde.
+        if (isPending(payload)) return null;
         const stale = payload?._meta?.state === "stale";
         lsSet(key, payload, { source: "OMIE · MARGINALPDBCPT · zona portuguesa", state: stale ? "stale" : "live" });
         return { ...payload, cache: false, stale };
@@ -173,7 +176,10 @@
       const tomorrowDate = shiftDate(date, 1);
       let today;
       let tomorrow = null;
-      try { today = await fetchDay(date, force); }
+      try {
+        today = await fetchDay(date, force);
+        if (!today) throw new Error("Preços do dia ainda não publicados");
+      }
       catch (error) {
         const stale = getStaleCache(`omie_electricity_${date}`);
         if (!isValidPeriods(stale?.d)) throw error;

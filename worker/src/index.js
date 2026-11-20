@@ -46,6 +46,11 @@ function isValidPayload(path, payload) {
       && /^https:\/\//i.test(article.link));
 }
 
+/** Data do mercado ibérico (Europe/Madrid) no formato AAAA-MM-DD. */
+export function marketToday(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
 export function parseOmieElectricity(text, expectedDate) {
   if (typeof text !== "string" || !/^MARGINALPDBCPT;/.test(text.trimStart())) return null;
   const periods = [];
@@ -232,6 +237,17 @@ export async function handleRequest(request, env = {}, ctx = {}) {
       signal: AbortSignal.timeout(9000),
     });
     if (!response.ok) {
+      if (url.pathname === ELECTRICITY_PATH && response.status === 404 && electricityDate >= marketToday()) {
+        // O OMIE responde 404 enquanto o ficheiro do dia ainda não foi publicado (D+1 sai à tarde).
+        // Não é uma falha: responde 200 com published:false para o browser não registar erro.
+        const pending = { date: electricityDate, published: false, periods: [],
+          _meta: { source: "OMIE · MARGINALPDBCPT · zona portuguesa", state: "pending", checkedAt: Date.now() } };
+        headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+        headers.set("X-Dash-Cache", "MISS");
+        const result = jsonResponse(pending, 200, headers);
+        if (cache) await putCached(cache, cacheKey, result, ctx);
+        return result;
+      }
       const stale = cache ? await getStaleResponse(cache, staleKey, url.pathname, headers) : null;
       if (stale) return stale;
       return jsonResponse({ error: "Fornecedor indisponível", upstreamStatus: response.status }, 502, headers);
