@@ -1,4 +1,12 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* Globais chamados a partir do index.html (onclick) ou de outros scripts clássicos: */
+/* exported
+   addToHistory, clearAllNotifications, dismissNotification, executeExport, fetchStooqDailySeries,
+   filterNotifications, markAllAsRead, moveCard, openCabazEditor, openExportModal, openFuelModal,
+   openNotificationSettings, quickAddTicker, removeTicker, resetSettings, saveCabazEntry, saveSettings,
+   selectExportFormat, setComfortDensity, setComfortMotion, _setOnByDataAttr, showTrendModal,
+   skeletonKPIs, skeletonNews, skeletonTable, switchOil, switchSettingsTab, toggleAllCards,
+   toggleCardSelection, toggleCardVisibility, toggleNotifications */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -442,15 +450,8 @@ const C=[
 ];
 
 const CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-const CR={war:8,high:6,tension:5,nuclear:6};
 const CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
 
-/* Projecção de Mercator simples: lon→x, lat→y para viewBox 1000×500 */
-function proj(lat,lon){
-    const x=(lon+180)/360*1000;
-    const y=(90-lat)/180*500;
-    return[Math.round(x),Math.round(Math.max(0,Math.min(500,y)))];
-  }
 
 /* ── MAPA ── */
 
@@ -521,173 +522,7 @@ function topo2geo(topo){
     return {type:"FeatureCollection",features:features};
   }
 
-function loadTopoData(cb){
-  if(window._topoCache){ cb(window._topoCache); return; }
-  window._topoCbs.push(cb);
-  if(window._topoLoading) return;
-  window._topoLoading = true;
-  fetch("https://unpkg.com/world-atlas@2/countries-110m.json")
-    .then(function(r){ return r.json(); })
-    .then(function(topo){
-      /* Usar topo2geo global */
-      const geo = topo2geo(topo);
-      window._topoCache = geo;
-      window._topoCbs.forEach(function(f){ f(window._topoCache); });
-      window._topoCbs=[];
-    })
-    .catch(function(){ window._topoLoading=false; });
-}
 
-/* ── Função genérica de desenho regional ── */
-function drawRegionalMap(canvasId, tipId, bbox, dots, opts, fixedW, fixedH){
-  const canvas=document.getElementById(canvasId);
-  const tip=tipId?document.getElementById(tipId):null;
-  if(!canvas) return;
-  /* Dimensões: usar valores explícitos ou detectar do DOM */
-  const W0 = fixedW || canvas.parentElement&&canvas.parentElement.offsetWidth || canvas.offsetWidth || 190;
-  const H0 = fixedH || canvas.parentElement&&canvas.parentElement.offsetHeight || canvas.offsetHeight || 130;
-  canvas.width  = W0;
-  canvas.height = H0;
-  const ctx=canvas.getContext("2d");
-  opts=opts||{};
-
-  function proj(lat,lon){
-    const padLon=(bbox.maxLon-bbox.minLon)*0.04;
-    const padLat=(bbox.maxLat-bbox.minLat)*0.04;
-    const x=(lon-(bbox.minLon-padLon))/((bbox.maxLon+padLon)-(bbox.minLon-padLon))*canvas.width;
-    const y=(1-(lat-(bbox.minLat-padLat))/((bbox.maxLat+padLat)-(bbox.minLat-padLat)))*canvas.height;
-    return [x,y];
-  }
-
-  function draw(geo){
-    const W=canvas.width, H=canvas.height;
-    /* Fundo */
-    ctx.fillStyle=opts.bg||"#0a1020";
-    ctx.fillRect(0,0,W,H);
-
-    /* Países */
-    const features=geo.features;
-    for(let fi=0;fi<features.length;fi++){
-      const geom=features[fi].geometry;
-      if(!geom) continue;
-      const polys=geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
-      for(let pi=0;pi<polys.length;pi++){
-        const rings=polys[pi];
-        /* Verificar se este polígono intersecta a bbox */
-        const ring0=rings[0]; if(!ring0||!ring0.length) continue;
-        let inView=false;
-        for(var ci=0;ci<ring0.length;ci+=5){
-          const lon=ring0[ci][0], lat=ring0[ci][1];
-          if(lon>=bbox.minLon-5&&lon<=bbox.maxLon+5&&lat>=bbox.minLat-5&&lat<=bbox.maxLat+5){
-            inView=true; break;
-          }
-        }
-        if(!inView) continue;
-        for(let ri=0;ri<rings.length;ri++){
-          const ring=rings[ri];
-          ctx.beginPath();
-          for(var ci=0;ci<ring.length;ci++){
-            var p=proj(ring[ci][1],ring[ci][0]);
-            if(ci===0) ctx.moveTo(p[0],p[1]);
-            else ctx.lineTo(p[0],p[1]);
-          }
-          ctx.closePath();
-          ctx.fillStyle=opts.landFill||"#1E2B4A";
-          ctx.fill();
-          ctx.strokeStyle=opts.landStroke||"#2A3660";
-          ctx.lineWidth=0.7;
-          ctx.stroke();
-        }
-      }
-    }
-
-    /* Pontos */
-    for(let di=0;di<dots.length;di++){
-      const d=dots[di];
-      var p=proj(d.lat,d.lon);
-      if(p[0]<-10||p[0]>W+10||p[1]<-10||p[1]>H+10) continue;
-      /* Glow */
-      const grd=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],d.r*3);
-      grd.addColorStop(0,d.col+"99");
-      grd.addColorStop(1,d.col+"00");
-      ctx.beginPath();
-      ctx.arc(p[0],p[1],d.r*3,0,Math.PI*2);
-      ctx.fillStyle=grd;
-      ctx.fill();
-      /* Círculo principal */
-      ctx.beginPath();
-      ctx.arc(p[0],p[1],d.r,0,Math.PI*2);
-      ctx.fillStyle=d.col;
-      ctx.globalAlpha=0.9;
-      ctx.fill();
-      ctx.globalAlpha=1;
-      ctx.strokeStyle="rgba(255,255,255,0.3)";
-      ctx.lineWidth=0.5;
-      ctx.stroke();
-    }
-
-    /* Etiquetas opcionais */
-    if(opts.labels){
-      opts.labels.forEach(function(l){
-        const p=proj(l.lat,l.lon);
-        ctx.font="9px monospace";
-        ctx.fillStyle="rgba(110,122,150,0.8)";
-        ctx.fillText(l.text,p[0]+4,p[1]+3);
-      });
-    }
-  }
-
-  /* Resize */
-  function resize(){
-    const rect=canvas.getBoundingClientRect();
-    const w = Math.round(rect.width) || fixedW || 190;
-    const h2 = Math.round(rect.height) || fixedH || 130;
-    if(w>0 && h2>0){ canvas.width=w; canvas.height=h2; }
-    if(window._topoCache) draw(window._topoCache);
-  }
-
-  /* Tooltip */
-  if(tip){
-    canvas.addEventListener("mousemove",function(e){
-      const rect=canvas.getBoundingClientRect();
-      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-      let hit=null, minD=Infinity;
-      for(let di=0;di<dots.length;di++){
-        const d=dots[di];
-        const p=proj(d.lat,d.lon);
-        const dist=Math.sqrt((p[0]-mx)*(p[0]-mx)+(p[1]-my)*(p[1]-my));
-        if(dist<Math.max(d.r+8,16)&&dist<minD){ minD=dist; hit=d; }
-      }
-      if(hit){
-        tip.style.opacity="1";
-        tip.style.left=Math.min(mx+12,canvas.width-190)+"px";
-        tip.style.top=Math.max(my-30,4)+"px";
-        tip.innerHTML=hit.label||"";
-      } else {
-        tip.style.opacity="0";
-      }
-    });
-    canvas.addEventListener("mouseleave",function(){ tip.style.opacity="0"; });
-  }
-
-  loadTopoData(function(geo){
-    /* Re-verificar se canvas ainda está no DOM */
-    if(!document.getElementById(canvasId)) return;
-    /* Re-verificar dimensões */
-    if(canvas.width===0 || canvas.height===0){
-      canvas.width = fixedW||190; canvas.height = fixedH||130;
-    }
-    if(!geo||!geo.features||!geo.features.length){
-      /* Sem dados: mostrar fundo simples */
-      ctx.fillStyle=opts.bg||"#0a1020"; ctx.fillRect(0,0,canvas.width,canvas.height);
-      return;
-    }
-    draw(geo);
-  });
-  window.addEventListener("resize",function(){
-    setTimeout(resize,100);
-  });
-}
 
 
 window.buildConflictMap=function(){
@@ -717,12 +552,12 @@ window.buildConflictMap=function(){
     /* Grelha de meridianos/paralelos */
     ctx.strokeStyle="rgba(255,255,255,0.04)";
     ctx.lineWidth=0.5;
-    for(var lon=-180;lon<=180;lon+=30){
-      var x=proj(0,lon,W,H)[0];
+    for(let lon=-180;lon<=180;lon+=30){
+      const x=proj(0,lon,W,H)[0];
       ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
     }
-    for(var lat=-60;lat<=60;lat+=30){
-      var y=proj(lat,0,W,H)[1];
+    for(let lat=-60;lat<=60;lat+=30){
+      const y=proj(lat,0,W,H)[1];
       ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
     }
 
@@ -740,8 +575,8 @@ window.buildConflictMap=function(){
         for(let ri=0;ri<rings.length;ri++){
           const ring=rings[ri];
           ctx.beginPath();
-          for(var ci=0;ci<ring.length;ci++){
-            var p=proj(ring[ci][1],ring[ci][0],W,H);
+          for(let ci=0;ci<ring.length;ci++){
+            const p=proj(ring[ci][1],ring[ci][0],W,H);
             if(ci===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);
           }
           ctx.closePath();
@@ -753,9 +588,9 @@ window.buildConflictMap=function(){
     /* Conflitos */
     const COLORS={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
     const DOTS=[];
-    for(var ci=0;ci<C.length;ci++){
+    for(let ci=0;ci<C.length;ci++){
       const c=C[ci];
-      var p=proj(c[2],c[3],W,H);
+      const p=proj(c[2],c[3],W,H);
       const col=COLORS[c[1]]||"#888";
       const r=c[1]==="war"?7:c[1]==="high"?6:5;
 
@@ -779,14 +614,14 @@ window.buildConflictMap=function(){
     ctx.fillStyle="rgba(255,255,255,0.25)";
     ctx.font="9px monospace";
     ctx.textAlign="center";
-    for(var lon=-120;lon<=120;lon+=60){
-      var x=proj(0,lon,W,H)[0];
+    for(let lon=-120;lon<=120;lon+=60){
+      const x=proj(0,lon,W,H)[0];
       ctx.fillText(lon+"°",x,H-4);
     }
     ctx.textAlign="left";
-    for(var lat=-60;lat<=60;lat+=30){
+    for(let lat=-60;lat<=60;lat+=30){
       if(lat===0)continue;
-      var y=proj(lat,0,W,H)[1];
+      const y=proj(lat,0,W,H)[1];
       ctx.fillText(lat+"°",3,y+3);
     }
 
@@ -824,7 +659,6 @@ window.buildConflictMap=function(){
 
 
   function setupHover(){
-    const rect=canvas.getBoundingClientRect();
     canvas.addEventListener("mousemove",function(e){
       const rx=e.clientX-canvas.getBoundingClientRect().left;
       const ry=e.clientY-canvas.getBoundingClientRect().top;
@@ -931,11 +765,9 @@ function buildLista(){
 }
 
 /* ── TAB SWITCH ── */
-let CMAP_TAB="mapa";
 window.switchCmap=function(tab,btn){
   document.querySelectorAll(".cmap-tab").forEach(function(b){b.classList.remove("on");});
   if(btn)btn.classList.add("on");
-  CMAP_TAB=tab;
   const legend=document.getElementById("cmap-legend");
   if(legend)legend.style.display=tab==="mapa"?"flex":"none";
   if(tab==="mapa")window.buildConflictMap();
@@ -1074,73 +906,9 @@ function registerLazyLoad(element, loadFunc) {
 // CACHE INTELIGENTE
 // ──────────────────────────────────────────────────────────────
 
-const cacheConfig = {
-  weather: 15 * 60 * 1000,      // 15 minutos
-  news: 10 * 60 * 1000,         // 10 minutos
-  finance: 5 * 60 * 1000,       // 5 minutos
-  crypto: 2 * 60 * 1000,        // 2 minutos
-  static: 24 * 60 * 60 * 1000   // 24 horas
-};
 
-/**
- * Verifica se cache é válido
- */
-function isCacheValid(key) {
-  const cached = localStorage.getItem(key);
-  if (!cached) return false;
-  
-  try {
-    const data = JSON.parse(cached);
-    const now = Date.now();
-    const age = now - (data.timestamp || 0);
-    
-    // Determinar TTL baseado na chave
-    let ttl = cacheConfig.static;
-    for (const [prefix, time] of Object.entries(cacheConfig)) {
-      if (key.includes(prefix)) {
-        ttl = time;
-        break;
-      }
-    }
-    
-    return age < ttl;
-  } catch {
-    return false;
-  }
-}
 
-/**
- * Salva dados no cache com timestamp
- */
-function setCacheData(key, data) {
-  const cacheObj = {
-    data: data,
-    timestamp: Date.now()
-  };
-  
-  try {
-    localStorage.setItem(key, JSON.stringify(cacheObj));
-    return true;
-  } catch (e) {
-    console.warn('Cache overflow:', e);
-    cleanOldCache();
-    return false;
-  }
-}
 
-/**
- * Recupera dados do cache
- */
-function getCacheData(key) {
-  if (!isCacheValid(key)) return null;
-  
-  try {
-    const cached = JSON.parse(localStorage.getItem(key));
-    return cached.data;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Limpa cache antigo
@@ -1163,34 +931,8 @@ function cleanOldCache() {
 // REQUEST ANIMATION FRAME PARA ANIMAÇÕES
 // ──────────────────────────────────────────────────────────────
 
-/**
- * Executa callback na próxima frame (60fps)
- */
-function nextFrame(callback) {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(callback);
-  });
-}
 
-/**
- * Batch de updates para evitar reflows múltiplos
- */
-let updateQueue = [];
-let isUpdating = false;
 
-function batchUpdate(updateFunc) {
-  updateQueue.push(updateFunc);
-  
-  if (!isUpdating) {
-    isUpdating = true;
-    requestAnimationFrame(() => {
-      const batch = [...updateQueue];
-      updateQueue = [];
-      batch.forEach(fn => fn());
-      isUpdating = false;
-    });
-  }
-}
 
 // ──────────────────────────────────────────────────────────────
 // OTIMIZAÇÃO DE EVENTOS
@@ -1212,53 +954,8 @@ window.addEventListener('scroll', optimizedScroll, { passive: true });
 
 // ──────────────────────────────────────────────────────────────
 // BUNDLE DE CARREGAMENTOS
-// ──────────────────────────────────────────────────────────────
 
-const loadQueue = {
-  immediate: [],    // 0-100ms
-  fast: [],         // 100-500ms
-  normal: [],       // 500-1000ms
-  slow: [],         // 1000-2000ms
-  lazy: []          // quando visível
-};
 
-/**
- * Agenda carregamento de dados
- * @param {Function} func - Função a executar
- * @param {String} priority - 'immediate', 'fast', 'normal', 'slow', 'lazy'
- */
-function scheduleLoad(func, priority = 'normal') {
-  loadQueue[priority].push(func);
-}
-
-/**
- * Executa fila de carregamentos de forma otimizada
- */
-function executeLoadQueue() {
-  // Immediate
-  loadQueue.immediate.forEach(fn => fn());
-  loadQueue.immediate = [];
-  
-  // Fast
-  setTimeout(() => {
-    loadQueue.fast.forEach(fn => fn());
-    loadQueue.fast = [];
-  }, 100);
-  
-  // Normal
-  setTimeout(() => {
-    loadQueue.normal.forEach(fn => fn());
-    loadQueue.normal = [];
-  }, 500);
-  
-  // Slow
-  setTimeout(() => {
-    loadQueue.slow.forEach(fn => fn());
-    loadQueue.slow = [];
-  }, 1000);
-  
-  // Lazy é executado pelo IntersectionObserver
-}
 
 // ──────────────────────────────────────────────────────────────
 // PERFORMANCE MONITOR
@@ -1736,20 +1433,20 @@ function handleDragStart(e) {
   e.dataTransfer.setData('text/html', this.innerHTML);
 }
 
-function handleDragEnd(e) {
+function handleDragEnd(_e) {
   this.classList.remove('dragging');
   document.querySelectorAll('.card-toggle-item').forEach(item => {
     item.classList.remove('drag-over');
   });
 }
 
-function handleDragEnter(e) {
+function handleDragEnter(_e) {
   if (this !== draggedElement) {
     this.classList.add('drag-over');
   }
 }
 
-function handleDragLeave(e) {
+function handleDragLeave(_e) {
   this.classList.remove('drag-over');
 }
 
@@ -2703,7 +2400,7 @@ function filterNotifications(type) {
 
 // Marcar como lida
 function markAsRead(id) {
-  const notif = notifications.find(n => n.id == id);
+  const notif = notifications.find(n => String(n.id) === String(id));
   if (notif) {
     notif.read = true;
     saveNotifications();
@@ -2721,7 +2418,7 @@ function markAllAsRead() {
 // Dispensar notificação
 function dismissNotification(event, id) {
   event.stopPropagation();
-  notifications = notifications.filter(n => n.id != id);
+  notifications = notifications.filter(n => String(n.id) !== String(id));
   saveNotifications();
   updateNotificationUI();
 }
@@ -2795,7 +2492,7 @@ function playNotificationSound() {
     
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.2);
-  } catch (e) {
+  } catch {
     // Falha silenciosa se não suportar Web Audio API
   }
 }
@@ -2825,87 +2522,10 @@ function openNotificationSettings() {
 // MONITORIZAÇÃO AUTOMÁTICA
 // ══════════════════════════════════════════════════════════════
 
-// Verificar sismos
-const lastSeismicCheck = null;
 
-function checkSeismicActivity(data) {
-  if (!notificationSettings.sismos.enabled) return;
-  
-  // Aqui integraria com os dados reais de sismos
-  // Por agora, exemplo de como seria usado:
-  /*
-  data.forEach(sismo => {
-    if (sismo.magnitude >= notificationSettings.sismos.minMagnitude) {
-      const key = `sismo-${sismo.id}`;
-      if (!lastSeismicCheck || !lastSeismicCheck.includes(key)) {
-        addNotification(
-          'sismos',
-          `Sismo de magnitude ${sismo.magnitude}`,
-          `${sismo.location} • Profundidade: ${sismo.depth}km`,
-          sismo.magnitude >= 4.0 ? 'high' : 'medium',
-          sismo
-        );
-      }
-    }
-  });
-  */
-}
 
-// Verificar notícias importantes
-function checkBreakingNews(articles) {
-  if (!notificationSettings.news.enabled) return;
-  
-  // Detectar breaking news por keywords
-  const keywords = ['urgente', 'breaking', 'última hora', 'agora'];
-  
-  articles.forEach(article => {
-    const hasKeyword = keywords.some(kw => 
-      article.title?.toLowerCase().includes(kw) ||
-      article.description?.toLowerCase().includes(kw)
-    );
-    
-    if (hasKeyword) {
-      // Verificar se já notificámos
-      const exists = notifications.find(n => 
-        n.type === 'news' && n.data?.url === article.url
-      );
-      
-      if (!exists) {
-        addNotification(
-          'news',
-          article.title || 'Notícia importante',
-          article.source || 'Última hora',
-          'high',
-          article
-        );
-      }
-    }
-  });
-}
 
-// Verificar preços de energia
-let lastEnergyPrice = null;
 
-function checkEnergyPrices(currentPrice, averagePrice) {
-  if (!notificationSettings.energy.enabled) return;
-  
-  const percentAbove = ((currentPrice - averagePrice) / averagePrice) * 100;
-  
-  if (percentAbove >= notificationSettings.energy.threshold) {
-    // Só notificar uma vez por pico
-    if (!lastEnergyPrice || lastEnergyPrice < averagePrice) {
-      addNotification(
-        'energy',
-        `Preço de energia ${percentAbove.toFixed(0)}% acima da média`,
-        `Atual: ${currentPrice.toFixed(2)} €/MWh • Média: ${averagePrice.toFixed(2)} €/MWh`,
-        percentAbove >= 40 ? 'high' : 'medium',
-        { current: currentPrice, average: averagePrice }
-      );
-    }
-  }
-  
-  lastEnergyPrice = currentPrice;
-}
 
 // Exemplos de notificações (para demonstração)
 function generateDemoNotifications() {
@@ -2943,36 +2563,6 @@ function generateDemoNotifications() {
 // MONITORIZAÇÃO PERIÓDICA
 // ══════════════════════════════════════════════════════════════
 
-// Verificar novas notificações a cada 5 minutos
-function startNotificationMonitoring() {
-  console.log('🔍 Monitoramento de notificações iniciado (verifica a cada 5min)');
-  
-  setInterval(() => {
-    console.log('🔍 Verificando novos dados para notificações...');
-    
-    // Recarregar dados (force=true) para verificar novidades
-    if (typeof loadSeis === 'function') {
-      loadSeis(true).catch(e => console.warn('Erro ao verificar sismos:', e));
-    }
-    
-    if (typeof loadNews === 'function') {
-      loadNews('pt', true).catch(e => console.warn('Erro ao verificar notícias:', e));
-    }
-    
-    if (typeof loadElec === 'function') {
-      loadElec(true).catch(e => console.warn('Erro ao verificar energia:', e));
-    }
-    
-  }, 5 * 60 * 1000); // 5 minutos
-  
-  // Primeira verificação após 30 segundos
-  setTimeout(() => {
-    console.log('🔍 Primeira verificação de notificações...');
-    if (typeof loadSeis === 'function') loadSeis(true).catch(() => {});
-    if (typeof loadNews === 'function') loadNews('pt', true).catch(() => {});
-    if (typeof loadElec === 'function') loadElec(true).catch(() => {});
-  }, 30 * 1000);
-}
 
 /* ══════════════════════════════════════════════════════════════
    SISTEMA DE EXPORTAÇÃO DE DADOS
@@ -3388,7 +2978,7 @@ async function exportAsPNG() {
     link.click();
     
     // Pequeno delay entre downloads
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => { setTimeout(resolve, 300); });
   }
   
   updateProgress(100, 'Concluído!');
@@ -3777,16 +3367,6 @@ function skeletonTable(rows = 6) {
   `;
 }
 
-/**
- * Skeleton para Gráfico/Chart
- */
-function skeletonChart() {
-  return `
-    <div class="skeleton-container">
-      <div class="skeleton skeleton-chart"></div>
-    </div>
-  `;
-}
 
 /**
  * Skeleton para KPIs Grid
@@ -3821,18 +3401,6 @@ function skeletonGeneric(lines = 4) {
 }
 window.skeletonGeneric = skeletonGeneric;
 
-/**
- * Skeleton para Cards (retângulos)
- */
-function skeletonCards(count = 3) {
-  return `
-    <div class="skeleton-container">
-      ${Array(count).fill(0).map(() => `
-        <div class="skeleton skeleton-card"></div>
-      `).join('')}
-    </div>
-  `;
-}
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -4049,7 +3617,6 @@ function renderCabaz(){
   const yearAgo=hist.filter(e=>new Date(e[0])<=new Date(curDate-365*864e5));
   const yearRef=yearAgo.length?yearAgo[yearAgo.length-1]:hist[0];
   const yearChg=cur[1]-yearRef[1];
-  const yearPct=(yearChg/yearRef[1]*100);
 
   /* Desde início (Jan 2022) */
   const start=hist[0];

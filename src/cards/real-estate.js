@@ -24,7 +24,6 @@ async function loadImob(force=false){
   function updateDOM(d){
     const preco=$("imob-preco-val");
     const chg  =$("imob-preco-chg");
-    const trans=$("imob-trans-val");
     const ref  =$("imobRefQuarter");
     const sub1 =$("imobSub1");
     const sub2 =$("imobSub2");

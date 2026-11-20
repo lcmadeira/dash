@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
  * Atualiza data/dams.json a partir do boletim mensal de albufeiras do SNIRH (APA).
- * Corre na GitHub Action "Atualizar dados das barragens": o SNIRH recusa pedidos
- * vindos da Cloudflare (gateway), mas responde aos runners do GitHub.
+ * O SNIRH recusa pedidos de servidores (Cloudflare e runners do GitHub, 403), por isso
+ * corre no portátil do utilizador: ~/scripts/dash-update-dams.sh (cron diário às 10:20),
+ * que faz commit e push de data/dams.json quando o boletim muda.
  * Usa o mesmo leitor da tabela que o gateway (worker/src/index.js).
  * Só reescreve o ficheiro quando os dados mudam (sem carimbos de hora variáveis).
  */
@@ -32,7 +33,7 @@ if (!parsed || parsed.basins.length < 8 || !Number.isFinite(parsed.totalVal)) {
 const output = {
   ...parsed,
   _meta: {
-    source: "SNIRH · APA (albufeiras) · atualizado por GitHub Actions",
+    source: "SNIRH · APA (albufeiras) · boletim mensal",
     state: "live",
     observedAt: Date.parse(`${parsed.period}-15T12:00:00Z`),
   },
