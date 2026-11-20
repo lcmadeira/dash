@@ -105,7 +105,7 @@ async function loadGeoOnce(force = false) {
   } catch (error) {
     body.innerHTML = er(error, { context: "Geopolítica", action: "clique em ↺ ou abra uma fonte em baixo" }) +
       "<div style='margin-top:8px'>" + GEO_FEEDS.map(feed =>
-        `<div style='margin:3px 0;font-size:.62rem'>&rarr; <a href='${feed.url}' target='_blank' rel='noopener noreferrer' style='color:${feed.color}'>${feed.label}</a></div>`
+        `<div style='margin:3px 0;font-size:.74rem'>&rarr; <a href='${feed.url}' target='_blank' rel='noopener noreferrer' style='color:${feed.color}'>${feed.label}</a></div>`
       ).join("") + "</div>";
     notifyNonCriticalError("Geopolítica", error, "clique em ↺ ou abra uma fonte em baixo");
   }
@@ -123,7 +123,7 @@ function renderGeo() {
   if (!body) return;
   const items = GEO_FILTER === "all" ? GEO_DATA : GEO_DATA.filter(item => item.id === GEO_FILTER);
   if (!items.length) {
-    body.innerHTML = '<p style="color:var(--t3);font-size:.7rem;padding:10px 0">Sem artigos.</p>';
+    body.innerHTML = '<p style="color:var(--t3);font-size:.74rem;padding:10px 0">Sem artigos.</p>';
     return;
   }
   body.innerHTML = items.slice(0, 10).map(item => {

@@ -25,7 +25,7 @@ async function loadWeather(force=false){
     const opts=Object.entries(IPMA_CITIES).sort((a,b)=>a[1].localeCompare(b[1])).map(([cid,n])=>`<option value="${cid}"${Number(cid)===id?" selected":""}>${n}</option>`).join("");
     $("wx-body").innerHTML=`
       <div style="margin-bottom:10px"><select onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true)"
-        style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.65rem;padding:4px 8px;width:100%;cursor:pointer;outline:none">${opts}</select></div>
+        style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.74rem;padding:4px 8px;width:100%;cursor:pointer;outline:none">${opts}</select></div>
       <div class="wx-top"><span class="wx-ico">${ico}</span><div>
         <div class="wx-temp">${tMax}<span class="wx-unit">°C</span></div>
         <div class="wx-desc">${desc}</div><div class="wx-loc">${city} · Portugal</div></div></div>
@@ -36,7 +36,7 @@ async function loadWeather(force=false){
         return`<div class="fc-item"><div class="fc-day">${dn}</div><div class="fc-ico">${fi}</div>
           <div class="fc-t">${Math.round(parseFloat(e.tMax))}°</div>
           <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
-          <div style="font-family:var(--mono);font-size:.55rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
+          <div style="font-family:var(--mono);font-size:.74rem;color:var(--blue);margin-top:2px">${parseFloat(e.precipitaProb||0).toFixed(0)}%</div>
         </div>`;}).join("")}</div>
       <div class="src">✦ IPMA · Previsão 5 dias · Sem chave API</div>`;
     window.renderPortugalBriefing?.();

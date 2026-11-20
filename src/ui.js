@@ -210,19 +210,41 @@
    * @param {string} text Texto curto mostrado no badge.
    * @param {{title?: string, force?: boolean}} [meta] Texto auxiliar e opção para substituir um estado loading.
    */
+  /**
+   * Texto curto e uniforme para o badge; o texto completo fica no title e no aria-label.
+   * @param {string} state Estado do card.
+   * @param {string} text Texto completo do estado.
+   * @returns {string}
+   */
+  function compactStatusText(state, text) {
+    const full = String(text || "—");
+    const ageMatch = /há ([^·]+)$/.exec(full);
+    const age = ageMatch ? ageMatch[1].trim() : "";
+    const when = age === "agora" ? "agora" : age ? `há ${age}` : "";
+    if (state === "loading") return "A atualizar";
+    if (state === "error") return "Erro";
+    if (state === "live") return "Ao vivo";
+    if (/^Manual/i.test(full)) return when ? `Manual · ${when}` : "Manual";
+    if (state === "static") return "Referência";
+    if (/^Parcial/i.test(full)) return when ? `Parcial · ${when}` : "Parcial";
+    if (/^Referência antiga/i.test(full)) return when ? `Ref. ${when}` : "Ref. antiga";
+    return when || full;
+  }
+
   function setCardStatus(cardId, state, text, meta = {}) {
     const el = ensureCardStatusEl(cardId);
     if (!el) return;
     if (el.dataset.state === "loading" && state !== "loading" && !meta.force) return;
     el.dataset.state = state || "idle";
     const visibleText = text || "—";
-    el.textContent = visibleText;
+    el.textContent = compactStatusText(state || "idle", visibleText);
+    el.dataset.fullText = visibleText;
     const sr = document.createElement("span");
     sr.className = "sr-only";
     sr.textContent = ` ${getStatusAssistiveText(cardId, state || "idle", visibleText)}`;
     el.appendChild(sr);
     el.setAttribute("aria-label", getStatusAssistiveText(cardId, state || "idle", visibleText));
-    if (meta?.title) el.title = meta.title;
+    el.title = meta?.title || visibleText;
     setInlineRetryButton(cardId, state === "error");
     updateDataOverview();
   }

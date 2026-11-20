@@ -224,8 +224,8 @@ function renderEuribor(){
   const expColor=bce.expectativa==="Corte"?"#10B981":bce.expectativa==="Subida"?"#EF4444":"#F59E0B";
 
   const sourceTag=d._source==="bce_live"
-    ?`<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
-    :`<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${d.updated}</span>`;
+    ?`<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
+    :`<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${d.updated}</span>`;
 
   const periodoGraf=d.hist.length>0
     ?`${d.hist[d.hist.length-1][0]} \u2192 ${d.hist[0][0]}`:"—";
@@ -236,21 +236,20 @@ function renderEuribor(){
     ${d.rates.map(r=>{
       const diff=r.val-r.prev;
       const dCol=diff<0?"#10B981":"#EF4444";
-      return`<div style="background:var(--b2);border-radius:6px;padding:5px 4px;
-           border-top:2px solid ${r.color};text-align:center">
-        <div style="font-size:.56rem;color:var(--t3);font-weight:600">${r.term}</div>
+      return`<div style="background:var(--surface);border:1px solid var(--b);border-radius:6px;padding:5px 4px;text-align:center">
+        <div style="font-size:.74rem;color:var(--t3);font-weight:600">${r.term}</div>
         <div style="font-family:var(--mono);font-size:.85rem;font-weight:700;
-             color:${r.color};line-height:1.1;margin:2px 0">${r.val.toFixed(3)}<span style="font-size:.5rem">%</span></div>
-        <div style="font-size:.5rem;color:${dCol}">${diff<0?"\u25bc":"\u25b2"}${Math.abs(diff).toFixed(3)}pp</div>
-        ${r.hipot?`<div style="font-size:.44rem;color:var(--t3);margin-top:1px">\uD83C\uDFE0 hipot.</div>`:""}
+             color:var(--text);line-height:1.1;margin:2px 0">${r.val.toFixed(3)}<span style="font-size:.74rem">%</span></div>
+        <div style="font-size:.74rem;color:${dCol}">${diff<0?"\u25bc":"\u25b2"}${Math.abs(diff).toFixed(3)}pp</div>
+        ${r.hipot?`<div style="font-size:.74rem;color:var(--t3);margin-top:1px">\uD83C\uDFE0 hipot.</div>`:""}
       </div>`;
     }).join("")}
   </div>
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="font-size:.6rem;color:var(--t3)">Evolu\u00e7\u00e3o mensal \u00b7 ${periodoGraf}</div>
+      <div style="font-size:.74rem;color:var(--t3)">Evolu\u00e7\u00e3o mensal \u00b7 ${periodoGraf}</div>
       <div style="display:flex;gap:8px">
-        ${lineColors.map((c,i)=>`<span style="font-size:.55rem;color:${c}">\u25cf ${lineLabels[i]}</span>`).join("")}
+        ${lineColors.map((c,i)=>`<span style="font-size:.74rem;color:${c}">\u25cf ${lineLabels[i]}</span>`).join("")}
       </div>
     </div>
     ${svgChart}
@@ -258,35 +257,35 @@ function renderEuribor(){
   <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;
        background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
     <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Dep\u00f3sito</div>
+      <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Dep\u00f3sito</div>
       <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#3B82F6">${d.bce.dep.toFixed(2)}%</div>
-      <div style="font-size:.52rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
+      <div style="font-size:.74rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
+      <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
       <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#EF4444">${d.peak.val.toFixed(3)}%</div>
-      <div style="font-size:.52rem;color:#10B981">\u25bc ${quedaPP}pp (${quedaPico}%)</div>
+      <div style="font-size:.74rem;color:#10B981">\u25bc ${quedaPP}pp (${quedaPico}%)</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
-      <div style="font-size:.52rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tend\u00eancia</div>
+      <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Tend\u00eancia</div>
       <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:#10B981">\u25bc Descida</div>
-      <div style="font-size:.52rem;color:var(--t3)">desde Out 2023</div>
+      <div style="font-size:.74rem;color:var(--t3)">desde Out 2023</div>
     </div>
   </div>
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px;
        border-left:3px solid ${expColor}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:.6rem;font-weight:700;color:var(--t2)">
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2)">
           \uD83C\uDFE6 Pr\u00f3xima reuni\u00e3o BCE \u00b7 ${bce.date}
         </div>
-        <div style="font-size:.57rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${bce.nota}</div>
       </div>
       <div style="text-align:right;min-width:60px">
-        <div style="font-size:.62rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
-        <div style="font-size:.52rem;color:var(--t3)">consenso</div>
+        <div style="font-size:.74rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
+        <div style="font-size:.74rem;color:var(--t3)">consenso</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px">
@@ -296,8 +295,8 @@ function renderEuribor(){
         {label:"Subida",          prob:bce.probSubida,col:"#EF4444"},
       ].map(b=>`<div>
         <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:.52rem;color:var(--t3)">${b.label}</span>
-          <span style="font-size:.54rem;font-weight:600;color:${b.col}">${b.prob}%</span>
+          <span style="font-size:.74rem;color:var(--t3)">${b.label}</span>
+          <span style="font-size:.74rem;font-weight:600;color:${b.col}">${b.prob}%</span>
         </div>
         <div style="background:var(--b);border-radius:3px;height:5px">
           <div style="width:${b.prob}%;height:100%;background:${b.col};border-radius:3px"></div>
@@ -306,7 +305,7 @@ function renderEuribor(){
     </div>
   </div>
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px">
-    <div style="font-size:.6rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       \uD83C\uDFE0 Spread banc\u00e1rio PT \u00b7 cr\u00e9dito habita\u00e7\u00e3o vari\u00e1vel
       <span class="help-tip" title="Spread bancário: margem fixa do banco somada à Euribor para calcular a TAN do crédito.">?</span>
     </div>
@@ -316,22 +315,22 @@ function renderEuribor(){
         {label:"Spread t\u00edpico", val:sp.tipico, col:"#F59E0B"},
         {label:"Spread m\u00e1x.",   val:sp.max,    col:"#EF4444"},
       ].map(s=>`<div style="text-align:center">
-        <div style="font-size:.65rem;font-weight:700;color:${s.col}">${s.val.toFixed(2)}%</div>
-        <div style="font-size:.52rem;color:var(--t3)">${s.label}</div>
+        <div style="font-size:.74rem;font-weight:700;color:${s.col}">${s.val.toFixed(2)}%</div>
+        <div style="font-size:.74rem;color:var(--t3)">${s.label}</div>
       </div>`).join("")}
     </div>
-    <div style="font-size:.57rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread t\u00edpico ${sp.tipico.toFixed(2)}%):</div>
+    <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread t\u00edpico ${sp.tipico.toFixed(2)}%):</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
       ${d.rates.filter(r=>r.hipot).map(r=>`
         <div style="background:var(--surface);border-radius:5px;padding:4px 6px;text-align:center;
              border:1px solid ${r.color}33">
-          <div style="font-size:.52rem;color:var(--t3)">Euribor ${r.termFull}</div>
+          <div style="font-size:.74rem;color:var(--t3)">Euribor ${r.termFull}</div>
           <div style="font-size:.75rem;font-weight:700;color:${r.color}">
             ${(r.val+sp.tipico).toFixed(3)}%</div>
-          <div style="font-size:.5rem;color:var(--t3)">TAN est.</div>
+          <div style="font-size:.74rem;color:var(--t3)">TAN est.</div>
         </div>`).join("")}
     </div>
-    <div style="font-size:.52rem;color:var(--t3);margin-top:4px">
+    <div style="font-size:.74rem;color:var(--t3);margin-top:4px">
       ${d._source==="bce_live"
         ?`Fonte: BCE \u00b7 data-api.ecb.europa.eu \u00b7 ${d.updated} \u00b7 Spread: m\u00e9dia de mercado PT.`
         :`Fonte: EMMI \u00b7 emmi-benchmarks.eu \u00b7 ${d.updated} \u00b7 Spread: m\u00e9dia de mercado PT.`}

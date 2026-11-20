@@ -129,53 +129,53 @@ async function loadOrmuz(force=false){
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#0EA5E9;line-height:1">${total}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Navios</div>
+        <div style="font-size:.74rem;color:var(--t3)">Navios</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${Math.round(total*0.45)}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Petroleiros</div>
+        <div style="font-size:.74rem;color:var(--t3)">Petroleiros</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${Math.round(total*0.18)}</div>
-        <div style="font-size:.55rem;color:var(--t3)">LNG</div>
+        <div style="font-size:.74rem;color:var(--t3)">LNG</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#10B981;line-height:1">${Math.round(total*0.12)}</div>
-        <div style="font-size:.55rem;color:var(--t3)">Graneleiros</div>
+        <div style="font-size:.74rem;color:var(--t3)">Graneleiros</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
         <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${age}</div>
-        <div style="font-size:.55rem;color:var(--t3)">min</div>
+        <div style="font-size:.74rem;color:var(--t3)">min</div>
       </div>
     </div>
 
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1520;margin-bottom:10px">
       <canvas id="ormuz-map-canvas" style="width:100%;height:200px;display:block"></canvas>
       <div id="ormuz-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:220px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;right:6px;background:${isSim?'#F59E0B22':'#0EA5E922'};
            border:1px solid ${isSim?'#F59E0B44':'#0EA5E944'};
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.55rem;color:${isSim?'#F59E0B':'#0EA5E9'}">
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${isSim?'#F59E0B':'#0EA5E9'}">
         ● ${isSim?'Simulated':'Live'} · ${age}min
       </div>
     </div>
 
-    <div style="font-size:.68rem;font-weight:700;color:var(--t2);margin-bottom:2px">Distribuição estimada por tipo</div>
-    <div style="font-size:.56rem;color:var(--t3);margin-bottom:6px">Percentagens de referência; não classificadas a partir dos dados AIS.</div>
+    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:2px">Distribuição estimada por tipo</div>
+    <div style="font-size:.74rem;color:var(--t3);margin-bottom:6px">Percentagens de referência; não classificadas a partir dos dados AIS.</div>
     ${VESSEL_TYPES.map(v=>`<div style="display:flex;align-items:center;justify-content:space-between;
          padding:4px 0;border-bottom:1px solid var(--b)">
       <div style="display:flex;align-items:center;gap:6px">
         <span>${v.ico}</span>
         <div>
-          <div style="font-size:.67rem;color:var(--text)">${v.type}</div>
-          <div style="font-size:.56rem;color:var(--t3)">${v.desc}</div>
+          <div style="font-size:.74rem;color:var(--text)">${v.type}</div>
+          <div style="font-size:.74rem;color:var(--t3)">${v.desc}</div>
         </div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:.68rem;font-weight:600;color:${v.col}">${v.pct}%</div>
-        <div style="font-size:.56rem;color:var(--t3)">${Math.round(total*v.pct/100)} navios</div>
+        <div style="font-size:.74rem;font-weight:600;color:${v.col}">${v.pct}%</div>
+        <div style="font-size:.74rem;color:var(--t3)">${Math.round(total*v.pct/100)} navios</div>
       </div>
     </div>`).join("")}`;
 
@@ -373,19 +373,19 @@ async function loadOrmuz(force=false){
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
       ${KPI_DATA.map(k=>`<div style="background:var(--b2);border-radius:8px;padding:8px 6px;text-align:center">
         <div style="font-size:1.1rem;font-weight:800;color:${k.col};line-height:1">${k.val}</div>
-        <div style="font-size:.58rem;color:var(--t3)">${k.label}</div>
-        <div style="font-size:.54rem;color:var(--t2);margin-top:2px">${k.sub}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${k.label}</div>
+        <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${k.sub}</div>
       </div>`).join("")}
     </div>
 
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1520;margin-bottom:10px">
       <canvas id="ormuz-map-canvas" style="width:100%;height:180px;display:block"></canvas>
       <div id="ormuz-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.65rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;
            top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;left:6px;background:#0a1520cc;border:1px solid var(--b);
-           border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.58rem;color:var(--t2)">
+           border-radius:4px;padding:3px 8px;font-family:var(--mono);font-size:.74rem;color:var(--t2)">
         🗺️ Golfo Pérsico
       </div>
     </div>
@@ -393,12 +393,12 @@ async function loadOrmuz(force=false){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <!-- Tipos de navios -->
       <div>
-        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:2px">Distribuição estimada por tipo</div>
-        <div style="font-size:.54rem;color:var(--t3);margin-bottom:5px">Percentagens de referência.</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:2px">Distribuição estimada por tipo</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-bottom:5px">Percentagens de referência.</div>
         ${VESSEL_TYPES.map(v=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
           <div style="width:8px;height:8px;border-radius:2px;background:${v.col}"></div>
-          <span style="font-size:.62rem;color:var(--text);flex:1">${v.type}</span>
-          <span style="font-size:.63rem;font-weight:600;color:${v.col}">${v.pct}%</span>
+          <span style="font-size:.74rem;color:var(--text);flex:1">${v.type}</span>
+          <span style="font-size:.74rem;font-weight:600;color:${v.col}">${v.pct}%</span>
         </div>`).join("")}
         <div style="margin-top:6px;height:6px;border-radius:3px;overflow:hidden;display:flex">
           ${VESSEL_TYPES.map(v=>`<div style="flex:${v.pct};background:${v.col}"></div>`).join("")}
@@ -406,15 +406,15 @@ async function loadOrmuz(force=false){
       </div>
       <!-- Portos principais -->
       <div>
-        <div style="font-size:.65rem;font-weight:700;color:var(--t2);margin-bottom:5px">Portos Regionais</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">Portos Regionais</div>
         ${KEY_PORTS.map(p=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--b)">
           <div style="width:6px;height:6px;border-radius:50%;background:${p.col}"></div>
           <div style="flex:1">
-            <div style="font-size:.63rem;color:var(--text)">${p.name}</div>
-            <div style="font-size:.55rem;color:var(--t3)">${p.country}</div>
+            <div style="font-size:.74rem;color:var(--text)">${p.name}</div>
+            <div style="font-size:.74rem;color:var(--t3)">${p.country}</div>
           </div>
         </div>`).join("")}
-        <div style="margin-top:4px;font-size:.56rem;color:var(--t3)">
+        <div style="margin-top:4px;font-size:.74rem;color:var(--t3)">
           📍 24°N-27°N, 56°E-58°E
         </div>
       </div>

@@ -31,7 +31,7 @@ async function loadImob(force=false){
     const sub3 =$("imobSub3");
     const src  =$("imobRefSrc");
 
-    if(preco) preco.innerHTML=`${d.price.toLocaleString("pt-PT")} <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span>`;
+    if(preco) preco.innerHTML=`${d.price.toLocaleString("pt-PT")} <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span>`;
 
     if(chg){
       const yoyStr=d.chgYoY!=null?`+${d.chgYoY.toFixed(1)}%`:"+17,7%";
@@ -47,8 +47,8 @@ async function loadImob(force=false){
 
     if(src){
       const badge=d.isLive
-        ?`<span style="color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.55rem">● INE API live</span>`
-        :`<span style="color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.55rem">⚠ estático · ref. Q3 2025</span>`;
+        ?`<span style="color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:.74rem">● INE API live</span>`
+        :`<span style="color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:.74rem">⚠ estático · ref. Q3 2025</span>`;
       src.innerHTML=`✦ INE · Estatísticas Preços Habitação · ${d.periodFull||d.period} ${badge}`;
     }
 
@@ -76,15 +76,15 @@ async function loadImob(force=false){
 
 (function(){
 const IMOB_REGIOES=[
-  {r:"Grande Lisboa",        v:4792,chg:18.2,col:"#f59e0b"},
-  {r:"Algarve",              v:3556,chg:15.4,col:"#10b981"},
-  {r:"R.A. Madeira",         v:3193,chg:14.8,col:"#0ea5e9"},
-  {r:"Área Metro. Porto",    v:2740,chg:21.3,col:"#8b5cf6"},
-  {r:"Península de Setúbal", v:2371,chg:19.6,col:"#3b82f6"},
-  {r:"R.A. Açores",          v:1650,chg:11.2,col:"#06b6d4"},
-  {r:"Alentejo Litoral",     v:1944,chg:13.8,col:"#84cc16"},
-  {r:"Centro",               v:1320,chg: 9.1,col:"#a78bfa"},
-  {r:"Norte (exc. Porto)",   v:1280,chg: 8.7,col:"#fb923c"},
+  {r:"Grande Lisboa",        v:4792,chg:18.2,col:"var(--data)"},
+  {r:"Algarve",              v:3556,chg:15.4,col:"var(--data)"},
+  {r:"R.A. Madeira",         v:3193,chg:14.8,col:"var(--data)"},
+  {r:"Área Metro. Porto",    v:2740,chg:21.3,col:"var(--data)"},
+  {r:"Península de Setúbal", v:2371,chg:19.6,col:"var(--data)"},
+  {r:"R.A. Açores",          v:1650,chg:11.2,col:"var(--data)"},
+  {r:"Alentejo Litoral",     v:1944,chg:13.8,col:"var(--data)"},
+  {r:"Centro",               v:1320,chg: 9.1,col:"var(--data)"},
+  {r:"Norte (exc. Porto)",   v:1280,chg: 8.7,col:"var(--data)"},
 ];
 const IMOB_TREND=[
   {q:"Q1 23",v:7.6},{q:"Q2 23",v:9.0},{q:"Q3 23",v:7.8},{q:"Q4 23",v:5.2},
@@ -139,7 +139,7 @@ function renderTrend(el){
       svg+='<text x="'+(x+bw/2)+'" y="'+(y-3)+'" font-size="6.5" fill="'+col+'" text-anchor="middle" font-weight="bold">'+t.v+'%</text>';
   });
   el.innerHTML='<div class="imob-svg-wrap">'+svg+'</svg></div>'
-    +'<div style="font-family:var(--mono);font-size:.49rem;color:var(--t3);margin-top:4px">IPHab · Variação homóloga trimestral (%) · Fonte: INE</div>';
+    +'<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-top:4px">IPHab · Variação homóloga trimestral (%) · Fonte: INE</div>';
 }
 function renderMunic(el){
   const max=IMOB_MUNIC[0].v;

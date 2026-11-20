@@ -2,12 +2,12 @@
 (() => {
 /* ── Combustíveis — PT (API Aberta) + ES (MITECO/MINETUR) ── */
 const FUEL_SLUGS=[
-  {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--accent)"},
-  {slug:"gasoline_98",   label:"Gasolina 98",     color:"var(--blue)"},
-  {slug:"diesel",        label:"Gasóleo Simples", color:"var(--green)"},
-  {slug:"diesel_colored",label:"Gasóleo Colorido",color:"var(--purple)"},
-  {slug:"gpl_auto",      label:"GPL Auto",        color:"var(--cyan)"},
-  {slug:"diesel_plus",   label:"Gasóleo Especial",color:"var(--orange)"},
+  {slug:"gasoline_95",   label:"Gasolina 95",     color:"var(--text)"},
+  {slug:"gasoline_98",   label:"Gasolina 98",     color:"var(--text)"},
+  {slug:"diesel",        label:"Gasóleo Simples", color:"var(--text)"},
+  {slug:"diesel_colored",label:"Gasóleo Colorido",color:"var(--text)"},
+  {slug:"gpl_auto",      label:"GPL Auto",        color:"var(--text)"},
+  {slug:"diesel_plus",   label:"Gasóleo Especial",color:"var(--text)"},
 ];
 
 const FUEL_ES_URL="https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
@@ -258,18 +258,18 @@ async function renderFuel(force=false){
         ? (Number.isFinite(absV) ? `Δ€ ${(absV>0?"+":"")+absV.toFixed(3)}` : "")
         : (Number.isFinite(deltaPct?.pct) ? `Δ% ${(deltaPct.pct>0?"+":"")+deltaPct.pct.toFixed(2)}%` : "");
       const lblTitle = f.slug==="diesel_colored" ? 'ES: sem equivalente na fonte oficial' : '';
-      return`<div class="fi"><div class="fi-lbl"${lblTitle?` title="${lblTitle}"`:""}>${f.label}</div>
+      return`<div class="fi"><div class="fi-lbl"${lblTitle?` title="${lblTitle}"`:""}>${f.label} <span class="fi-unit-inline">€/L</span></div>
         <div class="fi-ptes">
           <div class="fi-col">
             <div class="fi-cty">PT</div>
             <div class="fi-price" style="color:${f.color}">${fmt(ptAvg)}</div>
-            <div class="fi-meta">€/litro · ${p?.station_count??"—"} postos</div>
+            <div class="fi-meta">${p?.station_count??"—"} postos</div>
             <div class="fi-range-mm"><span>mín ${fmt(p?.min_price_eur)}</span><span>máx ${fmt(p?.max_price_eur)}</span></div>
           </div>
           <div class="fi-col">
             <div class="fi-cty">ES</div>
             <div class="fi-price" style="color:${f.color}">${fmt(esAvg)}</div>
-            <div class="fi-meta">€/litro · ${e?.n?`${e.n} postos`:"—"}</div>
+            <div class="fi-meta">${e?.n?`${e.n} postos`:"—"}</div>
             <div class="fi-range-mm"><span>mín ${fmt(e?.min)}</span><span>máx ${fmt(e?.max)}</span></div>
           </div>
         </div>

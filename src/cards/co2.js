@@ -36,47 +36,47 @@ async function loadCO2(_force=false){
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
         <div style="font-size:1.6rem;font-weight:800;color:#10B981">${Math.round(co2Static)}</div>
-        <div style="font-size:.6rem;color:var(--t2)">gCO₂/kWh
+        <div style="font-size:.74rem;color:var(--t2)">gCO₂/kWh
           <span class="help-tip" title="Gramas de CO2 por kWh produzido; indicador de intensidade carbónica do sistema elétrico.">?</span>
         </div>
-        <div style="font-size:.58rem;color:var(--t3)">média 2024</div>
+        <div style="font-size:.74rem;color:var(--t3)">média 2024</div>
       </div>
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
         <div style="font-size:1.6rem;font-weight:800;color:#06B6D4">${renStatic.toFixed(0)}%</div>
-        <div style="font-size:.6rem;color:var(--t2)">Renováveis</div>
-        <div style="font-size:.58rem;color:var(--t3)">mix 2024</div>
+        <div style="font-size:.74rem;color:var(--t2)">Renováveis</div>
+        <div style="font-size:.74rem;color:var(--t3)">mix 2024</div>
       </div>
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
         <div style="font-size:1.6rem;font-weight:800;color:#F59E0B">3º</div>
-        <div style="font-size:.6rem;color:var(--t2)">Ranking EU</div>
-        <div style="font-size:.58rem;color:var(--t3)">mais limpa</div>
+        <div style="font-size:.74rem;color:var(--t2)">Ranking EU</div>
+        <div style="font-size:.74rem;color:var(--t3)">mais limpa</div>
       </div>
     </div>
 
     <!-- Mix por fonte -->
-    <div style="font-size:.68rem;font-weight:600;color:var(--t2);margin-bottom:6px">Mix energético 2024 · Portugal</div>
+    <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:6px">Mix energético 2024 · Portugal</div>
     ${STATIC_MIX.map(x=>{
       const pct=(x.v/totalStatic*100).toFixed(1);
       const fc_col=x.f===0?"#10B981":x.f<300?"#84CC16":x.f<450?"#F59E0B":"#EF4444";
       return `<div style="display:flex;align-items:center;gap:7px;margin:4px 0">
         <div style="font-size:.8rem;width:18px">${x.ico}</div>
-        <div style="font-size:.65rem;color:var(--t2);width:90px;white-space:nowrap;overflow:hidden">${x.n}</div>
+        <div style="font-size:.74rem;color:var(--t2);width:90px;white-space:nowrap;overflow:hidden">${x.n}</div>
         <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
           <div style="width:${pct}%;height:100%;background:${x.col};border-radius:3px"></div>
         </div>
-        <div style="font-size:.65rem;color:var(--text);font-weight:600;width:32px;text-align:right">${pct}%</div>
-        <div style="font-size:.6rem;color:${fc_col};width:38px;text-align:right">${x.f}g</div>
+        <div style="font-size:.74rem;color:var(--text);font-weight:600;width:32px;text-align:right">${pct}%</div>
+        <div style="font-size:.74rem;color:${fc_col};width:38px;text-align:right">${x.f}g</div>
       </div>`;
     }).join("")}
 
     <!-- Comparação EU -->
-    <div style="font-size:.68rem;font-weight:600;color:var(--t2);margin:10px 0 5px">Intensidade carbónica · comparação EU (2023)</div>
+    <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin:10px 0 5px">Intensidade carbónica · comparação EU (2023)</div>
     ${COMPARE.map(x=>`<div style="display:flex;align-items:center;gap:7px;margin:3px 0">
-      <div style="font-size:.67rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:24px">${x.n}</div>
+      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:24px">${x.n}</div>
       <div style="flex:1;background:var(--b2);border-radius:3px;height:6px">
         <div style="width:${(x.v/maxCO2*100).toFixed(0)}%;height:100%;background:${x.col};border-radius:3px;${x.hl?"box-shadow:0 0 5px "+x.col+"88":""}"></div>
       </div>
-      <div style="font-size:.65rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:48px;text-align:right">${x.v} g</div>
+      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:48px;text-align:right">${x.v} g</div>
     </div>`).join("")}`;
 }
 

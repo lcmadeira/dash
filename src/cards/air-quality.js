@@ -233,7 +233,7 @@ async function loadAirQuality(force=false) {
     uvLabel = uv <= 2 ? "Baixo" : uv <= 5 ? "Moderado" : uv <= 7 ? "Alto" : uv <= 10 ? "Muito alto" : "Extremo";
     uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
   }
-  const uvLine = (uvLabel && uvCol) ? `<span style="font-size:.65rem;color:${uvCol};background:${uvCol}15;
+  const uvLine = (uvLabel && uvCol) ? `<span style="font-size:.74rem;color:${uvCol};background:${uvCol}15;
       border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">☀️ UV ${uv.toFixed(1)} · ${uvLabel}</span>` : "";
 
   const updTime = now.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"});
@@ -245,7 +245,7 @@ async function loadAirQuality(force=false) {
     <div style="text-align:center;min-width:60px">
       <div style="font-size:2.6rem;font-weight:900;color:${info.col};
            line-height:1;letter-spacing:-2px">${aqi}</div>
-      <div style="font-size:.58rem;color:${info.col};font-weight:700;
+      <div style="font-size:.74rem;color:${info.col};font-weight:700;
            text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU${aqiIsEstimated ? " (est.)" : ""}
         <span class="help-tip" title="AQI Europeu (EEA): índice agregado da poluição; menor valor representa melhor qualidade do ar.">?</span>
       </div>
@@ -253,9 +253,9 @@ async function loadAirQuality(force=false) {
     <div style="flex:1">
       <div style="font-size:.9rem;font-weight:700;color:${info.col}">
         ${info.label}
-        ${aqiIsEstimated ? `<span style="font-family:var(--mono);font-size:.55rem;color:${info.col};background:${info.col}12;border:1px solid ${info.col}33;border-radius:999px;padding:1px 7px;margin-left:6px">est.</span>` : ""}
+        ${aqiIsEstimated ? `<span style="font-family:var(--mono);font-size:.74rem;color:${info.col};background:${info.col}12;border:1px solid ${info.col}33;border-radius:999px;padding:1px 7px;margin-left:6px">est.</span>` : ""}
       </div>
-      <div style="font-size:.65rem;color:var(--t2);margin-top:2px">${coords.name} · ${updTime}</div>
+      <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${coords.name} · ${updTime}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
         ${uvLine}
       </div>
@@ -266,14 +266,14 @@ async function loadAirQuality(force=false) {
         <div style="width:8px;height:8px;border-radius:50%;background:${a.col};
              ${aqi <= a.max && (AQI_EU.indexOf(a) === 0 || aqi > AQI_EU[AQI_EU.indexOf(a)-1].max) ?
                "box-shadow:0 0 6px "+a.col : "opacity:.4"}"></div>
-        <span style="font-size:.52rem;color:${aqi <= a.max && (AQI_EU.indexOf(a) === 0 || aqi > AQI_EU[AQI_EU.indexOf(a)-1].max) ?
+        <span style="font-size:.74rem;color:${aqi <= a.max && (AQI_EU.indexOf(a) === 0 || aqi > AQI_EU[AQI_EU.indexOf(a)-1].max) ?
           a.col : "var(--t3)"}">${a.max > 100 ? ">100" : "≤"+a.max}</span>
       </div>`).join("")}
     </div>
   </div>
 
   <!-- Grid de poluentes -->
-  <div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+  <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
     Poluentes actuais · µg/m³</div>
   <div class="aqi-grid">${polsHtml}</div>
 
@@ -281,7 +281,7 @@ async function loadAirQuality(force=false) {
   <div class="aqi-bar-wrap">${barsHtml}</div>
 
   <!-- Previsão horária -->
-  ${fcHtml ? `<div style="font-size:.63rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+  ${fcHtml ? `<div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
     Próximas horas · AQI</div>
   <div class="aqi-forecast">${fcHtml}</div>` : ""}
 

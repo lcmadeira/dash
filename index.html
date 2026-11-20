@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Painel Pessoal · Portugal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261029-12"/>
+<link rel="stylesheet" href="styles.css?v=20261120-3"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
-<meta name="theme-color" content="#101116"/>
+<meta name="theme-color" content="#0C0E13"/>
 </head>
 <body>
 <!-- Container de Toast Notifications -->
@@ -116,7 +116,7 @@
           <span>📊</span>
           <span>Escolher e Ordenar Cards</span>
         </div>
-        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
           Arraste os cards para reordenar. Use os toggles para mostrar/ocultar.
         </p>
         <div class="card-search" role="search">
@@ -141,7 +141,7 @@
           <span>📍</span>
           <span>Localização Preferida</span>
         </div>
-        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
           Escolha a cidade para meteorologia e informações locais.
         </p>
         <div class="location-grid" id="locationGrid"></div>
@@ -153,7 +153,7 @@
           <span>📈</span>
           <span>Tickers Favoritos</span>
         </div>
-        <p style="font-size:.72rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
+        <p style="font-size:.74rem;color:var(--t3);margin-bottom:16px;line-height:1.6">
           Adicione ações portuguesas para acompanhar no painel de finanças.
         </p>
         
@@ -347,21 +347,21 @@
     <div class="export-modal-body">
       <div style="display:grid;gap:12px">
         <div>
-          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Data</div>
+          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Data</div>
           <input id="cabaz-input-data" type="date" class="ticker-input" style="width:100%">
         </div>
         <div>
-          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Valor (€)</div>
+          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Valor (€)</div>
           <input id="cabaz-input-valor" type="text" inputmode="decimal" class="ticker-input" placeholder="Ex: 237.87" style="width:100%">
-          <div style="margin-top:6px;font-size:.6rem;color:var(--t3);font-family:var(--mono);line-height:1.4">
+          <div style="margin-top:6px;font-size:.74rem;color:var(--t3);font-family:var(--mono);line-height:1.4">
             Aceita vírgula ou ponto (ex: 237,87).
           </div>
         </div>
         <div>
-          <div style="font-size:.72rem;color:var(--t2);font-weight:700;margin:0 0 6px">Nota (opcional)</div>
+          <div style="font-size:.74rem;color:var(--t2);font-weight:700;margin:0 0 6px">Nota (opcional)</div>
           <textarea id="cabaz-input-nota" class="ticker-input" rows="3" placeholder="Ex: Fonte/observações" style="width:100%;resize:vertical"></textarea>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.62rem;color:var(--t3);line-height:1.6">
+        <div style="background:var(--surface);border:1px solid var(--b);border-radius:10px;padding:10px 12px;font-size:.74rem;color:var(--t3);line-height:1.6">
           Dica: a DECO PROteste publica o cabaz às quartas-feiras. Guarda aqui o valor da semana para manter o histórico.
         </div>
       </div>
@@ -448,9 +448,8 @@
 
 <div class="grid" id="main-grid">
   <div class="card" id="card-weather">
-    <div class="stripe" style="background:var(--accent)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">🌡️</div>
+      <div class="ch-ico">🌡️</div>
       <span class="ch-lbl">Meteorologia & Feriados · PT</span>
       <div class="ch-r">
         <button type="button" class="rbtn ico" id="wxhol-refresh" onclick="refreshCard('weather', getWeatherCacheKey, this, wxholRefresh)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
@@ -475,8 +474,7 @@
 
 
   <div class="card" id="card-fuel">
-    <div class="stripe" style="background:var(--green)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--gd)">⛽</div>
+    <div class="ch"><div class="ch-ico">⛽</div>
       <span class="ch-lbl">Combustíveis · PT vs ES</span>
       <div class="ch-r">
         <button type="button" class="rbtn" id="fuelDetailBtn" onclick="openFuelModal()" title="Detalhe (postos / timestamps)" aria-haspopup="dialog" aria-controls="fuelModal" aria-expanded="false">Detalhe</button>
@@ -488,9 +486,8 @@
 
   <!-- Cabaz Alimentar DECO PROteste -->
   <div class="card" id="card-cabaz">
-    <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#10B98120">🛒</div>
+      <div class="ch-ico">🛒</div>
       <span class="ch-lbl">Cabaz Alimentar · DECO PROteste</span>
       <div class="ch-r">
         <button class="rbtn" id="cabaz-edit-btn" type="button" onclick="openCabazEditor()" title="Actualizar valor desta semana" aria-label="Editar cabaz alimentar desta semana" aria-haspopup="dialog" aria-controls="cabaz-modal" aria-expanded="false"><span aria-hidden="true">✏️</span></button>
@@ -502,10 +499,9 @@
   </div>
 
   <div class="card" id="card-oil">
-    <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--od)">🛢️</div>
+    <div class="ch"><div class="ch-ico">🛢️</div>
       <span class="ch-lbl">Petróleo · Brent &amp; WTI</span>
-      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
+      <div class="ch-r"></div></div>
     <div class="oil-tabs">
       <button type="button" class="oil-tab on" onclick="switchOil('brent',this)">Brent</button>
       <button type="button" class="oil-tab"   onclick="switchOil('wti',this)">WTI</button>
@@ -514,7 +510,7 @@
       <template data-tradingview-widget data-height="210">
         <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {"symbols":[["Brent","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.15)","bottomColor":"rgba(245,158,11,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        {"symbols":[["Brent","OANDA:BCOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"Inter, sans-serif","fontSize":"11","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#F59E0B","topColor":"rgba(245,158,11,0.15)","bottomColor":"rgba(245,158,11,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
         </script></div>
       </template>
     </div>
@@ -522,7 +518,7 @@
       <template data-tradingview-widget data-height="210">
         <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {"symbols":[["WTI","OANDA:WTICOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"DM Mono, monospace","fontSize":"10","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.15)","bottomColor":"rgba(239,87,87,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
+        {"symbols":[["WTI","OANDA:WTICOUSD|3M"]],"chartOnly":false,"width":"100%","height":210,"locale":"pt","colorTheme":"dark","autosize":false,"showVolume":false,"hideDateRanges":false,"scalePosition":"right","scaleMode":"Normal","fontFamily":"Inter, sans-serif","fontSize":"11","valuesTracking":"1","changeMode":"price-and-percent","chartType":"area","lineWidth":2,"dateRanges":["1d|1","1w|60","3m|1D","12m|1W","60m|1M"],"lineColor":"#EF5757","topColor":"rgba(239,87,87,0.15)","bottomColor":"rgba(239,87,87,0)","backgroundColor":"rgba(10,13,28,0)","gridLineColor":"rgba(24,29,48,1)","fontColor":"#556070"}
         </script></div>
       </template>
     </div>
@@ -531,9 +527,8 @@
 
   <!-- Gás Natural · Hubs Europeus -->
   <div class="card" id="card-gas-eu">
-    <div class="stripe" style="background:#3B82F6"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#3B82F620">🔥</div>
+      <div class="ch-ico">🔥</div>
       <span class="ch-lbl">Gás Natural · Hubs Europeus</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-eu','ttf_live_v1',this,loadTTF,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -543,9 +538,8 @@
 
   <!-- Gás Natural · Portugal -->
   <div class="card" id="card-gas-pt">
-    <div class="stripe" style="background:linear-gradient(180deg,#F97316,#3B82F6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#F9731620">🇵🇹</div>
+      <div class="ch-ico">🇵🇹</div>
       <span class="ch-lbl">Gás Natural · Portugal</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-pt','ttf_live_v1',this,loadGasPT,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -554,8 +548,7 @@
   </div>
 
   <div class="card" id="card-elec">
-    <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--bd)">⚡</div>
+    <div class="ch"><div class="ch-ico">⚡</div>
       <span class="ch-lbl">Eletricidade · PT</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('elec','elec_v3',this,loadElec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="elec-body"></div>
@@ -563,9 +556,8 @@
   
   <!-- Qualidade do Ar · Portugal -->
   <div class="card" id="card-airquality">
-   <div class="stripe" style="background:linear-gradient(90deg,#10B981,#06B6D4,#8B5CF6)"></div>
    <div class="ch">
-     <div class="ch-ico" style="background:#10B98120">🌬️</div>
+     <div class="ch-ico">🌬️</div>
      <span class="ch-lbl">Qualidade do Ar · Portugal
        <span class="help-tip" title="AQI Europeu (EEA): índice de 0 a 100+; quanto menor, melhor qualidade do ar.">?</span>
      </span>
@@ -580,9 +572,8 @@
 
   <!-- Barragens · Portugal (SNIRH) -->
   <div class="card s2" id="card-dams">
-   <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
    <div class="ch">
-     <div class="ch-ico" style="background:#3B82F620">💧</div>
+     <div class="ch-ico">💧</div>
      <span class="ch-lbl">Barragens · Armazenamento
        <span class="help-tip" title="Dados do SNIRH: percentagem de volume armazenado por bacia hidrográfica em relação à capacidade total.">?</span>
      </span>
@@ -594,9 +585,8 @@
   </div>
 <!-- Euribor estático EMMI -->
   <div class="card s2" id="card-euribor">
-    <div class="stripe" style="background:var(--cyan)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--cd)">📐</div>
+      <div class="ch-ico">📐</div>
       <span class="ch-lbl">Euribor · Taxas de Referência
         <span class="help-tip" title="Euribor: taxa interbancária da Zona Euro usada em crédito habitação de taxa variável.">?</span>
       </span>
@@ -612,16 +602,15 @@
 
     <!-- Imobiliário PT -->
   <div class="card s2" id="card-imob">
-    <div class="stripe" style="background:linear-gradient(90deg,#10b981,#0ea5e9)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#10b98120">🏠</div>
+      <div class="ch-ico">🏠</div>
       <span class="ch-lbl">Mercado Imobiliário · Portugal</span>
-      <div class="ch-r"><span style="font-family:var(--mono);font-size:.48rem;color:var(--t3)" id="imobRefQuarter">...</span></div>
+      <div class="ch-r"><span style="font-family:var(--mono);font-size:.74rem;color:var(--t3)" id="imobRefQuarter">...</span></div>
     </div>
     <div class="imob-grid">
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Preço mediano nacional</div>
-        <div class="imob-kpi-val" id="imob-preco-val">2 111 <span style="font-size:.6rem;font-weight:500;color:var(--t2)">€/m²</span></div>
+        <div class="imob-kpi-val" id="imob-preco-val">2 111 <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span></div>
         <div class="imob-kpi-chg" id="imob-preco-chg" style="color:#10b981">▲ +17,7% homólogo</div>
         <div class="imob-kpi-sub" id="imobSub1">...</div>
       </div>
@@ -659,9 +648,8 @@
 
 <!-- ROW 1: Fear & Greed (s2) + Indicador Recessão (s2) -->
   <div class="card s2" id="fng-card">
-    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F59E0B,#10B981)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#EF444422">😰</div>
+      <div class="ch-ico">😰</div>
       <span class="ch-lbl">Fear &amp; Greed · Cripto</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('fng','fng_v4',this,loadFng,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -671,9 +659,8 @@
   </div>
 
   <div class="card s2" id="rec-card">
-    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#3B82F6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#3B82F622">📉</div>
+      <div class="ch-ico">📉</div>
       <span class="ch-lbl">Indicador Recessão · EUA</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('rec','rec_v5',this,loadRec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -683,9 +670,8 @@
 
 <!-- ROW 2: Preços Agrícolas (full width s4) -->
   <div class="card s4" id="agri-card">
-    <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#10B981)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#F59E0B22">🌾</div>
+      <div class="ch-ico">🌾</div>
       <span class="ch-lbl">Preços Agrícolas · Commodities</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('agri','agri_v3',this,loadAgri,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -695,9 +681,8 @@
 
 <!-- ROW 3: Exportações PT (s2) + Dívida Pública (s2) -->
   <div class="card s2" id="exp-card">
-    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),#EF4444)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--ad)">📦</div>
+      <div class="ch-ico">📦</div>
       <span class="ch-lbl">Exportações · Portugal</span>
       <div class="ch-r">
         <button type="button" class="rbtn on" onclick="switchExp('destinos',this)">Destinos</button>
@@ -709,9 +694,8 @@
   </div>
 
   <div class="card s2" id="div-card">
-    <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#8B5CF6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#EF444422">🏛️</div>
+      <div class="ch-ico">🏛️</div>
       <span class="ch-lbl">Dívida Pública · % PIB</span>
       <div class="ch-r">
         <button type="button" class="rbtn on" onclick="switchDiv('bar',this)">Países</button>
@@ -724,9 +708,8 @@
 
 <!-- ROW 4: Tráfego Aéreo (s2) + Sismos (s2) -->
   <div class="card s2" id="air-card">
-    <div class="stripe" style="background:linear-gradient(90deg,#3B82F6,#06B6D4)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#3B82F622">✈️</div>
+      <div class="ch-ico">✈️</div>
       <span class="ch-lbl">Tráfego Aéreo · Lisboa</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('air','air_v8',this,loadAir,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -735,9 +718,8 @@
   </div>
 
   <div class="card s2" id="seis-card">
-    <div class="stripe" style="background:linear-gradient(90deg,#F59E0B,#EF4444)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#F59E0B22">🌍</div>
+      <div class="ch-ico">🌍</div>
       <span class="ch-lbl">Sismos · Ibéria · Açores · 7 dias</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('seis','seis_v10',this,loadSeis,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -747,9 +729,8 @@
 
 <!-- ROW 4b: Estreito de Ormuz (s2) -->
   <div class="card s2" id="ormuz-card">
-    <div class="stripe" style="background:linear-gradient(90deg,#0EA5E9,#0284C7)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#0EA5E922">🚢</div>
+      <div class="ch-ico">🚢</div>
       <span class="ch-lbl">Estreito de Ormuz · Tráfego Marítimo</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('ormuz','ormuz_v2',this,loadOrmuz,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -760,9 +741,8 @@
 <!-- ROW 5: Salário Mínimo & Custo de Vida (s2) + Transportes PT (s2) -->
   <!-- Salário Mínimo & Custo de Vida -->
   <div class="card s2" id="smn-card">
-    <div class="stripe" style="background:linear-gradient(180deg,#10B981,#3B82F6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#10B98120">💼</div>
+      <div class="ch-ico">💼</div>
       <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('smn',null,this,loadSMN,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -772,9 +752,8 @@
 
   <!-- Transportes PT -->
   <div class="card s2" id="transp-card">
-    <div class="stripe" style="background:linear-gradient(180deg,#EF4444,#F97316)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#EF444420">🚆</div>
+      <div class="ch-ico">🚆</div>
       <span class="ch-lbl">Transportes · Portugal</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('transp',null,this,loadTransp,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -784,10 +763,9 @@
 
   <!-- TradingView Advanced Chart s4 -->
 	  <div class="tv-chart-card s4">
-	    <div class="stripe" style="background:linear-gradient(90deg,var(--accent),var(--blue),var(--green))"></div>
-	    <div class="ch"><div class="ch-ico" style="background:var(--ad)">📈</div>
+	    <div class="ch"><div class="ch-ico">📈</div>
 	      <span class="ch-lbl">Mercados Financeiros</span>
-	      <div class="ch-r"><span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span></div></div>
+	      <div class="ch-r"></div></div>
 	    <div class="tv-chart-inner"></div>
 	    <div class="tv-src">✦ TradingView · Dados em tempo real · Sem chave API · Pesquisa livre de qualquer símbolo</div>
 	  </div>
@@ -796,9 +774,8 @@
 
   <!-- Bolsa de Lisboa · PSI 20 -->
   <div class="card s4">
-    <div class="stripe" style="background:linear-gradient(90deg,#10B981,#3B82F6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#10B98120">🇵🇹</div>
+      <div class="ch-ico">🇵🇹</div>
       <span class="ch-lbl">Bolsa de Lisboa · PSI 20</span>
       <div class="ch-r">
         <span id="psi20-header-status" class="badge warn">A carregar</span>
@@ -811,9 +788,8 @@
 
   <!-- Mapa de Calor S&P 500 / Crypto / ETFs -->
   <div class="card s2">
-    <div class="stripe" style="background:linear-gradient(90deg,var(--green),var(--red))"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#34C97A22">🌡️</div>
+      <div class="ch-ico">🌡️</div>
       <span class="ch-lbl">Mapa de Calor · Mercados</span>
       <div class="ch-r" style="display:flex;align-items:center;gap:6px">
         <div id="hmap-tabs">
@@ -821,7 +797,6 @@
           <button type="button" class="psi-tab" onclick="switchHmap('crypto',this)">Crypto</button>
           <button type="button" class="psi-tab" onclick="switchHmap('etf',this)">ETFs</button>
         </div>
-        <span class="badge" style="color:var(--green);border-color:#34C97A44;background:#34C97A11">● Live</span>
       </div>
     </div>
     <div id="hmap-widget">
@@ -832,17 +807,16 @@
   <!-- Câmbio s2 -->
   <!-- CÂMBIO EUR -->
   <div class="card s2">
-    <div class="stripe" style="background:var(--green)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--gd)">💱</div>
+      <div class="ch-ico">💱</div>
       <span class="ch-lbl">Câmbio · EUR</span>
       <div class="ch-r">
         <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-family:var(--mono);font-size:.58rem;color:var(--t2)">1 EUR =</span>
+          <span style="font-family:var(--mono);font-size:.74rem;color:var(--t2)">1 EUR =</span>
           <input id="fx-amount" type="number" value="1" min="0.01" step="any"
             aria-label="Montante em euros a converter"
             oninput="renderFX()"
-            style="width:60px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.7rem;padding:3px 6px;outline:none;text-align:right">
+            style="width:60px;background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.74rem;padding:3px 6px;outline:none;text-align:right">
         </div>
         <button type="button" class="rbtn ico" onclick="refreshCard('fx','fx',this,loadFX,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div>
@@ -854,8 +828,7 @@
 
   <!-- Crypto s2 -->
   <div class="card s2">
-    <div class="stripe" style="background:var(--orange)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--od)">₿</div>
+    <div class="ch"><div class="ch-ico">₿</div>
       <span class="ch-lbl">Criptomoedas</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('crypto','cg',this,loadCrypto,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="crypto-body"><div class="ld"><div class="spin"></div></div></div>
@@ -866,9 +839,8 @@
   <!-- Inflação s2 -->
   <!-- INFLAÇÃO PT vs Zona Euro -->
   <div class="card s2" id="card-inf">
-    <div class="stripe" style="background:var(--red)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#EF575722">📊</div>
+      <div class="ch-ico">📊</div>
       <span class="ch-lbl">Inflação harmonizada · Portugal vs Zona Euro</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('inf',null,this,initInflation,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -879,9 +851,8 @@
 
   <!-- Indicadores Mercado -->
   <div class="card">
-    <div class="stripe" style="background:var(--purple)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:var(--pd)">🔭</div>
+      <div class="ch-ico">🔭</div>
       <span class="ch-lbl">Indicadores de Mercado</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('mstats','mstats_v3',this,loadMarketStats,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -891,8 +862,7 @@
 
   <!-- Calendário Económico -->
   <div class="card">
-    <div class="stripe" style="background:var(--cyan)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--cd)">📅</div>
+    <div class="ch"><div class="ch-ico">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
       <div class="ch-r">
         <button type="button" class="rbtn ico" onclick="refreshCard('cal',null,this,loadAndRenderCalendar,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
@@ -909,9 +879,8 @@
 
   <!-- GEOPOLÍTICA -->
   <div class="card s2">
-    <div class="stripe" style="background:linear-gradient(90deg,#EF4444,#F59E0B,#8B5CF6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#EF444422">🗺️</div>
+      <div class="ch-ico">🗺️</div>
       <span class="ch-lbl">Conflitos Globais · 2026</span>
       <div class="ch-r"><a href="https://www.crisisgroup.org/crisiswatch" target="_blank" class="rbtn" style="text-decoration:none">↗</a></div>
     </div>
@@ -930,9 +899,8 @@
     <div class="src">✦ ACLED · CFR · Crisis Group · UCDP · Mar 2026</div>
   </div>
   <div class="card s2">
-    <div class="stripe" style="background:#8B5CF6"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#8B5CF622">🛰️</div>
+      <div class="ch-ico">🛰️</div>
       <span class="ch-lbl">Análise Geopolítica</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('geo','geo_v10',this,loadGeo,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -948,9 +916,8 @@
   </div>
 
   <div class="card s2" id="co2-card" style="margin-top:12px">
-  <div class="stripe" style="background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)"></div>
   <div class="ch">
-    <div class="ch-ico" style="background:#10B98122">🌱</div>
+    <div class="ch-ico">🌱</div>
     <span class="ch-lbl">Emissões CO₂ · Mix Energético · Portugal
       <span class="help-tip" title="gCO2/kWh: gramas de CO2 emitidas por cada kWh produzido; menor valor indica eletricidade mais limpa.">?</span>
     </span>
@@ -962,9 +929,8 @@
 
   <!-- Liberdade de Imprensa & Democracia -->
   <div class="card s4">
-    <div class="stripe" style="background:linear-gradient(90deg,#8B5CF6,#3B82F6)"></div>
     <div class="ch">
-      <div class="ch-ico" style="background:#8B5CF620">🗽</div>
+      <div class="ch-ico">🗽</div>
       <span class="ch-lbl">Liberdade de Imprensa · Democracia</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('press',null,this,loadPress,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
@@ -973,8 +939,7 @@
   </div>
 
   <div class="card s2">
-    <div class="stripe" style="background:var(--accent)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--ad)">🇵🇹</div>
+    <div class="ch"><div class="ch-ico">🇵🇹</div>
       <span class="ch-lbl">Notícias · Portugal</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('news-pt','rss_pt',this,loadNews,'pt',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-pt"><div class="ld"><div class="spin"></div></div></div>
@@ -983,8 +948,7 @@
 
 
   <div class="card s2">
-    <div class="stripe" style="background:var(--blue)"></div>
-    <div class="ch"><div class="ch-ico" style="background:var(--bd)">🌍</div>
+    <div class="ch"><div class="ch-ico">🌍</div>
       <span class="ch-lbl">Notícias · Mundo</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('news-world','rss_world',this,loadNews,'world',true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div></div>
     <div id="news-world"><div class="ld"><div class="spin"></div></div></div>
@@ -998,41 +962,41 @@
  <script src="src/core.js"></script>
  <script src="src/cache.js?v=20261029-5"></script>
  <script src="src/fetch.js?v=20261029-7"></script>
-<script src="src/ui.js?v=20261029-13" integrity="sha384-URSfIKuwRBwLsXD7JkxBoM6eFzroBkaACR7len/aiUoLGP5h4g8TiY3Wda/cgbcx"></script>
+<script src="src/ui.js?v=20261120-3" integrity="sha384-2wdghDjNNyVyyISh99rBbhX+qpYTF/hIzn+g0ERhHU7urM3VmrcY4bqJ4EoIuKbm"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261029-10" integrity="sha384-fbrB4xrv5mtkyQatlTFZ90Ikn6FeZI//NMkJiezqkXvs466wBbWAUPdoVKw8fz/z"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
- <script src="src/cards/elec.js?v=20261102-2"></script>
+ <script src="src/cards/elec.js?v=20261120-3"></script>
  <script src="src/cards/news.js?v=20261029-4"></script>
- <script src="src/cards/seis.js?v=20261029-2"></script>
- <script src="src/cards/dams.js?v=20261029-2"></script>
- <script src="src/cards/fuel.js?v=20261029-2"></script>
- <script src="src/cards/weather.js?v=20261029-2"></script>
- <script src="src/cards/holidays.js"></script>
- <script src="src/cards/air-quality.js?v=20261029-2"></script>
- <script src="src/cards/market-stats.js"></script>
- <script src="src/cards/real-estate.js?v=20261029-2"></script>
- <script src="src/cards/fear-greed.js?v=20261029-2"></script>
- <script src="src/cards/agriculture.js?v=20261029-1"></script>
- <script src="src/cards/exports.js"></script>
- <script src="src/cards/public-debt.js"></script>
- <script src="src/cards/recession.js?v=20261029-2"></script>
- <script src="src/cards/air-traffic.js"></script>
- <script src="src/cards/ormuz.js"></script>
- <script src="src/cards/co2.js"></script>
- <script src="src/cards/transport.js"></script>
- <script src="src/cards/press.js"></script>
- <script src="src/cards/smn.js"></script>
- <script src="src/cards/inflation.js?v=20261029-2"></script>
- <script src="src/cards/euribor.js?v=20261029-2"></script>
- <script src="src/cards/fx.js?v=20261029-2"></script>
- <script src="src/cards/crypto.js?v=20261029-5"></script>
- <script src="src/cards/psi20.js?v=20261029-6"></script>
- <script src="src/cards/geopolitics.js?v=20261029-6"></script>
- <script src="src/cards/gas-markets.js?v=20261029-1"></script>
- <script src="src/widgets/economic-calendar.js"></script>
+ <script src="src/cards/seis.js?v=20261120-3"></script>
+ <script src="src/cards/dams.js?v=20261120-3"></script>
+ <script src="src/cards/fuel.js?v=20261120-3"></script>
+ <script src="src/cards/weather.js?v=20261120-3"></script>
+ <script src="src/cards/holidays.js?v=20261120-3"></script>
+ <script src="src/cards/air-quality.js?v=20261120-3"></script>
+ <script src="src/cards/market-stats.js?v=20261120-3"></script>
+ <script src="src/cards/real-estate.js?v=20261120-3"></script>
+ <script src="src/cards/fear-greed.js?v=20261120-3"></script>
+ <script src="src/cards/agriculture.js?v=20261120-3"></script>
+ <script src="src/cards/exports.js?v=20261120-3"></script>
+ <script src="src/cards/public-debt.js?v=20261120-3"></script>
+ <script src="src/cards/recession.js?v=20261120-3"></script>
+ <script src="src/cards/air-traffic.js?v=20261120-3"></script>
+ <script src="src/cards/ormuz.js?v=20261120-3"></script>
+ <script src="src/cards/co2.js?v=20261120-3"></script>
+ <script src="src/cards/transport.js?v=20261120-3"></script>
+ <script src="src/cards/press.js?v=20261120-3"></script>
+ <script src="src/cards/smn.js?v=20261120-3"></script>
+ <script src="src/cards/inflation.js?v=20261120-3"></script>
+ <script src="src/cards/euribor.js?v=20261120-3"></script>
+ <script src="src/cards/fx.js?v=20261120-3"></script>
+ <script src="src/cards/crypto.js?v=20261120-3"></script>
+ <script src="src/cards/psi20.js?v=20261120-3"></script>
+ <script src="src/cards/geopolitics.js?v=20261120-3"></script>
+ <script src="src/cards/gas-markets.js?v=20261120-3"></script>
+ <script src="src/widgets/economic-calendar.js?v=20261120-3"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261029-5"></script>
+<script src="src/app.js?v=20261120-3"></script>
 </body>
 </html>

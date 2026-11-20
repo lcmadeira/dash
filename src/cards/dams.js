@@ -18,7 +18,7 @@ async function loadDamsOnce(force = false) {
   let cache = force ? null : lastKnown;
 
   if (!cache) {
-    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.7rem">${window.ld()}</div>`;
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.74rem">${window.ld()}</div>`;
     try {
       const url = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
       /* Tentar obter o HTML via proxy */
@@ -85,7 +85,7 @@ async function loadDamsOnce(force = false) {
           title: `A mostrar a última leitura guardada: ${observed}`,
           force: true,
         });
-        const staleNotice = `<div style="padding:8px 10px;font-size:.58rem;color:#F59E0B;margin-bottom:6px;border-bottom:1px solid var(--b)">
+        const staleNotice = `<div style="padding:8px 10px;font-size:.74rem;color:#F59E0B;margin-bottom:6px;border-bottom:1px solid var(--b)">
           ⚠️ SNIRH indisponível · última leitura guardada: ${observed}
         </div>`;
         renderDams(cache, staleNotice);
@@ -95,7 +95,7 @@ async function loadDamsOnce(force = false) {
         title: "Sem observação atual nem cache verificável.",
         force: true,
       });
-      el.innerHTML = `<div style="padding:14px 10px;font-size:.7rem;color:var(--t3);line-height:1.5">
+      el.innerHTML = `<div style="padding:14px 10px;font-size:.74rem;color:var(--t3);line-height:1.5">
         <strong style="color:#F59E0B">SNIRH indisponível</strong><br>
         Sem uma observação verificável, não há valores de armazenamento para apresentar.
         <div style="margin-top:6px"><a href="https://snirh.apambiente.pt/index.php?idMain=1&amp;idItem=1.3" target="_blank" rel="noopener noreferrer">Consultar dados do SNIRH</a></div>
@@ -120,7 +120,7 @@ function renderDams(data, statusHtml = "") {
   let html = statusHtml + `
     <div style="margin-bottom:12px;background:var(--b2);padding:10px;border-radius:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
-        <div style="font-size:.54rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Média Nacional (Armazenamento)</div>
+        <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Média Nacional (Armazenamento)</div>
         <div style="font-size:1rem;font-weight:900;color:var(--blue)">${totalVal.toFixed(1)}%</div>
       </div>
       <div style="height:10px;background:var(--b);border-radius:5px;overflow:hidden;position:relative">
@@ -128,8 +128,8 @@ function renderDams(data, statusHtml = "") {
         <div style="height:100%;width:${totalVal}%;background:linear-gradient(90deg, #3B82F6, #06B6D4);border-radius:5px"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:5px">
-        <div style="font-size:.52rem;color:var(--t3)">Média histórica: <b>${totalAvg.toFixed(1)}%</b></div>
-        <div style="font-size:.52rem;color:var(--t3)">${basins.length} bacias monitorizadas</div>
+        <div style="font-size:.74rem;color:var(--t3)">Média histórica: <b>${totalAvg.toFixed(1)}%</b></div>
+        <div style="font-size:.74rem;color:var(--t3)">${basins.length} bacias monitorizadas</div>
       </div>
     </div>
 
@@ -144,19 +144,19 @@ function renderDams(data, statusHtml = "") {
     const bg = b.val < 30 ? "rgba(239,68,68,0.08)" : "var(--b2)";
     html += `
       <div style="background:${bg};padding:6px 8px;border-radius:8px;border:1px solid ${col}15;border-left:3px solid ${col}">
-        <div style="font-size:.58rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+        <div style="font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
           <div style="font-family:var(--mono);font-size:.78rem;font-weight:800;color:${col}">${b.val.toFixed(0)}%</div>
-          <div style="font-size:.48rem;color:var(--t3)">Méd. ${b.avg.toFixed(0)}%</div>
+          <div style="font-size:.74rem;color:var(--t3)">Méd. ${b.avg.toFixed(0)}%</div>
         </div>
       </div>
     `;
   });
 
   html += `</div>
-    <div style="margin-top:10px;padding-top:6px;border-top:1px solid var(--b2);font-size:.52rem;color:var(--t3);display:flex;justify-content:space-between;align-items:center">
+    <div style="margin-top:10px;padding-top:6px;border-top:1px solid var(--b2);font-size:.74rem;color:var(--t3);display:flex;justify-content:space-between;align-items:center">
       <span>APA / SNIRH · Resumo Semanal</span>
-      <span class="badge ${isCritical?'warn':'live'}" style="font-size:.48rem">${isCritical ? "⚠️ ALERTA SECA" : "● NÍVEIS OK"}</span>
+      <span class="badge ${isCritical?'warn':'live'}" style="font-size:.74rem">${isCritical ? "⚠️ ALERTA SECA" : "● NÍVEIS OK"}</span>
     </div>
   `;
 

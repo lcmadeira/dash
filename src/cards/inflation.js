@@ -157,8 +157,8 @@ function renderInflation(){
   const ptC  = 'var(--accent)', euC = 'var(--blue)';
 
   const sourceTag = source === 'eurostat_live'
-    ? `<span style="font-size:.5rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${data[0].m}</span>`
-    : `<span style="font-size:.5rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
+    ? `<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${data[0].m}</span>`
+    : `<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
 
   el.innerHTML = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>
@@ -197,10 +197,10 @@ function renderInflation(){
       </div>`;
     }).join('')}</div>
     <div style="display:flex;gap:14px;margin-top:8px">
-      <span style="font-family:var(--mono);font-size:.56rem;color:${ptC}">▬ Portugal</span>
-      <span style="font-family:var(--mono);font-size:.56rem;color:${euC}">▬ Zona Euro</span>
+      <span style="font-family:var(--mono);font-size:.74rem;color:${ptC}">▬ Portugal</span>
+      <span style="font-family:var(--mono);font-size:.74rem;color:${euC}">▬ Zona Euro</span>
     </div>
-    ${data[0].m === 'Set 2026' ? '<div style="font-size:.52rem;color:var(--t3);margin-top:5px">Set 2026: estimativas rápidas do INE e flash estimate Eurostat.</div>' : ''}`;
+    ${data[0].m === 'Set 2026' ? '<div style="font-size:.74rem;color:var(--t3);margin-top:5px">Set 2026: estimativas rápidas do INE e flash estimate Eurostat.</div>' : ''}`;
 }
 
 

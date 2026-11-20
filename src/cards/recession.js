@@ -106,14 +106,14 @@ async function loadRec(force=false){
       <div style="font-size:2.6rem;font-weight:900;color:${col};line-height:1;letter-spacing:-1px">
         ${cur>=0?"+":""}${cur.toFixed(2)}<span style="font-size:.9rem;font-weight:400">pp</span>
       </div>
-      <div style="font-size:.62rem;color:var(--t3);margin-top:1px">
+      <div style="font-size:.74rem;color:var(--t3);margin-top:1px">
         ${delta>=0?"▲":"▼"} ${Math.abs(delta).toFixed(2)}pp vs anterior
       </div>
     </div>
     <div style="flex:1">
       <div style="font-size:.78rem;font-weight:700;color:${col}">10Y − 2Y Spread</div>
-      <div style="font-size:.68rem;color:var(--t2);margin-top:2px">${signal} · ${signalSub}</div>
-      <div style="font-size:.6rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · FRED live":" · ref. Mar 2026"}</div>
+      <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${signal} · ${signalSub}</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · FRED live":" · ref. Mar 2026"}</div>
     </div>
   </div>
 
@@ -145,26 +145,26 @@ async function loadRec(force=false){
   <!-- Stats em grelha 2x2 -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
-      <div style="font-size:.55rem;color:var(--t3)">Mínimo</div>
+      <div style="font-size:.74rem;color:var(--t3)">Mínimo</div>
       <div style="font-size:.82rem;font-weight:700;color:#EF4444">${mn.toFixed(2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
-      <div style="font-size:.55rem;color:var(--t3)">Máximo</div>
+      <div style="font-size:.74rem;color:var(--t3)">Máximo</div>
       <div style="font-size:.82rem;font-weight:700;color:#10B981">+${mx.toFixed(2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
-      <div style="font-size:.55rem;color:var(--t3)">Leituras negativas</div>
+      <div style="font-size:.74rem;color:var(--t3)">Leituras negativas</div>
       <div style="font-size:.82rem;font-weight:700;color:#F59E0B">${pctInverted}%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
-      <div style="font-size:.55rem;color:var(--t3)">Sequência máx</div>
+      <div style="font-size:.74rem;color:var(--t3)">Sequência máx</div>
       <div style="font-size:.82rem;font-weight:700;color:${col}">${longestRun}</div>
     </div>
   </div>
 
   <!-- Contexto histórico -->
     <div style="background:${col}11;border-left:3px solid ${col};border-radius:0 5px 5px 0;
-       padding:6px 10px;font-size:.65rem;color:var(--t2);line-height:1.5">
+       padding:6px 10px;font-size:.74rem;color:var(--t2);line-height:1.5">
     ${isInv
       ? `<b style="color:${col}">Curva invertida em ${longestRun} leituras consecutivas.</b> Este indicador é historicamente associado a períodos de recessão.`
       : `<b style="color:${col}">Curva normalizada.</b> O spread 10Y–2Y está acima de zero.`
