@@ -1,0 +1,86 @@
+{
+  "basins": [
+    {
+      "name": "Arade",
+      "val": 72.2,
+      "avg": 38.5,
+      "capacity": 233.1
+    },
+    {
+      "name": "Ave",
+      "val": 44.8,
+      "avg": 58.2,
+      "capacity": 21.1
+    },
+    {
+      "name": "Cávado/Ribeiras Costeiras",
+      "val": 54.1,
+      "avg": 61,
+      "capacity": 1169.6
+    },
+    {
+      "name": "Douro",
+      "val": 58,
+      "avg": 62.2,
+      "capacity": 297.2
+    },
+    {
+      "name": "Guadiana",
+      "val": 76.8,
+      "avg": 72.2,
+      "capacity": 4603.5
+    },
+    {
+      "name": "Lima",
+      "val": 34.9,
+      "avg": 53.9,
+      "capacity": 405.5
+    },
+    {
+      "name": "Mira",
+      "val": 90.1,
+      "avg": 64.3,
+      "capacity": 486.6
+    },
+    {
+      "name": "Mondego",
+      "val": 51.3,
+      "avg": 63.5,
+      "capacity": 508.2
+    },
+    {
+      "name": "Ribeiras do Algarve",
+      "val": 74.9,
+      "avg": 50.7,
+      "capacity": 34.8
+    },
+    {
+      "name": "Ribeiras do Oeste",
+      "val": 67.7,
+      "avg": 52.3,
+      "capacity": 7.9
+    },
+    {
+      "name": "Sado",
+      "val": 56.1,
+      "avg": 42.6,
+      "capacity": 618.4
+    },
+    {
+      "name": "Tejo",
+      "val": 64.2,
+      "avg": 62.4,
+      "capacity": 2546.4
+    }
+  ],
+  "totalVal": 67.4,
+  "totalAvg": 64.5,
+  "period": "2026-10",
+  "hydroYear": "2026/27",
+  "month": "OUT",
+  "_meta": {
+    "source": "SNIRH · APA (albufeiras) · atualizado por GitHub Actions",
+    "state": "live",
+    "observedAt": 1792065600000
+  }
+}

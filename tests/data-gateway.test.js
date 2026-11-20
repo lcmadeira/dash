@@ -100,6 +100,8 @@ test("gateway parses fixed Google News feeds, drops unsafe links, and stamps sou
   let requestedUrl = "";
   globalThis.fetch = async url => {
     requestedUrl = String(url);
+    // RTP e Público indisponíveis: o Google News fica como último recurso.
+    if (!requestedUrl.includes("news.google.com")) return new Response("down", { status: 503 });
     return new Response(fixture, { headers: { "Content-Type": "application/rss+xml" } });
   };
   const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
@@ -208,16 +210,17 @@ test("news route falls back to the next fixed feed and identifies the server", a
   globalThis.fetch = async (url, init) => {
     requested.push(String(url));
     assert.match(init.headers["User-Agent"], /dash-data-gateway/);
-    if (String(url).includes("news.google.com")) return new Response("blocked", { status: 503 });
+    if (String(url).includes("rtp.pt")) return new Response("blocked", { status: 503 });
     return new Response(fixture.replace(/<source[^>]*>[^<]*<\/source>/g, ""), { headers: { "Content-Type": "application/rss+xml" } });
   };
   const response = await handleRequest(new Request("https://dash-data.test/v1/news-pt"));
   const payload = await response.json();
   assert.equal(response.status, 200);
   assert.equal(requested.length, 2);
-  assert.match(requested[1], /rtp\.pt/);
-  assert.equal(payload._meta.source, "RTP Notícias");
-  assert.equal(payload.articles[0].source, "RTP");
+  assert.match(requested[0], /rtp\.pt/);
+  assert.match(requested[1], /PublicoRSS/);
+  assert.equal(payload._meta.source, "Público");
+  assert.equal(payload.articles[0].source, "Público");
 });
 
 test("feed routes only serve whitelisted RSS feeds", async () => {
@@ -270,4 +273,13 @@ test("SNIRH general table yields the latest month per basin with capacity-weight
   assert.match(requested[1], /anohi=2026&mes=10/);
   assert.equal(payload.basins.length, 12);
   assert.equal(payload._meta.source, "SNIRH · APA (albufeiras)");
+});
+
+test("committed dams snapshot is valid for the dashboard card", async () => {
+  const data = JSON.parse(await readFile(new URL("../data/dams.json", import.meta.url), "utf8"));
+  assert.ok(data.basins.length >= 8);
+  assert.ok(data.basins.every(b => typeof b.name === "string" && b.val >= 0 && b.val <= 100));
+  assert.ok(Number.isFinite(data.totalVal));
+  assert.match(data.period, /^\d{4}-\d{2}$/);
+  assert.equal(data._meta.observedAt, Date.parse(`${data.period}-15T12:00:00Z`));
 });

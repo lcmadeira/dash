@@ -20,11 +20,17 @@ async function loadDamsOnce(force = false) {
   if (!cache) {
     el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.74rem">${window.ld()}</div>`;
     try {
-      /* 1. Gateway próprio: lê a tabela mensal do SNIRH no servidor e guarda uma cópia de reserva. */
-      const gatewayUrl = window.dataApiUrl?.("v1/dams");
-      if (gatewayUrl) {
+      /* 1. Gateway próprio (tabela mensal do SNIRH lida no servidor, com cópia de reserva).
+         2. data/dams.json do próprio site, atualizado diariamente por GitHub Actions
+            (o SNIRH recusa pedidos da Cloudflare, mas não dos runners do GitHub). */
+      const damsSources = [
+        window.dataApiUrl?.("v1/dams"),
+        window.location?.href ? new URL("data/dams.json", window.location.href).href : null,
+      ].filter(Boolean);
+      for (const sourceUrl of damsSources) {
+        if (cache) break;
         try {
-          const payload = await window.fetchJsonFirstOk(gatewayUrl, {}, 15000, ["direct"],
+          const payload = await window.fetchJsonFirstOk(sourceUrl, { cache: "no-cache" }, 15000, ["direct"],
             (p) => Array.isArray(p?.basins) && p.basins.length >= 8 && Number.isFinite(p?.totalVal));
           cache = {
             basins: payload.basins.map((b) => ({ name: String(b.name), val: Number(b.val), avg: Number.isFinite(b.avg) ? Number(b.avg) : null })),
@@ -38,8 +44,8 @@ async function loadDamsOnce(force = false) {
             state: payload._meta?.state === "stale" ? "stale" : "live",
             observedAt: payload._meta?.observedAt,
           });
-        } catch (gatewayError) {
-          console.warn("⚠️ Dams gateway:", gatewayError?.message || gatewayError);
+        } catch (sourceError) {
+          console.debug?.("Dams: fonte indisponível", sourceUrl, sourceError?.message || sourceError);
         }
       }
       if (cache) { window.refreshCardStatusFromCache?.("dams", CK); renderDams(cache); return; }

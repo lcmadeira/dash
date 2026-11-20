@@ -1,14 +1,15 @@
 const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,cardano,ripple,binancecoin&vs_currencies=eur&include_24hr_change=true";
 const GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc?query=%28geopolitics%20OR%20conflict%20OR%20war%20OR%20diplomacy%20OR%20sanctions%29&mode=ArtList&format=json&maxrecords=30&sort=DateDesc&timespan=7d";
+/* Fontes que respondem à Cloudflare primeiro: o Google News recusa (503) pedidos do gateway. */
 const NEWS_FEEDS = {
   "/v1/news-pt": [
-    { url: "https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT%3Apt", source: "Google News RSS · Portugal", item: "Google News" },
     { url: "https://www.rtp.pt/noticias/rss", source: "RTP Notícias", item: "RTP" },
     { url: "https://feeds.feedburner.com/PublicoRSS", source: "Público", item: "Público" },
+    { url: "https://news.google.com/rss/search?q=portugal+hoje&hl=pt-PT&gl=PT&ceid=PT%3Apt", source: "Google News RSS · Portugal", item: "Google News" },
   ],
   "/v1/news-world": [
-    { url: "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US%3Aen", source: "Google News RSS · Mundo", item: "Google News" },
     { url: "https://feeds.bbci.co.uk/news/world/rss.xml", source: "BBC News · World", item: "BBC News" },
+    { url: "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US%3Aen", source: "Google News RSS · Mundo", item: "Google News" },
   ],
 };
 /* Feeds RSS fixos da geopolítica (o cliente escolhe por id; nunca por URL). */
@@ -304,7 +305,7 @@ function routeFor(url) {
   }
   if (NEWS_FEEDS[path]) {
     return { key: path, ttl: 300, staleTtl: day, maxBytes: 500_000, accept: "application/rss+xml, application/xml, text/xml", valid: isValidNews, news: true,
-      upstreams: NEWS_FEEDS[path].map((feed, index) => ({ url: feed.url, source: feed.source, timeout: index === 0 ? 5000 : 6000,
+      upstreams: NEWS_FEEDS[path].map(feed => ({ url: feed.url, source: feed.source, timeout: 5000,
         parse: body => ({ articles: parseNewsRss(body, feed.item) }) })) };
   }
   const feedMatch = /^\/v1\/feed-([a-z]+)$/.exec(path);

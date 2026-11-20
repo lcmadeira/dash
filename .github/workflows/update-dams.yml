@@ -1,0 +1,38 @@
+name: Atualizar dados das barragens
+
+# O SNIRH recusa pedidos da Cloudflare (gateway); os runners do GitHub conseguem lê-lo.
+# Os dados são mensais: o commit só acontece quando o boletim muda.
+on:
+  schedule:
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-dams
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Ler o boletim do SNIRH
+        run: node scripts/update-dams.mjs
+      - name: Guardar alterações
+        run: |
+          if git diff --quiet -- data/dams.json && git ls-files --error-unmatch data/dams.json >/dev/null 2>&1; then
+            echo "Sem alterações."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/dams.json
+          git commit -m "Atualizar dados das barragens (SNIRH)"
+          git push
