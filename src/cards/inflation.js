@@ -157,8 +157,8 @@ function renderInflation(){
   const ptC  = 'var(--accent)', euC = 'var(--blue)';
 
   const sourceTag = source === 'eurostat_live'
-    ? `<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${data[0].m}</span>`
-    : `<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
+    ? `<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${data[0].m}</span>`
+    : `<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
 
   el.innerHTML = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>

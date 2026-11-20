@@ -98,12 +98,12 @@ async function loadAgri(force=false){
       </div>
       ${hi!==null&&hi!==undefined?`<div style="display:flex;justify-content:space-between;margin-top:3px;
            font-size:.74rem;color:var(--t3)">
-        <span>H <b style="color:#6E7A96">${fmt(hi)}</b></span>
-        <span>L <b style="color:#6E7A96">${fmt(lo)}</b></span>
+        <span>H <b style="color:var(--t3)">${fmt(hi)}</b></span>
+        <span>L <b style="color:var(--t3)">${fmt(lo)}</b></span>
       </div>`:""}</div>`;
   }).join("");
   if(isStatic){
-    el.innerHTML+=`<div style="grid-column:1/-1;font-size:.74rem;color:#F59E0B;padding:2px 0">
+    el.innerHTML+=`<div style="grid-column:1/-1;font-size:.74rem;color:var(--amber);padding:2px 0">
       ⚠ Yahoo Finance / Stooq indisponíveis · valores referência Mar 2026</div>`;
   }
 }

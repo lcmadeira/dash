@@ -44,7 +44,7 @@
             if (d.length) {
               const age = Math.round((Date.now() - (parsed.ts || 0)) / 60000);
               el.innerHTML = `<div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:6px;
-                padding:6px 10px;font-size:.74rem;color:#F59E0B;margin-bottom:8px">
+                padding:6px 10px;font-size:.74rem;color:var(--amber);margin-bottom:8px">
                 ⚠ A usar dados em cache (há ${age}min) — API USGS temporariamente inacessível
               </div>`;
             }
@@ -129,23 +129,23 @@
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#F59E0B;line-height:1">${use.length}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${use.length}</div>
         <div style="font-size:.74rem;color:var(--t3)">${periodo}</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#EF4444;line-height:1">${maxMag.toFixed(1)}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${maxMag.toFixed(1)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Máx. M</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#F97316;line-height:1">${big}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${big}</div>
         <div style="font-size:.74rem;color:var(--t3)">Mag ≥3</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#8B5CF6;line-height:1">${med}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${med}</div>
         <div style="font-size:.74rem;color:var(--t3)">Mag 2-3</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:#06B6D4;line-height:1">${total24h}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${total24h}</div>
         <div style="font-size:.74rem;color:var(--t3)">24h</div>
       </div>
     </div>
@@ -154,11 +154,11 @@
     <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--b);background:#0a1020;margin-bottom:10px">
       <canvas id="seis-map-canvas" style="width:100%;height:280px;display:block"></canvas>
       <div id="seis-map-tip" style="position:absolute;background:#1E2340ee;border:1px solid #3D4560;
-           padding:5px 9px;border-radius:5px;font-size:.74rem;color:#DDE3F0;pointer-events:none;
+           padding:5px 9px;border-radius:5px;font-size:.74rem;color:var(--text);pointer-events:none;
            opacity:0;transition:opacity .15s;z-index:10;max-width:220px;line-height:1.5;
            white-space:nowrap;top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;right:6px;background:#F59E0B22;border:1px solid #F59E0B44;
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:#F59E0B">
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--amber)">
         USGS · ${periodo}
       </div>
     </div>
@@ -237,8 +237,8 @@
               });
               const mxZ = ev.length ? Math.max(...ev.map((f) => f.properties.mag)).toFixed(1) : "—";
               return `<div style="background:var(--b2);border-radius:6px;padding:5px 7px;
-                   margin-bottom:4px;border-left:2px solid ${z.col}">
-                <div style="font-size:.74rem;font-weight:600;color:${z.col}">${z.name}</div>
+                   margin-bottom:4px;border:1px solid var(--b)">
+                <div style="font-size:.74rem;font-weight:600;color:var(--text)">${z.name}</div>
                 <div style="font-size:.74rem;color:var(--t3)">${ev.length} eventos</div>
                 <div style="font-size:.74rem;color:var(--t2)">máx M${mxZ}</div>
               </div>`;

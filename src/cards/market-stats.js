@@ -51,8 +51,8 @@ async function loadMarketStats(force=false){
   /* ── Render ── */
   const liveCount=cache.items.filter(x=>x.data?.live).length;
   const liveTag=liveCount>0
-    ?`<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 5px">\u25CF Stooq ${liveCount}/6</span>`
-    :`<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26A0 sem dados live</span>`;
+    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 5px">\u25CF Stooq ${liveCount}/6</span>`
+    :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26A0 sem dados live</span>`;
 
   function miniChg(chg){
     if(chg === null || chg === undefined) return `<span style="color:var(--t3);font-size:.74rem">\u2014</span>`;
@@ -70,23 +70,23 @@ async function loadMarketStats(force=false){
     ${cache.items.map(item=>{
       const d=item.data;
       const priceStr=d?(item.unit+(d.price>999?d.price.toLocaleString("pt-PT",{maximumFractionDigits:item.dec}):d.price.toFixed(item.dec))):"\u2014";
-      return `<div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid ${item.col}">
+      return `<div style="background:var(--surface);border:1px solid var(--b);border-radius:7px;padding:7px 9px">
         <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">
           ${item.label} \u00b7 <span style="text-transform:none;font-weight:400">${item.sub}</span>
         </div>
-        <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:${item.col};line-height:1.1">${priceStr}</div>
+        <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:var(--text);line-height:1.1">${priceStr}</div>
         <div style="margin-top:3px">${miniChg(d?.chg)}</div>
         ${d?`<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-top:2px">H ${d.hi.toFixed(item.dec)} \u00b7 L ${d.lo.toFixed(item.dec)}</div>`:""}
       </div>`;
     }).join("")}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-    <div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid var(--green)">
+    <div style="background:var(--surface);border:1px solid var(--b);border-radius:7px;padding:7px 9px">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">USD/EUR \u00b7 BCE</div>
       <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:var(--green)">${cache.usdEur?("\u20ac"+cache.usdEur.toFixed(4)):"\u2014"}</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:3px">Frankfurter API \u00b7 BCE oficial</div>
     </div>
-    <div style="background:var(--b2);border-radius:7px;padding:7px 9px;border-left:3px solid var(--accent)">
+    <div style="background:var(--surface);border:1px solid var(--b);border-radius:7px;padding:7px 9px">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">BTC/EUR \u00b7 CoinGecko</div>
       <div style="font-family:var(--mono);font-size:.98rem;font-weight:700;color:var(--accent)">${cache.btcEur?("\u20ac"+cache.btcEur.toLocaleString("pt-PT",{maximumFractionDigits:0})):"\u2014"}</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:3px">CoinGecko API</div>

@@ -191,9 +191,9 @@ async function loadPSI20Trend(force = false) {
 
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-bottom:8px;align-items:start">
-    <div style="background:var(--b2);border-radius:10px;padding:10px 14px;min-width:160px;border-left:4px solid #10B981">
+    <div style="background:var(--surface);border:1px solid var(--b);border-radius:10px;padding:10px 14px;min-width:160px">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">PSI 20 · Lisboa</div>
-      <div style="font-size:2rem;font-weight:900;color:#10B981;line-height:1;letter-spacing:-1px">${psi.live ? psi.price.toFixed(0) : "—"}</div>
+      <div style="font-size:2rem;font-weight:900;color:var(--green);line-height:1;letter-spacing:-1px">${psi.live ? psi.price.toFixed(0) : "—"}</div>
       <div style="font-size:.74rem;font-weight:700;color:${psiCol};margin-top:3px">${psi.live ? `${psiArr} ${Math.abs(psiChg).toFixed(2)}%` : (window.getLisbonMarketContext?.()?.state === "closed" ? "Sem negociação hoje" : "Cotação indisponível")}</div>
       <div style="display:flex;gap:8px;margin-top:4px;font-size:.74rem;color:var(--t3)">
         <span>H <b style="color:var(--t2)">${psi.live ? psi.hi.toFixed(0) : "—"}</b></span>
@@ -210,7 +210,7 @@ async function loadPSI20Trend(force = false) {
           const c=q.chg>=0?"var(--green)":"var(--red)";
           return `<div style="background:var(--b2);border-radius:6px;padding:5px 6px;text-align:center">
             <div style="font-size:.85rem">${idx.flag}</div>
-            <div style="font-size:.74rem;font-weight:700;color:${idx.col};white-space:nowrap">${idx.label}</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap">${idx.label}</div>
             <div style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--text);margin:1px 0">
               ${q.live ? (q.price>1000?q.price.toLocaleString("pt",{maximumFractionDigits:0}):q.price.toFixed(2)) : "—"}</div>
             <div style="font-size:.74rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação"}</div>
@@ -248,7 +248,7 @@ async function loadPSI20Trend(force = false) {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
           <div>
-            <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${s.col}">
+            <div style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:var(--text)">
         ${q.live ? `${q.price<1?q.price.toFixed(3):q.price.toFixed(2)}€` : "—"}</div>
             <div style="font-size:.74rem;font-weight:600;color:${c}">${q.live ? `${q.chg>=0?"▲":"▼"}${Math.abs(q.chg).toFixed(2)}%` : "sem cotação atual"}</div>
           </div>

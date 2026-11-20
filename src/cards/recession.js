@@ -146,15 +146,15 @@ async function loadRec(force=false){
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Mínimo</div>
-      <div style="font-size:.82rem;font-weight:700;color:#EF4444">${mn.toFixed(2)}pp</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--red)">${mn.toFixed(2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Máximo</div>
-      <div style="font-size:.82rem;font-weight:700;color:#10B981">+${mx.toFixed(2)}pp</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--green)">+${mx.toFixed(2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Leituras negativas</div>
-      <div style="font-size:.82rem;font-weight:700;color:#F59E0B">${pctInverted}%</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--amber)">${pctInverted}%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Sequência máx</div>

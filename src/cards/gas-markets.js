@@ -222,8 +222,8 @@ function loadTTF(force=false){
     const chgArr = ttfChg>=0?"▲":"▼";
 
     const sourceBadge = isLive
-      ? `<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
-      : `<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. ${staticLatest[0]}</span>`;
+      ? `<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">● ${sourceLabel} live</span>`
+      : `<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ref. ${staticLatest[0]}</span>`;
 
     el.innerHTML=`
     <!-- Header: TTF actual + sparkline -->
@@ -236,7 +236,7 @@ function loadTTF(force=false){
           ${sourceBadge}
         </div>
         <div style="display:flex;align-items:flex-end;gap:5px">
-          <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
+          <div style="font-size:2rem;font-weight:900;color:var(--blue);line-height:1">
             ${ttfPrice.toFixed(1)}</div>
           <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/MWh</div>
         </div>
@@ -285,10 +285,10 @@ function loadTTF(force=false){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
       <!-- TTF com dados live -->
       <div style="background:var(--b2);border-radius:7px;padding:6px 8px;
-           border-left:3px solid #3B82F6">
+           border-left:3px solid var(--accent)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
-            <div style="font-size:.74rem;font-weight:700;color:#3B82F6">🇳🇱 TTF</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--blue)">🇳🇱 TTF</div>
             <div style="font-size:.74rem;color:var(--t3);margin-top:1px">Title Transfer Facility</div>
           </div>
           <div style="text-align:right">
@@ -319,7 +319,7 @@ function loadTTF(force=false){
     <!-- Reservas EU -->
     <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
       🏭 Reservas de gás · EU · snapshot ${STATIC_HUBS_REF}
-      <span style="font-size:.74rem;font-weight:400;color:#EF4444"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
+      <span style="font-size:.74rem;font-weight:400;color:var(--red)"> · médio EU: ${EU_AVG}% (vs ${EU_PREV}% ano anterior)</span>
     </div>
     ${RESERVAS.map(r=>`
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
@@ -519,8 +519,8 @@ function loadGasPT(_force=false){
 
   /* Badge de fonte */
   const sourceBadge=isLive
-    ?`<span style="font-size:.74rem;color:#10B981;background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
-    :`<span style="font-size:.74rem;color:#F59E0B;background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
+    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
+    :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
 
   const mibLabel=isLive
     ?`MIBGAS est. (TTF+${spreadActual.toFixed(1)}\u20ac/MWh spread ${MESES[mes]})`
@@ -536,13 +536,13 @@ function loadGasPT(_force=false){
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
         <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
              letter-spacing:.5px">MIBGAS \u00b7 Spot D
-          <span style="font-size:.74rem;background:#F9731622;color:#F97316;
+          <span style="font-size:.74rem;background:#F9731622;color:var(--amber);
                 border-radius:3px;padding:1px 4px;margin-left:3px">PT/ES</span>
         </div>
         ${sourceBadge}
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
-        <div style="font-size:2rem;font-weight:900;color:#F97316;line-height:1">
+        <div style="font-size:2rem;font-weight:900;color:var(--amber);line-height:1">
           ${mibRef.toFixed(2)}</div>
         <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
@@ -556,25 +556,25 @@ function loadGasPT(_force=false){
     <div style="padding:10px 12px">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;
            letter-spacing:.5px;margin-bottom:4px">TTF Day-ahead
-        <span style="font-size:.74rem;background:#3B82F622;color:#3B82F6;
+        <span style="font-size:.74rem;background:#3B82F622;color:var(--blue);
               border-radius:3px;padding:1px 4px;margin-left:3px">\uD83C\uDDF3\uD83C\uDDF1 ref.</span>
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
-        <div style="font-size:2rem;font-weight:900;color:#3B82F6;line-height:1">
+        <div style="font-size:2rem;font-weight:900;color:var(--blue);line-height:1">
           ${ttfPrice !== null?ttfPrice.toFixed(2):G.ttfSpot.toFixed(2)}</div>
         <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
       <div style="font-size:.74rem;font-weight:700;color:${ttfCol};margin-top:2px">
         ${ttfChg>=0?"\u25b2":"\u25bc"} ${Math.abs(ttfChg).toFixed(1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
       </div>
-      <div style="font-size:.74rem;color:#F59E0B;margin-top:1px">
+      <div style="font-size:.74rem;color:var(--amber);margin-top:1px">
         Spread MIBGAS\u2212TTF: +${spread} \u20ac/MWh
         <span class="help-tip" title="Spread MIBGAS-TTF: diferença entre o preço ibérico estimado e o hub europeu TTF; reflete custos regionais.">?</span>
       </div>
     </div>
   </div>
 
-  ${!isLive?`<div style="font-size:.74rem;color:#F59E0B;background:var(--b2);border-radius:7px;padding:8px 10px;margin-bottom:10px">
+  ${!isLive?`<div style="font-size:.74rem;color:var(--amber);background:var(--b2);border-radius:7px;padding:8px 10px;margin-bottom:10px">
     Referências MIBGAS e TTF de setembro de 2026; sem observações recentes disponíveis.
   </div>`:""}
 
@@ -598,7 +598,7 @@ function loadGasPT(_force=false){
       \uD83D\uDCCA Spread sazonal de referência MIBGAS\u2212TTF
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-      <div style="font-size:.82rem;font-weight:800;color:#F97316">${spreadActual.toFixed(1)} \u20ac/MWh</div>
+      <div style="font-size:.82rem;font-weight:800;color:var(--amber)">${spreadActual.toFixed(1)} \u20ac/MWh</div>
       <div style="font-size:.74rem;color:var(--t3)">modelo ${MESES[mes]} · estimativa sazonal</div>
     </div>
     <div style="display:flex;gap:1px;height:10px;border-radius:4px;overflow:hidden;margin-bottom:3px">
@@ -631,7 +631,7 @@ function loadGasPT(_force=false){
           <div style="font-size:.74rem;color:var(--t3)">${e.desc}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:.75rem;font-weight:700;color:#10B981">${e.kwh.toFixed(4)} \u20ac/kWh</div>
+          <div style="font-size:.75rem;font-weight:700;color:var(--green)">${e.kwh.toFixed(4)} \u20ac/kWh</div>
           <div style="font-size:.74rem;color:var(--t3)">energia</div>
         </div>
       </div>
@@ -644,11 +644,11 @@ function loadGasPT(_force=false){
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc1.toFixed(4)} \u20ac/kWh</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--green)">${G.totalEsc1.toFixed(4)} \u20ac/kWh</div>
       <div style="font-size:.74rem;color:var(--t3)">Total Esc. 1 c/ IVA 6%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:#10B981">${G.totalEsc2.toFixed(4)} \u20ac/kWh</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--green)">${G.totalEsc2.toFixed(4)} \u20ac/kWh</div>
       <div style="font-size:.74rem;color:var(--t3)">Total Esc. 2 c/ IVA 6%</div>
     </div>
   </div>
