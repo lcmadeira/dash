@@ -1,6 +1,32 @@
 /* Sismos card (moved out of index.html) */
 (function () {
-  /** Carrega eventos sísmicos USGS, com cache local e recuperação de dados antigos.
+  const IPMA_SEISMIC_URL = "https://api.apiaberta.pt/v1/ipma/seismic?min_magnitude=0.5&limit=500";
+
+  /** Converte eventos do catálogo IPMA (API Aberta) para o formato GeoJSON usado pelo card.
+   * @param {Array<object>} events Eventos com time, lat, lon, depth_km, magnitude e obs_region.
+   * @returns {Array<object>} Features com properties.mag/time/place e geometry.coordinates.
+   */
+  function ipmaToFeatures(events) {
+    return (Array.isArray(events) ? events : [])
+      .map((e) => {
+        const time = Date.parse(e?.time);
+        if (e?.magnitude === null || e?.magnitude === undefined || e?.magnitude === "") return null;
+        const mag = Number(e.magnitude);
+        const lat = Number(e?.lat), lon = Number(e?.lon);
+        if (!Number.isFinite(time) || !Number.isFinite(mag) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+        const region = e.region === "acores" ? "Açores" : "Continente/Madeira";
+        const place = String(e.obs_region || "").replace(/\s+/g, " ").trim();
+        return {
+          type: "Feature",
+          properties: { mag, time, place: place ? `${place} · ${region}` : region, net: "ipma", sensed: Boolean(e.sensed) },
+          geometry: { type: "Point", coordinates: [lon, lat, Number(e.depth_km) || 0] },
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.properties.time - a.properties.time);
+  }
+
+  /** Carrega eventos sísmicos (IPMA via API Aberta; USGS como alternativa), com cache local e recuperação de dados antigos.
    * @param {boolean} [force=false] Se true, ignora o cache ainda válido.
    * @returns {Promise<void>}
    */
@@ -19,6 +45,17 @@
 
       let fetched = false;
       try {
+        const j = await fetchJsonFirstOk(IPMA_SEISMIC_URL, {}, 12000, ["direct"], (jj) => Array.isArray(jj?.data) && jj.data.length > 0);
+        const features = ipmaToFeatures(j.data);
+        if (features.length) {
+          d = features;
+          lsSet(ck, d, { source: "IPMA · catálogo sísmico (API Aberta)", state: "live", observedAt: features[0].properties.time });
+          fetched = true;
+        }
+      } catch {
+        fetched = false;
+      }
+      if (!fetched) try {
         const j = await fetchJsonFirstOk(USGS_URL, {}, 12000, ["direct", "local", "allorigins", "corsproxy"], (jj) =>
           Array.isArray(jj?.features) && jj.features.length > 0,
         );
@@ -45,7 +82,7 @@
               const age = Math.round((Date.now() - (parsed.ts || 0)) / 60000);
               el.innerHTML = `<div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:6px;
                 padding:6px 10px;font-size:.74rem;color:var(--amber);margin-bottom:8px">
-                ⚠ A usar dados em cache (há ${age}min) — API USGS temporariamente inacessível
+                ⚠ A usar dados em cache (há ${age}min) — IPMA e USGS temporariamente inacessíveis
               </div>`;
             }
           } catch {
@@ -54,7 +91,7 @@
         }
         if (!d || !d.length) {
           el.innerHTML = `<div style="color:var(--t2);font-size:.75rem;padding:20px 0;text-align:center">
-            ⚠ API USGS temporariamente inacessível (CORS)
+            ⚠ IPMA e USGS temporariamente inacessíveis
             <div style="margin-top:8px;font-size:.74rem;color:var(--t3)">
               Tenta carregar novamente em alguns minutos.
             </div>
@@ -159,7 +196,7 @@
            white-space:nowrap;top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;right:6px;background:#F59E0B22;border:1px solid #F59E0B44;
            border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--amber)">
-        USGS · ${periodo}
+        ${d[0]?.properties?.net === "ipma" ? "IPMA" : "USGS"} · ${periodo}
       </div>
     </div>
 
@@ -412,5 +449,6 @@
   }
 
   window.loadSeis = loadSeis;
+  window.ipmaToFeatures = ipmaToFeatures;
 })();
 
