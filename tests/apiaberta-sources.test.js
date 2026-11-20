@@ -42,3 +42,40 @@ test("Banco de Portugal rates are parsed and rejected when key ECB rates are mis
   assert.equal(parseBdpRates(rates, null).housing, null);
   assert.equal(parseBdpRates({ data: [{ key: "ecb_mro", value: 2.65 }] }, lending), null);
 });
+
+test("IPMA warnings keep only active non-green levels, most severe first", async () => {
+  const { activeWarnings } = await loadScript("src/cards/weather.js");
+  const now = Date.parse("2026-11-21T08:00:00");
+  const list = activeWarnings([
+    { awarenessLevelID: "green", idAreaAviso: "VIS", startTime: "2026-11-21T06:00:00", endTime: "2026-11-21T18:00:00" },
+    { awarenessLevelID: "yellow", idAreaAviso: "VIS", startTime: "2026-11-21T03:00:00", endTime: "2026-11-21T06:00:00" },
+    { awarenessLevelID: "yellow", idAreaAviso: "BGC", startTime: "2026-11-21T06:00:00", endTime: "2026-11-21T18:00:00" },
+    { awarenessLevelID: "orange", idAreaAviso: "VIS", startTime: "2026-11-21T06:00:00", endTime: "2026-11-21T18:00:00" },
+  ], now);
+  assert.equal(JSON.stringify(list.map(w => `${w.awarenessLevelID}:${w.idAreaAviso}`)), JSON.stringify(["orange:VIS", "yellow:BGC"]));
+});
+
+test("fire risk is summarised per district by the highest municipal level", async () => {
+  const { riskByDistrict } = await loadScript("src/cards/civil-protection.js");
+  const rows = riskByDistrict([
+    { district: "Lisboa", level: 1 }, { district: "Lisboa", level: 3 },
+    { district: "Faro", level: 2 }, { district: "Faro", level: 9 }, { level: 4 },
+  ]);
+  assert.equal(JSON.stringify(rows.map(r => [r.district, r.level, r.municipalities])), JSON.stringify([["Lisboa", 3, 2], ["Faro", 2, 1]]));
+});
+
+test("Carris alerts are split by municipality and strikes come first", async () => {
+  const { normalizeCarrisAlerts } = await loadScript("src/cards/transport.js");
+  const alerts = normalizeCarrisAlerts([
+    { header_pt: "Loures | 2539 - Condicionamento", effect: "SIGNIFICANT_DELAYS", cause: "CONSTRUCTION", active: true },
+    { header_pt: "Oeiras | 1113: Desvio", effect: "DETOUR", cause: "CONSTRUCTION", active: true },
+    { header_pt: "Greve geral", effect: "REDUCED_SERVICE", cause: "STRIKE", active: true },
+    { header_pt: "Seixal | antigo", effect: "DETOUR", cause: "OTHER_CAUSE", active: false },
+    { header_pt: "Linhas 2926 | Desvio", effect: "DETOUR", cause: "CONSTRUCTION", active: true },
+  ]);
+  assert.equal(alerts.find(a => a.title.startsWith("Linhas 2926")).municipality, "Área metropolitana");
+  assert.equal(JSON.stringify(alerts.map(a => a.municipality)), JSON.stringify(["Área metropolitana", "Área metropolitana", "Oeiras", "Loures"]));
+  assert.equal(alerts[0].strike, true);
+  assert.equal(alerts[0].effect, "Serviço reduzido");
+  assert.equal(alerts[3].title, "2539 - Condicionamento");
+});

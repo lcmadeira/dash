@@ -16,6 +16,7 @@
     fx: 5 * 60 * 1000, // 5 min (câmbios)
     euribor: 24 * 60 * 60 * 1000, // 24h (taxas)
     bdp_: 6 * 60 * 60 * 1000, // 6h (taxas Banco de Portugal)
+    anpc_: 10 * 60 * 1000, // 10 min (Proteção Civil)
     fuel_es: 12 * 60 * 60 * 1000, // 12h (combustíveis ES)
     fuel: 24 * 60 * 60 * 1000, // 24h (combustíveis)
     co2: 60 * 60 * 1000, // 1h (emissões)

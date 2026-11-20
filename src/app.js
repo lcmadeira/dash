@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,PFX,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Pills */
 document.getElementById("pills").innerHTML=
@@ -382,6 +382,7 @@ setTimeout(()=>loadCrypto(),      2200);
 setTimeout(()=>loadFng(),         2500);
 setTimeout(()=>loadAgri(),        3000);
 setTimeout(()=>loadSeis(),        3300);
+setTimeout(()=>loadCivilProtection(), 3400);
 setTimeout(()=>loadRec(),         3600);
 setTimeout(()=>loadAir(),         4000);
 setTimeout(()=>loadOrmuz(),       4300);
@@ -398,7 +399,7 @@ setInterval(()=>{
   renderFuel();loadHolidays();
   loadElec();loadGeo();loadAirQuality(true);loadDams(true);loadFX(true);loadCrypto(true);initInflation(true);
 
-  loadFng(true);loadAgri(true);loadSeis(true);loadAir(true);loadOrmuz(true);loadCO2(true);loadImob(true);
+  loadFng(true);loadAgri(true);loadSeis(true);loadCivilProtection(true);loadAir(true);loadOrmuz(true);loadCO2(true);loadImob(true);
   setTimeout(()=>loadMarketStats(true),1500);
   renderCabaz();
   setTimeout(()=>loadPSI20(true),3000);
@@ -1316,6 +1317,7 @@ const DEFAULT_CONFIG = {
     { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS · Tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
     { id: 'elec',       name: 'Eletricidade',              desc: 'Spot MIBEL · mix energético · tarifas',      visible: true, icon: '⚡' },
     { id: 'airquality', name: 'Qualidade do Ar',           desc: 'CAMS/Copernicus · 5 poluentes + UV',          visible: true, icon: '🌬️' },
+    { id: 'anpc',       name: 'Proteção Civil',            desc: 'Ocorrências ANEPC e risco de incêndio · API Aberta', visible: true, icon: '🚒' },
     { id: 'dams',       name: 'Barragens',                 desc: 'Armazenamento bacias · SNIRH/APA',           visible: true, icon: '💧' },
     { id: 'euribor',    name: 'Euribor',                   desc: 'Taxas BCE live · spread bancário PT',        visible: true, icon: '📐' },
     { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
@@ -2427,7 +2429,7 @@ function resetSettings() {
 /** Secção do painel onde cada card aparece; a ordem dentro da secção segue a configuração do utilizador. */
 const CARD_SECTIONS = {
   weather: 'portugal', airquality: 'portugal', fuel: 'portugal', elec: 'portugal', 'gas-pt': 'portugal',
-  cabaz: 'portugal', transp: 'portugal', dams: 'portugal', seis: 'portugal', air: 'portugal', 'news-pt': 'portugal',
+  cabaz: 'portugal', transp: 'portugal', dams: 'portugal', anpc: 'portugal', seis: 'portugal', air: 'portugal', 'news-pt': 'portugal',
   euribor: 'economia', inf: 'economia', imob: 'economia', smn: 'economia', exp: 'economia', div: 'economia',
   co2: 'economia', cal: 'economia',
   psi20: 'mercados', fx: 'mercados', crypto: 'mercados', oil: 'mercados', 'gas-eu': 'mercados', agri: 'mercados',
