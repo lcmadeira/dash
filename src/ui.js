@@ -316,11 +316,13 @@
     }
   }
 
+  // Cada vista mostra uma secção do painel (ver CARD_SECTIONS em app.js).
   const DASHBOARD_PROFILES = {
     all: null,
-    portugal: new Set(["weather", "fuel", "cabaz", "gas-pt", "elec", "airquality", "dams", "euribor", "imob", "inf", "transp", "exp", "div", "smn"]),
-    markets: new Set(["oil", "gas-eu", "gas-pt", "elec", "euribor", "inf", "rec", "psi20", "finance", "heatmap", "fx", "crypto", "mstats", "cal", "div"]),
-    world: new Set(["conflicts", "geo", "press", "news-pt", "news-world", "ormuz", "air", "co2", "fng", "agri", "seis"]),
+    portugal: new Set(["weather", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "seis", "air", "news-pt"]),
+    economy: new Set(["euribor", "inf", "imob", "smn", "exp", "div", "co2", "cal"]),
+    markets: new Set(["psi20", "fx", "crypto", "oil", "gas-eu", "agri", "mstats", "fng", "rec", "finance", "heatmap"]),
+    world: new Set(["news-world", "conflicts", "geo", "press", "ormuz"]),
   };
   const DASHBOARD_PROFILE_KEY = "dash_v15_dashboard_profile_v1";
 

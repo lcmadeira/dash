@@ -2424,6 +2424,18 @@ function resetSettings() {
   alert('Configurações restauradas! Recarregue a página para ver as alterações.');
 }
 
+/** Secção do painel onde cada card aparece; a ordem dentro da secção segue a configuração do utilizador. */
+const CARD_SECTIONS = {
+  weather: 'portugal', airquality: 'portugal', fuel: 'portugal', elec: 'portugal', 'gas-pt': 'portugal',
+  cabaz: 'portugal', transp: 'portugal', dams: 'portugal', seis: 'portugal', air: 'portugal', 'news-pt': 'portugal',
+  euribor: 'economia', inf: 'economia', imob: 'economia', smn: 'economia', exp: 'economia', div: 'economia',
+  co2: 'economia', cal: 'economia',
+  psi20: 'mercados', fx: 'mercados', crypto: 'mercados', oil: 'mercados', 'gas-eu': 'mercados', agri: 'mercados',
+  mstats: 'mercados', fng: 'mercados', rec: 'mercados', finance: 'mercados', heatmap: 'mercados',
+  'news-world': 'mundo', conflicts: 'mundo', geo: 'mundo', press: 'mundo', ormuz: 'mundo',
+};
+const DEFAULT_CARD_SECTION = 'mundo';
+
 function applySettings() {
   console.log('Aplicando configurações:', currentConfig);
 
@@ -2453,12 +2465,14 @@ function applySettings() {
     el.style.display = 'none';
   });
 
-  // Reordenar e aplicar visibilidade pela ordem guardada
+  // Reordenar e aplicar visibilidade pela ordem guardada, dentro da secção de cada card
+  const sectionGrids = new Map(Array.from(mainGrid.querySelectorAll('[data-section-grid]')).map(g => [g.dataset.sectionGrid, g]));
+  const fallbackGrid = sectionGrids.get(DEFAULT_CARD_SECTION) || mainGrid;
   currentConfig.cards.forEach(cardCfg => {
     const cardEl = cardById.get(cardCfg.id);
     if (!cardEl) return;
 
-    mainGrid.appendChild(cardEl);
+    (sectionGrids.get(CARD_SECTIONS[cardCfg.id]) || fallbackGrid).appendChild(cardEl);
 
     if (cardCfg.visible) {
       cardEl.classList.remove('hidden');
