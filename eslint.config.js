@@ -117,7 +117,7 @@ export default [
       "no-promise-executor-return": "warn",
 
       // Best practices
-      "eqeqeq": ["warn", "always"],
+      "eqeqeq": ["warn", "always", { null: "ignore" }], // `x == null` cobre null e undefined de propósito
       "no-eval": "error",
       "no-implied-eval": "error",
       "no-new-func": "error",

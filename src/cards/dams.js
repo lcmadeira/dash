@@ -21,8 +21,8 @@ async function loadDamsOnce(force = false) {
     el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--t3);font-size:.74rem">${window.ld()}</div>`;
     try {
       /* 1. Gateway próprio (tabela mensal do SNIRH lida no servidor, com cópia de reserva).
-         2. data/dams.json do próprio site, atualizado diariamente por GitHub Actions
-            (o SNIRH recusa pedidos da Cloudflare, mas não dos runners do GitHub). */
+         2. data/dams.json do próprio site, atualizado por scripts/update-dams.mjs
+            (o SNIRH recusa servidores; corre no portátil do utilizador, via cron). */
       const damsSources = [
         window.dataApiUrl?.("v1/dams"),
         window.location?.href ? new URL("data/dams.json", window.location.href).href : null,
