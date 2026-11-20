@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261120-3"/>
+<link rel="stylesheet" href="styles.css?v=20261120-8"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -373,30 +373,16 @@
   </div>
 </div>
 
-<section class="data-overview" id="dataOverview" aria-labelledby="dataOverviewTitle" aria-describedby="dataOverviewDescription">
-  <div class="data-overview-head">
-    <div>
-      <h2 id="dataOverviewTitle">Estado dos dados</h2>
-      <p id="dataOverviewDescription">Resumo da disponibilidade e atualidade reportada pelos cards.</p>
-    </div>
-    <div class="data-overview-counts" aria-label="Contagem por estado">
-      <span class="data-count data-count-ok"><b id="dataCountAvailable">0</b> disponíveis</span>
-      <span class="data-count data-count-warn"><b id="dataCountAttention">0</b> a verificar</span>
-      <span class="data-count data-count-loading"><b id="dataCountLoading">0</b> a carregar</span>
-      <span class="data-count data-count-source"><b id="dataCountProvenance">0/0</b> com fonte/data</span>
-      <span class="data-count data-count-warn"><b id="dataCountSourceIssues">0</b> fontes identificadas afetadas</span>
-    </div>
-  </div>
-  <div class="data-source-health" id="dataSourceHealth" role="status" aria-live="polite">A recolher estado das fontes…</div>
-  <div class="data-source-history" id="dataSourceHistory" aria-live="polite">Histórico local: a reunir visitas diárias neste browser; não é monitorização contínua.</div>
-  <div class="data-overview-items" id="dataOverviewItems">A recolher estado dos cards…</div>
-</section>
 
 <section class="portugal-briefing" aria-labelledby="briefingTitle">
   <div class="briefing-heading">
     <div><h2 id="briefingTitle">Portugal hoje</h2><p>Observações recentes com fonte e data; sem recomendações automáticas.</p></div>
     <span class="briefing-updated" id="briefingUpdated">Atualizado a partir da cache disponível</span>
   </div>
+  <div class="briefing-grid" id="briefingBody"><p class="briefing-empty">A recolher observações recentes…</p></div>
+  <div class="briefing-changes" id="briefingChanges" aria-live="polite">As alterações entre visitas aparecem aqui após a próxima visita.</div>
+  <details class="briefing-tools">
+    <summary>Ferramentas, alertas e histórico local</summary>
   <details class="briefing-preferences">
     <summary>Escolher indicadores deste resumo</summary>
     <div class="briefing-preference-options" role="group" aria-label="Indicadores visíveis no resumo">
@@ -431,22 +417,42 @@
     <output id="costOfLivingResult" aria-live="polite">Indique o rendimento líquido mensal do agregado.</output>
     <span class="cost-of-living-note">O combustível usa os litros mensais acima e só entra quando há preço observado recente. Os restantes montantes são introduzidos por si.</span>
   </details>
-  <div class="briefing-grid" id="briefingBody"><p class="briefing-empty">A recolher observações recentes…</p></div>
-  <div class="briefing-changes" id="briefingChanges" aria-live="polite">As alterações entre visitas aparecem aqui após a próxima visita.</div>
+  </details>
 </section>
 
 <!-- ═══════════════════ GRID ═══════════════════ -->
+<section class="data-overview" id="dataOverview" aria-labelledby="dataOverviewTitle" aria-describedby="dataOverviewDescription">
+  <details class="data-overview-details">
+  <summary class="data-overview-head">
+    <h2 id="dataOverviewTitle">Estado dos dados</h2>
+    <span class="data-overview-counts" role="group" aria-label="Contagem por estado">
+      <span class="data-count data-count-ok"><b id="dataCountAvailable">0</b> disponíveis</span>
+      <span class="data-count data-count-warn"><b id="dataCountAttention">0</b> a verificar</span>
+      <span class="data-count data-count-loading"><b id="dataCountLoading">0</b> a carregar</span>
+      <span class="data-count data-count-source"><b id="dataCountProvenance">0/0</b> com fonte/data</span>
+      <span class="data-count data-count-warn"><b id="dataCountSourceIssues">0</b> fontes identificadas afetadas</span>
+    </span>
+    <span class="data-overview-toggle" aria-hidden="true">Detalhes</span>
+  </summary>
+  <p id="dataOverviewDescription">Resumo da disponibilidade e atualidade reportada pelos cards.</p>
+  <div class="data-source-health" id="dataSourceHealth" role="status" aria-live="polite">A recolher estado das fontes…</div>
+  <div class="data-source-history" id="dataSourceHistory" aria-live="polite">Histórico local: a reunir visitas diárias neste browser; não é monitorização contínua.</div>
+  <div class="data-overview-items" id="dataOverviewItems">A recolher estado dos cards…</div>
+  </details>
+</section>
 <nav class="dashboard-views" aria-label="Vistas do dashboard">
   <span>Vista</span>
   <button type="button" data-dashboard-profile="all" aria-pressed="true">Tudo</button>
   <button type="button" data-dashboard-profile="portugal" aria-pressed="false">Portugal</button>
+  <button type="button" data-dashboard-profile="economy" aria-pressed="false">Economia</button>
   <button type="button" data-dashboard-profile="markets" aria-pressed="false">Mercados</button>
   <button type="button" data-dashboard-profile="world" aria-pressed="false">Mundo</button>
 </nav>
-<!-- Barra de Relógios — Praças Financeiras -->
-<div class="mkt-bar" id="mkt-bar"></div>
 
-<div class="grid" id="main-grid">
+<div class="dash-sections" id="main-grid">
+<section class="dash-section" data-section="portugal" aria-labelledby="secTitlePortugal">
+<h2 class="dash-section-title" id="secTitlePortugal">Portugal · dia a dia</h2>
+<div class="grid" data-section-grid="portugal">
   <div class="card" id="card-weather">
     <div class="ch">
       <div class="ch-ico">🌡️</div>
@@ -861,7 +867,7 @@
   </div>
 
   <!-- Calendário Económico -->
-  <div class="card">
+  <div class="card s2">
     <div class="ch"><div class="ch-ico">📅</div>
       <span class="ch-lbl">Calendário Económico</span>
       <div class="ch-r">
@@ -956,47 +962,63 @@
   </div>
 
 
-</div><!-- /grid -->
+</div>
+</section>
+<section class="dash-section" data-section="economia" aria-labelledby="secTitleEconomia">
+<h2 class="dash-section-title" id="secTitleEconomia">Economia</h2>
+<div class="grid" data-section-grid="economia"></div>
+</section>
+<section class="dash-section" data-section="mercados" aria-labelledby="secTitleMercados">
+<h2 class="dash-section-title" id="secTitleMercados">Mercados</h2>
+<div class="mkt-bar" id="mkt-bar"></div>
+<div class="grid" data-section-grid="mercados"></div>
+</section>
+<section class="dash-section" data-section="mundo" aria-labelledby="secTitleMundo">
+<h2 class="dash-section-title" id="secTitleMundo">Mundo</h2>
+<div class="grid" data-section-grid="mundo"></div>
+</section>
+</div><!-- /main-grid -->
 </div><!-- /wrap -->
 <script src="src/config.js?v=20261029-3"></script>
  <script src="src/core.js"></script>
  <script src="src/cache.js?v=20261029-5"></script>
  <script src="src/fetch.js?v=20261029-7"></script>
-<script src="src/ui.js?v=20261120-3" integrity="sha384-2wdghDjNNyVyyISh99rBbhX+qpYTF/hIzn+g0ERhHU7urM3VmrcY4bqJ4EoIuKbm"></script>
+<script src="src/ui.js?v=20261120-8" integrity="sha384-je7GEmdcyb+IHSBqjvfkTxrrEL2X3HSdLbzUDF6KaIQnbQBZVyAqlDYRi2bk0mQ0"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261029-10" integrity="sha384-fbrB4xrv5mtkyQatlTFZ90Ikn6FeZI//NMkJiezqkXvs466wBbWAUPdoVKw8fz/z"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
- <script src="src/cards/elec.js?v=20261120-3"></script>
+ <script src="src/cards/elec.js?v=20261120-8"></script>
  <script src="src/cards/news.js?v=20261029-4"></script>
- <script src="src/cards/seis.js?v=20261120-3"></script>
- <script src="src/cards/dams.js?v=20261120-3"></script>
- <script src="src/cards/fuel.js?v=20261120-3"></script>
- <script src="src/cards/weather.js?v=20261120-3"></script>
- <script src="src/cards/holidays.js?v=20261120-3"></script>
- <script src="src/cards/air-quality.js?v=20261120-3"></script>
- <script src="src/cards/market-stats.js?v=20261120-3"></script>
- <script src="src/cards/real-estate.js?v=20261120-3"></script>
- <script src="src/cards/fear-greed.js?v=20261120-3"></script>
- <script src="src/cards/agriculture.js?v=20261120-3"></script>
- <script src="src/cards/exports.js?v=20261120-3"></script>
- <script src="src/cards/public-debt.js?v=20261120-3"></script>
- <script src="src/cards/recession.js?v=20261120-3"></script>
- <script src="src/cards/air-traffic.js?v=20261120-3"></script>
- <script src="src/cards/ormuz.js?v=20261120-3"></script>
- <script src="src/cards/co2.js?v=20261120-3"></script>
- <script src="src/cards/transport.js?v=20261120-3"></script>
- <script src="src/cards/press.js?v=20261120-3"></script>
- <script src="src/cards/smn.js?v=20261120-3"></script>
- <script src="src/cards/inflation.js?v=20261120-3"></script>
- <script src="src/cards/euribor.js?v=20261120-3"></script>
- <script src="src/cards/fx.js?v=20261120-3"></script>
- <script src="src/cards/crypto.js?v=20261120-3"></script>
- <script src="src/cards/psi20.js?v=20261120-3"></script>
- <script src="src/cards/geopolitics.js?v=20261120-3"></script>
- <script src="src/cards/gas-markets.js?v=20261120-3"></script>
- <script src="src/widgets/economic-calendar.js?v=20261120-3"></script>
+ <script src="src/cards/seis.js?v=20261120-8"></script>
+ <script src="src/cards/dams.js?v=20261120-8"></script>
+ <script src="src/cards/fuel.js?v=20261120-8"></script>
+ <script src="src/cards/weather.js?v=20261120-8"></script>
+ <script src="src/cards/holidays.js?v=20261120-8"></script>
+ <script src="src/cards/air-quality.js?v=20261120-8"></script>
+ <script src="src/cards/market-stats.js?v=20261120-8"></script>
+ <script src="src/cards/real-estate.js?v=20261120-8"></script>
+ <script src="src/cards/fear-greed.js?v=20261120-8"></script>
+ <script src="src/cards/agriculture.js?v=20261120-8"></script>
+ <script src="src/cards/exports.js?v=20261120-8"></script>
+ <script src="src/cards/public-debt.js?v=20261120-8"></script>
+ <script src="src/cards/recession.js?v=20261120-8"></script>
+ <script src="src/cards/air-traffic.js?v=20261120-8"></script>
+ <script src="src/cards/ormuz.js?v=20261120-8"></script>
+ <script src="src/cards/co2.js?v=20261120-8"></script>
+ <script src="src/cards/transport.js?v=20261120-8"></script>
+ <script src="src/cards/press.js?v=20261120-8"></script>
+ <script src="src/cards/smn.js?v=20261120-8"></script>
+ <script src="src/cards/inflation.js?v=20261120-8"></script>
+ <script src="src/cards/euribor.js?v=20261120-8"></script>
+ <script src="src/cards/fx.js?v=20261120-8"></script>
+ <script src="src/cards/crypto.js?v=20261120-8"></script>
+ <script src="src/cards/psi20.js?v=20261120-8"></script>
+ <script src="src/cards/geopolitics.js?v=20261120-8"></script>
+ <script src="src/cards/gas-markets.js?v=20261120-8"></script>
+ <script src="src/widgets/economic-calendar.js?v=20261120-8"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261120-3"></script>
+<script src="src/app.js?v=20261120-8"></script>
+<script src="src/layout.js?v=20261120-1" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>
