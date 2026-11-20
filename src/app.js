@@ -349,7 +349,7 @@ async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
 
 /* ══════════════════════════════════════════════════════════════
    INFLAÇÃO — Eurostat API Statistics (CORS nativo, sem chave)
-   Dataset : PRC_HICP_MANR (HICP monthly, annual rate of change)
+   Dataset : PRC_HICP_MINR (HICP ECOICOP v2, monthly, unit=RCH_A, coicop18=TOTAL)
    Geo     : PT (Portugal) + EA20/EA21 (composição vigente da Zona Euro)
    Coicop  : CP00 (todos os itens — índice geral)
    URL base: https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/
@@ -1019,7 +1019,7 @@ const DEFAULT_CONFIG = {
     { id: 'euribor',    name: 'Euribor',                   desc: 'Taxas BCE live · spread bancário PT',        visible: true, icon: '📐' },
     { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
     { id: 'fng',        name: 'Fear & Greed',              desc: 'Sentimento cripto · Alternative.me',          visible: true, icon: '😰' },
-    { id: 'rec',        name: 'Recessão EUA',              desc: 'US 10Y-2Y Spread · FRED St. Louis',          visible: true, icon: '📉' },
+    { id: 'rec',        name: 'Recessão EUA',              desc: 'US 10Y-2Y Spread · Tesouro dos EUA',          visible: true, icon: '📉' },
     { id: 'agri',       name: 'Preços Agrícolas',          desc: 'Futuros CBOT/ICE · Commodities',             visible: true, icon: '🌾' },
     { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP',            visible: true, icon: '📦' },
     { id: 'div',        name: 'Dívida Pública',            desc: '% PIB · Eurostat 2024',                      visible: true, icon: '🏛️' },

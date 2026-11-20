@@ -629,7 +629,7 @@
     </div>
     <div class="imob-grid">
       <div class="imob-kpi">
-        <div class="imob-kpi-lbl">Preço mediano nacional</div>
+        <div class="imob-kpi-lbl">Preço mediano · últimos 12 meses</div>
         <div class="imob-kpi-val" id="imob-preco-val">2 111 <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span></div>
         <div class="imob-kpi-chg up" id="imob-preco-chg">▲ +17,7% homólogo</div>
         <div class="imob-kpi-sub" id="imobSub1">...</div>
@@ -638,16 +638,16 @@
         <div class="imob-kpi-lbl">Transações no trimestre</div>
         <div class="imob-kpi-val" id="imob-trans-val">42 481</div>
         <div class="imob-kpi-chg up">▲ +3,8% homólogo</div>
-        <div class="imob-kpi-sub">€ 10,5 mil M vendas</div>
+        <div class="imob-kpi-sub">€ 10,5 mil M vendas · ref. Q3 2025</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações novas</div>
-        <div class="imob-kpi-val" style="color:var(--blue)">+14,1%</div>
+        <div class="imob-kpi-val" id="imob-new-val">+14,1%</div>
         <div class="imob-kpi-sub" id="imobSub2">...</div>
       </div>
       <div class="imob-kpi">
         <div class="imob-kpi-lbl">Habitações existentes</div>
-        <div class="imob-kpi-val" style="color:var(--amber)">+19,1%</div>
+        <div class="imob-kpi-val" id="imob-exist-val">+19,1%</div>
         <div class="imob-kpi-sub" id="imobSub3">...</div>
       </div>
     </div>
@@ -685,7 +685,7 @@
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('rec','rec_v5',this,loadRec,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="rec-body" style="padding:6px 0"></div>
-    <div class="src">✦ FRED · St. Louis Fed · US Treasury 10Y–2Y Spread · Indicador histórico</div>
+    <div class="src">✦ US Treasury · curva de rendimentos diária · spread 10Y–2Y (alternativa: FRED) · indicador histórico de recessão</div>
   </div>
 
 <!-- ROW 2: Preços Agrícolas (full width s4) -->
@@ -1011,19 +1011,19 @@
  <script src="src/cards/holidays.js?v=20261120-9"></script>
  <script src="src/cards/air-quality.js?v=20261120-16"></script>
  <script src="src/cards/market-stats.js?v=20261120-9"></script>
- <script src="src/cards/real-estate.js?v=20261120-22"></script>
+ <script src="src/cards/real-estate.js?v=20261120-29"></script>
  <script src="src/cards/fear-greed.js?v=20261120-9"></script>
  <script src="src/cards/agriculture.js?v=20261120-27"></script>
  <script src="src/cards/exports.js?v=20261120-9"></script>
  <script src="src/cards/public-debt.js?v=20261120-9"></script>
- <script src="src/cards/recession.js?v=20261120-9"></script>
+ <script src="src/cards/recession.js?v=20261120-29"></script>
  <script src="src/cards/air-traffic.js?v=20261120-9"></script>
  <script src="src/cards/ormuz.js?v=20261120-19"></script>
  <script src="src/cards/co2.js?v=20261120-9"></script>
  <script src="src/cards/transport.js?v=20261120-16"></script>
  <script src="src/cards/press.js?v=20261120-9"></script>
  <script src="src/cards/smn.js?v=20261120-9"></script>
- <script src="src/cards/inflation.js?v=20261120-9"></script>
+ <script src="src/cards/inflation.js?v=20261120-29"></script>
  <script src="src/cards/euribor.js?v=20261120-27"></script>
  <script src="src/cards/fx.js?v=20261120-9"></script>
  <script src="src/cards/crypto.js?v=20261120-9"></script>
@@ -1033,7 +1033,7 @@
  <script src="src/widgets/economic-calendar.js?v=20261120-27"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261120-24"></script>
+<script src="src/app.js?v=20261120-29"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>

@@ -1,0 +1,609 @@
+[ {
+  "IndicadorCod" : "0012234",
+  "IndicadorDsg" : "Valor mediano das vendas de alojamentos familiares nos últimos 12 meses (Metodologia 2022 - €/ m²) por Localização geográfica (NUTS - 2024) e Categoria do alojamento familiar; Trimestral - INE, Estatísticas de preços da habitação ao nível local (Metodologia 2022)",
+  "MetaInfUrl" : "https://www.ine.pt/bddXplorer/htdocs/minfo.jsp?var_cd=0012234&lingua=PT",
+  "DataExtracao" : "2026-11-20T15:07:36.250Z",
+  "DataUltimoAtualizacao" : "2026-10-23",
+  "UltimoPref" : "2.º Trimestre de 2026",
+  "Dados" : {
+    "4.º Trimestre de 2019" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 063",
+      "valor" : "1063"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 094",
+      "valor" : "1094"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 284",
+      "valor" : "1284"
+    } ],
+    "1.º Trimestre de 2020" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 096",
+      "valor" : "1096"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 127",
+      "valor" : "1127"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 316",
+      "valor" : "1316"
+    } ],
+    "2.º Trimestre de 2020" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 111",
+      "valor" : "1111"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 146",
+      "valor" : "1146"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 334",
+      "valor" : "1334"
+    } ],
+    "3.º Trimestre de 2020" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 126",
+      "valor" : "1126"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 167",
+      "valor" : "1167"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 377",
+      "valor" : "1377"
+    } ],
+    "4.º Trimestre de 2020" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 146",
+      "valor" : "1146"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 190",
+      "valor" : "1190"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 416",
+      "valor" : "1416"
+    } ],
+    "1.º Trimestre de 2021" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 150",
+      "valor" : "1150"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 197",
+      "valor" : "1197"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 420",
+      "valor" : "1420"
+    } ],
+    "2.º Trimestre de 2021" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 172",
+      "valor" : "1172"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 218",
+      "valor" : "1218"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 447",
+      "valor" : "1447"
+    } ],
+    "3.º Trimestre de 2021" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 208",
+      "valor" : "1208"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 251",
+      "valor" : "1251"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 479",
+      "valor" : "1479"
+    } ],
+    "4.º Trimestre de 2021" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 250",
+      "valor" : "1250"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 297",
+      "valor" : "1297"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 537",
+      "valor" : "1537"
+    } ],
+    "1.º Trimestre de 2022" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 299",
+      "valor" : "1299"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 346",
+      "valor" : "1346"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 607",
+      "valor" : "1607"
+    } ],
+    "2.º Trimestre de 2022" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 354",
+      "valor" : "1354"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 402",
+      "valor" : "1402"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 653",
+      "valor" : "1653"
+    } ],
+    "3.º Trimestre de 2022" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 398",
+      "valor" : "1398"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 446",
+      "valor" : "1446"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 694",
+      "valor" : "1694"
+    } ],
+    "4.º Trimestre de 2022" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 436",
+      "valor" : "1436"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 484",
+      "valor" : "1484"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 723",
+      "valor" : "1723"
+    } ],
+    "1.º Trimestre de 2023" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 461",
+      "valor" : "1461"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 509",
+      "valor" : "1509"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 740",
+      "valor" : "1740"
+    } ],
+    "2.º Trimestre de 2023" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 485",
+      "valor" : "1485"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 541",
+      "valor" : "1541"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 801",
+      "valor" : "1801"
+    } ],
+    "3.º Trimestre de 2023" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 508",
+      "valor" : "1508"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 579",
+      "valor" : "1579"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 896",
+      "valor" : "1896"
+    } ],
+    "4.º Trimestre de 2023" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 536",
+      "valor" : "1536"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 611",
+      "valor" : "1611"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 939",
+      "valor" : "1939"
+    } ],
+    "1.º Trimestre de 2024" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 552",
+      "valor" : "1552"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 633",
+      "valor" : "1633"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "1 985",
+      "valor" : "1985"
+    } ],
+    "2.º Trimestre de 2024" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 577",
+      "valor" : "1577"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 661",
+      "valor" : "1661"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 013",
+      "valor" : "2013"
+    } ],
+    "3.º Trimestre de 2024" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 625",
+      "valor" : "1625"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 709",
+      "valor" : "1709"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 067",
+      "valor" : "2067"
+    } ],
+    "4.º Trimestre de 2024" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 689",
+      "valor" : "1689"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 777",
+      "valor" : "1777"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 147",
+      "valor" : "2147"
+    } ],
+    "1.º Trimestre de 2025" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 762",
+      "valor" : "1762"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 845",
+      "valor" : "1845"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 202",
+      "valor" : "2202"
+    } ],
+    "2.º Trimestre de 2025" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 841",
+      "valor" : "1841"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 923",
+      "valor" : "1923"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 268",
+      "valor" : "2268"
+    } ],
+    "3.º Trimestre de 2025" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "1 921",
+      "valor" : "1921"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "1 991",
+      "valor" : "1991"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 294",
+      "valor" : "2294"
+    } ],
+    "4.º Trimestre de 2025" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "2 013",
+      "valor" : "2013"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "2 076",
+      "valor" : "2076"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 328",
+      "valor" : "2328"
+    } ],
+    "1.º Trimestre de 2026" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "2 108",
+      "valor" : "2108"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "2 168",
+      "valor" : "2168"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 402",
+      "valor" : "2402"
+    } ],
+    "2.º Trimestre de 2026" : [ {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H12",
+      "dim_3_t" : "Existentes",
+      "ind_string" : "2 208",
+      "valor" : "2208"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H1",
+      "dim_3_t" : "Total",
+      "ind_string" : "2 264",
+      "valor" : "2264"
+    }, {
+      "geocod" : "PT",
+      "geodsg" : "Portugal",
+      "dim_3" : "H11",
+      "dim_3_t" : "Novos",
+      "ind_string" : "2 476",
+      "valor" : "2476"
+    } ]
+  },
+  "Sucesso" : {
+    "Verdadeiro" : [ {
+      "Msg" : "OK"
+    } ]
+  }
+} ]

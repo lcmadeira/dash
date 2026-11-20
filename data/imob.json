@@ -1,0 +1,75 @@
+{
+  "latest": {
+    "period": "Q2 2026",
+    "periodFull": "2.º Trimestre de 2026",
+    "price": 2264,
+    "chgYoY": 17.7,
+    "newPrice": 2476,
+    "newChgYoY": 9.2,
+    "existPrice": 2208,
+    "existChgYoY": 19.9
+  },
+  "series": [
+    {
+      "period": "Q3 2024",
+      "periodFull": "3.º Trimestre de 2024",
+      "total": 1709,
+      "novos": 2067,
+      "existentes": 1625
+    },
+    {
+      "period": "Q4 2024",
+      "periodFull": "4.º Trimestre de 2024",
+      "total": 1777,
+      "novos": 2147,
+      "existentes": 1689
+    },
+    {
+      "period": "Q1 2025",
+      "periodFull": "1.º Trimestre de 2025",
+      "total": 1845,
+      "novos": 2202,
+      "existentes": 1762
+    },
+    {
+      "period": "Q2 2025",
+      "periodFull": "2.º Trimestre de 2025",
+      "total": 1923,
+      "novos": 2268,
+      "existentes": 1841
+    },
+    {
+      "period": "Q3 2025",
+      "periodFull": "3.º Trimestre de 2025",
+      "total": 1991,
+      "novos": 2294,
+      "existentes": 1921
+    },
+    {
+      "period": "Q4 2025",
+      "periodFull": "4.º Trimestre de 2025",
+      "total": 2076,
+      "novos": 2328,
+      "existentes": 2013
+    },
+    {
+      "period": "Q1 2026",
+      "periodFull": "1.º Trimestre de 2026",
+      "total": 2168,
+      "novos": 2402,
+      "existentes": 2108
+    },
+    {
+      "period": "Q2 2026",
+      "periodFull": "2.º Trimestre de 2026",
+      "total": 2264,
+      "novos": 2476,
+      "existentes": 2208
+    }
+  ],
+  "_meta": {
+    "source": "INE · valor mediano das vendas nos últimos 12 meses (indicador 0012234)",
+    "state": "live",
+    "observedAt": "Q2 2026"
+  }
+}

@@ -1,8 +1,39 @@
 /* global $, AbortSignal, PFX, _lastN, fetchTextFirstOk, ld, localStorage, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   INDICADOR RECESSÃO — US 10Y-2Y Spread via FRED
+   INDICADOR RECESSÃO — US 10Y-2Y Spread
+   Fonte principal: curva diária do Tesouro dos EUA (home.treasury.gov, CSV com CORS aberto).
+   Alternativa: FRED T10Y2Y (deixou de responder de forma fiável em 2026).
    ══════════════════════════════════════════════════════════════ */
+const TREASURY_CSV = year => "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/"
+  + `${year}/all?type=daily_treasury_yield_curve&field_tdr_date_value=${year}&page&_format=csv`;
+
+/** CSV da curva do Tesouro → [[AAAA-MM-DD, spread 10Y−2Y em pp]] por ordem cronológica. */
+function parseTreasuryCurve(csv){
+  const lines = String(csv || "").trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const head = lines[0].split(",").map(h => h.replace(/"/g, "").trim());
+  const i2 = head.indexOf("2 Yr"), i10 = head.indexOf("10 Yr");
+  if (head[0] !== "Date" || i2 < 0 || i10 < 0) return [];
+  return lines.slice(1).map(line => {
+    const cols = line.split(",");
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(cols[0] || "");
+    const y2 = parseFloat(cols[i2]), y10 = parseFloat(cols[i10]);
+    if (!m || !Number.isFinite(y2) || !Number.isFinite(y10)) return null;
+    return [`${m[3]}-${m[1]}-${m[2]}`, Number((y10 - y2).toFixed(2))];
+  }).filter(Boolean).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+async function fetchTreasurySpread(){
+  const year = new Date().getFullYear();
+  const get = y => fetchTextFirstOk(TREASURY_CSV(y), {signal:AbortSignal.timeout(10000)}, 10000, ["direct"],
+    text => text.startsWith("Date,"));
+  let rows = parseTreasuryCurve(await get(year));
+  if (rows.length < 90) {
+    try { rows = [...parseTreasuryCurve(await get(year - 1)), ...rows]; } catch { /* basta o ano corrente */ }
+  }
+  return rows.slice(-90);
+}
 const REC_TREND_PREF_KEY = 'rec_trend_pref_v1';
 const REC_FALLBACK_DATA = [
   ["2024-01-05",-1.39],["2024-02-02",-1.35],["2024-03-01",-1.22],["2024-04-05",-1.08],
@@ -41,6 +72,12 @@ async function loadRec(force=false){
   const ck="rec_v5";
   let data=force?null:lsGet(ck);
 
+  if(!data||!data.length){
+    try{
+      const rows=await fetchTreasurySpread();
+      if(rows.length>20){data=rows;lsSet(ck,data,{source:"US Treasury · curva diária (10Y−2Y)",state:"live",observedAt:data[data.length-1]?.[0]});window.refreshCardStatusFromCache?.("rec",ck);}
+    }catch{ /* segue para a FRED */ }
+  }
   if(!data||!data.length){
     try{
       const csv=await fetchTextFirstOk("https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
@@ -113,7 +150,7 @@ async function loadRec(force=false){
     <div style="flex:1">
       <div style="font-size:.78rem;font-weight:700;color:${col}">10Y − 2Y Spread</div>
       <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${signal} · ${signalSub}</div>
-      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · FRED live":" · ref. Mar 2026"}</div>
+      <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · Tesouro EUA":" · ref. Mar 2026"}</div>
     </div>
   </div>
 
@@ -172,6 +209,7 @@ async function loadRec(force=false){
   </div>`;
 }
 
+window.parseTreasuryCurve = parseTreasuryCurve;
 window.loadRec = loadRec;
 window.setRecTrendDays = setRecTrendDays;
 })();
