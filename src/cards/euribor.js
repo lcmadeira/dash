@@ -1,4 +1,4 @@
-/* global AbortSignal, EURIBOR_FALLBACK, PFX, addToHistory, console, document, fetch, location, localStorage, lsGet, lsSet, window */
+/* global AbortSignal, EURIBOR_FALLBACK, PFX, addToHistory, console, document, fetch, fetchJsonFirstOk, location, localStorage, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    EURIBOR — API BCE automatica (data-api.ecb.europa.eu)
@@ -17,6 +17,48 @@
 
 /* Estado global — preenchido pela API ou pelo fallback */
 let EURIBOR_DATA=null;
+
+/* Taxas oficiais do Banco de Portugal (via API Aberta): taxas-chave do BCE e taxa média
+   dos novos créditos à habitação. Atualizam por cima dos valores estáticos quando respondem. */
+let BDP_RATES=null;
+const BDP_RATES_KEY="bdp_rates_v1";
+const BDP_BASE="https://api.apiaberta.pt/v1/bdp";
+
+function parseBdpRates(rates, lending){
+  const byKey=(list,key)=>(Array.isArray(list?.data)?list.data:[]).find(r=>r?.key===key);
+  const num=r=>Number.isFinite(Number(r?.value))?Number(r.value):null;
+  const dep=byKey(rates,"ecb_deposit"), refin=byKey(rates,"ecb_mro"), marg=byKey(rates,"ecb_marginal_lending");
+  if(num(dep)===null||num(refin)===null) return null;
+  const housing=byKey(lending,"housing_loans");
+  return {
+    dep:num(dep), refin:num(refin), margLend:num(marg),
+    refDate:dep.ref_date||refin.ref_date||null,
+    housing:num(housing)===null?null:{value:num(housing), refDate:housing.ref_date||null},
+  };
+}
+
+async function refreshBdpRates(force=false){
+  if(!force){
+    const cached=lsGet(BDP_RATES_KEY);
+    if(cached&&Number.isFinite(cached.dep)){ BDP_RATES=cached; return cached; }
+  }
+  const ok=j=>Array.isArray(j?.data)&&j.data.length>0;
+  const [rates,lending]=await Promise.all([
+    fetchJsonFirstOk(`${BDP_BASE}/rates`,{},10000,["direct"],ok),
+    fetchJsonFirstOk(`${BDP_BASE}/lending-rates`,{},10000,["direct"],ok).catch(()=>null),
+  ]);
+  const parsed=parseBdpRates(rates,lending);
+  if(!parsed) throw new Error("Taxas BdP inválidas");
+  lsSet(BDP_RATES_KEY,parsed,{source:"Banco de Portugal · BPstat (API Aberta)",state:"live",
+    observedAt:parsed.refDate?Date.parse(`${parsed.refDate}T12:00:00Z`):undefined});
+  BDP_RATES=parsed;
+  return parsed;
+}
+
+function fmtRefDate(iso, opts){
+  if(!iso) return "";
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("pt-PT",opts||{day:"2-digit",month:"2-digit"});
+}
 
 function isBceEuriborLiveEnabled(){
   try {
@@ -169,9 +211,10 @@ async function loadEuriborFromBCE(){
    renderEuribor — le EURIBOR_DATA (live ou fallback)
    ══════════════════════════════════════════════════════════════ */
 function renderEuribor(){
-  const d=EURIBOR_DATA;
+  const base=EURIBOR_DATA;
   const el=document.getElementById("euri-body");
-  if(!el||!d) return;
+  if(!el||!base) return;
+  const d=BDP_RATES?{...base,bce:{dep:BDP_RATES.dep,refin:BDP_RATES.refin,margLend:BDP_RATES.margLend??base.bce.margLend}}:base;
 
   d.rates.forEach(r=>addToHistory(`euribor_${r.term.toLowerCase()}`,r.val));
 
@@ -259,7 +302,7 @@ function renderEuribor(){
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Dep\u00f3sito</div>
       <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue)">${d.bce.dep.toFixed(2)}%</div>
-      <div style="font-size:.74rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%</div>
+      <div style="font-size:.74rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%${BDP_RATES?.refDate?` \u00b7 BdP ${fmtRefDate(BDP_RATES.refDate)}`:" \u00b7 ref. est\u00e1tica"}</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
@@ -319,6 +362,9 @@ function renderEuribor(){
         <div style="font-size:.74rem;color:var(--t3)">${s.label}</div>
       </div>`).join("")}
     </div>
+    ${BDP_RATES?.housing?`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--t2);margin-bottom:5px;padding:4px 0;border-top:1px solid var(--b);border-bottom:1px solid var(--b)">
+      <span>Taxa m\u00e9dia dos novos cr\u00e9ditos \u00e0 habita\u00e7\u00e3o (BdP, ${fmtRefDate(BDP_RATES.housing.refDate,{month:"short",year:"numeric"})})</span>
+      <b style="color:var(--text)">${BDP_RATES.housing.value.toFixed(2)}%</b></div>`:""}
     <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread t\u00edpico ${sp.tipico.toFixed(2)}%):</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
       ${d.rates.filter(r=>r.hipot).map(r=>`
@@ -345,6 +391,9 @@ function renderEuribor(){
 async function initEuribor(force=false){
   const CK="euribor_live_v1";
   const ref=document.getElementById("euriborRefDate");
+
+  /* Taxas BdP em paralelo: não bloqueiam o card e só substituem os valores estáticos se responderem */
+  refreshBdpRates(force).then(()=>renderEuribor()).catch(e=>console.warn("\u26a0\ufe0f Taxas BdP indispon\u00edveis:",e.message));
 
   /* 1. Cache valido -> mostrar e sair */
   if(!force){
@@ -409,5 +458,6 @@ function isValidEuriborData(data){
 
 
 window.initEuribor = initEuribor;
+window.parseBdpRates = parseBdpRates;
 window.renderEuribor = renderEuribor;
 })();

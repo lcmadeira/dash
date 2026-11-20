@@ -1325,7 +1325,7 @@ const DEFAULT_CONFIG = {
     { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP',            visible: true, icon: '📦' },
     { id: 'div',        name: 'Dívida Pública',            desc: '% PIB · Eurostat 2024',                      visible: true, icon: '🏛️' },
     { id: 'air',        name: 'Tráfego Aéreo',             desc: 'OpenSky Network · Lisboa live',              visible: true, icon: '✈️' },
-    { id: 'seis',       name: 'Sismos',                    desc: 'Ibéria & Açores · USGS mag ≥ 0.5',           visible: true, icon: '🌍' },
+    { id: 'seis',       name: 'Sismos',                    desc: 'Portugal & Açores · IPMA (USGS alt.)',           visible: true, icon: '🌍' },
     { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'AIS data · Tráfego marítimo real/sim.',      visible: true, icon: '🚢' },
     { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },
     { id: 'transp',     name: 'Transportes PT',            desc: 'Tarifas de referência · horários CP',       visible: true, icon: '🚆' },
