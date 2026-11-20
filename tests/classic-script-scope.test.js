@@ -190,7 +190,8 @@ test("food basket includes the latest verified weekly DECO values", async () => 
   assert.match(source, /\["2026-10-21", 253\.99,/);
   assert.match(source, /\["2026-10-28", 253\.55,/);
   assert.match(source, /\["2025-10-28", 243\.68,/);
-  assert.match(source, /Ver atualização de 28 Out \(Lusa\)/);
+  assert.match(source, /data\/cabaz\.json/);
+  assert.match(source, /add\(CABAZ_AUTO,"auto"\)/);
 });
 
 test("single-flight helper shares concurrent card loads and clears settled work", async () => {
