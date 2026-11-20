@@ -113,14 +113,15 @@ const GAS_TARIFAS = {
 };
 
 /* ── IPMA — lista de cidades disponíveis ── */
+/* IDs globalIdLocal oficiais do IPMA (api.ipma.pt/open-data/distrits-islands.json). */
 const IPMA_CITIES = {
-  1010500: "Aveiro",    1020500: "Beja",       1030300: "Braga",
-  1030800: "Bragança",  1040200: "Castelo Branco", 1050200: "Coimbra",
-  1060300: "Évora",     1070500: "Faro",      1080500: "Guarda",
-  1100900: "Leiria",    1110600: "Lisboa",    1121400: "Portalegre",
-  1131200: "Porto",     1141600: "Santarém",  1151200: "Setúbal",
-  1151300: "Sines",     1160900: "Viana do Castelo", 1171400: "Vila Real",
-  1182300: "Viseu",     2310300: "Funchal",   2320100: "Ponta Delgada"
+  1010500: "Aveiro",  1020500: "Beja",  1030300: "Braga",
+  1040200: "Bragança",  1050200: "Castelo Branco",  1060300: "Coimbra",
+  1070500: "Évora",  1080500: "Faro",  1090700: "Guarda",
+  1100900: "Leiria",  1110600: "Lisboa",  1121400: "Portalegre",
+  1131200: "Porto",  1141600: "Santarém",  1151200: "Setúbal",
+  1151300: "Sines",  1160900: "Viana do Castelo",  1171400: "Vila Real",
+  1182300: "Viseu",  2310300: "Funchal",  3420300: "Ponta Delgada"
 };
 
 /* ── IPMA — mapeamento meteorológico (id → [emoji, descrição]) ── */

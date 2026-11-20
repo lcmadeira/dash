@@ -411,12 +411,12 @@
   }
 
   function getWeatherCacheKey() {
-    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     return `ipma_${id}`;
   }
 
   function getAirQualityCacheKey() {
-    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     return `aq_v3_${id}`;
   }
 
@@ -508,7 +508,7 @@
       setCardStatus(id, "static", "Estático", { title: "Dados estáticos (sem fetch)" }),
     );
 
-    const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1060300;
+    const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     const byId = {
       weather: `ipma_${cityId}`,
       airquality: `aq_v3_${cityId}`,
