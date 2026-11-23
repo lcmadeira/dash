@@ -1,29 +1,16 @@
 #!/usr/bin/env node
 /*
  * Atualiza data/imob.json com o valor mediano das vendas de habitação (INE, indicador 0012234).
- * A API do INE é lenta (5-30 s) e não tem CORS confirmado; corre no portátil com os restantes
+ * A API do INE é lenta (5-30 s, até 15 s só para aceitar a ligação) e não tem CORS confirmado; corre no portátil com os restantes
  * dados (scripts/update-data.mjs). Só reescreve o ficheiro quando os dados mudam.
  */
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { INE_IMOB_URL, parseIneMedian, summarizeImob } from "./lib/ine-imob.mjs";
+import { getJson } from "./lib/http-json.mjs";
 
 const OUT = new URL("../data/imob.json", import.meta.url);
 
-let json = null;
-let lastError = null;
-for (let attempt = 1; attempt <= 3 && !json; attempt++) {
-  try {
-    const response = await fetch(INE_IMOB_URL, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; dash-data-updater/1.0)", Accept: "application/json" },
-      signal: AbortSignal.timeout(60000),
-    });
-    if (!response.ok) throw new Error(`INE respondeu HTTP ${response.status}`);
-    json = await response.json();
-  } catch (error) {
-    lastError = error;
-  }
-}
-if (!json) throw lastError || new Error("INE sem resposta");
+const json = await getJson(INE_IMOB_URL);
 
 const series = parseIneMedian(json);
 const latest = summarizeImob(series);
