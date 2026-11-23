@@ -154,6 +154,29 @@ test("OMIE Portugal parser validates dated 15-minute periods and selects the Por
   assert.equal(payload._meta.source, "OMIE · MARGINALPDBCPT · zona portuguesa");
 });
 
+test("electricity gateway falls back to the Iberian OMIE file when the Portuguese one is missing", async () => {
+  const date = "2026-11-03";
+  // Dia com separação de mercados: coluna 5 = PT, coluna 6 = ES.
+  const rows = Array.from({ length: 96 }, (_, index) => `2026;11;03;${index + 1};${index + 10};999;`).join("\n");
+  const iberian = `MARGINALPDBC;\n${rows}\n*\n`;
+  const requested = [];
+  globalThis.fetch = async url => {
+    const parent = new URL(String(url)).searchParams.get("parents");
+    requested.push(parent);
+    return parent === "marginalpdbc"
+      ? new Response(iberian, { headers: { "Content-Type": "application/octet-stream" } })
+      : new Response("<html>Not found</html>", { status: 404 });
+  };
+  const response = await handleRequest(new Request(`https://dash-data.test/v1/electricity?date=${date}`));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.deepEqual(requested, ["marginalpdbcpt", "marginalpdbc"]);
+  assert.equal(payload.periods.length, 96);
+  assert.deepEqual(payload.periods[0], { period: 1, priceMwh: 10 });
+  assert.equal(payload._meta.source, "OMIE · MARGINALPDBC (coluna PT) · zona portuguesa");
+  assert.equal(payload.published, undefined);
+});
+
 test("electricity gateway rejects arbitrary dates and malformed OMIE series", async () => {
   let upstreamCalls = 0;
   globalThis.fetch = async () => { upstreamCalls++; return new Response("MARGINALPDBCPT;\n*"); };
