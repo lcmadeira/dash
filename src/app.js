@@ -1031,7 +1031,7 @@ const DEFAULT_CONFIG = {
     { id: 'cabaz',      name: 'Cabaz Alimentar',           desc: '63 produtos essenciais · DECO PROteste',      visible: true, icon: '🛒' },
     { id: 'oil',        name: 'Petróleo',                  desc: 'Brent & WTI · TradingView live',              visible: true, icon: '🛢️' },
     { id: 'gas-eu',     name: 'Gás Natural EU',            desc: 'TTF (Yahoo Finance) · hubs europeus de referência',          visible: true, icon: '🔥' },
-    { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS estimado · tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
+    { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS estimado · tarifas ERSE 2026-2027',             visible: true, icon: '🇵🇹' },
     { id: 'elec',       name: 'Eletricidade',              desc: 'Preço OMIE · mix energético · tarifas',      visible: true, icon: '⚡' },
     { id: 'airquality', name: 'Qualidade do Ar',           desc: 'CAMS/Copernicus · 5 poluentes + UV',          visible: true, icon: '🌬️' },
     { id: 'anpc',       name: 'Proteção Civil',            desc: 'Ocorrências ANEPC e risco de incêndio · API Aberta', visible: true, icon: '🚒' },
@@ -1049,8 +1049,8 @@ const DEFAULT_CONFIG = {
     { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },
     { id: 'transp',     name: 'Transportes PT',            desc: 'Tarifas de referência · horários CP',       visible: true, icon: '🚆' },
     { id: 'finance',    name: 'Gráfico de Mercados',       desc: 'TradingView · gráfico avançado',     visible: true, icon: '📈' },
-    { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 e constituintes · Yahoo Finance',       visible: true, icon: '🇵🇹' },
-    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500, cripto e ETFs · TradingView',        visible: true, icon: '🌡️' },
+    { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 e constituintes · Yahoo Finance',       visible: true, icon: '💹' },
+    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500, cripto e ETFs · TradingView',        visible: true, icon: '🟩' },
     { id: 'fx',         name: 'Câmbio EUR',                desc: 'BCE (Frankfurter) · taxas de referência diárias',              visible: true, icon: '💱' },
     { id: 'crypto',     name: 'Criptomoedas',              desc: 'BTC, ETH e Top Altcoins · CoinGecko',        visible: true, icon: '₿' },
     { id: 'inf',        name: 'Inflação PT/EU',            desc: 'IHPC · INE e Eurostat',            visible: true, icon: '📊' },
@@ -1061,7 +1061,7 @@ const DEFAULT_CONFIG = {
     { id: 'co2',        name: 'Emissões CO₂',              desc: 'Mix energético PT · DGEG/REN 2024',          visible: true, icon: '🌱' },
     { id: 'press',      name: 'Liberdade Imprensa',        desc: 'RSF 2026 · EIU 2024 histórico',              visible: true, icon: '🗽' },
     { id: 'news-pt',    name: 'Notícias Portugal',         desc: 'Google News RSS · PT · tempo real',          visible: true, icon: '📰' },
-    { id: 'news-world', name: 'Notícias Mundo',            desc: 'Google News RSS · Mundo · tempo real',       visible: true, icon: '🌍' }
+    { id: 'news-world', name: 'Notícias Mundo',            desc: 'Google News RSS · Mundo · tempo real',       visible: true, icon: '🌐' }
   ],
   location: 'lisboa',
   tickers: ['BCP', 'EDP', 'GALP', 'JMT'],

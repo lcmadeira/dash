@@ -87,18 +87,25 @@ const MIBGAS_MONTHLY_SPREAD = {
   7: 5.0,  8: 5.4,  9: 4.8, 10: 4.2, 11: 3.6, 12: 3.0
 };
 
-/* ── Tarifas Gás Natural PT (ERSE 2025-2026) ── */
+/* ── Gás Natural PT: referências MIBGAS e tarifas reguladas ERSE ── */
 const GAS_TARIFAS = {
-  /* Tarifa energia por escalão (kWh) */
-  esc1: { label: "Esc. 1 (≤10 GJ/a)", kwh: 0.0974, desc: "Baixo consumo" },
-  esc2: { label: "Esc. 2 (10-4000 GJ/a)", kwh: 0.0716, desc: "Consumo normal" },
-  /* Tarifa de acesso às redes (BTN) */
-  redes: 0.0821,
-  /* Custo total estimado BTN c/ IVA 6% */
-  totalEsc1: 0.1694 /* (0.0974+0.0821)*1.06 */,
-  totalEsc2: 0.1527 /* (0.0716+0.0821)*1.06 */,
-  /* Termo fixo mensal (capacidade) */
-  termoFixo: 3.42 /* €/mês */,
+  /* Tarifas transitórias de venda a clientes finais (mercado regulado), ano gás 2026-2027.
+     Fonte: ERSE, comunicado "Tarifas e Preços de Gás Natural" de 1 jun 2026
+     (https://www.erse.pt/media/aipj3ub0/comunicado-decis%C3%A3o-tarifas-g%C3%A1s-2026-2027.pdf).
+     O comunicado não publica preços por kWh; usar só estes valores agregados. */
+  erse: {
+    gasYear: "2026-2027",
+    validFrom: "2026-10-01",
+    validTo: "2027-09-30",
+    variationPct: 6.4, /* baixa pressão ≤ 10 000 m³/ano, face a 2025-2026 */
+    bills: [
+      { label: "Casal sem filhos", tier: "1.º escalão", kwhYear: 1610, monthly: 17.38, delta: 0.91 },
+      { label: "Casal com dois filhos", tier: "2.º escalão", kwhYear: 3407, monthly: 32.53, delta: 1.62 }
+    ],
+    socialDiscountPct: 31.2,
+    sourceUrl: "https://www.erse.pt/atividade/regulacao/tarifas-e-precos-gas-natural/",
+    sourceLabel: "ERSE · comunicado de 1 jun 2026"
+  },
   /* Ref MIBGAS spot Set 2026 */
   mibgasSpot: 81.2,
   mibgasPrev: 57.3,

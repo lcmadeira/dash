@@ -140,7 +140,8 @@ function loadTTF(force=false){
     {c:"🇵🇱",name:"Polónia", pct:88.5,col:"#10B981"},
   ];
   const EU_AVG=68, EU_PREV=85;
-  const STATIC_HUBS_REF = "Mar 2026";
+  /* Hubs e reservas: valores de setembro de 2026 (os preços coincidem com TTF Set 26 = 78,5 e MIBGAS Set 2026 = 81,2 em config.js) */
+  const STATIC_HUBS_REF = "Set 2026";
 
   /* ── Fetch TTF via Stooq CSV (tg.f = EUR/MWh) ──────────── */
   async function fetchTTFStooq(){
@@ -502,13 +503,48 @@ function loadGasPT(_force=false){
     }
   }
 
+  /** Resumo das tarifas reguladas ERSE; avisa quando o período já terminou. */
+  function gasErseHtml(E, now = new Date()){
+    if(!E || !Array.isArray(E.bills)) return "";
+    const eur=v=>v.toLocaleString("pt-PT",{minimumFractionDigits:2,maximumFractionDigits:2});
+    const expired=E.validTo && now > new Date(`${E.validTo}T23:59:59`);
+    const period=`${E.validFrom.split("-").reverse().join("/")} a ${E.validTo.split("-").reverse().join("/")}`;
+    const status=expired
+      ? `<span style="color:var(--amber)">\u26a0 período terminou; confirmar tarifas do ano gás seguinte</span>`
+      : `em vigor de ${period}`;
+    return `
+  <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
+    \uD83D\uDCCB Tarifas reguladas ERSE ${E.gasYear} \u00b7 ${status}
+  </div>
+  <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:.74rem;color:var(--t2)">Variação face a ${Number(E.gasYear.slice(0,4))-1}-${E.gasYear.slice(0,4)} (\u2264 10 000 m\u00b3/ano)</div>
+    <div style="font-size:.75rem;font-weight:700;color:var(--red)">+${E.variationPct.toLocaleString("pt-PT",{minimumFractionDigits:1})}%</div>
+  </div>
+  ${E.bills.map(b=>`
+    <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:.74rem;font-weight:600;color:var(--text)">${b.label}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${b.tier} \u00b7 ${b.kwhYear.toLocaleString("pt-PT")} kWh/ano</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.75rem;font-weight:700;color:var(--text)">${eur(b.monthly)} \u20ac/mês</div>
+        <div style="font-size:.74rem;color:var(--t3)">+${eur(b.delta)} \u20ac/mês</div>
+      </div>
+    </div>`).join("")}
+  <div style="font-size:.74rem;color:var(--t3);margin-top:4px">
+    Fatura média mensal com taxas e impostos (continente) \u00b7 tarifa social: desconto de ${E.socialDiscountPct.toLocaleString("pt-PT")}% \u00b7
+    <a href="${E.sourceUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">${E.sourceLabel}</a>
+  </div>`;
+  }
+  window.gasErseHtml = gasErseHtml;
+
   /* ══════════════════════════════════════════════════════════════
      GÁS NATURAL PT — MIBGAS estimado via TTF live + spread sazonal
-     Fonte TTF : Stooq tg.f (cache ttf_live_v1, partilhado com card TTF)
+     Fonte TTF : gateway v1/ttf (Yahoo TTF=F; Stooq como alternativa), cache ttf_live_v1
      Metodologia: MIBGAS ≈ TTF + spread sazonal
        O spread reflecte: custo GNL ibérico (Sines/Huelva/Bilbau),
        capacidade interligação França, sazonalidade inverno/verão.
-     Tarifas ERSE: Deliberação Out 2025 (válidas até Out 2026)
+     Tarifas ERSE: ano gás 2026-2027 (config.js GAS_TARIFAS.erse)
      ══════════════════════════════════════════════════════════════ */
 
   const G=window.GAS_TARIFAS || {};
@@ -646,42 +682,8 @@ function loadGasPT(_force=false){
     </div>
   </div>
 
-  <!-- Tarifas ERSE -->
-  <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-    \uD83D\uDCCB Tarifas ERSE 2025-2026 \u00b7 referência histórica; período terminou em Out 2026
-  </div>
-  ${[G.esc1,G.esc2].map(e=>`
-    <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:.74rem;font-weight:600;color:var(--text)">${e.label}</div>
-          <div style="font-size:.74rem;color:var(--t3)">${e.desc}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:.75rem;font-weight:700;color:var(--green)">${e.kwh.toFixed(4)} \u20ac/kWh</div>
-          <div style="font-size:.74rem;color:var(--t3)">energia</div>
-        </div>
-      </div>
-    </div>`).join("")}
-  <div style="background:var(--b2);border-radius:7px;padding:6px 10px;margin-bottom:4px">
-    <div style="display:flex;justify-content:space-between">
-      <div style="font-size:.74rem;color:var(--t2)">Tarifa de acesso às redes</div>
-      <div style="font-size:.74rem;font-weight:600;color:var(--text)">${G.redes.toFixed(4)} \u20ac/kWh</div>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px">
-    <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:var(--green)">${G.totalEsc1.toFixed(4)} \u20ac/kWh</div>
-      <div style="font-size:.74rem;color:var(--t3)">Total Esc. 1 c/ IVA 6%</div>
-    </div>
-    <div style="background:var(--b2);border-radius:6px;padding:5px 8px;text-align:center">
-      <div style="font-size:.75rem;font-weight:700;color:var(--green)">${G.totalEsc2.toFixed(4)} \u20ac/kWh</div>
-      <div style="font-size:.74rem;color:var(--t3)">Total Esc. 2 c/ IVA 6%</div>
-    </div>
-  </div>
-  <div style="font-size:.74rem;color:var(--t3);margin-top:4px">
-    Termo fixo: ${G.termoFixo.toFixed(2)} €/mês · IVA 6% incluído · Fonte: ERSE Deliberação Oct 2025
-  </div>`;
+  <!-- Tarifas ERSE (mercado regulado) -->
+  ${gasErseHtml(G.erse)}`;
 
   loadGasPTTrend(false).catch(()=>{});
 }
