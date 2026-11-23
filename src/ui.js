@@ -527,7 +527,7 @@
       seis: "seis_v10",
       ormuz: "ormuz_v2",
       psi20: "psi20_v2",
-      mstats: "mstats_v3",
+      mstats: "mstats_v4",
       fx: "fx",
       crypto: "cg",
       geo: "geo_v10",
