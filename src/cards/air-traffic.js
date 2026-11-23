@@ -74,6 +74,13 @@ async function loadAir(force=false){
       UAE:"Emirates",ETH:"Ethiopian",THY:"Turkish Airlines",AAL:"American",
       UAL:"United",DAL:"Delta",TRA:"Transavia",SWR:"SWISS",AUA:"Austrian",
       AZA:"ITA Airways",SAS:"SAS",AEE:"Aegean",NJU:"easyJet",WZZ:"Wizz Air",
+      AEA:"Air Europa",IBB:"Binter",EXS:"Jet2",VKG:"Sunclass",TAM:"LATAM Brasil",LAN:"LATAM",
+      NPT:"West Atlantic",EJU:"easyJet",EZS:"easyJet",RUK:"Ryanair UK",MAY:"Malta Air",
+      RAM:"Royal Air Maroc",SAT:"SATA/Azores",RZO:"Azores Airlines",WHT:"White",EVE:"Evelop",
+      IBS:"Iberia Express",ANE:"Air Nostrum",TVF:"Transavia France",BEL:"Brussels",
+      FIN:"Finnair",LOT:"LOT",EIN:"Aer Lingus",TOM:"TUI",TUI:"TUI",TFL:"TUI",JAF:"TUI fly",
+      QTR:"Qatar Airways",ACA:"Air Canada",AZU:"Azul",GLO:"Gol",DAH:"Air Algérie",
+      TAR:"Tunisair",TCV:"Cabo Verde Airlines",DTA:"TAAG",MAC:"Air Arabia Maroc",
     };
     function airline(cs){ return AIRLINES[cs?.slice(0,3).toUpperCase()]||""; }
 
@@ -158,7 +165,7 @@ async function loadAir(force=false){
         <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:4px">
           Voos activos · por altitude
         </div>
-        <div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
+        <div style="display:grid;grid-template-columns:64px 38px 62px 14px 1fr;
              font-family:var(--mono);font-size:.74rem;color:var(--t3);padding:0 0 3px;
              border-bottom:1px solid var(--b);margin-bottom:2px">
           <span>Voo</span><span>FL</span><span>Vel.</span><span></span><span>Operadora</span>
@@ -172,7 +179,7 @@ async function loadAir(force=false){
           const vrCol=vr>2?"#10B981":vr<-2?"#EF4444":"#6E7A96";
           const altCol=s[7]>9000?"#10B981":s[7]>6000?"#06B6D4":s[7]>3000?"#3B82F6":"#8B5CF6";
           const al=airline(cs);
-          return `<div style="display:grid;grid-template-columns:64px 38px 48px 14px 1fr;
+          return `<div style="display:grid;grid-template-columns:64px 38px 62px 14px 1fr;
                        align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid var(--b)">
             <div style="font-size:.74rem;font-weight:700;color:var(--text);
                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cs)}</div>
