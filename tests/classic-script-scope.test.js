@@ -1766,3 +1766,28 @@ test("notification panel is inert while closed and interactive while open", asyn
   assert.equal(panel.attributes["aria-hidden"], "true");
   assert.equal(button.attributes["aria-expanded"], "false");
 });
+
+test("trend chart resolves CSS variable colours and formats values in pt-PT", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const start = source.indexOf("function renderTrendChart(");
+  const end = source.indexOf("\n}\n", start) + 2;
+  assert.ok(start > 0 && end > start);
+  let config = null;
+  const context = vm.createContext({
+    Date, Number, String,
+    document: { documentElement: {} },
+    getComputedStyle: () => ({ getPropertyValue: name => (name === "--blue" ? " #4B96F3 " : "") }),
+    Chart: function Chart(_ctx, cfg) { config = cfg; this.destroy = () => {}; },
+  });
+  context.window = context;
+  vm.runInContext(source.slice(start, end), context);
+  const canvas = { getContext: () => ({}) };
+  const rows = [{ date: "2026-11-19", value: 1.1 }, { date: "2026-11-20", value: 1.099 }];
+  context.renderTrendChart(canvas, rows, { borderColor: "var(--blue)", backgroundColor: "var(--missing)", unit: " USD", decimals: 4 });
+  assert.equal(config.data.datasets[0].borderColor, "#4B96F3");
+  assert.match(config.data.datasets[0].backgroundColor, /^rgba\(/, "unknown variable falls back to the default");
+  assert.equal(config.options.scales.y.ticks.callback(1.108), "1,1080 USD");
+  assert.equal(config.options.plugins.tooltip.callbacks.label({ parsed: { y: 1.099 } }), "Valor: 1,0990 USD");
+  context.renderTrendChart(canvas, rows, { borderColor: "#10B981" });
+  assert.equal(config.data.datasets[0].borderColor, "#10B981");
+});

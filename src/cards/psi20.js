@@ -141,7 +141,8 @@ async function loadPSI20Trend(force = false) {
 	    const fromGateway = s => {
 	      const q = gateway?.bySymbol.get(String(s.yf || "").toUpperCase());
 	      if (!q) return null;
-	      const { series: _series, ...quote } = q;
+	      const quote = { ...q };
+	      delete quote.series; // o histórico só serve o gráfico, não a cotação guardada
 	      return isValidPSI20Quote(quote) ? quote : null;
 	    };
 	    const gatewayQuotes = allSyms.map(fromGateway);
