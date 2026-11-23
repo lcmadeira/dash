@@ -1,7 +1,7 @@
-/* global $, AbortSignal, fetchFirstOk, fetchJsonFirstOk, fetchTextFirstOk, ld, lsGet, lsSet, window */
+/* global $, AbortSignal, fetchFirstOk, fetchJsonFirstOk, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   PREÇOS AGRÍCOLAS — Yahoo Finance com fallback Stooq
+   PREÇOS AGRÍCOLAS — Yahoo Finance (gateway; proxies públicos como alternativa)
    ══════════════════════════════════════════════════════════════ */
 const AGRI_SYMS=[
   {sym:"ZW=F",  label:"Trigo",   unit:"¢/bu", ico:"🌾"},
@@ -37,7 +37,7 @@ async function loadAgri(force=false){
     }
   }
 
-  /* 2. Alternativa antiga: Yahoo e Stooq via proxies públicos */
+  /* 2. Alternativa: Yahoo via proxies públicos */
   if(!cache||!cache.length){
     async function fetchSym(sym){
       const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=1d`;
@@ -55,26 +55,6 @@ async function loadAgri(force=false){
         return {close:price,chg:prev?((price-prev)/prev*100):null,hi,lo,vol};
       }catch{}
 
-      /* Fallback Stooq CSV */
-      const STOOQ={"ZW=F":"zw.f","ZC=F":"zc.f","ZS=F":"zs.f","KC=F":"kc.f","SB=F":"sb.f","CT=F":"ct.f"};
-      const ssym=STOOQ[sym];
-      if(ssym){
-        try{
-          const url=`https://stooq.com/q/l/?s=${ssym}&f=sd2t2ohlcv&h&e=csv`;
-          const csv=await fetchTextFirstOk(url,{signal:AbortSignal.timeout(8000)},8000,["allorigins","corsproxy"],text=>text.includes("Symbol,Date,Time")&&!text.includes("<!DOCTYPE html>"));
-          const rows=csv.trim().split("\n");
-          if(rows.length>=2){
-            const cols=rows[1].split(",");
-            const close=parseFloat(cols[6]);
-            const open=parseFloat(cols[3]);
-            const hi=parseFloat(cols[4]);
-            const lo=parseFloat(cols[5]);
-            const vol=parseFloat(cols[7])||0;
-            if(!Number.isNaN(close)&&close>0)
-              return {close,chg:open?((close-open)/open*100):null,hi,lo,vol};
-          }
-        }catch{}
-      }
       return {close:null,chg:null,hi:null,lo:null,vol:null};
     }
 
@@ -125,7 +105,7 @@ async function loadAgri(force=false){
   }).join("");
   if(isStatic){
     el.innerHTML+=`<div style="grid-column:1/-1;font-size:.74rem;color:var(--amber);padding:2px 0">
-      ⚠ Yahoo Finance / Stooq indisponíveis · valores referência Mar 2026</div>`;
+      ⚠ Yahoo Finance indisponível · valores referência Mar 2026</div>`;
   }
 }
 

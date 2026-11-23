@@ -1,4 +1,4 @@
-/* global AbortSignal, fetchJsonFirstOk, fetchTextFirstOk */
+/* global AbortSignal, fetchJsonFirstOk */
 /* Cards TTF e gás natural PT. Dependem das APIs partilhadas em core/cache/fetch/app. */
 (function() {
 function isValidTTFData(data) {
@@ -30,7 +30,7 @@ function setTTFTrendDays(days) {
   loadTTFTrend(false).catch(() => {});
 }
 
-/* Série diária do TTF: gateway (Yahoo TTF=F, 3 meses) primeiro; Stooq só como alternativa. */
+/* Série diária do TTF: gateway (Yahoo TTF=F, 3 meses); sem ele, o gráfico usa o histórico local. */
 let _ttfSeriesMemo = null;
 async function fetchTTFDailySeries(force = false) {
   if (!force && _ttfSeriesMemo && Date.now() - _ttfSeriesMemo.at < 60000) return _ttfSeriesMemo.promise;
@@ -45,7 +45,7 @@ async function fetchTTFDailySeries(force = false) {
         if (series.length >= 10) return series;
       } catch { /* alternativa abaixo */ }
     }
-    return fetchStooqDailySeries('tg.f', 90, force);
+    throw new Error('Histórico indisponível');
   })();
   _ttfSeriesMemo = { at: Date.now(), promise };
   promise.catch(() => { if (_ttfSeriesMemo?.promise === promise) _ttfSeriesMemo = null; });
@@ -111,8 +111,8 @@ function loadTTF(force=false){
   if(!el) return;
 
   /* ══════════════════════════════════════════════════════════
-     TTF live — Stooq CSV (tg.f = Dutch TTF Gas, EUR/MWh)
-     Fallback: Yahoo Finance TTF=F (requer conversão USD/MMBtu)
+     TTF live — gateway /v1/ttf (Yahoo TTF=F, EUR/MWh)
+     Fallback: Yahoo Finance TTF=F por proxies públicos
      Hubs secundários: estáticos (sem fonte pública gratuita)
      ══════════════════════════════════════════════════════════ */
 
@@ -165,35 +165,6 @@ function loadTTF(force=false){
   /* Hubs e reservas: valores de setembro de 2026 (os preços coincidem com TTF Set 26 = 78,5 e MIBGAS Set 2026 = 81,2 em config.js) */
   const STATIC_HUBS_REF = "Set 2026";
 
-  /* ── Fetch TTF via Stooq CSV (tg.f = EUR/MWh) ──────────── */
-  async function fetchTTFStooq(){
-    const url=`https://stooq.com/q/l/?s=tg.f&f=sd2t2ohlcv&h&e=csv`;
-    const candidates=[url, url.replace("stooq.com","stooq.pl")];
-    for(const candidate of candidates){
-      try{
-        const csv=await fetchTextFirstOk(
-          candidate,
-          {},
-          9000,
-          ["local", "allorigins"],
-          (text) => !!text && text.includes("Symbol,Date,Time") && !text.includes("<!DOCTYPE html>"),
-        );
-        const rows=csv.trim().split("\n");
-        if(rows.length<2) continue;
-        /* CSV: Symbol,Date,Time,Open,High,Low,Close,Volume */
-        const cols=rows[1].split(",");
-        const open =parseFloat(cols[3]);
-        const hi   =parseFloat(cols[4]);
-        const lo   =parseFloat(cols[5]);
-        const close=parseFloat(cols[6]);
-        if(!isNaN(close)&&close>0&&close<500) /* sanidade: TTF entre 0-500 €/MWh */
-          return {price:close,prev:open,hi,lo,
-                  chg:open?((close-open)/open*100):0,live:true,src:"Stooq"};
-      }catch{}
-    }
-    return null;
-  }
-
   /* ── Fetch TTF via gateway próprio (Yahoo Finance TTF=F no servidor, com cópia de reserva) ── */
   async function fetchTTFGateway(){
     const url=window.dataApiUrl?.("v1/ttf");
@@ -239,7 +210,7 @@ function loadTTF(force=false){
     const ttfChg   = ttfData?.chg   ?? ((ttfPrice-ttfPrev)/ttfPrev*100);
     const isLive   = ttfData?.live  ?? false;
     const ttfVariationLabel = isLive
-      ? (ttfData?.src === "Stooq" ? "vs abertura" : "vs fecho ant.")
+      ? "vs fecho ant."
       : `vs ref. ant. (${staticPrevious[0]})`;
 
     /* Sparkline TTF histórico */
@@ -382,7 +353,7 @@ function loadTTF(force=false){
     if(!force){
       const cached=lsGet(CK);
       if(isValidTTFData(cached)){
-        render(cached, cached.src||"Stooq");
+        render(cached, cached.src||"Yahoo");
         console.log("🔥 TTF: cache ("+cached.price.toFixed(1)+" €/MWh)");
         return;
       }
@@ -403,19 +374,7 @@ function loadTTF(force=false){
       }
     }catch(e){ console.warn("TTF gateway falhou:", e.message); }
 
-    /* 4. Tentar Stooq em background */
-    try{
-      const data = await fetchTTFStooq();
-      if(data){
-        lsSet(CK, data);
-        try{ addToHistory('ttf_eur_mwh', data.price); }catch{}
-        render(data, "Stooq");
-        console.log("✅ TTF Stooq live: "+data.price.toFixed(1)+" €/MWh ("+data.chg.toFixed(2)+"%)");
-        return;
-      }
-    }catch(e){ console.warn("TTF Stooq falhou:", e.message); }
-
-    /* 5. Fallback Yahoo Finance via proxies públicos */
+    /* 4. Fallback Yahoo Finance via proxies públicos */
     try{
       const data = await fetchTTFYahoo();
       if(data){
@@ -562,7 +521,7 @@ function loadGasPT(_force=false){
 
   /* ══════════════════════════════════════════════════════════════
      GÁS NATURAL PT — MIBGAS estimado via TTF live + spread sazonal
-     Fonte TTF : gateway v1/ttf (Yahoo TTF=F; Stooq como alternativa), cache ttf_live_v1
+     Fonte TTF : gateway v1/ttf (Yahoo TTF=F), cache ttf_live_v1
      Metodologia: MIBGAS ≈ TTF + spread sazonal
        O spread reflecte: custo GNL ibérico (Sines/Huelva/Bilbau),
        capacidade interligação França, sazonalidade inverno/verão.
@@ -604,7 +563,7 @@ function loadGasPT(_force=false){
 
   /* Badge de fonte */
   const sourceBadge=isLive
-    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Stooq"} live \u00b7 est.</span>`
+    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25cf ${ttfSrc||"Yahoo"} live \u00b7 est.</span>`
     :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26a0 ref. est\u00e1tica · Set 2026</span>`;
 
   const mibLabel=isLive
@@ -633,7 +592,7 @@ function loadGasPT(_force=false){
       </div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${mibLabel}</div>
       <div style="font-size:.74rem;font-weight:700;color:${mibCol};margin-top:3px">
-        ${mibChg>=0?"\u25b2":"\u25bc"} ${window.nf(Math.abs(mibChg), 1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
+        ${mibChg>=0?"\u25b2":"\u25bc"} ${window.nf(Math.abs(mibChg), 1)}% ${isLive ? "vs fecho ant." : "vs ref. anterior"}
       </div>
     </div>
     <div style="background:var(--b)"></div>
@@ -650,7 +609,7 @@ function loadGasPT(_force=false){
         <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">\u20ac/MWh</div>
       </div>
       <div style="font-size:.74rem;font-weight:700;color:${ttfCol};margin-top:2px">
-        ${ttfChg>=0?"\u25b2":"\u25bc"} ${window.nf(Math.abs(ttfChg), 1)}% ${isLive ? (ttfSrc === "Stooq" ? "vs abertura" : "vs fecho ant.") : "vs ref. anterior"}
+        ${ttfChg>=0?"\u25b2":"\u25bc"} ${window.nf(Math.abs(ttfChg), 1)}% ${isLive ? "vs fecho ant." : "vs ref. anterior"}
       </div>
       <div style="font-size:.74rem;color:var(--amber);margin-top:1px">
         Spread MIBGAS\u2212TTF: +${window.nfr(spread)} \u20ac/MWh

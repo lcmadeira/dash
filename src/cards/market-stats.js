@@ -1,9 +1,9 @@
-/* global $, skeletonKPIs, lsGet, lsSet, fetchStooqMulti, fetchFirstOk, window */
+/* global $, skeletonKPIs, lsGet, lsSet, fetchFirstOk, window */
 (() => {
 /* ── loadMarketStats — fontes abertas, sem API key ──
    Fontes:
    • Gateway /v1/indicators (Yahoo) — VIX, Ouro, Prata, S&P500, WTI, Gás Nat.
-     (o Yahoo não permite CORS; o Stooq deixou de responder e fica só como alternativa)
+     (o Yahoo não permite CORS no browser, por isso passa pelo gateway)
    • Frankfurter BCE           — USD/EUR (reutiliza cache do loadFX)
    • CoinGecko                 — BTC/EUR (reutiliza cache do loadCrypto)
    ─────────────────────────────────────────────────────────────────────── */
@@ -16,8 +16,8 @@ async function loadMarketStats(force=false){
   let cache=force?null:lsGet(CK);
 
   if(!cache){
-    /* ── Símbolos Stooq (CSV via allorigins, sem chave, mesmo método do PSI20/Agri) ── */
-    const STOOQ_SYMS=[
+    /* ── Símbolos Yahoo pedidos ao gateway ── */
+    const SYMS=[
       {sym:"^vix", yf:"^VIX",  label:"VIX",       sub:"Volatilidade S&P 500", col:"var(--red)",    unit:"",  dec:2},
       {sym:"gc.f", yf:"GC=F",  label:"Ouro",      sub:"USD / oz · COMEX",     col:"var(--accent)", unit:"$", dec:2},
       {sym:"si.f", yf:"SI=F",  label:"Prata",     sub:"USD / oz · COMEX",     col:"#C0C0C0",       unit:"$", dec:3},
@@ -26,7 +26,7 @@ async function loadMarketStats(force=false){
       {sym:"ng.f", yf:"NG=F",  label:"Gás Nat.",  sub:"USD / MMBtu · NYMEX",  col:"#3B82F6",       unit:"$", dec:3},
     ];
 
-    /* Fonte principal: gateway (Yahoo). Stooq só para o que faltar. */
+    /* Fonte: gateway (Yahoo). O Stooq deixou de responder em 2026 e foi retirado. */
     const fromGateway = {};
     const gatewayUrl = window.dataApiUrl?.("v1/indicators");
     if (gatewayUrl) {
@@ -40,10 +40,8 @@ async function loadMarketStats(force=false){
           fromGateway[String(q.symbol).toUpperCase()] = { price, prev, hi: Math.max(hi, lo), lo: Math.min(hi, lo),
             chg: (price - prev) / prev * 100, live: true, src: "yahoo" };
         }
-      } catch { /* segue para o Stooq */ }
+      } catch { /* sem dados live: o card mostra o aviso */ }
     }
-    const missing = STOOQ_SYMS.filter(s => !fromGateway[s.yf]);
-    const stooqResults = missing.length ? await fetchStooqMulti(missing.map(s => s.sym)) : {};
 
     let usdEur=null;
     const fxCache=lsGet("fx");
@@ -54,8 +52,8 @@ async function loadMarketStats(force=false){
     if(cgCache?.bitcoin?.eur) btcEur=cgCache.bitcoin.eur;
 
     cache={
-      items: STOOQ_SYMS.map((s)=>{
-        const v=fromGateway[s.yf]||stooqResults[s.sym.toLowerCase()];
+      items: SYMS.map((s)=>{
+        const v=fromGateway[s.yf];
         return {...s,data:v||null};
       }),
       usdEur,btcEur,ts:Date.now()
@@ -67,7 +65,7 @@ async function loadMarketStats(force=false){
 
   /* ── Render ── */
   const liveCount=cache.items.filter(x=>x.data?.live).length;
-  const liveSrc=cache.items.some(x=>x.data?.src==="yahoo")?"Yahoo":"Stooq";
+  const liveSrc="Yahoo";
   const liveTag=liveCount>0
     ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 5px">\u25CF ${liveSrc} ${window.nfr(liveCount)}/6</span>`
     :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">\u26A0 sem dados live</span>`;

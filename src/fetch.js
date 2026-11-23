@@ -87,7 +87,7 @@
   function buildFetchPlan(url, sources) {
     const isCorsHost = (u) => {
       const h = new URL(u).hostname.toLowerCase();
-      return h.includes("stooq") || h.includes("news.google.com") || h.includes("apambiente") || h.includes("ecb.europa.eu") ||
+      return h.includes("news.google.com") || h.includes("apambiente") || h.includes("ecb.europa.eu") ||
              h.includes("eurostat") || h.includes("opensky-network") || h.includes("aishub") ||
              h.includes("ren.pt") || h.includes("usgs.gov") || h.includes("ine.pt") ||
              h.endsWith("finance.yahoo.com");
@@ -284,64 +284,7 @@
     return r;
   }
 
-  /**
-   * Obtém cotações CSV da Stooq num único pedido para vários símbolos.
-   * @param {string[]} symbols Símbolos reconhecidos pela Stooq.
-   * @returns {Promise<Record<string, {price: number, prev: number, hi: number, lo: number, vol: number, chg: number, live: boolean, src: string}>>} Cotações indexadas por símbolo minúsculo; objeto vazio em caso de falha.
-   */
-  async function fetchStooqMulti(symbols) {
-    if (!Array.isArray(symbols) || !symbols.length) return {};
-    const symStr = symbols.map(s => encodeURIComponent(s)).join("+");
-    const url = `https://stooq.com/q/l/?s=${symStr}&f=sd2t2ohlcv&h&e=csv&_=${Date.now()}`;
 
-    try {
-      const { r } = await fetchFirstOk(
-        url,
-        { cache: "no-store" },
-        10000,
-        ["local", "allorigins", "corsproxy", "codetabs"],
-        async (res) => {
-          const text = await res.clone().text();
-          return text.includes("Symbol,Date,Time") && !text.includes("<!DOCTYPE html>");
-        },
-      );
-      if (!r.ok) return {};
-      const csv = await r.text();
-      const lines = csv.trim().split("\n");
-      if (lines.length < 2) return {};
-
-      const results = {};
-      /* Header: Symbol,Date,Time,Open,High,Low,Close,Volume */
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(",");
-        if (cols.length < 7) continue;
-        const s = cols[0].toLowerCase();
-        const open = parseFloat(cols[3]);
-        const hi = parseFloat(cols[4]);
-        const lo = parseFloat(cols[5]);
-        const close = parseFloat(cols[6]);
-        const vol = parseFloat(cols[7]) || 0;
-
-        if (!isNaN(close) && close > 0) {
-          const prev = (!isNaN(open) && open > 0) ? open : close;
-          results[s] = {
-            price: close,
-            prev,
-            hi,
-            lo,
-            vol,
-            chg: prev ? ((close - prev) / prev * 100) : 0,
-            live: true,
-            src: "stooq"
-          };
-        }
-      }
-      return results;
-    } catch (e) {
-      if (isFetchDebugEnabled()) console.warn("[fetchStooqMulti] failed", e);
-      return {};
-    }
-  }
 
   /**
    * Percorre as fontes configuradas e devolve o primeiro corpo JSON válido.
@@ -454,5 +397,4 @@
   window.fetchJsonFirstOk = fetchJsonFirstOk;
   window.fetchTextFirstOk = fetchTextFirstOk;
   window.fetchWithCORS = fetchWithCORS;
-  window.fetchStooqMulti = fetchStooqMulti;
 })();
