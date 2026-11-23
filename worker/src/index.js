@@ -226,7 +226,9 @@ export function marketToday(now = new Date()) {
 }
 
 export function parseOmieElectricity(text, expectedDate) {
-  if (typeof text !== "string" || !/^MARGINALPDBCPT;/.test(text.trimStart())) return null;
+  // MARGINALPDBCPT (só Portugal) e MARGINALPDBC (ibérico) têm o mesmo formato:
+  // ano;mês;dia;período;preço PT;preço ES. A coluna 5 é sempre a zona portuguesa.
+  if (typeof text !== "string" || !/^MARGINALPDBC(PT)?;/.test(text.trimStart())) return null;
   const periods = [];
   const [year, month, day] = expectedDate.split("-").map(Number);
   for (const line of text.split(/\r?\n/)) {
@@ -516,8 +518,14 @@ async function serveRoute(url, route, headers, ctx) {
 
 const ELECTRICITY_ROUTE = { valid: isValidElectricity };
 
+const OMIE_PT_SOURCE = "OMIE · MARGINALPDBCPT · zona portuguesa";
+const OMIE_IBERIAN_SOURCE = "OMIE · MARGINALPDBC (coluna PT) · zona portuguesa";
+
+function omieFileUrl(parent, electricityDate) {
+  return `https://www.omie.es/en/file-download?parents=${parent}&filename=${parent}_${electricityDate.replaceAll("-", "")}.1`;
+}
+
 async function handleElectricity(url, electricityDate, headers, ctx) {
-  const upstream = `https://www.omie.es/en/file-download?parents=marginalpdbcpt&filename=marginalpdbcpt_${electricityDate.replaceAll("-", "")}.1`;
   const cacheControl = "public, max-age=30, s-maxage=300";
   const cache = globalThis.caches?.default;
   const cacheUrl = `${url.origin}${url.pathname}?date=${electricityDate}`;
@@ -534,13 +542,21 @@ async function handleElectricity(url, electricityDate, headers, ctx) {
   }
 
   try {
-    const response = await fetchUpstream(upstream, "text/plain, application/octet-stream", 9000);
+    const accept = "text/plain, application/octet-stream";
+    let source = OMIE_PT_SOURCE;
+    let response = await fetchUpstream(omieFileUrl("marginalpdbcpt", electricityDate), accept, 9000);
+    if (response.status === 404) {
+      // O OMIE às vezes não publica o ficheiro só de Portugal (ex.: 21 e 23-11-2026),
+      // mas o ficheiro ibérico do mesmo dia existe e traz o preço PT na coluna 5.
+      const iberian = await fetchUpstream(omieFileUrl("marginalpdbc", electricityDate), accept, 9000);
+      if (iberian.ok) { response = iberian; source = OMIE_IBERIAN_SOURCE; }
+    }
     if (!response.ok) {
       if (response.status === 404 && electricityDate >= marketToday()) {
         // O OMIE responde 404 enquanto o ficheiro do dia ainda não foi publicado (D+1 sai à tarde).
         // Não é uma falha: responde 200 com published:false para o browser não registar erro.
         const pending = { date: electricityDate, published: false, periods: [],
-          _meta: { source: "OMIE · MARGINALPDBCPT · zona portuguesa", state: "pending", checkedAt: Date.now() } };
+          _meta: { source: OMIE_PT_SOURCE, state: "pending", checkedAt: Date.now() } };
         headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
         headers.set("X-Dash-Cache", "MISS");
         const result = jsonResponse(pending, 200, headers);
@@ -557,7 +573,7 @@ async function handleElectricity(url, electricityDate, headers, ctx) {
       if (stale) return stale;
       return jsonResponse({ error: "Resposta inválida do fornecedor" }, 502, headers);
     }
-    const output = { ...payload, _meta: { source: "OMIE · MARGINALPDBCPT · zona portuguesa", state: "live", checkedAt: Date.now() } };
+    const output = { ...payload, _meta: { source, state: "live", checkedAt: Date.now() } };
     headers.set("Cache-Control", cacheControl);
     headers.set("X-Dash-Cache", "MISS");
     const result = jsonResponse(output, 200, headers);
