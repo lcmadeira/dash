@@ -9,16 +9,14 @@
  */
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { parseSnirhTable } from "../worker/src/index.js";
+import { getBuffer } from "./lib/http-json.mjs";
 
 const PAGE = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
 const TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/tabelas/tabelageral.php";
 const OUT = new URL("../data/dams.json", import.meta.url);
-const UA = "Mozilla/5.0 (compatible; dash-data-updater/1.0)";
-
+/* O SNIRH tem cortes intermitentes (ECONNRESET, ligação sem resposta): 3 tentativas espaçadas. */
 async function getLatin1(url) {
-  const response = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html" }, signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(`HTTP ${response.status} em ${url}`);
-  return new TextDecoder("latin1").decode(await response.arrayBuffer());
+  return new TextDecoder("latin1").decode(await getBuffer(url, { timeoutMs: 60000, accept: "text/html" }));
 }
 
 const page = await getLatin1(PAGE);
