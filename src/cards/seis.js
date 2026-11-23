@@ -82,7 +82,7 @@
               const age = Math.round((Date.now() - (parsed.ts || 0)) / 60000);
               el.innerHTML = `<div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:6px;
                 padding:6px 10px;font-size:.74rem;color:var(--amber);margin-bottom:8px">
-                ⚠ A usar dados em cache (há ${age}min) — IPMA e USGS temporariamente inacessíveis
+                ⚠ A usar dados em cache (há ${window.nfr(age)}min) — IPMA e USGS temporariamente inacessíveis
               </div>`;
             }
           } catch {
@@ -116,8 +116,8 @@
             const severity = mag >= 4.5 ? "high" : mag >= 4.0 ? "medium" : "low";
             addNotification(
               "sismos",
-              `Sismo de magnitude ${mag.toFixed(1)} registado`,
-              `${place} • Profundidade: ${depth.toFixed(0)}km`,
+              `Sismo de magnitude ${window.nf(mag, 1)} registado`,
+              `${place} • Profundidade: ${window.nf(depth, 0)}km`,
               severity,
               { notifId, magnitude: mag, location: place, depth, timestamp: time },
             );
@@ -154,7 +154,7 @@
           col,
           r,
           mag,
-          label: `<b>M${mag.toFixed(1)}</b><br>${(f.properties.place || "").slice(0, 38)}<br>${dt} ${tm}`,
+          label: `<b>M${window.nf(mag, 1)}</b><br>${(f.properties.place || "").slice(0, 38)}<br>${dt} ${window.nfr(tm)}`,
         };
       });
 
@@ -166,23 +166,23 @@
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${use.length}</div>
-        <div style="font-size:.74rem;color:var(--t3)">${periodo}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(use.length)}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${window.nfr(periodo)}</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${maxMag.toFixed(1)}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nf(maxMag, 1)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Máx. M</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${big}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(big)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Mag ≥3</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${med}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(med)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Mag 2-3</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${total24h}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(total24h)}</div>
         <div style="font-size:.74rem;color:var(--t3)">24h</div>
       </div>
     </div>
@@ -196,23 +196,23 @@
            white-space:nowrap;top:8px;left:8px"></div>
       <div style="position:absolute;top:6px;right:6px;background:#F59E0B22;border:1px solid #F59E0B44;
            border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--amber)">
-        ${d[0]?.properties?.net === "ipma" ? "IPMA" : "USGS"} · ${periodo}
+        ${d[0]?.properties?.net === "ipma" ? "IPMA" : "USGS"} · ${window.nfr(periodo)}
       </div>
     </div>
 
     <!-- Legenda -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
       ${[
-        ["#EF4444", "≥ 4.0 — Forte"],
-        ["#F97316", "≥ 3.0"],
-        ["#F59E0B", "≥ 2.0"],
-        ["#8B5CF6", "< 2.0"],
+        ["#EF4444", "≥ 4,0 — Forte"],
+        ["#F97316", "≥ 3,0"],
+        ["#F59E0B", "≥ 2,0"],
+        ["#8B5CF6", "< 2,0"],
       ]
         .map(
           ([c, l]) => `
         <div style="display:flex;align-items:center;gap:4px;font-size:.74rem;color:var(--t3)">
           <div style="width:8px;height:8px;border-radius:50%;background:${c}"></div>
-          <span>${l}</span>
+          <span>${window.nfr(l)}</span>
         </div>`,
         )
         .join("")}
@@ -241,18 +241,18 @@
             return `<div style="display:grid;grid-template-columns:38px 1fr 80px;
                        align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--b)">
               <div style="background:${col}22;border:1px solid ${col}55;border-radius:4px;
-                   padding:2px 4px;font-size:.74rem;font-weight:700;color:${col};text-align:center">${mag}</div>
+                   padding:2px 4px;font-size:.74rem;font-weight:700;color:${col};text-align:center">${window.nfr(mag)}</div>
               <div style="font-size:.74rem;color:var(--text);white-space:nowrap;
-                   overflow:hidden;text-overflow:ellipsis">${place}</div>
+                   overflow:hidden;text-overflow:ellipsis">${window.nfr(place)}</div>
               <div style="font-size:.74rem;color:var(--t3);text-align:right;white-space:nowrap">
-                ${dts}<br>${tms}</div>
+                ${window.nfr(dts)}<br>${window.nfr(tms)}</div>
             </div>`;
           })
           .join("")}
         ${
           use.length > 10
             ? `<div style="font-size:.74rem;color:var(--t3);margin-top:4px;text-align:center">
-          + ${use.length - 10} eventos em ${periodo}</div>`
+          + ${use.length - 10} eventos em ${window.nfr(periodo)}</div>`
             : ""
         }
       </div>
@@ -276,8 +276,8 @@
               return `<div style="background:var(--b2);border-radius:6px;padding:5px 7px;
                    margin-bottom:4px;border:1px solid var(--b)">
                 <div style="font-size:.74rem;font-weight:600;color:var(--text)">${z.name}</div>
-                <div style="font-size:.74rem;color:var(--t3)">${ev.length} eventos</div>
-                <div style="font-size:.74rem;color:var(--t2)">máx M${mxZ}</div>
+                <div style="font-size:.74rem;color:var(--t3)">${window.nfr(ev.length)} eventos</div>
+                <div style="font-size:.74rem;color:var(--t2)">máx M${window.nfr(mxZ)}</div>
               </div>`;
             })
             .join("");

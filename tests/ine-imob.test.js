@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 import { parseIneMedian, parseQuarter, summarizeImob } from "../scripts/lib/ine-imob.mjs";
 
 test("INE quarterly labels and the 12-month median series are parsed in order", async () => {

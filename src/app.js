@@ -11,7 +11,7 @@
 /* Pills */
 document.getElementById("pills").innerHTML=
   ["IPMA","TradingView","CoinGecko","Google News","BCE/ECB"].map(n=>
-    `<span class="pill ok"><span class="dot"></span>${n}</span>`).join("");
+    `<span class="pill ok"><span class="dot"></span>${window.nfr(n)}</span>`).join("");
 
 /* Clock */
 function tick(){
@@ -1452,7 +1452,7 @@ function renderCardToggles() {
     group.innerHTML = `
       <div class="card-toggle-group-head">
         <h3 class="card-toggle-group-title">${escSettingsHtml(section.label)}</h3>
-        <span class="card-toggle-group-count">${visibleCount} de ${indices.length} visíveis</span>
+        <span class="card-toggle-group-count">${window.nfr(visibleCount)} de ${window.nfr(indices.length)} visíveis</span>
         <div class="card-toggle-group-actions">
           <button type="button" class="card-group-btn" data-show="1" ${visibleCount === indices.length ? 'disabled' : ''}>Mostrar todos</button>
           <button type="button" class="card-group-btn" data-show="0" ${visibleCount === 0 ? 'disabled' : ''}>Ocultar todos</button>
@@ -1677,7 +1677,7 @@ function renderLocationGrid() {
     div.onclick = () => selectLocation(loc.id);
     div.innerHTML = `
       <div class="location-name">${loc.name}</div>
-      <div class="location-region">${loc.region}</div>
+      <div class="location-region">${window.nfr(loc.region)}</div>
     `;
     container.appendChild(div);
   });
@@ -2532,7 +2532,7 @@ function renderNotificationList() {
           <div class="notif-item-content">
             <div class="notif-item-type ${n.type}">${n.type.toUpperCase()}</div>
             <div class="notif-item-title">${n.title}</div>
-            <div class="notif-item-desc">${n.description}</div>
+            <div class="notif-item-desc">${window.nfr(n.description)}</div>
             <div class="notif-item-time">${time}</div>
           </div>
           <button class="notif-item-dismiss" onclick="dismissNotification(event, '${n.id}')">✕</button>
@@ -2642,7 +2642,7 @@ function showToast(notif) {
     <div class="toast-icon" aria-hidden="true">${icons[notif.type] || '📌'}</div>
     <div class="toast-content">
       <div class="toast-title">${notif.title}</div>
-      <div class="toast-message">${notif.description}</div>
+      <div class="toast-message">${window.nfr(notif.description)}</div>
     </div>
     <button class="toast-close" onclick="this.parentElement.classList.add('hiding'); setTimeout(() => this.parentElement.remove(), 300)">✕</button>
   `;
@@ -2911,8 +2911,8 @@ function renderFuelModal(){
       </div>
     </div>
     <div style="font-family:var(--mono);font-size:.74rem;color:var(--t2);line-height:1.7;margin-bottom:10px">
-      <div><span style="color:var(--t3)">PT</span> · API Aberta · data ${ptDate} · atualizado ${ptUpd} · cache ${ptAge}</div>
-      <div><span style="color:var(--t3)">ES</span> · MITECO/MINETUR · ${esWhen} · cache ${esAge}</div>
+      <div><span style="color:var(--t3)">PT</span> · API Aberta · data ${ptDate} · atualizado ${window.nfr(ptUpd)} · cache ${window.nfr(ptAge)}</div>
+      <div><span style="color:var(--t3)">ES</span> · MITECO/MINETUR · ${window.nfr(esWhen)} · cache ${window.nfr(esAge)}</div>
     </div>
     <table class="tbl" aria-label="Detalhe de postos usados no cálculo">
       <thead><tr>
@@ -3646,19 +3646,19 @@ function showTrendModal(title, historyKey, options = {}) {
   document.getElementById('trend-stats').innerHTML = `
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Atual</div>
-      <div style="font-size:1.3rem;font-weight:700;color:${options.borderColor || '#E9A520'}">${current.toFixed(dec)}${unit}</div>
+      <div style="font-size:1.3rem;font-weight:700;color:${options.borderColor || '#E9A520'}">${window.nf(current, dec)}${unit}</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Variação</div>
-      <div style="font-size:1.3rem;font-weight:700;color:${change >= 0 ? '#EF4444' : '#10B981'}">${change >= 0 ? '+' : ''}${change.toFixed(1)}%</div>
+      <div style="font-size:1.3rem;font-weight:700;color:${change >= 0 ? '#EF4444' : '#10B981'}">${change >= 0 ? '+' : ''}${window.nf(change, 1)}%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Mínimo</div>
-      <div style="font-size:1.1rem;font-weight:600;color:var(--green)">${min.toFixed(dec)}${unit}</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--green)">${window.nf(min, dec)}${unit}</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:12px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);margin-bottom:4px">Máximo</div>
-      <div style="font-size:1.1rem;font-weight:600;color:var(--red)">${max.toFixed(dec)}${unit}</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--red)">${window.nf(max, dec)}${unit}</div>
     </div>
   `;
   
@@ -3685,7 +3685,7 @@ const CABAZ_ANUAL=[
   {y:2022, v:195.40, label:"2022", note:"Início guerra Ucrânia · inflação histórica"},
   {y:2023, v:228.60, label:"2023", note:"Pico inflação alimentar · IVA zero aplicado"},
   {y:2024, v:237.00, label:"2024", note:"Estabilização · inflação a ceder"},
-  {y:2025, v:243.50, label:"2025", note:"Subida moderada · 2.3% IPC médio"},
+  {y:2025, v:243.50, label:"2025", note:"Subida moderada · 2,3% IPC médio"},
   {y:2026, v:254.18, label:"2026", note:"Média parcial Jan-Set · última série média disponível"},
 ];
 
@@ -3878,7 +3878,7 @@ function renderCabaz(){
   const yearTicks=years.map(y=>{
     const idx=hist.findIndex(e=>e[0].startsWith(y));
     return idx>=0?`<text x="${spx(idx)}" y="${SH+14}" font-size="7.5" fill="var(--t3)"
-      text-anchor="middle">${y}</text>`:""
+      text-anchor="middle">${window.nfr(y)}</text>`:""
   }).join("");
 
   /* Classificação da tendência esta semana */
@@ -3904,39 +3904,39 @@ function renderCabaz(){
     </div>
     <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">
       <div style="font-size:2.6rem;font-weight:900;color:var(--green);line-height:1;letter-spacing:-1px">
-        ${cur[1].toFixed(2)}</div>
+        ${window.nf(cur[1], 2)}</div>
       <div style="font-size:.85rem;color:var(--t3);margin-bottom:4px">€</div>
       <div style="flex:1"></div>
       <div style="text-align:right">
         <div style="font-size:.75rem;font-weight:700;color:${wCol}">
-          ${wArr} ${Math.abs(weekChg).toFixed(2)}€ <span style="font-size:.74rem;font-weight:400">(${Math.abs(weekPct).toFixed(2)}%)</span>
+          ${window.nfr(wArr)} ${window.nf(Math.abs(weekChg), 2)}€ <span style="font-size:.74rem;font-weight:400">(${window.nf(Math.abs(weekPct), 2)}%)</span>
         </div>
         <div style="font-size:.74rem;color:var(--t3)">vs semana anterior</div>
       </div>
     </div>
     ${cur[2]?`<div style="font-size:.74rem;color:var(--t3);border-top:1px solid var(--b);
-       padding-top:5px;margin-top:2px">💬 ${cur[2]}</div>`:""}
+       padding-top:5px;margin-top:2px">💬 ${window.nfr(cur[2])}</div>`:""}
   </div>
 
   <!-- KPIs 4 em grelha -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px">
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
-      <div style="font-size:1rem;font-weight:800;color:${wCol}">${wArr}${Math.abs(weekPct).toFixed(1)}%</div>
+      <div style="font-size:1rem;font-weight:800;color:${wCol}">${window.nfr(wArr)}${window.nf(Math.abs(weekPct), 1)}%</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">semana</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:${wColYTD}">
-        ${ytdChg>=0?"+":""}${ytdChg.toFixed(2)}€</div>
+        ${ytdChg>=0?"+":""}${window.nf(ytdChg, 2)}€</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">desde Jan ${curYear}</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:${wColYear}">
-        ${yearChg>=0?"+":""}${Math.abs(yearChg).toFixed(2)}€</div>
+        ${yearChg>=0?"+":""}${window.nf(Math.abs(yearChg), 2)}€</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">vs 1 ano atrás</div>
     </div>
     <div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
       <div style="font-size:1rem;font-weight:800;color:var(--red)">
-        +${Math.abs(totalPct).toFixed(1)}%</div>
+        +${window.nf(Math.abs(totalPct), 1)}%</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">desde Jan 2022</div>
     </div>
   </div>
@@ -3945,7 +3945,7 @@ function renderCabaz(){
   <div style="background:var(--b2);border-radius:8px;padding:10px 12px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
       <div style="font-size:.74rem;font-weight:600;color:var(--t2)">Evolução Jan 2022 → Hoje</div>
-      <div style="font-size:.74rem;color:var(--t3)">${hist.length} registos</div>
+      <div style="font-size:.74rem;color:var(--t3)">${window.nfr(hist.length)} registos</div>
     </div>
     <svg viewBox="0 0 ${SW} ${SH+18}" style="width:100%;height:${SH+18}px">
       <defs>
@@ -3958,7 +3958,7 @@ function renderCabaz(){
       <line x1="0" y1="${spy(start[1])}" x2="${SW}" y2="${spy(start[1])}"
             stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3"/>
       <text x="2" y="${spy(start[1])-3}" font-size="6.5" fill="rgba(255,255,255,.3)">
-        ${start[1].toFixed(0)}€
+        ${window.nf(start[1], 0)}€
       </text>
       <!-- Área + linha -->
       <polygon points="${fill}" fill="url(#cabaz-grad)"/>
@@ -3967,10 +3967,10 @@ function renderCabaz(){
       <circle cx="${spx(vals.length-1)}" cy="${spy(cur[1])}" r="4" fill="#10B981"/>
       <text x="${Math.min(spx(vals.length-1)-2,SW-32)}" y="${spy(cur[1])-6}"
             font-size="7" fill="#10B981" text-anchor="end" font-weight="bold">
-        ${cur[1].toFixed(2)}€
+        ${window.nf(cur[1], 2)}€
       </text>
       <!-- Ticks de ano -->
-      ${yearTicks}
+      ${window.nfr(yearTicks)}
     </svg>
   </div>
 
@@ -3985,14 +3985,14 @@ function renderCabaz(){
         const bw=(a.v/maxV*100).toFixed(1);
         const col=a.y===CABAZ_ANUAL[CABAZ_ANUAL.length-1].y?"var(--accent)":"var(--data-muted)";
         return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
-          <div style="font-family:var(--mono);font-size:.74rem;color:var(--t2);min-width:32px">${a.y}</div>
+          <div style="font-family:var(--mono);font-size:.74rem;color:var(--t2);min-width:32px">${window.nfr(a.y)}</div>
           <div style="flex:1;background:var(--b);border-radius:3px;height:7px">
             <div style="width:${bw}%;height:100%;background:${col};border-radius:3px"></div>
           </div>
           <div style="font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--text);min-width:52px;text-align:right">
-            ${a.v.toFixed(2)}€</div>
+            ${window.nf(a.v, 2)}€</div>
         </div>
-        <div style="font-size:.74rem;color:var(--t3);margin:-2px 0 4px 39px">${a.note}</div>`;
+        <div style="font-size:.74rem;color:var(--t3);margin:-2px 0 4px 39px">${window.nfr(a.note)}</div>`;
       }).join("");
     })()}
   </div>

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 
 async function loadScript(path, extra = {}) {
   const context = vm.createContext({ console: { log() {}, warn() {}, info() {} }, localStorage: { getItem: () => null }, ...extra });

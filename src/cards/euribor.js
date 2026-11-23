@@ -239,11 +239,11 @@ function renderEuribor(){
     ${yticks.map(v=>`<line x1="${PAD.l}" y1="${sy(v)}" x2="${W-PAD.r}" y2="${sy(v)}"
       stroke="var(--b)" stroke-width="1"/>`).join("")}
     ${yticks.map(v=>`<text x="${PAD.l-3}" y="${sy(v)+4}" text-anchor="end"
-      font-size="7" fill="var(--t3)">${v.toFixed(1)}</text>`).join("")}
+      font-size="7" fill="var(--t3)">${window.nf(v, 1)}</text>`).join("")}
     ${histRev.filter((_,i)=>i%2===0).map(row=>{
       const origIdx=histRev.indexOf(row);
       return`<text x="${sx(origIdx)}" y="${H-2}" text-anchor="middle"
-        font-size="7" fill="var(--t3)">${row[0]}</text>`;
+        font-size="7" fill="var(--t3)">${window.nfr(row[0])}</text>`;
     }).join("")}
     ${lines.map((pts,ci)=>`<polyline points="${pts}" fill="none"
       stroke="${lineColors[ci]}" stroke-width="1.8" stroke-linejoin="round"/>`).join("")}
@@ -270,48 +270,48 @@ function renderEuribor(){
   const expColor=!showExpectations?"var(--b2)":bce.expectativa==="Corte"?"var(--green)":bce.expectativa==="Subida"?"var(--red)":"var(--amber)";
 
   const sourceTag=d._source==="bce_live"
-    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${d.updated}</span>`
-    :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${d.updated}</span>`;
+    ?`<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">\u25CF BCE live \u00b7 ${window.nfr(d.updated)}</span>`
+    :`<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 6px">\u26a0 EMMI est\u00e1tico \u00b7 ${window.nfr(d.updated)}</span>`;
 
   const periodoGraf=d.hist.length>0
     ?`${d.hist[d.hist.length-1][0]} \u2192 ${d.hist[0][0]}`:"—";
 
   el.innerHTML=`
-  <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${window.nfr(sourceTag)}</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:8px">
     ${d.rates.map(r=>{
       const diff=r.val-r.prev;
       const dCol=diff<0?"#10B981":"#EF4444";
       return`<div style="background:var(--surface);border:1px solid var(--b);border-radius:6px;padding:5px 4px;text-align:center">
-        <div style="font-size:.74rem;color:var(--t3);font-weight:600">${r.term}</div>
+        <div style="font-size:.74rem;color:var(--t3);font-weight:600">${window.nfr(r.term)}</div>
         <div style="font-family:var(--mono);font-size:.85rem;font-weight:700;
-             color:var(--text);line-height:1.1;margin:2px 0">${r.val.toFixed(3)}<span style="font-size:.74rem">%</span></div>
-        <div style="font-size:.74rem;color:${dCol}">${diff<0?"\u25bc":"\u25b2"}${Math.abs(diff).toFixed(3)}pp</div>
+             color:var(--text);line-height:1.1;margin:2px 0">${window.nf(r.val, 3)}<span style="font-size:.74rem">%</span></div>
+        <div style="font-size:.74rem;color:${dCol}">${diff<0?"\u25bc":"\u25b2"}${window.nf(Math.abs(diff), 3)}pp</div>
         ${r.hipot?`<div style="font-size:.74rem;color:var(--t3);margin-top:1px">\uD83C\uDFE0 hipot.</div>`:""}
       </div>`;
     }).join("")}
   </div>
   <div style="background:var(--b2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div style="font-size:.74rem;color:var(--t3)">Evolu\u00e7\u00e3o mensal \u00b7 ${periodoGraf}</div>
+      <div style="font-size:.74rem;color:var(--t3)">Evolu\u00e7\u00e3o mensal \u00b7 ${window.nfr(periodoGraf)}</div>
       <div style="display:flex;gap:8px">
-        ${lineColors.map((c,i)=>`<span style="font-size:.74rem;color:${c}">\u25cf ${lineLabels[i]}</span>`).join("")}
+        ${lineColors.map((c,i)=>`<span style="font-size:.74rem;color:${c}">\u25cf ${window.nfr(lineLabels[i])}</span>`).join("")}
       </div>
     </div>
-    ${svgChart}
+    ${window.nfr(svgChart)}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;
        background:var(--b2);border-radius:8px;overflow:hidden;margin-bottom:8px">
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">BCE Dep\u00f3sito</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue)">${d.bce.dep.toFixed(2)}%</div>
-      <div style="font-size:.74rem;color:var(--t3)">refin. ${d.bce.refin.toFixed(2)}%${BDP_RATES?.refDate?` \u00b7 BdP ${fmtRefDate(BDP_RATES.refDate)}`:" \u00b7 ref. est\u00e1tica"}</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--blue)">${window.nf(d.bce.dep, 2)}%</div>
+      <div style="font-size:.74rem;color:var(--t3)">refin. ${window.nf(d.bce.refin, 2)}%${BDP_RATES?.refDate?` \u00b7 BdP ${fmtRefDate(BDP_RATES.refDate)}`:" \u00b7 ref. est\u00e1tica"}</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
       <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;margin-bottom:2px">Pico ${d.peak.date}</div>
-      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red)">${d.peak.val.toFixed(3)}%</div>
-      <div style="font-size:.74rem;color:var(--green)">\u25bc ${quedaPP}pp (${quedaPico}%)</div>
+      <div style="font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--red)">${window.nf(d.peak.val, 3)}%</div>
+      <div style="font-size:.74rem;color:var(--green)">\u25bc ${window.nfr(quedaPP)}pp (${window.nfr(quedaPico)}%)</div>
     </div>
     <div style="background:var(--b)"></div>
     <div style="padding:7px 10px;text-align:center">
@@ -330,7 +330,7 @@ function renderEuribor(){
         <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${showExpectations?bce.nota:"Decis\u00e3o \u00e0s 13:45 (Lisboa). Sem expectativas de mercado atualizadas automaticamente."}</div>
       </div>
       ${showExpectations?`<div style="text-align:right;min-width:60px">
-        <div style="font-size:.74rem;font-weight:700;color:${expColor}">${bce.expectativa}</div>
+        <div style="font-size:.74rem;font-weight:700;color:${expColor}">${window.nfr(bce.expectativa)}</div>
         <div style="font-size:.74rem;color:var(--t3)">consenso</div>
       </div>`:""}
     </div>
@@ -342,7 +342,7 @@ function renderEuribor(){
       ].map(b=>`<div>
         <div style="display:flex;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:.74rem;color:var(--t3)">${b.label}</span>
-          <span style="font-size:.74rem;font-weight:600;color:${b.col}">${b.prob}%</span>
+          <span style="font-size:.74rem;font-weight:600;color:${b.col}">${window.nfr(b.prob)}%</span>
         </div>
         <div style="background:var(--b);border-radius:3px;height:5px">
           <div style="width:${b.prob}%;height:100%;background:${b.col};border-radius:3px"></div>
@@ -361,21 +361,21 @@ function renderEuribor(){
         {label:"Spread t\u00edpico", val:sp.tipico, col:"#F59E0B"},
         {label:"Spread m\u00e1x.",   val:sp.max,    col:"#EF4444"},
       ].map(s=>`<div style="text-align:center">
-        <div style="font-size:.74rem;font-weight:700;color:${s.col}">${s.val.toFixed(2)}%</div>
+        <div style="font-size:.74rem;font-weight:700;color:${s.col}">${window.nf(s.val, 2)}%</div>
         <div style="font-size:.74rem;color:var(--t3)">${s.label}</div>
       </div>`).join("")}
     </div>
     ${BDP_RATES?.housing?`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--t2);margin-bottom:5px;padding:4px 0;border-top:1px solid var(--b);border-bottom:1px solid var(--b)">
       <span>Taxa m\u00e9dia dos novos cr\u00e9ditos \u00e0 habita\u00e7\u00e3o (BdP, ${fmtRefDate(BDP_RATES.housing.refDate,{month:"short",year:"numeric"})})</span>
-      <b style="color:var(--text)">${BDP_RATES.housing.value.toFixed(2)}%</b></div>`:""}
-    <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread t\u00edpico ${sp.tipico.toFixed(2)}%):</div>
+      <b style="color:var(--text)">${window.nf(BDP_RATES.housing.value, 2)}%</b></div>`:""}
+    <div style="font-size:.74rem;color:var(--t3);margin-bottom:3px">TAN efectiva estimada (Euribor + spread t\u00edpico ${window.nf(sp.tipico, 2)}%):</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
       ${d.rates.filter(r=>r.hipot).map(r=>`
         <div style="background:var(--surface);border-radius:5px;padding:4px 6px;text-align:center;
              border:1px solid ${r.color}33">
-          <div style="font-size:.74rem;color:var(--t3)">Euribor ${r.termFull}</div>
+          <div style="font-size:.74rem;color:var(--t3)">Euribor ${window.nfr(r.termFull)}</div>
           <div style="font-size:.75rem;font-weight:700;color:${r.color}">
-            ${(r.val+sp.tipico).toFixed(3)}%</div>
+            ${window.nf(r.val+sp.tipico, 3)}%</div>
           <div style="font-size:.74rem;color:var(--t3)">TAN est.</div>
         </div>`).join("")}
     </div>

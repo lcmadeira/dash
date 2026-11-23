@@ -99,30 +99,30 @@ async function loadAir(force=false){
       const fl=alt?`FL${Math.round(alt/30.48/10)*10}`:"Solo";
       const vel=s[9]?Math.round(s[9]*3.6)+"km/h":"";
       return {lat:s[6],lon:s[5],col,r:onGnd?2:3,hdg:s[10]||0,
-              label:`<b>${escapeHtml(cs)}</b>${onGnd?" · Em terra":""}<br>${fl} ${vel}<br>${escapeHtml(s[2]||"")}`};
+              label:`<b>${escapeHtml(cs)}</b>${onGnd?" · Em terra":""}<br>${window.nfr(fl)} ${window.nfr(vel)}<br>${escapeHtml(s[2]||"")}`};
     });
 
     el.innerHTML=`
     <!-- KPIs compactos numa linha -->
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${flying.length}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(flying.length)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Em voo</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${ground.length}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${window.nfr(ground.length)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Em terra</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">▲${climbing}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--green);line-height:1">▲${window.nfr(climbing)}</div>
         <div style="font-size:.74rem;color:var(--t3)">A subir</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--red);line-height:1">▼${descending}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--red);line-height:1">▼${window.nfr(descending)}</div>
         <div style="font-size:.74rem;color:var(--t3)">A descer</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${avgAlt?(avgAlt/1000).toFixed(1)+"k":"—"}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text);line-height:1">${avgAlt?window.nf(avgAlt/1000, 1)+"k":"—"}</div>
         <div style="font-size:.74rem;color:var(--t3)">Alt.méd m</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
@@ -145,7 +145,7 @@ async function loadAir(force=false){
       <!-- Badge live -->
       <div style="position:absolute;top:6px;right:6px;background:${late?"#F59E0B22":"#10B98122"};border:1px solid ${late?"#F59E0B44":"#10B98144"};
            border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${late?"var(--amber)":"var(--green)"}">
-        ${late?"🟠 Atrasado":"🟢 Live"} · ${age}min
+        ${late?"🟠 Atrasado":"🟢 Live"} · ${window.nfr(age)}min
       </div>
     </div>
 
@@ -153,7 +153,7 @@ async function loadAir(force=false){
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
       ${altBands.map(b=>`<div style="display:flex;align-items:center;gap:3px;font-size:.74rem;color:var(--t3)">
         <div style="width:7px;height:7px;border-radius:50%;background:${b.col}"></div>
-        <span>${b.label} <b style="color:var(--t2)">${b.count}</b></span>
+        <span>${b.label} <b style="color:var(--t2)">${window.nfr(b.count)}</b></span>
       </div>`).join("")}
       <div style="flex:1;min-width:80px">
         <div style="display:flex;gap:1px;height:5px;border-radius:3px;overflow:hidden">
@@ -187,8 +187,8 @@ async function loadAir(force=false){
                        align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid var(--b)">
             <div style="font-size:.74rem;font-weight:700;color:var(--text);
                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(cs)}</div>
-            <div style="font-size:.74rem;color:${altCol};font-weight:600">${fl}</div>
-            <div style="font-size:.74rem;color:var(--t2)">${vel}<span style="font-size:.74rem">km/h</span></div>
+            <div style="font-size:.74rem;color:${altCol};font-weight:600">${window.nfr(fl)}</div>
+            <div style="font-size:.74rem;color:var(--t2)">${window.nfr(vel)}<span style="font-size:.74rem">km/h</span></div>
             <div style="font-size:.74rem;color:${vrCol}">${vrIcon}</div>
             <div style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;
                  text-overflow:ellipsis">${escapeHtml(al||s[2]||"")}</div>
@@ -201,14 +201,14 @@ async function loadAir(force=false){
         ${topCtry.map(([c,n])=>`<div style="display:flex;justify-content:space-between;
              gap:8px;padding:3px 0;border-bottom:1px solid var(--b)">
           <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">${escapeHtml(c)}</span>
-          <span style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--text)">${n}</span>
+          <span style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--text)">${window.nfr(n)}</span>
         </div>`).join("")}
         <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin:8px 0 4px">Aeroportos</div>
         ${AIRPORTS.filter(a=>a.code!=="MAD"&&a.code!=="BCN"&&a.lon>=-13&&a.lon<=5&&a.lat>=35&&a.lat<=44.5).map(a=>`<div style="display:flex;
              align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid var(--b)">
           <div style="width:6px;height:6px;border-radius:50%;background:${a.col};flex-shrink:0"></div>
           <span style="font-family:var(--mono);font-size:.74rem;font-weight:700;color:${a.col}">${a.code}</span>
-          <span style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name.split(" ")[0]}</span>
+          <span style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${window.nfr(a.name.split(" ")[0])}</span>
         </div>`).join("")}
         <div style="font-size:.74rem;color:var(--t3);margin-top:6px">lon[-12,-5]<br>lat[36,44]</div>
       </div>

@@ -160,29 +160,29 @@ function renderInflation(){
   const ptC  = 'var(--accent)', euC = 'var(--blue)';
 
   const sourceTag = source === 'eurostat_live'
-    ? `<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${data[0].m}</span>`
-    : `<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${data[0].m}</span>`;
+    ? `<span style="font-size:.74rem;color:var(--green);background:#10B98115;border-radius:3px;padding:1px 6px">● Eurostat · ${window.nfr(data[0].m)}</span>`
+    : `<span style="font-size:.74rem;color:var(--amber);background:#F59E0B15;border-radius:3px;padding:1px 5px">⚠ estático · ${window.nfr(data[0].m)}</span>`;
 
   el.innerHTML = `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${sourceTag}</div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">${window.nfr(sourceTag)}</div>
     <div class="inf-hero">
       <div class="inf-block">
         <div class="inf-flag">🇵🇹</div>
-        <div class="inf-val" style="color:${ptC}">${l.pt.toFixed(1)}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-val" style="color:${ptC}">${window.nf(l.pt, 1)}<span style="font-size:.8rem">%</span></div>
         <div class="inf-lbl">Portugal · IHPC</div>
-        <div class="inf-lbl">${l.m}</div>
+        <div class="inf-lbl">${window.nfr(l.m)}</div>
       </div>
       <div class="inf-sep"></div>
       <div class="inf-block">
         <div class="inf-flag">🇪🇺</div>
-        <div class="inf-val" style="color:${euC}">${l.eu.toFixed(1)}<span style="font-size:.8rem">%</span></div>
+        <div class="inf-val" style="color:${euC}">${window.nf(l.eu, 1)}<span style="font-size:.8rem">%</span></div>
         <div class="inf-lbl">Zona Euro · IHPC</div>
-        <div class="inf-lbl">${l.m}</div>
+        <div class="inf-lbl">${window.nfr(l.m)}</div>
       </div>
       <div class="inf-sep"></div>
       <div class="inf-block">
         <div class="inf-flag" style="font-size:.75rem;margin-bottom:5px">Meta BCE</div>
-        <div class="inf-val" style="color:var(--green);font-size:1.35rem">2.0<span style="font-size:.8rem">%</span></div>
+        <div class="inf-val" style="color:var(--green);font-size:1.35rem">2,0<span style="font-size:.8rem">%</span></div>
         <div class="inf-lbl" style="color:${l.eu<=2.2?'var(--green)':'var(--red)'}">${l.eu<=2.2?'✓ próximo':'▲ acima'} da meta</div>
         <div class="inf-lbl">&nbsp;</div>
       </div>
@@ -190,13 +190,13 @@ function renderInflation(){
     <div class="inf-hist">${data.map(d=>{
       const bp=Math.round((d.pt/maxV)*100), be=Math.round((d.eu/maxV)*100);
       return `<div class="inf-row">
-        <div class="inf-row-lbl">${d.m}</div>
+        <div class="inf-row-lbl">${window.nfr(d.m)}</div>
         <div class="inf-bar-wrap">
           <div class="inf-bar-pt" style="width:${bp}%;background:${ptC}"></div>
           <div class="inf-bar-eu" style="width:${be}%;background:${euC}"></div>
         </div>
-        <div class="inf-row-pt" style="color:${ptC}">${d.pt.toFixed(1)}%</div>
-        <div class="inf-row-eu" style="color:${euC}">${d.eu.toFixed(1)}%</div>
+        <div class="inf-row-pt" style="color:${ptC}">${window.nf(d.pt, 1)}%</div>
+        <div class="inf-row-eu" style="color:${euC}">${window.nf(d.eu, 1)}%</div>
       </div>`;
     }).join('')}</div>
     <div style="display:flex;gap:14px;margin-top:8px">

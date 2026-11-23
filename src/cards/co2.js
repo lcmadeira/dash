@@ -42,7 +42,7 @@ async function loadCO2(_force=false){
         <div style="font-size:.74rem;color:var(--t3)">média 2024</div>
       </div>
       <div style="background:var(--b2);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:1.6rem;font-weight:800;color:var(--text)">${renStatic.toFixed(0)}%</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--text)">${window.nf(renStatic, 0)}%</div>
         <div style="font-size:.74rem;color:var(--t2)">Renováveis</div>
         <div style="font-size:.74rem;color:var(--t3)">mix 2024</div>
       </div>
@@ -60,23 +60,23 @@ async function loadCO2(_force=false){
       const fc_col=x.f===0?"#10B981":x.f<300?"#84CC16":x.f<450?"#F59E0B":"#EF4444";
       return `<div style="display:flex;align-items:center;gap:7px;margin:4px 0">
         <div style="font-size:.8rem;width:18px">${x.ico}</div>
-        <div style="font-size:.74rem;color:var(--t2);width:90px;white-space:nowrap;overflow:hidden">${x.n}</div>
+        <div style="font-size:.74rem;color:var(--t2);width:90px;white-space:nowrap;overflow:hidden">${window.nfr(x.n)}</div>
         <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
           <div style="width:${pct}%;height:100%;background:var(--data);border-radius:3px"></div>
         </div>
-        <div style="font-size:.74rem;color:var(--text);font-weight:600;width:32px;text-align:right">${pct}%</div>
-        <div style="font-size:.74rem;color:${fc_col};width:38px;text-align:right">${x.f}g</div>
+        <div style="font-size:.74rem;color:var(--text);font-weight:600;width:32px;text-align:right">${window.nfr(pct)}%</div>
+        <div style="font-size:.74rem;color:${fc_col};width:38px;text-align:right">${window.nfr(x.f)}g</div>
       </div>`;
     }).join("")}
 
     <!-- Comparação EU -->
     <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin:10px 0 5px">Intensidade carbónica · comparação EU (2023)</div>
     ${COMPARE.map(x=>`<div style="display:flex;align-items:center;gap:7px;margin:3px 0">
-      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:24px">${x.n}</div>
+      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:24px">${window.nfr(x.n)}</div>
       <div style="flex:1;background:var(--b2);border-radius:3px;height:6px">
         <div style="width:${(x.v/maxCO2*100).toFixed(0)}%;height:100%;background:${x.hl?"var(--accent)":"var(--data-muted)"};border-radius:3px"></div>
       </div>
-      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:48px;text-align:right">${x.v} g</div>
+      <div style="font-size:.74rem;${x.hl?"font-weight:700;color:var(--text)":"color:var(--t2)"};width:48px;text-align:right">${window.nfr(x.v)} g</div>
     </div>`).join("")}`;
 }
 
