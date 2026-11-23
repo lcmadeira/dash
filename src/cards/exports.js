@@ -1,10 +1,11 @@
-/* global $, document, window */
+/* global $, document, window, fetchJsonFirstOk, lsGet, lsSet */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   EXPORTAÇÕES PT — dados estáticos INE 2024
+   EXPORTAÇÕES PT — data/exports.json (INE 0001400, últimos 12 meses; atualizado pelo
+   cron do portátil, scripts/update-exports.mjs). Valores fixos de 2024 como alternativa.
    ══════════════════════════════════════════════════════════════ */
-const /* Exportações PT — INE/AICEP Jan-Nov 2024 (publicado Jan 2025) */
-EXP_DATA={
+/* Alternativa fixa: INE/AICEP jan–nov 2024 (publicado jan 2025) */
+let EXP_DATA={
   destinos:[
     {n:"Espanha",      v:25.9,c:"var(--data)"},
     {n:"Alemanha",     v:12.6,c:"var(--data)"},
@@ -27,6 +28,37 @@ EXP_DATA={
   ]
 };
 let EXP_MODE="destinos";
+const EXP_CACHE_KEY="exp_ine_v1";
+const EXP_MONTHS=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const expMonth=ym=>{const [y,m]=String(ym||"").split("-");return `${EXP_MONTHS[Number(m)-1]||"?"} ${y}`;};
+
+function isValidExports(d){
+  const ok=list=>Array.isArray(list)&&list.length>=4&&list.every(x=>typeof x?.n==="string"&&Number.isFinite(x?.v)&&x.v>=0&&x.v<=100);
+  return ok(d?.destinos)&&ok(d?.produtos)&&/^\d{4}-\d{2}$/.test(d?.period?.from||"")&&/^\d{4}-\d{2}$/.test(d?.period?.to||"");
+}
+
+function applyExports(d){
+  const color="var(--data)";
+  EXP_DATA={destinos:d.destinos.map(x=>({n:x.n,v:x.v,c:color})),produtos:d.produtos.map(x=>({n:x.n,v:x.v,c:color}))};
+  const src=document.getElementById("expSrc");
+  if(src) src.textContent=`✦ INE · comércio internacional de bens (indicador 0001400) · quota nos 12 meses de ${expMonth(d.period.from)} a ${expMonth(d.period.to)}`;
+}
+
+/* data/exports.json do próprio site (o INE não permite CORS; o ficheiro é gerado no portátil). */
+async function loadExp(force=false){
+  const cached=force?null:lsGet(EXP_CACHE_KEY);
+  if(isValidExports(cached)){ applyExports(cached); renderExp(); window.refreshCardStatusFromCache?.("exp",EXP_CACHE_KEY); return; }
+  try{
+    const url=new URL("data/exports.json",window.location.href).href;
+    const d=await fetchJsonFirstOk(url,{cache:"no-cache"},10000,["direct"],isValidExports);
+    lsSet(EXP_CACHE_KEY,d,{source:"INE · indicador 0001400",state:"live",observedAt:d._meta?.observedAt?Date.parse(`${d._meta.observedAt}T12:00:00Z`):undefined});
+    applyExports(d);
+  }catch(error){
+    console.debug?.("Exportações: data/exports.json indisponível; valores fixos de 2024",error?.message||error);
+  }
+  renderExp();
+  window.refreshCardStatusFromCache?.("exp",EXP_CACHE_KEY);
+}
 function switchExp(mode,btn){
   if(mode!=="destinos"&&mode!=="produtos")return;
   EXP_MODE=mode;
@@ -51,4 +83,6 @@ function renderExp(){
 
 window.switchExp = switchExp;
 window.renderExp = renderExp;
+window.loadExp = loadExp;
+window.isValidExports = isValidExports;
 })();

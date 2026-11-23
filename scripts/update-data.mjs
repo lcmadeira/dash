@@ -8,7 +8,7 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const UPDATERS = ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs"];
+const UPDATERS = ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs", "update-exports.mjs"];
 let failures = 0;
 for (const name of UPDATERS) {
   const script = fileURLToPath(new URL(name, import.meta.url));
