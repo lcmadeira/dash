@@ -35,11 +35,11 @@ function renderDiv(){
     const mx=sorted[0].v;
     el.innerHTML=`<div style="margin-top:6px">${sorted.map(r=>`
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0">
-        <div style="font-size:.74rem;color:${r.hl?"var(--text)":"var(--t2)"};width:68px;${r.hl?"font-weight:700":""};white-space:nowrap">${r.n}</div>
+        <div style="font-size:.74rem;color:${r.hl?"var(--text)":"var(--t2)"};width:68px;${r.hl?"font-weight:700":""};white-space:nowrap">${window.nfr(r.n)}</div>
         <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
           <div style="width:${(r.v/mx*100).toFixed(1)}%;height:100%;background:${r.c};border-radius:3px"></div>
         </div>
-        <div style="font-size:.74rem;font-weight:600;color:${r.hl?"var(--text)":"var(--t2)"};width:44px;text-align:right">${r.v}%</div>
+        <div style="font-size:.74rem;font-weight:600;color:${r.hl?"var(--text)":"var(--t2)"};width:44px;text-align:right">${window.nfr(r.v)}%</div>
       </div>`).join("")}</div>`;
   }else{
     const vals=DIV_TREND.map(x=>x.v);
@@ -56,8 +56,8 @@ function renderDiv(){
         <polyline points="${pts}" fill="none" style="stroke:var(--accent)" stroke-width="2"/>
         ${DIV_TREND.map((x,i)=>`
           <circle cx="${px(i)}" cy="${py(x.v)}" r="3" style="fill:var(--accent)"/>
-          <text x="${px(i)}" y="${H+14}" font-size="8" fill="#6E7A96" text-anchor="middle">${x.y}</text>
-          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" style="fill:var(--text)" text-anchor="middle">${x.v}</text>
+          <text x="${px(i)}" y="${H+14}" font-size="8" fill="#6E7A96" text-anchor="middle">${window.nfr(x.y)}</text>
+          <text x="${px(i)}" y="${py(x.v)-5}" font-size="8" style="fill:var(--text)" text-anchor="middle">${window.nfr(x.v)}</text>
         `).join("")}
       </svg>
     </div>`;

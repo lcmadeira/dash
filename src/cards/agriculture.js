@@ -101,7 +101,7 @@ async function loadAgri(force=false){
     const col=!hasChange?"var(--t2)":chg>=0?"#10B981":"#EF4444";
     const bgCol=!hasChange?"var(--b2)":chg>=0?"#10B98110":"#EF444410";
     const arr=!hasChange?"":chg>=0?"▲":"▼";
-    const fmt=v=>v!==null&&v!==undefined?v.toFixed(v>100?1:2):"—";
+    const fmt=v=>v!==null&&v!==undefined?window.nf(v,v>100?1:2):"—";
     return `<div style="background:${bgCol};border-radius:8px;padding:10px 12px;
                  border:1px solid ${!hasChange?"var(--b)":chg>=0?"#10B98130":"#EF444430"};
                  display:flex;flex-direction:column;gap:2px">
@@ -115,7 +115,7 @@ async function loadAgri(force=false){
       <div style="font-size:1.35rem;font-weight:800;color:var(--text);
            line-height:1;letter-spacing:-.5px">${fmt(price)}</div>
       <div style="font-size:.74rem;font-weight:700;color:${col}">
-        ${hasChange?`${arr} ${Math.abs(chg).toFixed(2)}%`:"—"}
+        ${hasChange?`${arr} ${window.nf(Math.abs(chg), 2)}%`:"—"}
       </div>
       ${hi!==null&&hi!==undefined?`<div style="display:flex;justify-content:space-between;margin-top:3px;
            font-size:.74rem;color:var(--t3)">

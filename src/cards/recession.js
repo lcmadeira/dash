@@ -121,7 +121,7 @@ async function loadRec(force=false){
   const ticks=view.filter((_,i)=>i%4===0).map(d2=>{
     const i=view.indexOf(d2);
     const mo=d2[0].slice(0,7).slice(5,7)+"/"+d2[0].slice(2,4);
-    return `<text x="${px(i)}" y="${H+14}" font-size="7" fill="#4A526A" text-anchor="middle">${mo}</text>`;
+    return `<text x="${px(i)}" y="${H+14}" font-size="7" fill="#4A526A" text-anchor="middle">${window.nfr(mo)}</text>`;
   }).join("");
 
   /* Zero line */
@@ -141,15 +141,15 @@ async function loadRec(force=false){
   <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
     <div>
       <div style="font-size:2.6rem;font-weight:900;color:${col};line-height:1;letter-spacing:-1px">
-        ${cur>=0?"+":""}${cur.toFixed(2)}<span style="font-size:.9rem;font-weight:400">pp</span>
+        ${cur>=0?"+":""}${window.nf(cur, 2)}<span style="font-size:.9rem;font-weight:400">pp</span>
       </div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:1px">
-        ${delta>=0?"▲":"▼"} ${Math.abs(delta).toFixed(2)}pp vs anterior
+        ${delta>=0?"▲":"▼"} ${window.nf(Math.abs(delta), 2)}pp vs anterior
       </div>
     </div>
     <div style="flex:1">
       <div style="font-size:.78rem;font-weight:700;color:${col}">10Y − 2Y Spread</div>
-      <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${signal} · ${signalSub}</div>
+      <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${window.nfr(signal)} · ${window.nfr(signalSub)}</div>
       <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${lastDate}${isLive?" · Tesouro EUA":" · ref. Mar 2026"}</div>
     </div>
   </div>
@@ -176,26 +176,26 @@ async function loadRec(force=false){
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>
     <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="3.5" fill="${col}"/>
     <!-- Ticks de mês -->
-    ${ticks}
+    ${window.nfr(ticks)}
   </svg>
 
   <!-- Stats em grelha 2x2 -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Mínimo</div>
-      <div style="font-size:.82rem;font-weight:700;color:var(--red)">${mn.toFixed(2)}pp</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--red)">${window.nf(mn, 2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Máximo</div>
-      <div style="font-size:.82rem;font-weight:700;color:var(--green)">+${mx.toFixed(2)}pp</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--green)">+${window.nf(mx, 2)}pp</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Leituras negativas</div>
-      <div style="font-size:.82rem;font-weight:700;color:var(--amber)">${pctInverted}%</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--amber)">${window.nfr(pctInverted)}%</div>
     </div>
     <div style="background:var(--b2);border-radius:6px;padding:5px 6px">
       <div style="font-size:.74rem;color:var(--t3)">Sequência máx</div>
-      <div style="font-size:.82rem;font-weight:700;color:${col}">${longestRun}</div>
+      <div style="font-size:.82rem;font-weight:700;color:${col}">${window.nfr(longestRun)}</div>
     </div>
   </div>
 
@@ -203,7 +203,7 @@ async function loadRec(force=false){
     <div style="background:${col}11;border-left:3px solid ${col};border-radius:0 5px 5px 0;
        padding:6px 10px;font-size:.74rem;color:var(--t2);line-height:1.5">
     ${isInv
-      ? `<b style="color:${col}">Curva invertida em ${longestRun} leituras consecutivas.</b> Este indicador é historicamente associado a períodos de recessão.`
+      ? `<b style="color:${col}">Curva invertida em ${window.nfr(longestRun)} leituras consecutivas.</b> Este indicador é historicamente associado a períodos de recessão.`
       : `<b style="color:${col}">Curva normalizada.</b> O spread 10Y–2Y está acima de zero.`
     }
   </div>`;

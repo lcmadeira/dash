@@ -72,22 +72,22 @@
       const riskGrid = districts.length
         ? `<div class="anpc-subtitle">Risco de incêndio por distrito · ${risk?.date === "today" ? "hoje" : esc(risk?.target_date || risk?.date || "")}</div>
            <div class="anpc-risk-grid">${districts.map((d) => `
-             <div class="anpc-risk${d.district === myDistrict ? " is-mine" : ""}" data-tone="${RISK_LEVELS[d.level].tone}" title="${esc(d.district)}: ${RISK_LEVELS[d.level].label} (máximo em ${d.municipalities} concelhos)">
-               <span>${esc(d.district)}</span><b>${d.level}</b>
+             <div class="anpc-risk${d.district === myDistrict ? " is-mine" : ""}" data-tone="${RISK_LEVELS[d.level].tone}" title="${esc(d.district)}: ${RISK_LEVELS[d.level].label} (máximo em ${window.nfr(d.municipalities)} concelhos)">
+               <span>${esc(d.district)}</span><b>${window.nfr(d.level)}</b>
              </div>`).join("")}</div>
            <div class="anpc-legend">1 Reduzido · 2 Moderado · 3 Elevado · 4 Muito elevado · 5 Máximo</div>`
         : `<div class="anpc-muted">Risco de incêndio indisponível de momento.</div>`;
 
       el.innerHTML = `
         <div class="anpc-kpis">
-          <div class="anpc-kpi"><b>${incidents.length}</b><span>ocorrências ativas</span></div>
-          <div class="anpc-kpi"><b>${ground}</b><span>meios terrestres</span></div>
-          <div class="anpc-kpi"><b>${aerial}</b><span>meios aéreos</span></div>
+          <div class="anpc-kpi"><b>${window.nfr(incidents.length)}</b><span>ocorrências ativas</span></div>
+          <div class="anpc-kpi"><b>${window.nfr(ground)}</b><span>meios terrestres</span></div>
+          <div class="anpc-kpi"><b>${window.nfr(aerial)}</b><span>meios aéreos</span></div>
           <div class="anpc-kpi" data-tone="${mine ? RISK_LEVELS[mine.level].tone : ""}"><b>${mine ? RISK_LEVELS[mine.level].label : "—"}</b><span>risco · ${esc(myDistrict || "distrito")}</span></div>
         </div>
-        ${list}
+        ${window.nfr(list)}
         ${riskGrid}
-        <div class="src">✦ ANEPC (fogos.pt) e IPMA via <a href="https://apiaberta.pt/dados/protecao-civil" target="_blank" rel="noopener noreferrer">API Aberta</a> · ocorrências às ${asOf} · risco por concelho, máximo por distrito</div>`;
+        <div class="src">✦ ANEPC (fogos.pt) e IPMA via <a href="https://apiaberta.pt/dados/protecao-civil" target="_blank" rel="noopener noreferrer">API Aberta</a> · ocorrências às ${window.nfr(asOf)} · risco por concelho, máximo por distrito</div>`;
     } catch (e) {
       el.innerHTML = er(e, { context: "Proteção Civil", action: "clique em ↺ para tentar novamente" });
       notifyNonCriticalError("Proteção Civil", e);

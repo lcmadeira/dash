@@ -63,11 +63,26 @@
       // Falha silenciosa: não interromper fluxo da UI
     }
   };
+  /** Número com `d` casas decimais em pt-PT (vírgula decimal); "—" se não for finito. */
+  window.nf = (v, d = 2) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    const digits = Math.max(0, Math.min(20, Math.trunc(Number(d) || 0)));
+    return n.toLocaleString("pt-PT", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  };
+  /** Valor interpolado em texto: números com casas decimais passam a pt-PT; o resto fica igual. */
+  window.nfr = (v) => {
+    if (typeof v === "number" && Number.isFinite(v) && !Number.isInteger(v))
+      return v.toLocaleString("pt-PT", { maximumFractionDigits: 6 });
+    // Texto que é só um número decimal (ex.: resultado de toFixed): trocar o ponto pela vírgula.
+    if (typeof v === "string" && /^[-+]?\d+\.\d+$/.test(v)) return v.replace(".", ",");
+    return v;
+  };
   window.chg = (v, d = 2) => {
     if (v == null) return "";
     const c = v > 0 ? "up" : v < 0 ? "dn" : "fl";
     const s = v > 0 ? "▲" : v < 0 ? "▼" : "—";
-    return `<span class="${c}">${s}&nbsp;${Math.abs(v).toFixed(d)}%</span>`;
+    return `<span class="${c}">${s}&nbsp;${window.nf(Math.abs(v), d)}%</span>`;
   };
   window.fmtP = (v, d = 2) =>
     Number(v).toLocaleString("pt-PT", {

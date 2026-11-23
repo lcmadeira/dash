@@ -46,11 +46,11 @@ function renderHolList(){
       <div style="min-width:38px;text-align:right">
         <div style="font-size:.74rem;font-weight:${isPast?400:600};
              color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
-             ${isPast?"text-decoration:line-through;":""}">${hd.getDate()} ${ptMon[hd.getMonth()]}</div>
+             ${isPast?"text-decoration:line-through;":""}">${hd.getDate()} ${window.nfr(ptMon[hd.getMonth()])}</div>
       </div>
       <div style="min-width:28px;background:${hd.getDay()===0||hd.getDay()===6?"#EF444422":"var(--b2)"};
            border-radius:4px;padding:1px 4px;text-align:center">
-        <span style="font-size:.74rem;color:${hd.getDay()===0||hd.getDay()===6?"#EF4444":"var(--t2)"}">${dow}</span>
+        <span style="font-size:.74rem;color:${hd.getDay()===0||hd.getDay()===6?"#EF4444":"var(--t2)"}">${window.nfr(dow)}</span>
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:.74rem;font-weight:${isNext?700:isPast?400:500};
@@ -58,12 +58,12 @@ function renderHolList(){
              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
              ${isPast?"text-decoration:line-through;":""}">
           ${isMunic?`<span style="font-size:.74rem;background:#8B5CF622;color:var(--purple);
-            border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${h.city}</span>`:""}
+            border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${window.nfr(h.city)}</span>`:""}
           ${h.localName}
           ${isBridge&&!isPast?`<span style="font-size:.74rem;background:#F59E0B22;
             color:var(--amber);border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
         </div>
-        <div style="font-size:.74rem;color:var(--t3)">${dowFull}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${window.nfr(dowFull)}</div>
       </div>
       ${!isPast?`<span style="font-size:.74rem;color:var(--t3);white-space:nowrap">
         +${Math.round((hd-today)/864e5)}d</span>`
@@ -74,7 +74,7 @@ function renderHolList(){
     <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:6px">
       📋 Feriados · ${year}
     </div>
-    <div>${rows}</div>`;
+    <div>${window.nfr(rows)}</div>`;
 }
 
 function switchHolTab(tab,btn){
@@ -253,15 +253,15 @@ async function loadHolidays(force=false){
     ${next?`<div style="background:var(--b2);border-radius:10px;padding:10px 14px;
          margin-bottom:10px;display:flex;align-items:center;gap:12px">
       <div style="font-size:2.4rem;font-weight:900;color:var(--accent);
-           line-height:1;min-width:44px;text-align:center">${daysToNext}</div>
+           line-height:1;min-width:44px;text-align:center">${window.nfr(daysToNext)}</div>
       <div>
         <div style="font-size:.78rem;color:var(--t3)">dias para o próximo feriado</div>
         <div style="font-size:.92rem;font-weight:700;color:var(--text);margin-top:1px">
           ${next.localName}</div>
         <div style="font-size:.74rem;color:var(--t3);margin-top:1px">
-          ${ptDowFull[new Date(next.date+"T00:00:00").getDay()]} · 
+          ${window.nfr(ptDowFull[new Date(next.date+"T00:00:00").getDay()])} · 
           ${new Date(next.date+"T00:00:00").getDate()} de 
-          ${ptMonFull[new Date(next.date+"T00:00:00").getMonth()]}
+          ${window.nfr(ptMonFull[new Date(next.date+"T00:00:00").getMonth()])}
         </div>
       </div>
     </div>`:""}
@@ -274,9 +274,9 @@ async function loadHolidays(force=false){
         {lbl:"Esta semana",               v:wdThisWeek,  sub:"dias úteis restam",    col:"#F59E0B"},
         {lbl:"Próxima semana",            v:wdNextWeek,  sub:"dias úteis",           col:"#8B5CF6"},
       ].map(k=>`<div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
-        <div style="font-size:1.35rem;font-weight:700;color:var(--text);line-height:1">${k.v}</div>
-        <div style="font-size:.74rem;color:var(--t3);line-height:1.3;margin-top:2px">${k.lbl}</div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${k.sub}</div>
+        <div style="font-size:1.35rem;font-weight:700;color:var(--text);line-height:1">${window.nfr(k.v)}</div>
+        <div style="font-size:.74rem;color:var(--t3);line-height:1.3;margin-top:2px">${window.nfr(k.lbl)}</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${window.nfr(k.sub)}</div>
       </div>`).join("")}
     </div>
 
@@ -292,11 +292,11 @@ async function loadHolidays(force=false){
           <span style="font-size:1rem">🌉</span>
           <div>
             <div style="font-size:.74rem;font-weight:700;color:var(--amber)">
-              ${b.bridge} ${b.bridgeDate.slice(8)}/
+              ${window.nfr(b.bridge)} ${b.bridgeDate.slice(8)}/
               ${b.bridgeDate.slice(5,7)} é ponte
             </div>
             <div style="font-size:.74rem;color:var(--t2)">
-              Feriado ${b.hol} (${b.holDate.slice(8)}/${b.holDate.slice(5,7)}) 
+              Feriado ${window.nfr(b.hol)} (${b.holDate.slice(8)}/${b.holDate.slice(5,7)}) 
               cria fim-de-semana longo de 4 dias
             </div>
           </div>
@@ -314,7 +314,7 @@ async function loadHolidays(force=false){
           const barH=Math.round((ms.left/maxWd)*38)+2;
           const col=ms.isCurrent?"var(--accent)":ms.holCount>1?"#F59E0B":"#3B82F6";
           return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
-            <div title="${ms.name}: ${ms.left} úteis (${ms.holCount} feriado${ms.holCount!==1?'s':''})"
+            <div title="${ms.name}: ${window.nfr(ms.left)} úteis (${window.nfr(ms.holCount)} feriado${ms.holCount!==1?'s':''})"
                  style="width:100%;height:${barH}px;background:${col};border-radius:2px 2px 0 0;
                  opacity:${ms.isCurrent?1:0.7};cursor:default"></div>
             <div style="font-size:.74rem;color:${ms.isCurrent?"var(--accent)":"var(--t3)"};

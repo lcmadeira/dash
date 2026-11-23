@@ -52,7 +52,7 @@ async function loadFng(force){
     </defs>
     <!-- Fundo arco -->
     <path d="M${cx-R},${cy} A${R},${R} 0 0,1 ${cx+R},${cy} L${cx+Ri},${cy} A${Ri},${Ri} 0 0,0 ${cx-Ri},${cy} Z" fill="#111827"/>
-    ${segSvg}
+    ${window.nfr(segSvg)}
     <!-- Linha zero -->
     <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-R-4}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2,2"/>
     <!-- Agulha -->
@@ -91,23 +91,23 @@ async function loadFng(force){
   el.innerHTML=`
   <!-- Layout: gauge + valor lado a lado -->
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-    <div style="flex-shrink:0">${gauge}</div>
+    <div style="flex-shrink:0">${window.nfr(gauge)}</div>
     <div style="flex:1">
-      <div style="font-size:3rem;font-weight:900;color:${col};line-height:1;letter-spacing:-2px">${val}</div>
-      <div style="font-size:.8rem;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${lbl}</div>
+      <div style="font-size:3rem;font-weight:900;color:${col};line-height:1;letter-spacing:-2px">${window.nfr(val)}</div>
+      <div style="font-size:.8rem;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${window.nfr(lbl)}</div>
       <!-- Stats 7d -->
       <div style="display:flex;gap:8px;margin-top:8px">
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
           <div style="font-size:.74rem;color:var(--t3)">7d Mín</div>
-          <div style="font-size:.85rem;font-weight:700;color:${getCol(wMin)}">${wMin}</div>
+          <div style="font-size:.85rem;font-weight:700;color:${getCol(wMin)}">${window.nfr(wMin)}</div>
         </div>
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
           <div style="font-size:.74rem;color:var(--t3)">7d Méd</div>
-          <div style="font-size:.85rem;font-weight:700;color:${getCol(wAvg)}">${wAvg}</div>
+          <div style="font-size:.85rem;font-weight:700;color:${getCol(wAvg)}">${window.nfr(wAvg)}</div>
         </div>
         <div style="background:var(--b2);border-radius:6px;padding:4px 8px;text-align:center;flex:1">
           <div style="font-size:.74rem;color:var(--t3)">7d Máx</div>
-          <div style="font-size:.85rem;font-weight:700;color:${getCol(wMax)}">${wMax}</div>
+          <div style="font-size:.85rem;font-weight:700;color:${getCol(wMax)}">${window.nfr(wMax)}</div>
         </div>
       </div>
     </div>
@@ -119,7 +119,7 @@ async function loadFng(force){
       <span>30 dias</span>
       <span>${d[29]?new Date(+d[29].timestamp*1000).toLocaleDateString("pt",{day:"2-digit",month:"2-digit"}):""} → hoje</span>
     </div>
-    ${sparkSvg}
+    ${window.nfr(sparkSvg)}
   </div>
 
   <!-- Últimos 7 dias como grid -->
@@ -132,8 +132,8 @@ async function loadFng(force){
       return `<div style="background:${isToday?c+"22":"var(--b2)"};border:1px solid ${isToday?c+"55":"transparent"};
                    border-radius:5px;padding:4px 2px;text-align:center">
         <div style="font-size:.74rem;color:var(--t3)">${day}</div>
-        <div style="font-size:.82rem;font-weight:700;color:${c}">${v}</div>
-        <div style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${getLbl(v).split(" ")[0]}</div>
+        <div style="font-size:.82rem;font-weight:700;color:${c}">${window.nfr(v)}</div>
+        <div style="font-size:.74rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${window.nfr(getLbl(v).split(" ")[0])}</div>
       </div>`;
     }).join("")}
   </div>`;

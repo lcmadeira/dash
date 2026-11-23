@@ -37,7 +37,7 @@ async function loadImob(force=false){
     if(preco) preco.innerHTML=`${d.price.toLocaleString("pt-PT")} <span style="font-size:.74rem;font-weight:500;color:var(--t2)">€/m²</span>`;
 
     if(chg){
-      const yoyStr=d.chgYoY!=null?`+${d.chgYoY.toFixed(1)}%`:"+17,7%";
+      const yoyStr=d.chgYoY!=null?`+${window.nf(d.chgYoY, 1)}%`:"+17,7%";
       const col=d.chgYoY>0?"var(--green)":"var(--red)";
       chg.style.color=col;
       chg.textContent=`▲ ${yoyStr} homólogo`;
@@ -145,7 +145,7 @@ function renderRegioes(el){
     +IMOB_REGIOES.map(function(r){
       return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.r+'</div>'
         +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+Math.round(r.v/max*100)+'%;background:'+r.col+'"></div></div>'
-        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ <span style="color:'+barColor(r.chg)+'">+'+r.chg+'%</span></div></div>';
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt-PT")+'€ <span style="color:'+barColor(r.chg)+'">+'+window.nfr(r.chg)+'%</span></div></div>';
     }).join("")+'</div>';
 }
 function renderTrend(el){
@@ -176,7 +176,7 @@ function renderMunic(el){
       const col=barColor(r.chg);
       return'<div class="imob-bar-row"><div class="imob-bar-lbl">'+r.m+'</div>'
         +'<div class="imob-bar-track"><div class="imob-bar-fill" style="width:'+Math.round(r.v/max*100)+'%;background:'+col+'"></div></div>'
-        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt")+'€ <span style="color:'+col+'">+'+r.chg+'%</span></div></div>';
+        +'<div class="imob-bar-num">'+r.v.toLocaleString("pt-PT")+'€ <span style="color:'+col+'">+'+window.nfr(r.chg)+'%</span></div></div>';
     }).join("")+'</div>';
 }
 document.addEventListener("DOMContentLoaded",renderImob);

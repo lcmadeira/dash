@@ -197,10 +197,10 @@ async function loadFXTrend(force = false) {
 
     statusEl.innerHTML = `
       <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">
-        ${pref.days}D · EUR→${pref.code}
+        ${window.nfr(pref.days)}D · EUR→${pref.code}
       </span>
       <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
-        ${sign}${fxFmt(pct,1)}%
+        ${window.nfr(sign)}${fxFmt(pct,1)}%
       </span>
       <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
         último: ${fxFmt(last,fxDec(pref.code))}

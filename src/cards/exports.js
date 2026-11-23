@@ -40,11 +40,11 @@ function renderExp(){
   el.innerHTML=`<div style="margin-top:6px">${items.map(r=>{
     const pct=(r.v/total*100).toFixed(1);
     return `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">
-      <div style="font-size:.74rem;color:var(--t2);width:128px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</div>
+      <div style="font-size:.74rem;color:var(--t2);width:128px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${window.nfr(r.n)}</div>
       <div style="flex:1;background:var(--b2);border-radius:3px;height:7px">
         <div style="width:${pct}%;height:100%;background:${r.c};border-radius:3px;transition:width .5s"></div>
       </div>
-      <div style="font-size:.74rem;color:var(--text);font-weight:600;width:36px;text-align:right">${r.v}%</div>
+      <div style="font-size:.74rem;color:var(--text);font-weight:600;width:36px;text-align:right">${window.nfr(r.v)}%</div>
     </div>`;
   }).join("")}</div>`;
 }

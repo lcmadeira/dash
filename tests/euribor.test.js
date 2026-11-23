@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 
 const ecbSeries = (values) => ({
   structure: { dimensions: { observation: [{ values: values.map(([period]) => ({ id: period })) }], series: [] } },
@@ -42,7 +43,7 @@ test("Euribor loads ECB monthly averages with the RT keys and without the discon
   assert.ok(!requested.some(url => url.includes("EURIBOR1WD_")));
   assert.equal(saved._source, "bce_live");
   assert.equal(JSON.stringify(saved.rates.map(r => [r.term, r.val])), JSON.stringify([["1M", 2.436], ["3M", 2.635], ["6M", 2.975], ["12M", 3.239]]));
-  assert.match(body.innerHTML, /3\.239/);
+  assert.match(body.innerHTML, /3,239/);
   assert.doesNotMatch(body.innerHTML, /1 Semana|NaN|undefined/);
 });
 

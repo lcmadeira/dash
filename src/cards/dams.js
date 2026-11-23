@@ -117,7 +117,7 @@ async function loadDamsOnce(force = false) {
           force: true,
         });
         const staleNotice = `<div style="padding:8px 10px;font-size:.74rem;color:var(--amber);margin-bottom:6px;border-bottom:1px solid var(--b)">
-          ⚠️ SNIRH indisponível · última leitura guardada: ${observed}
+          ⚠️ SNIRH indisponível · última leitura guardada: ${window.nfr(observed)}
         </div>`;
         renderDams(cache, staleNotice);
         return;
@@ -155,15 +155,15 @@ function renderDams(data, statusHtml = "") {
     <div style="margin-bottom:12px;background:var(--b2);padding:10px;border-radius:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
         <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px">Armazenamento nacional</div>
-        <div style="font-size:1rem;font-weight:900;color:var(--blue)">${totalVal.toFixed(1)}%</div>
+        <div style="font-size:1rem;font-weight:900;color:var(--blue)">${window.nf(totalVal, 1)}%</div>
       </div>
       <div style="height:10px;background:var(--b);border-radius:5px;overflow:hidden;position:relative">
-        ${totalAvg !== null ? `<div style="position:absolute;left:${totalAvg}%;top:0;bottom:0;width:2px;background:var(--text);z-index:2;opacity:.7" title="Média histórica: ${totalAvg.toFixed(1)}%"></div>` : ""}
+        ${totalAvg !== null ? `<div style="position:absolute;left:${totalAvg}%;top:0;bottom:0;width:2px;background:var(--text);z-index:2;opacity:.7" title="Média histórica: ${window.nf(totalAvg, 1)}%"></div>` : ""}
         <div style="height:100%;width:${totalVal}%;background:var(--data);border-radius:5px"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:5px">
-        <div style="font-size:.74rem;color:var(--t3)">${totalAvg !== null ? `Média histórica: <b>${totalAvg.toFixed(1)}%</b>` : "Média histórica indisponível"}</div>
-        <div style="font-size:.74rem;color:var(--t3)">${basins.length} bacias monitorizadas</div>
+        <div style="font-size:.74rem;color:var(--t3)">${totalAvg !== null ? `Média histórica: <b>${window.nf(totalAvg, 1)}%</b>` : "Média histórica indisponível"}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${window.nfr(basins.length)} bacias monitorizadas</div>
       </div>
     </div>
 
@@ -180,8 +180,8 @@ function renderDams(data, statusHtml = "") {
       <div style="background:${bg};padding:6px 8px;border-radius:8px;border:1px solid var(--b);border-left:3px solid ${col}">
         <div style="font-size:.74rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
-          <div style="font-family:var(--mono);font-size:.78rem;font-weight:800;color:${col}">${b.val.toFixed(0)}%</div>
-          <div style="font-size:.74rem;color:var(--t3)">${Number.isFinite(b.avg) ? `Méd. ${b.avg.toFixed(0)}%` : ""}</div>
+          <div style="font-family:var(--mono);font-size:.78rem;font-weight:800;color:${col}">${window.nf(b.val, 0)}%</div>
+          <div style="font-size:.74rem;color:var(--t3)">${Number.isFinite(b.avg) ? `Méd. ${window.nf(b.avg, 0)}%` : ""}</div>
         </div>
       </div>
     `;

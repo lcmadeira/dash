@@ -118,7 +118,7 @@ async function loadOrmuz(force=false){
     el.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--blue);line-height:1">${total}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--blue);line-height:1">${window.nfr(total)}</div>
         <div style="font-size:.74rem;color:var(--t3)">Navios</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
@@ -134,7 +134,7 @@ async function loadOrmuz(force=false){
         <div style="font-size:.74rem;color:var(--t3)">Graneleiros</div>
       </div>
       <div style="background:var(--b2);border-radius:7px;padding:6px 4px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:800;color:var(--cyan);line-height:1">${age}</div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--cyan);line-height:1">${window.nfr(age)}</div>
         <div style="font-size:.74rem;color:var(--t3)">min</div>
       </div>
     </div>
@@ -148,7 +148,7 @@ async function loadOrmuz(force=false){
       <div style="position:absolute;top:6px;right:6px;background:${isSim?'#F59E0B22':'#0EA5E922'};
            border:1px solid ${isSim?'#F59E0B44':'#0EA5E944'};
            border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${isSim?'#F59E0B':'#0EA5E9'}">
-        ● ${isSim?'Simulação':'Ao vivo'} · ${age}min
+        ● ${isSim?'Simulação':'Ao vivo'} · ${window.nfr(age)}min
       </div>
     </div>
 
@@ -159,12 +159,12 @@ async function loadOrmuz(force=false){
       <div style="display:flex;align-items:center;gap:6px">
         <span>${v.ico}</span>
         <div>
-          <div style="font-size:.74rem;color:var(--text)">${v.type}</div>
+          <div style="font-size:.74rem;color:var(--text)">${window.nfr(v.type)}</div>
           <div style="font-size:.74rem;color:var(--t3)">${v.desc}</div>
         </div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:.74rem;font-weight:600;color:${v.col}">${v.pct}%</div>
+        <div style="font-size:.74rem;font-weight:600;color:${v.col}">${window.nfr(v.pct)}%</div>
         <div style="font-size:.74rem;color:var(--t3)">${Math.round(total*v.pct/100)} navios</div>
       </div>
     </div>`).join("")}`;
@@ -307,7 +307,7 @@ async function loadOrmuz(force=false){
               const[px,py]=proj(port.lat,port.lon);
               const dist=Math.hypot(px-mx,py-my);
               if(dist<10 && !hit){
-                hit={label:`<b>${port.name}</b><br>${port.country}`};
+                hit={label:`<b>${port.name}</b><br>${window.nfr(port.country)}`};
               }
             });
 
@@ -362,9 +362,9 @@ async function loadOrmuz(force=false){
   el.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
       ${KPI_DATA.map(k=>`<div style="background:var(--b2);border-radius:8px;padding:8px 6px;text-align:center">
-        <div style="font-size:1.1rem;font-weight:800;color:${k.col};line-height:1">${k.val}</div>
+        <div style="font-size:1.1rem;font-weight:800;color:${k.col};line-height:1">${window.nfr(k.val)}</div>
         <div style="font-size:.74rem;color:var(--t3)">${k.label}</div>
-        <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${k.sub}</div>
+        <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${window.nfr(k.sub)}</div>
       </div>`).join("")}
     </div>
 
@@ -387,8 +387,8 @@ async function loadOrmuz(force=false){
         <div style="font-size:.74rem;color:var(--t3);margin-bottom:5px">Percentagens de referência.</div>
         ${VESSEL_TYPES.map(v=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
           <div style="width:8px;height:8px;border-radius:2px;background:${v.col}"></div>
-          <span style="font-size:.74rem;color:var(--text);flex:1">${v.type}</span>
-          <span style="font-size:.74rem;font-weight:600;color:${v.col}">${v.pct}%</span>
+          <span style="font-size:.74rem;color:var(--text);flex:1">${window.nfr(v.type)}</span>
+          <span style="font-size:.74rem;font-weight:600;color:${v.col}">${window.nfr(v.pct)}%</span>
         </div>`).join("")}
         <div style="margin-top:6px;height:6px;border-radius:3px;overflow:hidden;display:flex">
           ${VESSEL_TYPES.map(v=>`<div style="flex:${v.pct};background:${v.col}"></div>`).join("")}
@@ -401,7 +401,7 @@ async function loadOrmuz(force=false){
           <div style="width:6px;height:6px;border-radius:50%;background:${p.col}"></div>
           <div style="flex:1">
             <div style="font-size:.74rem;color:var(--text)">${p.name}</div>
-            <div style="font-size:.74rem;color:var(--t3)">${p.country}</div>
+            <div style="font-size:.74rem;color:var(--t3)">${window.nfr(p.country)}</div>
           </div>
         </div>`).join("")}
         <div style="margin-top:4px;font-size:.74rem;color:var(--t3)">
@@ -536,7 +536,7 @@ async function loadOrmuz(force=false){
               tip.style.opacity="1";
               tip.style.left=Math.min(e.offsetX+14,rect.width-150)+"px";
               tip.style.top=Math.max(e.offsetY-10,4)+"px";
-              tip.innerHTML=`<b>${port.name}</b><br>${port.country}`;
+              tip.innerHTML=`<b>${port.name}</b><br>${window.nfr(port.country)}`;
               return;
             }
           }

@@ -128,7 +128,7 @@
     const history = getHistory(TREND_KEY, days).filter((item) => Number.isFinite(Number(item.value)));
     const last = history.at(-1);
     status.textContent = history.length
-      ? `${history.length} dia${history.length === 1 ? "" : "s"} observado${history.length === 1 ? "" : "s"} neste browser · último: ${Number(last.value).toFixed(1)} €/MWh`
+      ? `${history.length} dia${history.length === 1 ? "" : "s"} observado${history.length === 1 ? "" : "s"} neste browser · último: ${window.nf(Number(last.value), 1)} €/MWh`
       : "Histórico local começa a acumular com as próximas visitas.";
     if (history.length) renderTrendChart(canvas, history, {
       label: "Média diária OMIE PT", borderColor: "#10B981", backgroundColor: "rgba(16,185,129,.12)", unit: " €/MWh", decimals: 1,
@@ -229,31 +229,31 @@
         const selected = hour >= bestStartHour && hour < bestEndHour;
         const marketPeriods = today.periods.length >= 90 ? 96 : 24;
         const start = marketPeriodTime(hour * (marketPeriods / 24), today.periods.length);
-        return `<div title="${start} hora de mercado: ${value.toFixed(1)} €/MWh · média horária" style="flex:1;height:${Math.max(3, Math.round((value - Math.min(0, minHourly)) / (maxHourly - Math.min(0, minHourly) || 1) * 100))}%;background:${selected ? "#10B981" : color};border-radius:1px 1px 0 0;opacity:.85"></div>`;
+        return `<div title="${window.nfr(start)} hora de mercado: ${window.nf(value, 1)} €/MWh · média horária" style="flex:1;height:${Math.max(3, Math.round((value - Math.min(0, minHourly)) / (maxHourly - Math.min(0, minHourly) || 1) * 100))}%;background:${selected ? "#10B981" : color};border-radius:1px 1px 0 0;opacity:.85"></div>`;
       }).join("");
 
       const prefs = estimatePrefs();
       const sourceState = today.stale ? "stale" : today.cache ? "cache" : "live";
       const statusText = today.stale ? (Number.isFinite(today.cacheAge) ? `Stale · ${fmtAgeShort(today.cacheAge)}` : "Gateway · stale") : today.cache ? "Cache local" : "OMIE · PT";
       body.innerHTML = `
-        ${staleNotice}
+        ${window.nfr(staleNotice)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
           <div style="background:${avgColor}18;border:1px solid ${avgColor}44;border-radius:10px;padding:10px 12px">
             <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">OMIE · zona portuguesa · dia de mercado ${periodDateLabel(date)}</div>
-            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:5px"><strong style="font-size:1.8rem;color:${current === null ? avgColor : avgColor};line-height:1">${(current ?? avg).toFixed(1)}</strong><span style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/MWh</span></div>
+            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:5px"><strong style="font-size:1.8rem;color:${current === null ? avgColor : avgColor};line-height:1">${window.nf(current ?? avg, 1)}</strong><span style="font-size:.74rem;color:var(--t3);margin-bottom:3px">€/MWh</span></div>
             <div style="font-size:.74rem;color:var(--t2);margin-top:5px">${current === null ? "média diária · hora de mercado" : `período atual · ${currentMarketTime} hora de mercado`}</div>
-            <div style="font-size:.74rem;color:var(--t3);margin-top:3px">Média ${avg.toFixed(1)} · mín ${min.toFixed(1)} · máx ${max.toFixed(1)} €/MWh</div>
+            <div style="font-size:.74rem;color:var(--t3);margin-top:3px">Média ${window.nf(avg, 1)} · mín ${window.nf(min, 1)} · máx ${window.nf(max, 1)} €/MWh</div>
           </div>
           <div style="background:var(--b2);border-radius:10px;padding:10px 12px">
             <div style="font-size:.74rem;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">Próximo dia de mercado · ${periodDateLabel(tomorrowDate)}</div>
             ${priceTomorrow === null
               ? `<div style="font-size:.82rem;font-weight:700;color:var(--t2);margin-top:8px">Ainda não publicado</div>`
-              : `<div style="font-size:1.2rem;font-weight:800;color:var(--green);margin-top:5px">${priceTomorrow.toFixed(1)} €/MWh</div><div style="font-size:.74rem;color:var(--t3)">média dos ${tomorrow.periods.length} períodos</div>`}
+              : `<div style="font-size:1.2rem;font-weight:800;color:var(--green);margin-top:5px">${window.nf(priceTomorrow, 1)} €/MWh</div><div style="font-size:.74rem;color:var(--t3)">média dos ${window.nfr(tomorrow.periods.length)} períodos</div>`}
             <div style="font-size:.74rem;color:var(--t3);margin-top:8px">Preço grossista; não é o preço final da fatura.</div>
           </div>
         </div>
-        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.74rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:var(--green)">${cheapestStart}–${cheapestEnd} hora de mercado</strong> · média ${cheapest.average.toFixed(1)} €/MWh</div>` : ""}
-        <div style="display:flex;align-items:flex-end;gap:1px;height:46px;margin:10px 0 2px">${hourlyBars}</div>
+        ${cheapest ? `<div style="margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--b2);font-size:.74rem;color:var(--t2)">Janela mais barata de 3h: <strong style="color:var(--green)">${window.nfr(cheapestStart)}–${window.nfr(cheapestEnd)} hora de mercado</strong> · média ${window.nf(cheapest.average, 1)} €/MWh</div>` : ""}
+        <div style="display:flex;align-items:flex-end;gap:1px;height:46px;margin:10px 0 2px">${window.nfr(hourlyBars)}</div>
         <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-bottom:3px"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
         <div style="font-size:.74rem;color:var(--t3)">Preços por hora de mercado · fonte em intervalos OMIE de ${today.periods.length >= 90 ? "15 min" : "1 h"} · zona PT · hora de mercado CET/CEST (Portugal continental: menos 1h)</div>
         <div style="margin-top:10px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px">

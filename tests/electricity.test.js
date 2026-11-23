@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 
 async function loadHelpers() {
   const context = vm.createContext({ Date, Intl, Math, Number, Object, Array, String, JSON, RegExp, window: {} });

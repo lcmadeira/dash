@@ -57,7 +57,7 @@ function renderCarrisAlerts(){
   const strikes=carrisAlerts.filter(a=>a.strike).length;
   box.innerHTML=`
     <div class="carris-head">
-      <span><b>${carrisAlerts.length}</b> alertas ativos${strikes?` · <b class="carris-strike">${strikes} greve${strikes>1?"s":""}</b>`:""}</span>
+      <span><b>${window.nfr(carrisAlerts.length)}</b> alertas ativos${strikes?` · <b class="carris-strike">${window.nfr(strikes)} greve${strikes>1?"s":""}</b>`:""}</span>
       <select id="carris-mun" aria-label="Filtrar alertas por concelho" onchange="renderCarrisAlerts()">
         <option value="">Todos os concelhos</option>
         ${munis.map(m=>`<option value="${escTr(m)}"${m===chosen?" selected":""}>${escTr(m)}</option>`).join("")}
@@ -164,10 +164,10 @@ function loadTransp(_force){
     const tipoCol=t.tipo==="IC"?"#3B82F6":"#10B981";
     return `<div style="display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:5px;margin-bottom:2px;`
       +(isNext?`background:${accentCol}18;border:1px solid ${accentCol}44;`:isPast?`opacity:.38;`:`background:var(--b2);`)+`">
-      <span style="font-family:var(--mono);font-size:.74rem;font-weight:${isNext?700:400};color:${isPast?"var(--t3)":isNext?accentCol:"var(--text)"};min-width:38px">${t.p}</span>
-      <span style="font-size:.74rem;background:${tipoCol}22;color:${tipoCol};border-radius:3px;padding:1px 4px">${t.tipo}</span>
-      <span style="font-size:.74rem;color:var(--t3);flex:1">${t.obs}</span>
-      <span style="font-size:.74rem;color:var(--t3)">${t.c}</span>
+      <span style="font-family:var(--mono);font-size:.74rem;font-weight:${isNext?700:400};color:${isPast?"var(--t3)":isNext?accentCol:"var(--text)"};min-width:38px">${window.nfr(t.p)}</span>
+      <span style="font-size:.74rem;background:${tipoCol}22;color:${tipoCol};border-radius:3px;padding:1px 4px">${window.nfr(t.tipo)}</span>
+      <span style="font-size:.74rem;color:var(--t3);flex:1">${window.nfr(t.obs)}</span>
+      <span style="font-size:.74rem;color:var(--t3)">${window.nfr(t.c)}</span>
       ${isNext?`<span style="font-size:.74rem;color:${accentCol};font-weight:600">▶</span>`:""}
     </div>`;
   }
@@ -182,9 +182,9 @@ function loadTransp(_force){
         <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎫 Passe Navegante 2026</div>
         ${PASSES.map(p=>`<div style="background:var(--b2);border-radius:7px;padding:7px 9px;margin-bottom:4px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div><div style="font-size:.74rem;font-weight:600;color:var(--text)">${p.ico} ${p.nome}</div>
+            <div><div style="font-size:.74rem;font-weight:600;color:var(--text)">${p.ico} ${window.nfr(p.nome)}</div>
               <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${p.desc}</div></div>
-            <div style="font-size:1.1rem;font-weight:800;color:var(--green);white-space:nowrap">${p.preco}<span style="font-size:.74rem;color:var(--t3)"> €/mês</span></div>
+            <div style="font-size:1.1rem;font-weight:800;color:var(--green);white-space:nowrap">${window.nfr(p.preco)}<span style="font-size:.74rem;color:var(--t3)"> €/mês</span></div>
           </div></div>`).join("")}
         <div style="font-size:.74rem;color:var(--t3);margin:4px 0 6px">Preços municipais e metropolitano mantidos em 2026. A oferta regional no Alentejo varia por percurso e operador.</div>
         <div style="background:#3B82F611;border-radius:6px;padding:6px 9px;margin-top:5px;font-size:.74rem;color:var(--t2);line-height:1.5">
@@ -199,16 +199,16 @@ function loadTransp(_force){
           </thead>
           <tbody>
             ${BILHETES.map(b=>`<tr>
-              <td style="color:var(--text)">${b.op}</td>
-              <td class="r pri">${b.simples.toFixed(2)}€</td>
-              <td class="r muted">${b.diario?b.diario.toFixed(2)+"€":"—"}</td>
+              <td style="color:var(--text)">${window.nfr(b.op)}</td>
+              <td class="r pri">${window.nf(b.simples, 2)}€</td>
+              <td class="r muted">${b.diario?window.nf(b.diario, 2)+"€":"—"}</td>
             </tr>`).join("")}
           </tbody>
         </table>
         <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin:8px 0 5px">🚂 Ligações CP · tempos indicativos · consultar tarifa</div>
         ${LIGACOES.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 7px;background:var(--surface);border:1px solid var(--b);border-radius:5px;margin-bottom:2px">
-          <div><span style="font-size:.74rem;font-weight:600;color:var(--text)">${l.orig} → ${l.dest}</span>
-            <span style="font-size:.74rem;color:var(--t3);margin-left:4px">${l.tipo} · ${l.dur}</span></div>
+          <div><span style="font-size:.74rem;font-weight:600;color:var(--text)">${window.nfr(l.orig)} → ${window.nfr(l.dest)}</span>
+            <span style="font-size:.74rem;color:var(--t3);margin-left:4px">${window.nfr(l.tipo)} · ${window.nfr(l.dur)}</span></div>
           <div style="font-size:.74rem;font-weight:600;color:var(--accent)">Consultar CP</div>
         </div>`).join("")}
         <div style="font-size:.74rem;color:var(--t3);margin-top:5px">Tarifários ocasionais 2026. CP Lisboa: preço simples para zona 1; o total depende das zonas. <a href="https://www.cp.pt/passageiros/pt" target="_blank" rel="noopener noreferrer">Consultar CP</a> · <a href="https://www.metrolisboa.pt/2025/12/19/novas-tarifas-2026/" target="_blank" rel="noopener noreferrer">Metro Lisboa</a> · <a href="https://andante.pt/comprar/andante-azul/" target="_blank" rel="noopener noreferrer">Andante</a></div>
@@ -256,11 +256,11 @@ function loadTransp(_force){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
       ${RVTEJO.map(r=>`<div style="background:var(--b2);border-radius:7px;padding:7px 9px;border:1px solid var(--b)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:.74rem;font-weight:600;color:var(--text)">${r.ico} ${r.dest}</span>
-          <span style="font-size:.74rem;font-weight:700;color:var(--green)">${r.preco}</span>
+          <span style="font-size:.74rem;font-weight:600;color:var(--text)">${r.ico} ${window.nfr(r.dest)}</span>
+          <span style="font-size:.74rem;font-weight:700;color:var(--green)">${window.nfr(r.preco)}</span>
         </div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${r.dur} · ${r.freq}</div>
-        <div style="font-size:.74rem;color:var(--t3)">${r.op}</div>
+        <div style="font-size:.74rem;color:var(--t3);margin-top:2px">${window.nfr(r.dur)} · ${window.nfr(r.freq)}</div>
+        <div style="font-size:.74rem;color:var(--t3)">${window.nfr(r.op)}</div>
       </div>`).join("")}
     </div>
     <div style="font-size:.74rem;color:var(--t3);margin-top:6px;line-height:1.5">
@@ -274,9 +274,9 @@ function loadTransp(_force){
       <button class="rbtn"   id="tr-tab-b" onclick="switchTr('autocarros',this)">🚌 Autocarros</button>
       <button class="rbtn"   id="tr-tab-a" onclick="switchTr('alertas',this)">⚠ Alertas</button>
     </div>
-    <div id="tr-passes">${htmlPasses}</div>
-    <div id="tr-horarios" style="display:none">${htmlHor}</div>
-    <div id="tr-autocarros" style="display:none">${htmlBus}</div>
+    <div id="tr-passes">${window.nfr(htmlPasses)}</div>
+    <div id="tr-horarios" style="display:none">${window.nfr(htmlHor)}</div>
+    <div id="tr-autocarros" style="display:none">${window.nfr(htmlBus)}</div>
     <div id="tr-alertas" style="display:none"></div>
   `;
   carrisAlerts=_force?null:carrisAlerts;

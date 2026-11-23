@@ -230,18 +230,18 @@ async function renderFuel(force=false){
 
     const baseSlugs = prefs.showColored ? FUEL_SLUGS : FUEL_SLUGS.filter(s => s.slug !== "diesel_colored");
     const items=baseSlugs.map(s=>({ ...s, pt: ptBy[s.slug]||null, es: esBy[s.slug]||null }));
-    const fmt=(v)=>Number.isFinite(v)?v.toFixed(3):"—";
+    const fmt=(v)=>Number.isFinite(v)?window.nf(v,3):"—";
     const fmtDelta=(v)=>{
       if(!Number.isFinite(v)) return {txt:"—",cls:"neu"};
       const cls=v>0.0005?"pos":v<-0.0005?"neg":"neu";
-      const txt=(v>0?"+":"")+v.toFixed(3);
+      const txt=(v>0?"+":"")+window.nf(v,3);
       return {txt,cls};
     };
     const fmtDeltaPct=(ptV, esV)=>{
       if(!Number.isFinite(ptV) || !Number.isFinite(esV) || ptV<=0) return {txt:"—",cls:"neu"};
       const pct=((esV-ptV)/ptV)*100;
       const cls=pct>0.05?"pos":pct<-0.05?"neg":"neu";
-      const txt=(pct>0?"+":"")+pct.toFixed(2)+"%";
+      const txt=(pct>0?"+":"")+window.nf(pct,2)+"%";
       return {txt,cls, pct};
     };
 
@@ -255,8 +255,8 @@ async function renderFuel(force=false){
       const deltaPct=fmtDeltaPct(ptAvg, esAvg);
       const delta = prefs.deltaMode === "pct" ? deltaPct : deltaAbs;
       const deltaTitle = prefs.deltaMode === "pct"
-        ? (Number.isFinite(absV) ? `Δ€ ${(absV>0?"+":"")+absV.toFixed(3)}` : "")
-        : (Number.isFinite(deltaPct?.pct) ? `Δ% ${(deltaPct.pct>0?"+":"")+deltaPct.pct.toFixed(2)}%` : "");
+        ? (Number.isFinite(absV) ? `Δ€ ${(absV>0?"+":"")+window.nf(absV, 3)}` : "")
+        : (Number.isFinite(deltaPct?.pct) ? `Δ% ${(deltaPct.pct>0?"+":"")+window.nf(deltaPct.pct, 2)}%` : "");
       const lblTitle = f.slug==="diesel_colored" ? 'ES: sem equivalente na fonte oficial' : '';
       return`<div class="fi"><div class="fi-lbl"${lblTitle?` title="${lblTitle}"`:""}>${f.label} <span class="fi-unit-inline">€/L</span></div>
         <div class="fi-ptes">
@@ -276,7 +276,7 @@ async function renderFuel(force=false){
         <div class="fi-delta"><span>Δ ES-PT</span><span class="${delta.cls}"${deltaTitle?` title="${deltaTitle}"`:""}>${delta.txt}</span></div>
       </div>`;
     }).join("")}</div>
-    <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${esLbl}</div>`;
+    <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${window.nfr(esLbl)}</div>`;
     window.renderPortugalBriefing?.();
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }

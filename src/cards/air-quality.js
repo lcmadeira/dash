@@ -234,7 +234,7 @@ async function loadAirQuality(force=false) {
     uvCol = uv <= 2 ? "#10B981" : uv <= 5 ? "#F59E0B" : uv <= 7 ? "#F97316" : "#EF4444";
   }
   const uvLine = (uvLabel && uvCol) ? `<span style="font-size:.74rem;color:${uvCol};background:${uvCol}15;
-      border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">☀️ UV ${uv.toFixed(1)} · ${uvLabel}</span>` : "";
+      border-radius:4px;padding:2px 8px;border:1px solid ${uvCol}44">☀️ UV ${window.nf(uv, 1)} · ${uvLabel}</span>` : "";
 
   const updTime = now.toLocaleTimeString("pt-PT", {hour:"2-digit", minute:"2-digit"});
 
@@ -244,7 +244,7 @@ async function loadAirQuality(force=false) {
        border:1px solid ${info.col}33;border-radius:10px;padding:10px 14px;margin-bottom:10px">
     <div style="text-align:center;min-width:60px">
       <div style="font-size:2.6rem;font-weight:900;color:${info.col};
-           line-height:1;letter-spacing:-2px">${aqi}</div>
+           line-height:1;letter-spacing:-2px">${window.nfr(aqi)}</div>
       <div style="font-size:.74rem;color:${info.col};font-weight:700;
            text-transform:uppercase;letter-spacing:.3px;margin-top:1px">AQI EU${aqiIsEstimated ? " (est.)" : ""}
         <span class="help-tip" title="AQI Europeu (EEA): índice agregado da poluição; menor valor representa melhor qualidade do ar.">?</span>
@@ -257,7 +257,7 @@ async function loadAirQuality(force=false) {
       </div>
       <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${coords.name} · ${updTime}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:5px">
-        ${uvLine}
+        ${window.nfr(uvLine)}
       </div>
     </div>
     <!-- Escala AQI -->

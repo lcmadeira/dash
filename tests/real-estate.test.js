@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 
 async function loadRealEstate(cached) {
   const elements = new Map(["imob-preco-val", "imob-preco-chg", "imob-trans-val", "imobRefQuarter", "imobSub1", "imobSub2", "imobSub3", "imobRefSrc"]

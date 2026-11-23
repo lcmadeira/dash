@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
+import "./nf-context.js";
 
 function createBrowserContext() {
   const sandbox = {
@@ -425,7 +426,7 @@ test("agriculture card isolates its cached symbol list and renders cached prices
   await context.loadAgri();
   assert.match(body.innerHTML, /Trigo/);
   assert.match(body.innerHTML, /Café/);
-  assert.match(body.innerHTML, /500\.0/);
+  assert.match(body.innerHTML, /500,0/);
   assert.doesNotThrow(() => vm.runInContext('var APP_AGRI_SYMS = AGRI_SYMS;', context));
 });
 
@@ -451,8 +452,8 @@ test("agriculture Stooq fallback reads the CSV OHLCV columns correctly", async (
   assert.equal(savedCache[0].hi, 110);
   assert.equal(savedCache[0].lo, 90);
   assert.equal(savedCache[0].vol, 5000);
-  assert.match(body.innerHTML, /105\.0/);
-  assert.match(body.innerHTML, /5\.00%/);
+  assert.match(body.innerHTML, /105,0/);
+  assert.match(body.innerHTML, /5,00%/);
 });
 
 test("exports card renders both views and ignores unknown modes", async () => {
@@ -743,9 +744,9 @@ test("transport card shows current urban reference fares and avoids claiming liv
   assert.equal(typeof context.switchTr, "function");
   context.loadTransp();
   assert.match(body.innerHTML, /Passe Navegante 2026/);
-  assert.match(body.innerHTML, /1\.90€/);
-  assert.match(body.innerHTML, /7\.25€/);
-  assert.match(body.innerHTML, /1\.40€/);
+  assert.match(body.innerHTML, /1,90€/);
+  assert.match(body.innerHTML, /7,25€/);
+  assert.match(body.innerHTML, /1,40€/);
   assert.match(body.innerHTML, /consultar tarifa/i);
   assert.match(body.innerHTML, /estado operacional e os avisos de greve da CP e do Metro não são consultados em direto/);
   assert.match(body.innerHTML, /alertas da Carris Metropolitana estão no separador/);
@@ -770,7 +771,7 @@ test("press card renders RSF 2026 separately from historical EIU data and avoids
   assert.equal(typeof context.loadPress, "function");
   context.loadPress();
   assert.match(body.innerHTML, /RSF 2026/);
-  assert.match(body.innerHTML, /Portugal[\s\S]*?#10[\s\S]*?83\.71/);
+  assert.match(body.innerHTML, /Portugal[\s\S]*?#10[\s\S]*?83,71/);
   assert.match(body.innerHTML, /EIU 2024/);
   assert.match(body.innerHTML, /Distribuição global RSF 2024/);
   assert.match(body.innerHTML, /Score por região RSF 2024/);
@@ -884,9 +885,9 @@ test("inflation parser uses JSON-stat dimension strides and EA21 for 2026", asyn
   vm.runInContext(source, context);
   await context.initInflation(true);
 
-  assert.match(body.innerHTML, /3\.6<span/);
-  assert.match(body.innerHTML, /3\.8<span/);
-  assert.match(body.innerHTML, /Jan 2026[\s\S]*?2\.1%/);
+  assert.match(body.innerHTML, /3,6<span/);
+  assert.match(body.innerHTML, /3,8<span/);
+  assert.match(body.innerHTML, /Jan 2026[\s\S]*?2,1%/);
   assert.doesNotMatch(body.innerHTML, /Jan 2026[\s\S]*?1\.7%/);
   assert.doesNotThrow(() => vm.runInContext("const APP_INFLATION = INFLATION_FALLBACK;", context));
 });
@@ -914,7 +915,7 @@ test("Euribor card ignores an incomplete cache and renders the configured fallba
   await context.initEuribor();
 
   assert.match(body.innerHTML, /EMMI estático/);
-  assert.match(body.innerHTML, /2\.682/);
+  assert.match(body.innerHTML, /2,682/);
   assert.doesNotMatch(body.innerHTML, /NaN|undefined/);
 });
 
@@ -1351,7 +1352,7 @@ test("dams card deduplicates failed refreshes and does not invent storage values
   };
   await context.loadDams(true);
   assert.match(body.innerHTML, /última leitura guardada/);
-  assert.match(body.innerHTML, /55\.0%/);
+  assert.match(body.innerHTML, /55,0%/);
   assert.equal(statuses[1][1], "stale");
 });
 
@@ -1419,7 +1420,7 @@ test("gas markets card rejects malformed TTF cache and keeps its global handlers
   assert.equal(typeof context.setTTFTrendDays, "function");
   await context.loadTTF();
   assert.doesNotMatch(body.innerHTML, /invalid/);
-  assert.match(body.innerHTML, /78\.5/);
+  assert.match(body.innerHTML, /78,5/);
   assert.match(body.innerHTML, /estático · ref\. Set 26/);
   assert.doesNotThrow(() => vm.runInContext("const APP_GAS_MARKETS = true;", context));
 });
@@ -1454,7 +1455,7 @@ test("gas PT fallback labels its September snapshot and omits a fabricated seven
 
   assert.match(body.innerHTML, /MIBGAS ref\. Set 2026/);
   assert.match(body.innerHTML, /Referências MIBGAS e TTF de setembro de 2026/);
-  assert.match(body.innerHTML, /\+2\.70/);
+  assert.match(body.innerHTML, /\+2,70/);
   assert.doesNotMatch(body.innerHTML, /últimos 7 dias|vs semana/);
   assert.match(body.innerHTML, /Tarifas reguladas ERSE 2026-2027/);
   assert.match(body.innerHTML, /\+6,4%/);
@@ -1858,4 +1859,20 @@ test("settings panel orders cards within their dashboard section and discards un
   assert.equal(JSON.stringify(context.getConfig().tickers), '["BCP"]');
   assert.equal(context.getConfig().cards[0].visible, true);
   assert.equal(context.isSettingsDirty(), false);
+});
+
+test("nf and nfr write numbers in pt-PT and leave text untouched", async () => {
+  const { nf, nfr } = await import("./nf-context.js");
+  assert.equal(nf(2.4365, 3), "2,437");
+  assert.equal(nf(-0.5, 1), "-0,5");
+  assert.equal(nf(8687, 0), "8687");
+  assert.equal(nf(24123.4, 0).replace(/\s/g, " "), "24 123");
+  assert.equal(nf(NaN, 2), "—");
+  assert.equal(nf("1.25", 2), "1,25");
+  assert.equal(nfr(154.2), "154,2");
+  assert.equal(nfr("3.9"), "3,9", "decimal strings from toFixed");
+  assert.equal(nfr(2024), 2024, "integers stay as they are");
+  assert.equal(nfr("v1.2 beta"), "v1.2 beta");
+  assert.equal(nfr("<b>1.5</b>"), "<b>1.5</b>");
+  assert.equal(nfr(null), null);
 });
