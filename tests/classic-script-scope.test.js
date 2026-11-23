@@ -1779,6 +1779,7 @@ test("trend chart resolves CSS variable colours and formats values in pt-PT", as
     getComputedStyle: () => ({ getPropertyValue: name => (name === "--blue" ? " #4B96F3 " : "") }),
     Chart: function Chart(_ctx, cfg) { config = cfg; this.destroy = () => {}; },
   });
+  context.window = context;
   vm.runInContext(source.slice(start, end), context);
   const canvas = { getContext: () => ({}) };
   const rows = [{ date: "2026-11-19", value: 1.1 }, { date: "2026-11-20", value: 1.099 }];

@@ -216,7 +216,7 @@ function renderTrendChart(canvas, history, options = {}) {
     const m = /^var\((--[\w-]+)\)$/.exec(String(value || '').trim());
     if (!m) return value;
     try {
-      const v = getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim();
+      const v = window.getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim();
       return v || fallback;
     } catch { return fallback; }
   };
