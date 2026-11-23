@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, icaoCountry, marketToday, parseBinanceTickers, parseDamsSiteCopy, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
+import { handleRequest, icaoCountry, marketToday, parseCoinpaprikaTicker, parseDamsSiteCopy, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -440,17 +440,16 @@ test("indicators route returns the fixed VIX/metals/S&P/energy list", async () =
   assert.deepEqual([...new Set(requested)].length, 6);
 });
 
-test("crypto falls back to Binance EUR tickers in CoinGecko shape when CoinGecko rate-limits", async () => {
+test("crypto falls back to CoinPaprika in CoinGecko shape, cached for 30 minutes", async () => {
   installMemoryCache();
   const seen = [];
   globalThis.fetch = async url => {
     seen.push(String(url));
     if (/coingecko/.test(String(url))) return new Response("rate limited", { status: 429 });
-    assert.match(String(url), /data-api\.binance\.vision\/api\/v3\/ticker\/24hr/);
-    return Response.json([
-      { symbol: "BTCEUR", openPrice: "50000", lastPrice: "51000" },
-      { symbol: "ETHEUR", openPrice: "2000", lastPrice: "1950" },
-    ]);
+    assert.match(String(url), /api\.coinpaprika\.com\/v1\/tickers\/[a-z-]+\?quotes=EUR$/);
+    if (/btc-bitcoin/.test(String(url))) return Response.json({ quotes: { EUR: { price: 51000, percent_change_24h: 2 } } });
+    if (/eth-ethereum/.test(String(url))) return Response.json({ quotes: { EUR: { price: 1950, percent_change_24h: -2.5 } } });
+    return new Response("nope", { status: 402 });
   };
   const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
   const response = await handleRequest(new Request("https://dash-data.test/v1/crypto", { headers: { Origin: env.DASH_ORIGIN } }), env, { waitUntil() {} });
@@ -459,11 +458,11 @@ test("crypto falls back to Binance EUR tickers in CoinGecko shape when CoinGecko
   assert.equal(payload.bitcoin.eur, 51000);
   assert.equal(payload.bitcoin.eur_24h_change, 2);
   assert.equal(payload.ethereum.eur_24h_change, -2.5);
-  assert.match(payload._meta.source, /Binance/);
-  assert.deepEqual(payload._meta.upstreamFailures ?? [], []);
-  assert.equal(seen.length, 2);
-
-  assert.deepEqual(JSON.parse(JSON.stringify(parseBinanceTickers("{}"))), {});
+  assert.equal(payload.solana, undefined, "coins without a quote are left out");
+  assert.match(payload._meta.source, /CoinPaprika/);
+  assert.match(response.headers.get("Cache-Control"), /s-maxage=1800/);
+  assert.equal(seen.length, 7);
+  assert.equal(parseCoinpaprikaTicker(JSON.stringify({ quotes: { EUR: { price: 0 } } })), null);
 });
 
 test("dams use the site copy when SNIRH refuses Cloudflare", async () => {

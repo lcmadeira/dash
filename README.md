@@ -93,13 +93,13 @@ Produção: `https://dash-data-gateway.luiscarlosmadeira.workers.dev` (`CFG.DATA
 | `/v1/news-world` | BBC World → Google News | 5 min · 1 dia |
 | `/v1/feed-icg`, `/v1/feed-gpf`, `/v1/feed-fa` | Crisis Group, Geopolitical Futures, BBC World (RSS) | 15 min · 2 dias |
 | `/v1/geopolitics` | GDELT DOC | 1 h · 3 dias (responde com a cópia até 12 h e atualiza em segundo plano) |
-| `/v1/crypto` | CoinGecko → Binance (`data-api.binance.vision`, pares EUR) | 90 s · 1 dia |
+| `/v1/crypto` | CoinGecko → CoinPaprika (EUR, 24h) | 90 s (30 min se vier do CoinPaprika) · 1 dia |
 | `/v1/ttf` | Yahoo Finance `TTF=F` (só EUR), com série diária de 3 meses | 15 min · 7 dias |
 | `/v1/agri` | Yahoo Finance: trigo, milho, soja, café, açúcar, algodão (`query1` → `query2`) | 15 min · 7 dias |
 | `/v1/euribor` | BCE, médias mensais 1M/3M/6M/12M (`FM.M.U2.EUR.RT.MM.*.HSTA`; o BCE demora 16–25 s) | 12 h · 45 dias (cópia até 3 dias + atualização em segundo plano) |
 | `/v1/dams` | SNIRH `tabelageral.php` → `data/dams.json` do site | 6 h · 45 dias (cópia até 3 dias + atualização em segundo plano) |
 
-**Fornecedores que recusam pedidos da Cloudflare** (verificado em 20/11/2026): Google News (503), CoinGecko (403/429), SNIRH (403) e GDELT (429/timeout). Por isso as notícias usam RTP/Público/BBC primeiro, a rota de cripto passa para a Binance quando o CoinGecko recusa, e a rota `/v1/dams` lê `data/dams.json` (atualizado no portátil) quando o SNIRH recusa. A 23/11/2026 o SNIRH respondia 520 à Cloudflare.
+**Fornecedores que recusam pedidos da Cloudflare** (verificado em 20/11/2026): Google News (503), CoinGecko (403/429), SNIRH (403) e GDELT (429/timeout). Por isso as notícias usam RTP/Público/BBC primeiro, a rota de cripto passa para o CoinPaprika quando o CoinGecko recusa (a Binance devolve 403 à Cloudflare), e a rota `/v1/dams` lê `data/dams.json` (atualizado no portátil) quando o SNIRH recusa. A 23/11/2026 o SNIRH respondia 520 à Cloudflare.
 
 **Deploy (manual):** um merge na `main` **não** publica o Worker. Correr o workflow **Deploy data gateway** (`gh workflow run "Deploy data gateway" --ref main`), que publica com Wrangler e verifica as rotas e o CORS. Usa os secrets de repositório `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` (configurados); nunca os guardes no repositório. Alternativa local: `npx wrangler deploy --config worker/wrangler.toml`. O Wrangler mantém `workers.dev` ativo e desativa URLs de preview.
 
