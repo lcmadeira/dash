@@ -1074,6 +1074,52 @@ test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote sou
   assert.doesNotMatch(body.innerHTML, /FALLBACK/);
 });
 
+test("PSI 20 takes quotes and history from the markets gateway before Stooq or Yahoo", async () => {
+  const body = { innerHTML: "" };
+  const canvas = {}, status = { textContent: "", innerHTML: "" }, days = {};
+  let stooqCalls = 0, yahooCalls = 0, gatewayCalls = 0, cacheWrite = null, chartRows = null;
+  const context = vm.createContext({
+    Date, Intl, PFX: "dash_",
+    console: { log() {}, warn() {} },
+    document: { getElementById: id => ({ "psi20-body": body, psi20TrendCanvas: canvas, psi20TrendStatus: status, psi20TrendDays: days })[id] || null },
+    localStorage: { getItem: () => null, setItem() {} },
+    lsGet: () => null,
+    lsSet: (key, value) => { cacheWrite = { key, value }; },
+    fetchWithCORS: async () => { yahooCalls++; throw new Error("not needed"); },
+    fetchStooqMulti: async () => { stooqCalls++; return {}; },
+    fetchStooqDailySeries: async () => { stooqCalls++; return []; },
+    _lastN: rows => rows,
+    _setOnByDataAttr() {},
+    addToHistory() {},
+    renderTrendChart: (_canvas, rows) => { chartRows = rows; },
+    ld: () => "loading",
+  });
+  context.window = context;
+  vm.runInContext(await readFile("src/config.js", "utf8"), context);
+  const symbols = [...context.EU_INDICES, ...context.PSI20_CONST].map(s => s.yf);
+  const series = Array.from({ length: 20 }, (_, i) => ({ date: `2026-10-${String(i + 1).padStart(2, "0")}`, value: 9000 + i }));
+  context.dataApiUrl = path => `https://gw.test/${path}`;
+  context.fetchFirstOk = async url => {
+    gatewayCalls++;
+    assert.equal(url, "https://gw.test/v1/markets");
+    return { r: { ok: true, json: async () => ({ quotes: symbols.map(symbol => ({
+      symbol, price: 100, prev: 98, hi: 101, lo: 97, volume: 5,
+      ...(symbol === "PSI20.LS" ? { price: 9323, prev: 9280, hi: 9330, lo: 9270, series } : {}),
+    })), _meta: { source: "Yahoo Finance", state: "live" } }) } };
+  };
+  vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
+  await context.loadPSI20();
+  await new Promise(resolve => setTimeout(resolve, 10)); // o gráfico arranca depois do card
+
+  assert.equal(stooqCalls, 0);
+  assert.equal(yahooCalls, 0);
+  assert.equal(gatewayCalls, 1, "card and chart share one gateway request");
+  assert.equal(cacheWrite.value.live, true);
+  assert.equal(cacheWrite.value.indices[0].price, 9323);
+  assert.match(body.innerHTML, /9323/);
+  assert.equal(chartRows.length, 20);
+});
+
 test("PSI 20 hides static fallback prices and marks its card header unavailable", async () => {
   const body = { innerHTML: "" };
   const header = { className: "", textContent: "", title: "" };

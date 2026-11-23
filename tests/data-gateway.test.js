@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, icaoCountry, marketToday, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooTtf } from "../worker/src/index.js";
+import { handleRequest, icaoCountry, marketToday, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -383,4 +383,40 @@ test("air route converts readsb aircraft to OpenSky-like states and reports adsb
   const limited = await handleRequest(new Request("https://dash-data.test/v1/air"));
   assert.equal(limited.status, 502);
   assert.deepEqual((await limited.json()).upstreamFailures, [{ source: "adsb.lol (ODbL)", status: 429 }]);
+});
+
+test("Yahoo parser takes the previous daily close, not the close before a multi-day range", () => {
+  const body = JSON.stringify({ chart: { result: [{
+    meta: { regularMarketPrice: 25030, chartPreviousClose: 26598.64, regularMarketTime: 1795435781 },
+    timestamp: [1795392000, 1795478400, 1795564800, 1795651200, 1795910400],
+    indicators: { quote: [{ close: [26045.37, 25736.24, null, 24802.78, 25030.03] }] },
+  }] } });
+  const quote = parseYahooChart(body, { withSeries: true });
+  assert.equal(quote.prev, 24802.78);
+  assert.equal(quote.series.length, 4, "null closes are dropped");
+  assert.deepEqual(quote.series.at(-1), { date: "2026-11-29", value: 25030.03 });
+});
+
+test("markets route returns the fixed PSI/European list with the PSI history", async () => {
+  const requested = [];
+  globalThis.fetch = async url => {
+    const symbol = decodeURIComponent(String(url).split("/chart/")[1].split("?")[0]);
+    requested.push(String(url));
+    if (symbol === "CTT.LS") return new Response("down", { status: 503 });
+    return Response.json({ chart: { result: [{
+      meta: { symbol, regularMarketPrice: 10, chartPreviousClose: 8, regularMarketTime: 1795435781 },
+      timestamp: [1795564800, 1795651200], indicators: { quote: [{ close: [9.5, 10] }] },
+    }] } });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/markets"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.quotes.length, 14);
+  const psi = payload.quotes.find(q => q.symbol === "PSI20.LS");
+  assert.equal(psi.prev, 9.5);
+  assert.equal(psi.series.length, 2);
+  assert.ok(requested.some(u => u.includes("PSI20.LS?range=3mo")));
+  assert.equal(payload.quotes.find(q => q.symbol === "EDP.LS").series, undefined);
+  assert.equal(payload.quotes.find(q => q.symbol === "CTT.LS").price, null);
+  assert.equal(payload._meta.source, "Yahoo Finance · Euronext Lisboa e índices europeus");
 });
