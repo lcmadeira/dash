@@ -87,6 +87,7 @@ Produção: `https://dash-data-gateway.luiscarlosmadeira.workers.dev` (`CFG.DATA
 |---|---|---|
 | `/v1/air` | adsb.lol (aeronaves ADS-B em lat 36–44, lon −12 a −5, convertidas para vetores de estado ao estilo OpenSky; país pelo bloco ICAO). O adsb.fi recusa a Cloudflare (403) e o adsb.lol limita os IPs da Cloudflare (429), daí a cache de 3 min | 3 min · 15 min |
 | `/v1/markets` | Yahoo Finance (query1 → query2): PSI 20 (`PSI20.LS`, com 3 meses de fechos), DAX, CAC 40, IBEX 35, FTSE 100, EURO STOXX 50 e 8 constituintes do PSI; fecho anterior = fecho diário anterior | 5 min · 4 dias |
+| `/v1/indicators` | Yahoo Finance (query1 → query2): VIX, ouro (GC=F), prata (SI=F), S&P 500, WTI (CL=F) e gás natural (NG=F) | 5 min · 4 dias |
 | `/v1/electricity?date=AAAA-MM-DD` | OMIE `MARGINALPDBCPT` (zona PT); dia ainda não publicado → `200 {published:false}` | 5 min · 1 dia |
 | `/v1/news-pt` | RTP → Público → Google News | 5 min · 1 dia |
 | `/v1/news-world` | BBC World → Google News | 5 min · 1 dia |

@@ -420,3 +420,22 @@ test("markets route returns the fixed PSI/European list with the PSI history", a
   assert.equal(payload.quotes.find(q => q.symbol === "CTT.LS").price, null);
   assert.equal(payload._meta.source, "Yahoo Finance · Euronext Lisboa e índices europeus");
 });
+
+test("indicators route returns the fixed VIX/metals/S&P/energy list", async () => {
+  const requested = [];
+  globalThis.fetch = async url => {
+    const symbol = decodeURIComponent(String(url).split("/chart/")[1].split("?")[0]);
+    requested.push(symbol);
+    return Response.json({ chart: { result: [{
+      meta: { symbol, regularMarketPrice: 10, chartPreviousClose: 5, regularMarketTime: 1795435781 },
+      timestamp: [1795564800, 1795651200], indicators: { quote: [{ close: [9, 10] }] },
+    }] } });
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/indicators"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.deepEqual(payload.quotes.map(q => q.symbol), ["^VIX", "GC=F", "SI=F", "^GSPC", "CL=F", "NG=F"]);
+  assert.equal(payload.quotes[0].prev, 9);
+  assert.ok(payload.quotes.every(q => q.series === undefined));
+  assert.deepEqual([...new Set(requested)].length, 6);
+});

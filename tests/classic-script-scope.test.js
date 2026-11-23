@@ -617,6 +617,38 @@ test("air traffic card only flags data as late from 5 minutes", async () => {
   assert.match(await render(6 * 60 * 1000), /🟠 Atrasado · 6min/);
 });
 
+test("market indicators come from the gateway and Stooq is only asked for missing symbols", async () => {
+  const body = { innerHTML: "" };
+  let stooqAsked = null;
+  const context = vm.createContext({
+    Date, Number, String, Math, Array,
+    $: id => (id === "mstats-body" ? body : null),
+    skeletonKPIs: () => "",
+    lsGet: () => null,
+    lsSet() {},
+    fetchStooqMulti: async syms => { stooqAsked = syms; return {}; },
+  });
+  context.window = context;
+  context.dataApiUrl = path => `https://gw.test/${path}`;
+  context.fetchFirstOk = async url => {
+    assert.equal(url, "https://gw.test/v1/indicators");
+    return { r: { ok: true, json: async () => ({ quotes: [
+      { symbol: "^VIX", price: 31.2, prev: 35.9, hi: 33, lo: 30 },
+      { symbol: "GC=F", price: 3618, prev: 3515, hi: 3620, lo: 3500 },
+      { symbol: "SI=F", price: 42.14, prev: 41.04 },
+      { symbol: "^GSPC", price: 6910.39, prev: 7176, hi: 7100, lo: 6900 },
+      { symbol: "CL=F", price: 82.14, prev: 83.98, hi: 84, lo: 82 },
+      { symbol: "NG=F", price: null, prev: null },
+    ] }) } };
+  };
+  vm.runInContext(await readFile("src/cards/market-stats.js", "utf8"), context);
+  await context.loadMarketStats(true);
+  assert.equal(JSON.stringify(stooqAsked), JSON.stringify(["ng.f"]));
+  assert.match(body.innerHTML, /Yahoo 5\/6/);
+  assert.match(body.innerHTML, /\$3[\s.\u00a0]?618/);
+  assert.doesNotMatch(body.innerHTML, /gold-api/);
+});
+
 test("Ormuz card expires stale AIS, validates positions and escapes vessel tooltips", async () => {
   const context = createBrowserContext();
   const body = { innerHTML: "" };

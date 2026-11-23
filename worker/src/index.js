@@ -27,6 +27,8 @@ const AGRI_SYMBOLS = ["ZW=F", "ZC=F", "ZS=F", "KC=F", "SB=F", "CT=F"];
 const PSI_SYMBOL = "PSI20.LS";
 const MARKET_SYMBOLS = [PSI_SYMBOL, "^GDAXI", "^FCHI", "^IBEX", "^FTSE", "^STOXX50E",
   "EDP.LS", "GALP.LS", "JMT.LS", "BCP.LS", "NOS.LS", "SON.LS", "RENE.LS", "CTT.LS"];
+// Card "Indicadores de Mercado": volatilidade, metais, S&P 500 e energia (lista fixa).
+const INDICATOR_SYMBOLS = ["^VIX", "GC=F", "SI=F", "^GSPC", "CL=F", "NG=F"];
 const SNIRH_PAGE = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
 const SNIRH_TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/tabelas/tabelageral.php";
 /* Alguns fornecedores recusam pedidos sem User-Agent vindos de servidores. */
@@ -244,20 +246,28 @@ async function fetchAgriQuotes(route) {
   return { payload: { quotes } };
 }
 
-async function fetchMarketQuotes(route) {
-  const quotes = await Promise.all(MARKET_SYMBOLS.map(async symbol => {
-    const range = symbol === PSI_SYMBOL ? "3mo" : "5d";
+/** Cotações Yahoo de uma lista fixa (query1 → query2); `seriesSymbol` traz também 3 meses de fechos. */
+async function fetchYahooQuotes(route, symbols, seriesSymbol = null) {
+  const quotes = await Promise.all(symbols.map(async symbol => {
+    const range = symbol === seriesSymbol ? "3mo" : "5d";
     for (const host of ["query1", "query2"]) {
       try {
         const response = await fetchUpstream(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`, route.accept, 6000);
         if (!response.ok) continue;
-        const quote = parseYahooChart(await readBoundedBody(response, route.maxBytes), { withSeries: symbol === PSI_SYMBOL });
+        const quote = parseYahooChart(await readBoundedBody(response, route.maxBytes), { withSeries: symbol === seriesSymbol });
         if (isValidQuote(quote)) return { symbol, ...quote };
       } catch { /* tenta o anfitrião seguinte */ }
     }
     return { symbol, price: null, prev: null };
   }));
   return { payload: { quotes } };
+}
+
+const fetchMarketQuotes = route => fetchYahooQuotes(route, MARKET_SYMBOLS, PSI_SYMBOL);
+
+function isValidIndicators(payload) {
+  return Array.isArray(payload?.quotes) && payload.quotes.length === INDICATOR_SYMBOLS.length
+    && payload.quotes.filter(q => isValidQuote(q)).length >= 3;
 }
 
 function isValidMarkets(payload) {
@@ -529,6 +539,11 @@ function routeFor(url) {
       observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
       upstreams: [{ source: "Yahoo Finance · Euronext Lisboa e índices europeus", run: fetchMarketQuotes }] };
   }
+  if (path === "/v1/indicators") {
+    return { key: path, ttl: 300, staleTtl: 4 * day, maxBytes: 250_000, accept: "application/json", valid: isValidIndicators,
+      observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
+      upstreams: [{ source: "Yahoo Finance · índices, metais e energia", run: route => fetchYahooQuotes(route, INDICATOR_SYMBOLS) }] };
+  }
   if (path === "/v1/dams") {
     return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
       observedAt: p => Date.parse(`${p.period}-15T12:00:00Z`),
@@ -605,7 +620,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", "/v1/markets", ELECTRICITY_PATH] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", "/v1/markets", "/v1/indicators", ELECTRICITY_PATH] }, 200, headers);
   }
 
   let electricityDate = null;
