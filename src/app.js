@@ -1154,6 +1154,7 @@ let cardSearchQuery = '';
 // FUNÇÕES DE UI
 // ──────────────────────────────────────────────────────────────
 
+/* exported openSettings -- chamado pelo botão ⚙️ em index.html */
 function openSettings() {
   lastFocusSettings = document.activeElement;
   const overlay = document.getElementById('settingsOverlay');
@@ -2279,7 +2280,9 @@ function saveSettings() {
   
   // Feedback visual
   const saveBtn = document.querySelector('.settings-btn-save');
-  if (saveBtn) {
+  if (saveBtn && !saveBtn.dataset.saving) {
+    // Um segundo clique durante o feedback não volta a ler o texto "✓ Guardado!" como original.
+    saveBtn.dataset.saving = '1';
     const originalText = saveBtn.textContent;
     saveBtn.textContent = '✓ Guardado!';
     saveBtn.style.background = 'var(--green)';
@@ -2287,6 +2290,7 @@ function saveSettings() {
     setTimeout(() => {
       saveBtn.textContent = originalText;
       saveBtn.style.background = '';
+      delete saveBtn.dataset.saving;
       closeSettings();
     }, 1000);
   }
@@ -2630,12 +2634,21 @@ function dismissNotification(event, id) {
 }
 
 // Limpar todas
-function clearAllNotifications() {
-  if (confirm('Limpar todas as notificações?')) {
-    notifications = [];
-    saveNotifications();
-    updateNotificationUI();
+/* Confirmação em dois cliques no próprio botão (sem janela do browser). */
+function clearAllNotifications(btn) {
+  if (btn && btn.dataset.armed !== '1') {
+    btn.dataset.armed = '1';
+    btn.dataset.label = btn.textContent;
+    btn.textContent = 'Confirmar?';
+    setTimeout(() => {
+      if (btn.dataset.armed === '1') { btn.dataset.armed = ''; btn.textContent = btn.dataset.label || 'Limpar'; }
+    }, 4000);
+    return;
   }
+  if (btn) { btn.dataset.armed = ''; btn.textContent = btn.dataset.label || 'Limpar'; }
+  notifications = [];
+  saveNotifications();
+  updateNotificationUI();
 }
 
 // Toast (popup temporário)
@@ -2717,11 +2730,10 @@ function formatTimeAgo(date) {
 
 // Abrir configurações de notificações
 function openNotificationSettings() {
-  // Mudar para tab de notificações no painel de configurações
-  openSettings();
-  
-  // TODO: Criar tab de notificações no painel de settings
-  alert('Configurações de notificações em desenvolvimento!\n\nPor agora, todas as notificações estão ativas:\n• Sismos > 3.0\n• Notícias importantes\n• Picos de energia > 20%');
+  // Ainda não há opções: explicar as regras em vigor sem abrir o painel de configurações.
+  window.showNotice('Notificações',
+    'Todas as notificações estão ativas: sismos acima de 3,0, notícias importantes e picos de energia acima de 20%. Ainda não há opções para as escolher.',
+    'info');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3096,7 +3108,7 @@ function updateExportButton() {
 
 async function executeExport() {
   if (exportState.selectedCards.length === 0) {
-    alert('Selecione pelo menos um card para exportar!');
+    window.showNotice('Exportação', 'Selecione pelo menos um card para exportar.', 'warn');
     return;
   }
   
@@ -3139,7 +3151,7 @@ async function executeExport() {
   } catch (error) {
     console.error('❌ Erro na exportação:', error);
     console.error('Stack trace:', error.stack);
-    alert('Erro ao exportar dados. Veja o console para detalhes.\n\n' + error.message);
+    window.showNotice('Erro ao exportar', error?.message || 'Erro inesperado (detalhes na consola).', 'error');
   } finally {
     if (progress) {
       progress.classList.remove('active');
@@ -3619,7 +3631,7 @@ function showTrendModal(title, historyKey, options = {}) {
   const history = getHistory(historyKey, options.days || 30);
   
   if (history.length < 2) {
-    alert('Histórico insuficiente. Aguarda alguns dias para ver tendências.');
+    window.showNotice('Histórico insuficiente', 'Aguarda alguns dias para ver tendências.', 'info');
     return;
   }
   
@@ -4072,7 +4084,7 @@ function saveCabazEntry(){
   const valor=parseFloat(s.includes(",") && s.includes(".") ? s.replace(/\./g,"").replace(",",".") : s.replace(",","."));
 
   if(!iso||isNaN(valor)||valor<150||valor>600){
-    alert("Insere uma data válida e um valor entre 150€ e 600€.");
+    window.showNotice("Cabaz", "Insere uma data válida e um valor entre 150 € e 600 €.", "warn");
     return;
   }
 

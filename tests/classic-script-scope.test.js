@@ -1956,3 +1956,31 @@ test("expired market caches reload on their own while the page is visible", asyn
   assert.equal(context.autoRefreshExpiredCards(Date.now() + 60 * 60 * 1000), 0, "hidden cards are skipped");
 });
 
+
+test("the dashboard uses in-page notices instead of browser dialogs", async () => {
+  const files = ["src/app.js", "src/core.js", "src/ui.js", "src/widgets/economic-calendar.js"];
+  for (const file of files) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(source, /(^|[^.\w])(alert|confirm|prompt)\(/m, `${file} still opens a browser dialog`);
+  }
+  const core = await readFile("src/core.js", "utf8");
+  assert.match(core, /window\.showNotice = /);
+});
+
+test("clearing notifications asks for a second click on the same button", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const start = source.indexOf("function clearAllNotifications(btn) {");
+  const end = source.indexOf("\n}\n", start) + 3;
+  assert.ok(start > 0 && end > start);
+  let saved = 0;
+  const context = vm.createContext({ setTimeout() {}, notifications: [1, 2], saveNotifications() { saved++; }, updateNotificationUI() {} });
+  vm.runInContext(`var notifications = [1, 2];\n${source.slice(start, end)}`, context);
+  const btn = { textContent: "Limpar", dataset: {} };
+  context.clearAllNotifications(btn);
+  assert.equal(btn.textContent, "Confirmar?");
+  assert.equal(saved, 0);
+  context.clearAllNotifications(btn);
+  assert.equal(saved, 1);
+  assert.equal(btn.textContent, "Limpar");
+  assert.equal(vm.runInContext("notifications.length", context), 0);
+});

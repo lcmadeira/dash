@@ -1,4 +1,4 @@
-/* global Date, $, document, alert, window */
+/* global Date, $, document, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
    CALENDÁRIO ECONÓMICO — Finnhub API + fallback estático
@@ -194,7 +194,7 @@ function renderCalendar(){
 
 function openCalendarSettings(){
   /* Nada a configurar — calendário é automático */
-  alert("O calendário económico é gerado automaticamente a partir de datas oficiais do Fed, BCE e INE. Não são necessárias API keys.");
+  window.showNotice("Calendário económico", "É gerado automaticamente a partir das datas oficiais do Fed, do BCE e do INE; não há nada a configurar.", "info");
 }
 
   window.switchCal = switchCal;

@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261123-14"/>
+<link rel="stylesheet" href="styles.css?v=20261123-30"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -48,7 +48,7 @@
           <div class="notif-title">Notificações</div>
           <div class="notif-actions">
             <button type="button" class="notif-action-btn" onclick="markAllAsRead()">Marcar lidas</button>
-            <button type="button" class="notif-action-btn" onclick="clearAllNotifications()">Limpar</button>
+            <button type="button" class="notif-action-btn" onclick="clearAllNotifications(this)">Limpar</button>
           </div>
           <button class="notif-close" type="button" onclick="setNotificationsOpen(false)" aria-label="Fechar notificações">✕</button>
         </div>
@@ -995,7 +995,7 @@
 </div><!-- /main-grid -->
 </div><!-- /wrap -->
 <script src="src/config.js?v=20261123-25"></script>
- <script src="src/core.js?v=20261123-22"></script>
+ <script src="src/core.js?v=20261123-30"></script>
  <script src="src/cache.js?v=20261123-29"></script>
  <script src="src/fetch.js?v=20261123-26"></script>
 <script src="src/ui.js?v=20261123-29" integrity="sha384-AXC7ub9jieJ/YiKqtzhX5eISMkk8T433Ejw7kOGnRETcMaFcds/IYcoDPGIqk0EO"></script>
@@ -1031,10 +1031,10 @@
  <script src="src/cards/psi20.js?v=20261123-26"></script>
  <script src="src/cards/geopolitics.js?v=20261123-16"></script>
  <script src="src/cards/gas-markets.js?v=20261123-26"></script>
- <script src="src/widgets/economic-calendar.js?v=20261120-27"></script>
+ <script src="src/widgets/economic-calendar.js?v=20261123-30"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261123-29"></script>
+<script src="src/app.js?v=20261123-30"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>

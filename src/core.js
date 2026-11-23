@@ -63,6 +63,39 @@
       // Falha silenciosa: não interromper fluxo da UI
     }
   };
+  /**
+   * Aviso dentro da página (substitui alert): título + mensagem, fecha sozinho.
+   * @param {string} title
+   * @param {string} message
+   * @param {"info"|"warn"|"error"|"ok"} [kind]
+   */
+  window.showNotice = (title, message = "", kind = "info") => {
+    const container = document.getElementById("toastContainer");
+    if (!container) return null;
+    const icons = { info: "ℹ️", warn: "⚠️", error: "⛔", ok: "✅" };
+    const type = icons[kind] ? kind : "info";
+    const toast = document.createElement("div");
+    toast.className = `toast type-notice-${type}`;
+    toast.setAttribute("role", type === "error" ? "alert" : "status");
+    toast.innerHTML = `
+      <div class="toast-progress"></div>
+      <div class="toast-icon" aria-hidden="true">${icons[type]}</div>
+      <div class="toast-content">
+        <div class="toast-title">${escHtml(title)}</div>
+        ${message ? `<div class="toast-message">${escHtml(message).replace(/\n/g, "<br>")}</div>` : ""}
+      </div>
+      <button type="button" class="toast-close" aria-label="Fechar aviso">✕</button>
+    `;
+    const hide = () => {
+      if (!toast.parentElement) return;
+      toast.classList.add("hiding");
+      setTimeout(() => toast.remove(), 300);
+    };
+    toast.querySelector(".toast-close").onclick = (e) => { e.stopPropagation(); hide(); };
+    container.appendChild(toast);
+    setTimeout(hide, type === "error" ? 9000 : 6000);
+    return toast;
+  };
   /** Número com `d` casas decimais em pt-PT (vírgula decimal); "—" se não for finito. */
   window.nf = (v, d = 2) => {
     const n = Number(v);

@@ -1409,7 +1409,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   position: fixed;
   top: 80px;
   right: 20px;
-  z-index: 9999;
+  z-index: 10050; /* acima dos modais (9999), para avisos mostrados com um modal aberto */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1515,6 +1515,11 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   border-left: 4px solid var(--red);
   background: linear-gradient(90deg, var(--rd) 0%, var(--card) 40%);
 }
+/* Avisos da página (window.showNotice) */
+.toast.type-notice-info { border-left: 4px solid var(--accent); background: linear-gradient(90deg, var(--ad) 0%, var(--card) 40%); }
+.toast.type-notice-ok { border-left: 4px solid var(--green); background: linear-gradient(90deg, var(--gd) 0%, var(--card) 40%); }
+.toast.type-notice-warn { border-left: 4px solid var(--amber); }
+.toast.type-notice-error { border-left: 4px solid var(--red); background: linear-gradient(90deg, var(--rd) 0%, var(--card) 40%); }
 .help-tip{
   display:inline-flex;align-items:center;justify-content:center;
   width:14px;height:14px;margin-left:4px;border-radius:50%;
