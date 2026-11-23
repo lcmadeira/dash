@@ -92,10 +92,15 @@ function switchOil(type,btn){
 
 /* ── Bolsa Lisboa — TV widget dinâmico por acção ── */
 /* ── Mapa de Calor ── */
+/* Cada separador usa o widget TradingView próprio: o de ações não conhece "Crypto"/"ETF" e
+   volta ao S&P 500. Configurações conforme os valores por omissão de cada widget. */
 const HMAP_CONFIGS={
-  sp500:{dataSource:"SPX500",grouping:"sector",blockSize:"market_cap_basic"},
-  crypto:{dataSource:"Crypto",grouping:"no_group",blockSize:"market_cap_basic"},
-  etf:{dataSource:"ETF",grouping:"asset_class",blockSize:"assets_under_management"},
+  sp500:{script:"https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",note:"S&P 500 · Por sector · Tamanho = capitalização · Cor = variação dia",
+    config:{dataSource:"SPX500",exchanges:[],grouping:"sector",blockSize:"market_cap_basic",blockColor:"change"}},
+  crypto:{script:"https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js",note:"Criptomoedas · Tamanho = capitalização · Cor = variação 24 h",
+    config:{dataSource:"Crypto",blockSize:"market_cap_calc",blockColor:"24h_close_change|5"}},
+  etf:{script:"https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js",note:"ETF dos EUA · Por classe de ativos · Tamanho = ativos sob gestão · Cor = variação dia",
+    config:{dataSource:"AllUSEtf",grouping:"asset_class",blockSize:"aum",blockColor:"change"}},
 };
 const HMAP_WIDGET_HOSTS = new Map();
 function switchHmap(key,btn){
@@ -103,13 +108,15 @@ function switchHmap(key,btn){
   if(btn)btn.classList.add("on");
   const c=HMAP_CONFIGS[key];if(!c)return;
   const root=document.getElementById("hmap-widget");if(!root)return;
+  const note=document.getElementById("hmap-note");
+  if(note)note.textContent=`✦ TradingView · ${c.note}`;
   let host=HMAP_WIDGET_HOSTS.get(key);
   if(!host){
     host=document.createElement("div");
     host.dataset.hmapKey=key;
     root.appendChild(host);
     HMAP_WIDGET_HOSTS.set(key,host);
-    mountLazyTradingView(host,"https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js",{exchanges:[],dataSource:c.dataSource,grouping:c.grouping,blockSize:c.blockSize,blockColor:"change",locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460},460);
+    mountLazyTradingView(host,c.script,{...c.config,locale:"pt",colorTheme:"dark",hasTopBar:true,isDataSetEnabled:false,isZoomEnabled:true,hasSymbolTooltip:true,isMonoSize:false,width:"100%",height:460},460);
   }
   HMAP_WIDGET_HOSTS.forEach((widgetHost,widgetKey)=>{widgetHost.hidden=widgetKey!==key;});
 }
