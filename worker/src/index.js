@@ -419,13 +419,14 @@ function staleCacheKey(url) {
   return new Request(stale.toString(), { method: "GET" });
 }
 
-async function getStaleResponse(cache, key, route, headers) {
+async function getStaleResponse(cache, key, route, headers, upstreamFailures) {
   const cached = await getCached(cache, key);
   if (!cached) return null;
   try {
     const payload = await cached.json();
     if (!route.valid(payload)) return null;
-    payload._meta = { ...payload._meta, state: "stale", fallbackAt: Date.now() };
+    payload._meta = { ...payload._meta, state: "stale", fallbackAt: Date.now(),
+      ...(upstreamFailures?.length ? { upstreamFailures } : {}) };
     const staleHeaders = new Headers(cached.headers);
     headers.forEach((value, name) => staleHeaders.set(name, value));
     staleHeaders.set("Cache-Control", "public, max-age=0, s-maxage=0");
@@ -510,6 +511,8 @@ async function fetchSnirhDams(route) {
 /** Tenta os fornecedores da rota por ordem; devolve o primeiro resultado válido ou o motivo da falha. */
 async function fetchFromUpstreams(route) {
   let failure = { error: "Não foi possível consultar o fornecedor" };
+  // Motivo por fornecedor (código HTTP ou tipo de erro), para diagnóstico quando se serve a cópia de reserva.
+  const failures = [];
   for (const upstream of route.upstreams) {
     try {
       let result;
@@ -519,13 +522,23 @@ async function fetchFromUpstreams(route) {
         if (!response.ok) result = { status: response.status };
         else result = { payload: upstream.parse(await readBoundedBody(response, route.maxBytes)) };
       }
-      if (result.status) { failure = { error: "Fornecedor indisponível", upstreamStatus: result.status }; continue; }
-      if (result.invalid || !route.valid(result.payload)) { failure = { error: "Resposta inválida do fornecedor" }; continue; }
+      if (result.status) {
+        failure = { error: "Fornecedor indisponível", upstreamStatus: result.status };
+        failures.push({ source: upstream.source, status: result.status });
+        continue;
+      }
+      if (result.invalid || !route.valid(result.payload)) {
+        failure = { error: "Resposta inválida do fornecedor" };
+        failures.push({ source: upstream.source, error: "invalid" });
+        continue;
+      }
       return { payload: result.payload, source: upstream.source };
-    } catch {
+    } catch (error) {
       failure = { error: "Não foi possível consultar o fornecedor" };
+      failures.push({ source: upstream.source, error: error?.name === "TimeoutError" ? "timeout" : String(error?.name || "error").slice(0, 40) });
     }
   }
+  failure.upstreamFailures = failures;
   return { failure };
 }
 
@@ -584,7 +597,7 @@ async function serveRoute(url, route, headers, ctx) {
   }
   const result = await fetchFromUpstreams(route);
   if (!result.payload) {
-    const stale = cache ? await getStaleResponse(cache, staleKey, route, headers) : null;
+    const stale = cache ? await getStaleResponse(cache, staleKey, route, headers, result.failure.upstreamFailures) : null;
     if (stale) return stale;
     return jsonResponse(result.failure, 502, headers);
   }
