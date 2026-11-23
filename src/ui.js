@@ -537,7 +537,7 @@
       inf: "inflation_eurostat_v2",
       div: "div_eurostat_v1",
       // Só valores fixos: o estado vem de STATIC_REFERENCE_POLICY (data de referência e limite).
-      exp: null,
+      exp: "exp_ine_v1",
       conflicts: null,
       smn: null,
       transp: null,

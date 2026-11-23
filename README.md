@@ -112,6 +112,7 @@ Algumas fontes recusam servidores (Cloudflare e runners do GitHub) ou são demas
 | `data/dams.json` | `scripts/update-dams.mjs` | SNIRH/APA, boletim mensal de albufeiras (mesmo leitor que o Worker) | mensal |
 | `data/cabaz.json` | `scripts/update-cabaz.mjs` + `scripts/lib/cabaz-news.mjs` | notícias Lusa sobre o boletim DECO PROteste (Google News RSS) | semanal (quartas) |
 | `data/imob.json` | `scripts/update-imob.mjs` + `scripts/lib/ine-imob.mjs` | INE, indicador 0012234 (mediana das vendas por m², últimos 12 meses) | trimestral |
+| `data/exports.json` | `scripts/update-exports.mjs` + `scripts/lib/ine-exports.mjs` | INE, indicador 0001400 (exportações de bens por destino e grupo CGCE; quota nos últimos 12 meses). O INE demora até 15 s a aceitar a ligação e responde 429 a pedidos seguidos, por isso usa `scripts/lib/http-json.mjs` (90 s, 3 tentativas espaçadas) | mensal |
 
 - Cada atualizador só reescreve o ficheiro quando os dados mudam e uma falha não impede os outros.
 - **Cabaz:** um valor semanal só é aceite se ≥2 jornais derem o mesmo valor sem empate, ou se a variação anunciada num título bater certo, ao cêntimo, com a semana anterior conhecida; uma semana em falta pode ser calculada pela variação da seguinte; saltos > 15 € são rejeitados.
@@ -202,7 +203,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 - `src/config.js` — configuração, referências estáticas (`STATIC_REFERENCE_POLICY`), IDs IPMA oficiais
 - `src/cache.js`, `src/fetch.js`, `src/ui.js` — helpers partilhados (cache com TTL e proveniência, pedidos com fallback e `dataApiUrl`, badges e vistas), documentados com JSDoc
 - `src/cards/` — um ficheiro por card (ex.: `civil-protection.js`, `euribor.js`, `dams.js`, `gas-markets.js` com TTF e gás PT); `src/widgets/` — relógios das praças e calendário económico
-- `data/` — `dams.json`, `cabaz.json`, `imob.json`, gerados por `scripts/update-data.mjs` (não editar à mão, exceto para corrigir)
+- `data/` — `dams.json`, `cabaz.json`, `imob.json`, `exports.json`, gerados por `scripts/update-data.mjs` (não editar à mão, exceto para corrigir)
 - `scripts/` — atualizadores de `data/` (`update-*.mjs`, `lib/`), `bump-asset-versions.py`, verificações da publicação e do gateway, smoke test em browser
 - `worker/` — gateway Cloudflare (rotas, validação, cache na edge, contingência stale); `worker/wrangler.toml` com `DASH_ORIGIN`
 - `dev_server.py` — servidor de desenvolvimento com proxy CORS local
