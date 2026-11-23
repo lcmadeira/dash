@@ -651,13 +651,46 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   font-weight:700;
 }
 
-/* Grid de cards toggle */
+/* Cards toggle: agrupados pelas secções do painel, uma coluna */
 .card-toggles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 24px;
 }
+.card-toggle-group-head{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px 12px;
+  margin:0 2px 8px;
+}
+.card-toggle-group-title{
+  font-size:.78rem;
+  font-weight:700;
+  margin:0;
+  color:var(--text);
+}
+.card-toggle-group-count{
+  font-family:var(--mono);
+  font-size:.7rem;
+  color:var(--t3);
+}
+.card-toggle-group-actions{margin-left:auto;display:flex;gap:6px}
+.card-group-btn{
+  background:transparent;
+  border:1px solid var(--b);
+  border-radius:8px;
+  padding:4px 10px;
+  font-family:var(--mono);
+  font-size:.68rem;
+  color:var(--t2);
+  cursor:pointer;
+}
+.card-group-btn:hover:not(:disabled){color:var(--text);border-color:var(--t2)}
+.card-group-btn:disabled{opacity:.4;cursor:default}
+.card-toggle-list{display:flex;flex-direction:column;gap:6px}
+.card-toggle-item.is-off .card-toggle-info{opacity:.55}
 .card-search{
   display:flex;
   align-items:center;
@@ -675,9 +708,10 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   background:transparent;
   color:var(--text);
   font-size:.78rem;
-  font-weight:700;
+  font-weight:500;
 }
-.card-search-input::placeholder{color:var(--t3);font-weight:600}
+.card-search-input::placeholder{color:var(--t3);font-weight:400}
+.card-search:focus-within{border-color:var(--accent)}
 .card-search-clear{
   background:transparent;
   border:1px solid var(--b);
@@ -976,10 +1010,23 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   padding: 16px 24px;
   border-top: 1px solid var(--b);
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   justify-content: flex-end;
   background: var(--surface);
 }
+.settings-dirty,
+.settings-msg{
+  font-family:var(--mono);
+  font-size:.7rem;
+  color:var(--t2);
+}
+.settings-dirty{color:var(--accent)}
+.settings-msg{flex:1;min-width:0}
+.settings-msg[data-kind="warn"]{color:var(--amber)}
+.settings-msg[data-kind="ok"]{color:var(--green)}
+.settings-btn-reset.armed{border-color:var(--red);color:var(--red)}
 .settings-btn-action {
   padding: 8px 18px;
   border-radius: var(--rs);

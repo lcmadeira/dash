@@ -1791,3 +1791,61 @@ test("trend chart resolves CSS variable colours and formats values in pt-PT", as
   context.renderTrendChart(canvas, rows, { borderColor: "#10B981" });
   assert.equal(config.data.datasets[0].borderColor, "#10B981");
 });
+
+test("settings panel orders cards within their dashboard section and discards unsaved changes", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const slice = (from, to) => {
+    const start = source.indexOf(from);
+    const end = source.indexOf(to, start);
+    assert.ok(start > 0 && end > start, `missing ${from}`);
+    return source.slice(start, end);
+  };
+  const messages = [];
+  const context = vm.createContext({
+    JSON, String, Number, Boolean, setTimeout: () => 0, clearTimeout: () => {},
+    document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] },
+    window: { CSS: { escape: v => v } },
+  });
+  vm.runInContext([
+    "let cardSearchQuery = ''; let comfortPreviewDirty = false; let comfortSnapshot = null; let draggedElement = null;",
+    "function normalizeStr(s) { return String(s || '').toLowerCase(); }",
+    "function normalizeComfortConfig(c) { return c; }",
+    "function updateCardSearchUI() {}",
+    "function renderTickerList() {}",
+    slice("const CARD_SECTIONS = {", "function applySettings()"),
+    slice("const SETTINGS_SECTIONS = [", "// LOCALIZAÇÃO"),
+    slice("const TICKER_MAX = 10;", "function removeTicker("),
+    "var currentConfig = { location: 'lisboa', tickers: ['BCP'], cards: [",
+    "  { id: 'weather', visible: true }, { id: 'oil', visible: true }, { id: 'fuel', visible: true },",
+    "  { id: 'psi20', visible: true }, { id: 'elec', visible: false } ] };",
+    "this.getConfig = () => currentConfig;",
+  ].join("\n"), context);
+  context.showSettingsMessage = text => messages.push(text);
+  const ids = () => context.getConfig().cards.map(c => c.id).join(",");
+
+  vm.runInContext("settingsSnapshot = snapshotEditableConfig();", context);
+  assert.equal(context.isSettingsDirty(), false);
+
+  // ↓ on "weather" skips "oil" (mercados) and lands after "fuel" (portugal)
+  context.moveCard(0, 1);
+  assert.equal(ids(), "oil,fuel,weather,psi20,elec");
+  // "oil" has no neighbour above within mercados: nothing moves
+  context.moveCard(0, -1);
+  assert.equal(ids(), "oil,fuel,weather,psi20,elec");
+
+  context.setSectionVisibility("portugal", false);
+  const vis = Object.fromEntries(context.getConfig().cards.map(c => [c.id, c.visible]));
+  assert.deepEqual({ ...vis }, { oil: true, fuel: false, weather: false, psi20: true, elec: false });
+
+  assert.equal(context.tryAddTicker("<b>"), false, "markup is rejected");
+  assert.equal(context.tryAddTicker("bcp"), false, "duplicates are rejected");
+  assert.equal(context.tryAddTicker("nos"), true);
+  assert.equal(messages.length, 2);
+  assert.equal(context.isSettingsDirty(), true);
+
+  context.restoreSettingsSnapshot();
+  assert.equal(ids(), "weather,oil,fuel,psi20,elec");
+  assert.equal(JSON.stringify(context.getConfig().tickers), '["BCP"]');
+  assert.equal(context.getConfig().cards[0].visible, true);
+  assert.equal(context.isSettingsDirty(), false);
+});
