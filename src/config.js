@@ -22,7 +22,7 @@ const STATIC_REFERENCE_POLICY = {
   div: { source: "Eurostat · valores fixos 2024", observedAt: "2025-10-21", maxAgeDays: 400 },
   exp: { source: "INE/AICEP · jan–nov 2024", observedAt: "2024-11-30", maxAgeDays: 400 },
   co2: { source: "DGEG/REN · relatório 2024", observedAt: "2024-12-31", maxAgeDays: 455 },
-  conflicts: { source: "ACLED/CFR/Crisis Group · mar 2026", observedAt: "2026-03-31", maxAgeDays: 120 },
+  conflicts: { source: "ACLED/CFR/Crisis Group · revisto nov 2026", observedAt: "2026-11-23", maxAgeDays: 120 },
   smn: { source: "DL 139/2025 · SMN 2026", observedAt: "2026-01-01", maxAgeDays: 395 },
   transp: { source: "Tarifas de 2026", observedAt: "2026-01-01", maxAgeDays: 395 },
   press: { source: "RSF 2026 · EIU", observedAt: "2026-05-01", maxAgeDays: 400 },
