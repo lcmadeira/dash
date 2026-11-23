@@ -451,40 +451,40 @@ document.addEventListener("visibilitychange", () => {
 (function(){
 
 const C=[
-  /* [nome, tipo, lat, lon, descrição, região] */
-  ["Ucrânia","war",49.0,32.0,"Invasão russa — 3.º ano","Europa"],
-  ["Gaza","war",31.4,34.4,"Israel–Hamas · ofensiva","Médio Oriente"],
-  ["Sudão","war",15.5,32.5,"SAF vs RSF — colapso estatal","África"],
-  ["Myanmar","war",19.7,96.1,"Junta vs resistência","Ásia"],
-  ["Etiópia","war",9.1,40.5,"Amhara · Oromia","África"],
-  ["RD Congo","war",-4.0,21.8,"M23 · Kivu Norte","África"],
-  ["Sahel","war",12.0,-2.0,"Jihadistas · Wagner","África"],
+  /* [nome, tipo, lat, lon, descrição, região] — revisto a 23-11-2026 (CrisisWatch out/2026 e imprensa) */
+  ["Ucrânia","war",49.0,32.0,"5.º ano · negociações em Abu Dhabi sem trégua","Europa"],
+  ["Gaza","high",31.4,34.4,"Cessar-fogo frágil · ocupação parcial","Médio Oriente"],
+  ["Sudão","war",15.5,32.5,"SAF vs RSF · ofensiva no Cordofão","África"],
+  ["Myanmar","war",19.7,96.1,"Junta vs resistência · ataques aéreos","Ásia"],
+  ["Etiópia","war",9.1,40.5,"Ofensiva no Tigré · tensão com a Eritreia","África"],
+  ["RD Congo","war",-4.0,21.8,"M23 (agora com Kabila) · Kivu","África"],
+  ["Sahel","war",12.0,-2.0,"JNIM · bloqueio de Bamako","África"],
   ["Somália","war",5.1,46.2,"Al-Shabaab","África"],
-  ["Iémen","war",15.5,48.5,"Houthis · coalizão","Médio Oriente"],
-  ["Síria","war",35.0,38.3,"Pós-Assad · fragmentação","Médio Oriente"],
-  ["Afeganistão","war",33.9,67.7,"Talibã · IS-K","Ásia"],
-  ["Líbano","high",33.9,35.5,"Reconstrução pós-guerra","Médio Oriente"],
+  ["Iémen","war",15.5,48.5,"Houthis vs Arábia Saudita · ofensiva sobre Sanaa","Médio Oriente"],
+  ["Síria","high",35.0,38.3,"Transição pós-Assad · violência sectária","Médio Oriente"],
+  ["Paquistão–Afeganistão","high",33.9,69.5,"Confrontos fronteiriços","Ásia"],
+  ["Líbano","high",33.9,35.5,"Guerra de 2026 · trégua frágil","Médio Oriente"],
   ["Iraque","high",33.2,43.7,"Milícias pro-Irão","Médio Oriente"],
-  ["Moçambique","high",-13.0,39.0,"Cabo Delgado · ISCAP","África"],
+  ["Moçambique","high",-13.0,39.0,"Cabo Delgado · guerra de desgaste","África"],
   ["Nigéria N.","high",11.8,13.2,"Boko Haram · ISWAP","África"],
-  ["Haiti","high",18.9,-72.3,"Gangues · colapso estado","Américas"],
+  ["Haiti","high",18.9,-72.3,"Gangues · tropas de El Salvador","Américas"],
   ["Cisjordânia","high",31.9,35.2,"Colonatos · IDF","Médio Oriente"],
   ["Burkina Faso","high",12.4,-1.5,"Junta · jihadistas","África"],
-  ["Taiwan","tension",24.0,121.0,"PRC vs EUA · estreito","Ásia"],
+  ["Taiwan","tension",24.0,121.0,"Exercícios de cerco do EPL","Ásia"],
   ["Coreia Norte","tension",40.0,127.5,"Nuclear · ICBM","Ásia"],
-  ["Irão","tension",32.4,53.7,"Proxy regional · nuclear","Médio Oriente"],
+  ["Irão","war",32.4,53.7,"Guerra com EUA/Israel desde fev · Ormuz","Médio Oriente"],
   ["Kosovo","tension",42.6,21.2,"Sérvia · NATO","Europa"],
   ["Geórgia","tension",42.3,43.4,"Influência russa","Europa"],
   ["Moldávia","tension",47.4,28.9,"Transnistria","Europa"],
-  ["Arménia","tension",40.1,47.6,"Pós-Karabakh · Azerbaijão","Europa"],
+  ["Arménia","tension",40.1,47.6,"Tratado de paz por assinar","Europa"],
   ["Mar Sul China","tension",14.0,114.0,"Filipinas · China · EUA","Ásia"],
-  ["Venezuela","tension",6.4,-61.2,"Essequibo · Guiana","Américas"],
-  ["Paquistão–Índia","nuclear",30.0,73.0,"Kashmir · LOC","Ásia"],
-  ["Rússia–OTAN","nuclear",55.0,37.6,"Retórica nuclear","Europa"],
+  ["Venezuela","tension",8.0,-66.0,"Pós-Maduro · tutela dos EUA","Américas"],
+  ["Paquistão–Índia","nuclear",30.0,73.0,"Caxemira · cessar-fogo de maio de 2025","Ásia"],
+  ["Rússia–OTAN","nuclear",55.0,37.6,"Drones no Báltico","Europa"],
 ];
 
 const CC={war:"#EF4444",high:"#F59E0B",tension:"#8B5CF6",nuclear:"#3B82F6"};
-const CL={war:"Guerra Activa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
+const CL={war:"Guerra Ativa",high:"Alta Intensidade",tension:"Tensão",nuclear:"Risco Nuclear"};
 
 
 /* ── MAPA ── */
@@ -744,8 +744,8 @@ function buildStats(){
   const regionColors={"Médio Oriente":"#ef4444","África":"#f59e0b","Ásia":"#8b5cf6","Europa":"#3b82f6","Américas":"#10b981"};
 
   let html='<div class="cmap-stat-grid">';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:var(--red)">'+total+'</div><div class="cmap-stat-sub">activos · Mar 2026</div></div>';
-  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras activas</div><div class="cmap-stat-val" style="color:var(--red)">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Total de conflitos</div><div class="cmap-stat-val" style="color:var(--red)">'+total+'</div><div class="cmap-stat-sub">ativos · nov 2026</div></div>';
+  html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Guerras ativas</div><div class="cmap-stat-val" style="color:var(--red)">'+byType.war+'</div><div class="cmap-stat-sub">conflito armado contínuo</div></div>';
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Alta intensidade</div><div class="cmap-stat-val" style="color:var(--amber)">'+byType.high+'</div><div class="cmap-stat-sub">violência significativa</div></div>';
   html+='<div class="cmap-stat"><div class="cmap-stat-lbl">Risco nuclear</div><div class="cmap-stat-val" style="color:var(--blue)">'+byType.nuclear+'</div><div class="cmap-stat-sub">cenários escalação</div></div>';
   html+='</div>';
@@ -770,7 +770,7 @@ function buildStats(){
   html+='<div style="width:160px;height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:3px">';
   html+='<div style="width:'+intensity+'%;height:100%;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444);border-radius:4px"></div>';
   html+='</div>';
-  html+='<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">Elevado · tendência crescente desde 2022</div>';
+  html+='<div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">Elevado · guerras no Médio Oriente desde 2026</div>';
   html+='</div></div></div>';
 
   wrap.innerHTML=html;
