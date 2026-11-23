@@ -27,7 +27,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.
 - **Gráficos históricos (7/30/90 dias)** em alguns módulos (ex.: eletricidade, TTF, PSI20, câmbio, gás PT e spread 10Y−2Y).
-- **Monitorização em tempo-real**: Tráfego aéreo (OpenSky) com mapa interactivo em Canvas/TopoJSON.
+- **Monitorização em tempo-real**: Tráfego aéreo em direto sobre Portugal continental (ADS-B de adsb.lol, com adsb.fi como alternativa, pelo gateway `/v1/air`) com mapa interactivo em Canvas/TopoJSON; sem dados em direto o card diz-o, sem estatísticas antigas.
 - **Combustíveis PT vs ES**: Comparação de preços entre Portugal e Espanha, com detalhe de postos, timestamps e preferências de combustível.
 - **Estreito de Ormuz (simulação identificada)**: a conta pública da AISHub deixou de ser aceite em 2026 e não há fonte AIS gratuita estável; o card mostra uma simulação ilustrativa do tráfego, assinalada como "Simulação".
 - **Barragens**: armazenamento das 12 bacias do boletim mensal SNIRH/APA, com média histórica do mês e total ponderado pela capacidade (`data/dams.json`, ver "Dados atualizados fora do browser"); sem fonte nem cache verificável, o card mostra indisponibilidade em vez de percentagens aproximadas.
@@ -85,6 +85,7 @@ Produção: `https://dash-data-gateway.luiscarlosmadeira.workers.dev` (`CFG.DATA
 
 | Rota | Fonte(s), por ordem | Cache · cópia de reserva |
 |---|---|---|
+| `/v1/air` | adsb.lol → adsb.fi (aeronaves ADS-B em lat 36–44, lon −12 a −5, convertidas para vetores de estado ao estilo OpenSky; país pelo bloco ICAO) | 1 min · 15 min |
 | `/v1/electricity?date=AAAA-MM-DD` | OMIE `MARGINALPDBCPT` (zona PT); dia ainda não publicado → `200 {published:false}` | 5 min · 1 dia |
 | `/v1/news-pt` | RTP → Público → Google News | 5 min · 1 dia |
 | `/v1/news-world` | BBC World → Google News | 5 min · 1 dia |
@@ -138,7 +139,7 @@ O painel combina fontes públicas sem chave:
 - **BCE** (Euribor, via gateway), **Eurostat** (IHPC `PRC_HICP_MINR`, ECOICOP v2), **Tesouro dos EUA** (curva diária, spread 10Y−2Y), **INE** (habitação 0012234), **SNIRH/APA** (barragens), **DECO PROteste via Lusa** (cabaz)
 - **OMIE** (preços do mercado diário, zona portuguesa; ficheiros `MARGINALPDBCPT`)
 - **CoinGecko**, **Stooq**, **Yahoo Finance** (mercados; TTF e agrícolas via gateway)
-- **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar), **OpenSky Network** (tráfego aéreo)
+- **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar), **adsb.lol** (ODbL) e **adsb.fi** (tráfego aéreo ADS-B)
 - **USGS** (sismos, alternativa ao IPMA), **FRED** (spread, alternativa ao Tesouro)
 - Notícias e geopolítica: RTP, Público, BBC, Crisis Group, Geopolitical Futures, Google News RSS e GDELT
 

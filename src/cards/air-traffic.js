@@ -1,25 +1,30 @@
-/* global $, Date, IS_LOCAL_DEV, fetchJsonFirstOk, ld, lsGet, lsSet, window */
+/* global $, Date, fetchFirstOk, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   TRÁFEGO AÉREO — OpenSky Network
+   TRÁFEGO AÉREO — ADS-B (adsb.lol / adsb.fi) pelo gateway
    ══════════════════════════════════════════════════════════════ */
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
-  const ck="air_v8";
+  const ck="air_v9";
   let d=force?null:lsGet(ck);
-  if(!d){
+  if(!d?.states?.length){
+    d=null;
+    // O browser não pode chamar as APIs ADS-B diretamente (sem CORS): passa pelo gateway.
+    const gatewayUrl=window.dataApiUrl?.("v1/air");
     try {
-      if (IS_LOCAL_DEV) {
-        const url = "https://opensky-network.org/api/states/all?lamin=36&lomin=-12&lamax=44&lomax=-5";
-        const j = await fetchJsonFirstOk(url, {}, 14000, ["local"], (jj) => Array.isArray(jj?.states));
-        if(j && j.states?.length){
-          d={ts:Date.now(),states:j.states,live:true};
-          lsSet(ck,d);
+      if (gatewayUrl) {
+        const { r } = await fetchFirstOk(gatewayUrl, { headers: { Accept: "application/json" } }, 12000, ["direct"]);
+        const j = r.ok ? await r.json() : null;
+        if(Array.isArray(j?.states) && j.states.length){
+          const meta=j._meta||{};
+          d={ts:Number.isFinite(j.ts)?j.ts:Date.now(),states:j.states,live:true,source:meta.source||"ADS-B",stale:meta.state==="stale"};
+          lsSet(ck,d,{source:d.source,state:d.stale?"stale":"live",observedAt:d.ts,
+            reason:d.stale?"Fornecedor indisponível; snapshot do gateway":undefined});
         }
       }
     } catch(e) {
-      console.warn("⚠️ OpenSky falhou:", e.message);
+      console.warn("⚠️ Tráfego aéreo indisponível:", e.message);
     }
   }
 
@@ -127,9 +132,9 @@ async function loadAir(force=false){
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <!-- Badge live -->
-      <div style="position:absolute;top:6px;right:6px;background:#10B98122;border:1px solid #10B98144;
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--green)">
-        🟢 Live · ${age}min
+      <div style="position:absolute;top:6px;right:6px;background:${d.stale?"#F59E0B22":"#10B98122"};border:1px solid ${d.stale?"#F59E0B44":"#10B98144"};
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${d.stale?"var(--amber)":"var(--green)"}">
+        ${d.stale?"🟠 Atrasado":"🟢 Live"} · ${age}min
       </div>
     </div>
 
@@ -371,40 +376,11 @@ async function loadAir(force=false){
     return;
   }
 
-  /* ── Fallback ANA 2024 ── */
-  const ANA=[
-    {label:"Movimentos 2024",val:"175.200",sub:"+4,2% vs 2023",col:"#3B82F6"},
-    {label:"Passageiros 2024",val:"33,2M",sub:"+6,1% vs 2023",col:"#06B6D4"},
-    {label:"Carga (ton) 2024",val:"158.400",sub:"+2,8% vs 2023",col:"#8B5CF6"},
-    {label:"Pontualidade",val:"81,3%",sub:"voos na hora ±15min",col:"#10B981"},
-  ];
-  const ROTAS=[
-    {dest:"Londres",cod:"LHR/LGW",freq:"~18/dia",col:"#3B82F6"},
-    {dest:"Paris",cod:"CDG/ORY",freq:"~14/dia",col:"#EF4444"},
-    {dest:"Frankfurt",cod:"FRA",freq:"~10/dia",col:"#F59E0B"},
-    {dest:"Madrid",cod:"MAD",freq:"~12/dia",col:"#10B981"},
-    {dest:"Amesterdão",cod:"AMS",freq:"~8/dia",col:"#8B5CF6"},
-    {dest:"São Paulo",cod:"GRU",freq:"~5/dia",col:"#F97316"},
-  ];
+  /* ── Sem dados em direto: não mostrar estatísticas antigas como se fossem atuais ── */
   el.innerHTML=`
-    <div style="font-size:.74rem;color:var(--amber);margin-bottom:8px">⚠ OpenSky indisponível · estatísticas ANA 2024</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:10px">
-      ${ANA.map(x=>`<div style="background:var(--b2);border-radius:8px;padding:8px 10px">
-        <div style="font-size:.74rem;color:var(--t2);margin-bottom:2px">${x.label}</div>
-        <div style="font-size:1rem;font-weight:700;color:${x.col}">${x.val}</div>
-        <div style="font-size:.74rem;color:var(--t3)">${x.sub}</div>
-      </div>`).join("")}
-    </div>
-    <div style="font-size:.74rem;font-weight:600;color:var(--t2);margin-bottom:5px">Top rotas Lisboa 2024</div>
-    ${ROTAS.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;
-         padding:4px 0;border-bottom:1px solid var(--b)">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:6px;height:6px;border-radius:50%;background:${r.col}"></div>
-        <span style="font-size:.74rem;color:var(--text)">${r.dest}</span>
-        <span style="font-size:.74rem;color:var(--t3)">${r.cod}</span>
-      </div>
-      <span style="font-size:.74rem;color:var(--t2);font-weight:600">${r.freq}</span>
-    </div>`).join("")}`;
+    <div style="font-size:.74rem;color:var(--amber);margin-bottom:8px">⚠ Tráfego aéreo em direto indisponível (adsb.lol e adsb.fi)</div>
+    <div style="font-size:.74rem;color:var(--t3)">Tenta atualizar daqui a alguns minutos ou consulta o
+      <a href="https://adsb.lol/?lat=38.77&lon=-9.13&zoom=8" target="_blank" rel="noopener">mapa do adsb.lol</a>.</div>`;
 }
 
 

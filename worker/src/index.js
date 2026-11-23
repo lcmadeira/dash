@@ -28,6 +28,83 @@ const SNIRH_TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/
 /* Alguns fornecedores recusam pedidos sem User-Agent vindos de servidores. */
 const UPSTREAM_UA = "Mozilla/5.0 (compatible; dash-data-gateway/1.1)";
 const ELECTRICITY_PATH = "/v1/electricity";
+
+// Tráfego aéreo: Portugal continental (mesma área que o card usava com o OpenSky).
+const AIR_BOX = { latMin: 36, latMax: 44, lonMin: -12, lonMax: -5 };
+const AIR_UPSTREAMS = [
+  { url: "https://api.adsb.lol/v2/lat/40/lon/-8.5/dist/250", source: "adsb.lol (ODbL)" },
+  { url: "https://opendata.adsb.fi/api/v2/lat/40/lon/-8.5/dist/250", source: "adsb.fi" },
+];
+// Blocos de endereços ICAO 24-bit atribuídos a cada Estado (Anexo 10 da ICAO).
+const ICAO_BLOCKS = [
+  [0x006000, 0x006fff, "Moçambique"], [0x020000, 0x027fff, "Marrocos"], [0x040000, 0x040fff, "Etiópia"],
+  [0x06a000, 0x06a3ff, "Catar"], [0x090000, 0x090fff, "Angola"], [0x096000, 0x0963ff, "Cabo Verde"],
+  [0x0a0000, 0x0a7fff, "Argélia"], [0x0d0000, 0x0d7fff, "México"], [0x100000, 0x1fffff, "Rússia"],
+  [0x300000, 0x33ffff, "Itália"], [0x340000, 0x37ffff, "Espanha"], [0x380000, 0x3bffff, "França"],
+  [0x3c0000, 0x3fffff, "Alemanha"], [0x400000, 0x43ffff, "Reino Unido"], [0x440000, 0x447fff, "Áustria"],
+  [0x448000, 0x44ffff, "Bélgica"], [0x450000, 0x457fff, "Bulgária"], [0x458000, 0x45ffff, "Dinamarca"],
+  [0x460000, 0x467fff, "Finlândia"], [0x468000, 0x46ffff, "Grécia"], [0x470000, 0x477fff, "Hungria"],
+  [0x478000, 0x47ffff, "Noruega"], [0x480000, 0x487fff, "Países Baixos"], [0x488000, 0x48ffff, "Polónia"],
+  [0x490000, 0x497fff, "Portugal"], [0x498000, 0x49ffff, "Chéquia"], [0x4a0000, 0x4a7fff, "Roménia"],
+  [0x4a8000, 0x4affff, "Suécia"], [0x4b0000, 0x4b7fff, "Suíça"], [0x4b8000, 0x4bffff, "Turquia"],
+  [0x4c0000, 0x4c7fff, "Sérvia"], [0x4c8000, 0x4c87ff, "Chipre"], [0x4ca000, 0x4cafff, "Irlanda"],
+  [0x4cc000, 0x4ccfff, "Islândia"], [0x4d0000, 0x4d03ff, "Luxemburgo"], [0x4d2000, 0x4d23ff, "Malta"],
+  [0x508000, 0x50ffff, "Ucrânia"], [0x710000, 0x717fff, "Arábia Saudita"], [0x738000, 0x73ffff, "Israel"],
+  [0x780000, 0x7bffff, "China"], [0x7c0000, 0x7fffff, "Austrália"], [0x840000, 0x87ffff, "Japão"],
+  [0x896000, 0x896fff, "Emirados Árabes Unidos"], [0xa00000, 0xafffff, "Estados Unidos"],
+  [0xc00000, 0xc3ffff, "Canadá"], [0xe40000, 0xe7ffff, "Brasil"],
+];
+
+export function icaoCountry(hex) {
+  if (typeof hex !== "string" || !/^[0-9a-f]{6}$/i.test(hex)) return "";
+  const value = parseInt(hex, 16);
+  const block = ICAO_BLOCKS.find(([start, end]) => value >= start && value <= end);
+  return block ? block[2] : "";
+}
+
+/**
+ * Converte a resposta readsb (adsb.lol / adsb.fi) em vetores de estado no formato do OpenSky,
+ * que é o que o card já sabe desenhar: [icao24, callsign, país, -, -, lon, lat, alt m,
+ * em terra, velocidade m/s, rumo, razão vertical m/s].
+ */
+export function parseReadsbAircraft(body) {
+  const json = typeof body === "string" ? JSON.parse(body) : body;
+  const list = Array.isArray(json?.ac) ? json.ac : Array.isArray(json?.aircraft) ? json.aircraft : null;
+  if (!list) return null;
+  const num = value => (typeof value === "number" && Number.isFinite(value) ? value : null);
+  const states = [];
+  for (const ac of list) {
+    const lat = num(ac?.lat), lon = num(ac?.lon);
+    if (lat === null || lon === null || lat < AIR_BOX.latMin || lat > AIR_BOX.latMax
+        || lon < AIR_BOX.lonMin || lon > AIR_BOX.lonMax) continue;
+    if (num(ac.seen_pos) !== null && ac.seen_pos > 60) continue;
+    const hex = String(ac.hex || "").replace(/^~/, "").toLowerCase().slice(0, 6);
+    const onGround = ac.alt_baro === "ground";
+    const altFt = onGround ? null : num(ac.alt_baro) ?? num(ac.alt_geom);
+    const gs = num(ac.gs);
+    const rate = num(ac.baro_rate) ?? num(ac.geom_rate);
+    states.push([
+      hex,
+      String(ac.flight || "").trim().slice(0, 8),
+      icaoCountry(hex),
+      null,
+      null,
+      Math.round(lon * 1e4) / 1e4,
+      Math.round(lat * 1e4) / 1e4,
+      altFt === null ? null : Math.round(altFt * 0.3048),
+      onGround,
+      gs === null ? null : Math.round(gs * 0.514444 * 10) / 10,
+      num(ac.track),
+      rate === null ? null : Math.round(rate * 0.00508 * 10) / 10,
+    ]);
+  }
+  const now = num(json.now);
+  return { ts: now === null ? Date.now() : (now > 1e12 ? now : Math.round(now * 1000)), states };
+}
+
+function isValidAir(payload) {
+  return Array.isArray(payload?.states) && payload.states.length > 0 && Number.isFinite(payload.ts);
+}
 const LOCAL_ORIGINS = new Set(["http://localhost:8000", "http://127.0.0.1:8000"]);
 const COIN_IDS = ["bitcoin", "ethereum", "solana", "cardano", "ripple", "binancecoin"];
 
@@ -397,6 +474,12 @@ function routeFor(url) {
       observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
       upstreams: [{ source: "Yahoo Finance · futuros CBOT/ICE", run: fetchAgriQuotes }] };
   }
+  if (path === "/v1/air") {
+    // Dados em tempo real: cache curta e cópia de reserva de no máximo 15 min.
+    return { key: path, ttl: 60, staleTtl: 900, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
+      observedAt: p => p.ts,
+      upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: parseReadsbAircraft })) };
+  }
   if (path === "/v1/dams") {
     return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
       observedAt: p => Date.parse(`${p.period}-15T12:00:00Z`),
@@ -461,7 +544,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", ELECTRICITY_PATH] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", ELECTRICITY_PATH] }, 200, headers);
   }
 
   let electricityDate = null;
