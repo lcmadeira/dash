@@ -347,7 +347,7 @@ test("euribor route returns the ECB monthly series per tenor", async () => {
   assert.equal(payload._meta.observedAt, Date.parse("2026-10-15T12:00:00Z"));
 });
 
-test("air route converts readsb aircraft to OpenSky-like states and falls back to adsb.fi", async () => {
+test("air route converts readsb aircraft to OpenSky-like states and reports adsb.lol failures", async () => {
   assert.equal(icaoCountry("4951c4"), "Portugal");
   assert.equal(icaoCountry("4ca123"), "Irlanda");
   assert.equal(icaoCountry("e80475"), "Chile");
@@ -367,16 +367,20 @@ test("air route converts readsb aircraft to OpenSky-like states and falls back t
   assert.equal(parsed.states[1][8], true);
   assert.equal(parsed.states[1][7], null);
 
+  assert.equal(icaoCountry("e94c88"), "Bolívia");
+
   const requested = [];
-  globalThis.fetch = async url => {
-    const host = new URL(String(url)).hostname;
-    requested.push(host);
-    return host === "api.adsb.lol" ? new Response("busy", { status: 503 }) : new Response(JSON.stringify(sample));
-  };
+  globalThis.fetch = async url => { requested.push(new URL(String(url)).hostname); return new Response(JSON.stringify(sample)); };
   const response = await handleRequest(new Request("https://dash-data.test/v1/air"));
   const payload = await response.json();
   assert.equal(response.status, 200);
-  assert.deepEqual(requested, ["api.adsb.lol", "opendata.adsb.fi"]);
-  assert.equal(payload._meta.source, "adsb.fi");
+  assert.deepEqual(requested, ["api.adsb.lol"]);
+  assert.equal(payload._meta.source, "adsb.lol (ODbL)");
   assert.equal(payload.states.length, 2);
+  assert.match(response.headers.get("Cache-Control"), /s-maxage=180/);
+
+  globalThis.fetch = async () => new Response("slow down", { status: 429 });
+  const limited = await handleRequest(new Request("https://dash-data.test/v1/air"));
+  assert.equal(limited.status, 502);
+  assert.deepEqual((await limited.json()).upstreamFailures, [{ source: "adsb.lol (ODbL)", status: 429 }]);
 });

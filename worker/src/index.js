@@ -31,9 +31,10 @@ const ELECTRICITY_PATH = "/v1/electricity";
 
 // Tráfego aéreo: Portugal continental (mesma área que o card usava com o OpenSky).
 const AIR_BOX = { latMin: 36, latMax: 44, lonMin: -12, lonMax: -5 };
+// O adsb.fi recusa a Cloudflare (403) e o adsb.lol limita os IPs partilhados da Cloudflare (429),
+// verificado a 23-11-2026: só o adsb.lol, com cache de 3 min para gastar poucos pedidos.
 const AIR_UPSTREAMS = [
   { url: "https://api.adsb.lol/v2/lat/40/lon/-8.5/dist/250", source: "adsb.lol (ODbL)" },
-  { url: "https://opendata.adsb.fi/api/v2/lat/40/lon/-8.5/dist/250", source: "adsb.fi" },
 ];
 // Blocos de endereços ICAO 24-bit atribuídos a cada Estado (Anexo 10 da ICAO).
 const ICAO_BLOCKS = [
@@ -55,7 +56,7 @@ const ICAO_BLOCKS = [
   [0x780000, 0x7bffff, "China"], [0x7c0000, 0x7fffff, "Austrália"], [0x840000, 0x87ffff, "Japão"],
   [0x896000, 0x896fff, "Emirados Árabes Unidos"], [0xa00000, 0xafffff, "Estados Unidos"],
   [0xc00000, 0xc3ffff, "Canadá"], [0xe00000, 0xe3ffff, "Argentina"], [0xe40000, 0xe7ffff, "Brasil"],
-  [0xe80000, 0xe80fff, "Chile"],
+  [0xe80000, 0xe80fff, "Chile"], [0xe94000, 0xe94fff, "Bolívia"],
 ];
 
 export function icaoCountry(hex) {
@@ -479,8 +480,8 @@ function routeFor(url) {
       upstreams: [{ source: "Yahoo Finance · futuros CBOT/ICE", run: fetchAgriQuotes }] };
   }
   if (path === "/v1/air") {
-    // Dados em tempo real: cache curta e cópia de reserva de no máximo 15 min.
-    return { key: path, ttl: 60, staleTtl: 900, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
+    // Dados em tempo real: cache de 3 min (limite do adsb.lol) e cópia de reserva de no máximo 15 min.
+    return { key: path, ttl: 180, staleTtl: 900, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
       observedAt: p => p.ts,
       upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: parseReadsbAircraft })) };
   }

@@ -1023,7 +1023,7 @@ const DEFAULT_CONFIG = {
     { id: 'agri',       name: 'Preços Agrícolas',          desc: 'Futuros CBOT/ICE · Commodities',             visible: true, icon: '🌾' },
     { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP',            visible: true, icon: '📦' },
     { id: 'div',        name: 'Dívida Pública',            desc: '% PIB · Eurostat 2024',                      visible: true, icon: '🏛️' },
-    { id: 'air',        name: 'Tráfego Aéreo',             desc: 'ADS-B (adsb.lol / adsb.fi) · Portugal continental',              visible: true, icon: '✈️' },
+    { id: 'air',        name: 'Tráfego Aéreo',             desc: 'ADS-B (adsb.lol) · Portugal continental',              visible: true, icon: '✈️' },
     { id: 'seis',       name: 'Sismos',                    desc: 'Portugal & Açores · IPMA (USGS alt.)',           visible: true, icon: '🌍' },
     { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'Simulação ilustrativa do tráfego marítimo',      visible: true, icon: '🚢' },
     { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },

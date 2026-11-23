@@ -1,7 +1,7 @@
 /* global $, Date, fetchFirstOk, ld, lsGet, lsSet, window */
 (() => {
 /* ══════════════════════════════════════════════════════════════
-   TRÁFEGO AÉREO — ADS-B (adsb.lol / adsb.fi) pelo gateway
+   TRÁFEGO AÉREO — ADS-B (adsb.lol) pelo gateway
    ══════════════════════════════════════════════════════════════ */
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
@@ -385,7 +385,7 @@ async function loadAir(force=false){
 
   /* ── Sem dados em direto: não mostrar estatísticas antigas como se fossem atuais ── */
   el.innerHTML=`
-    <div style="font-size:.74rem;color:var(--amber);margin-bottom:8px">⚠ Tráfego aéreo em direto indisponível (adsb.lol e adsb.fi)</div>
+    <div style="font-size:.74rem;color:var(--amber);margin-bottom:8px">⚠ Tráfego aéreo em direto indisponível (adsb.lol)</div>
     <div style="font-size:.74rem;color:var(--t3)">Tenta atualizar daqui a alguns minutos ou consulta o
       <a href="https://adsb.lol/?lat=38.77&lon=-9.13&zoom=8" target="_blank" rel="noopener">mapa do adsb.lol</a>.</div>`;
 }
