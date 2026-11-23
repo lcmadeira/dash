@@ -1906,3 +1906,53 @@ test("public debt card reads the latest Eurostat year for Portugal and its peers
   assert.equal(JSON.stringify(d.trend), JSON.stringify([{ y: "23", v: 96.9 }, { y: "24", v: 93 }, { y: "25", v: 89.2 }]));
   assert.equal(context.parseEurostatDebt({}), null);
 });
+
+test("expired market caches reload on their own while the page is visible", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const start = source.indexOf("const AUTO_REFRESH_CARDS = [");
+  const end = source.indexOf("setInterval(autoRefreshExpiredCards", start);
+  assert.ok(start > 0 && end > start);
+  const loads = [];
+  let cryptoWorks = true;
+  const metas = { psi20_v2: { expired: true }, mstats_v4: { expired: false }, cg: { expired: true }, fx: null };
+  const visible = new Set(["psi20", "mstats", "crypto", "fx", "agri"]);
+  const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+  const context = vm.createContext({
+    Promise, Set, Map, Date, Math,
+    document: { visibilityState: "visible" },
+    isCardVisible: id => visible.has(id),
+    getCacheMeta: key => metas[key] ?? null,
+    loadPSI20: () => { loads.push("psi20"); return new Promise(() => {}); }, // fica pendente
+    loadMarketStats: () => loads.push("mstats"),
+    loadAgri: () => loads.push("agri"),
+    loadCrypto: () => { loads.push("crypto"); if (cryptoWorks) metas.cg = { expired: false }; },
+    loadFX: () => loads.push("fx"),
+    loadAir() {}, loadCivilProtection() {}, loadTTF() {}, loadGasPT() {}, loadNews() {},
+  });
+  context.window = context;
+  vm.runInContext(source.slice(start, end), context);
+
+  assert.equal(context.autoRefreshExpiredCards(), 2);
+  await tick();
+  assert.deepEqual([...loads].sort(), ["crypto", "psi20"], "only expired caches of visible cards; no cache = initial load handles it");
+
+  loads.length = 0;
+  assert.equal(context.autoRefreshExpiredCards(), 0, "PSI 20 in flight is not restarted; crypto is fresh again");
+
+  // crypto expires later and its source is now down: one attempt, then back-off
+  metas.cg = { expired: true };
+  cryptoWorks = false;
+  assert.equal(context.autoRefreshExpiredCards(), 1);
+  await tick();
+  assert.equal(context.autoRefreshExpiredCards(), 0, "failed source waits before the next attempt");
+  assert.equal(context.autoRefreshExpiredCards(Date.now() + 3 * 60 * 1000), 1, "retried after 2 min");
+  await tick();
+  assert.equal(context.autoRefreshExpiredCards(Date.now() + 3 * 60 * 1000), 0, "second failure waits longer (4 min)");
+
+  context.document.visibilityState = "hidden";
+  assert.equal(context.autoRefreshExpiredCards(Date.now() + 60 * 60 * 1000), 0, "nothing while the tab is hidden");
+  visible.clear();
+  context.document.visibilityState = "visible";
+  assert.equal(context.autoRefreshExpiredCards(Date.now() + 60 * 60 * 1000), 0, "hidden cards are skipped");
+});
+

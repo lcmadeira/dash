@@ -393,6 +393,60 @@ setInterval(()=>{
   setTimeout(()=>loadPSI20(true),3000);
 },CACHE_TTL);
 
+/* Atualização automática por expiração: cards cuja cópia local dura menos do que o ciclo
+   de 15 min (ou que expira entre ciclos) voltam a carregar assim que a cópia expira,
+   só com a página visível e o card à vista. Evita o selo "Stale" com a página aberta. */
+const AUTO_REFRESH_CARDS = [
+  { id: "psi20",      key: "psi20_v2",    load: () => loadPSI20(true) },
+  { id: "mstats",     key: "mstats_v4",   load: () => loadMarketStats(true) },
+  { id: "agri",       key: "agri_v3",     load: () => loadAgri(true) },
+  { id: "crypto",     key: "cg",          load: () => loadCrypto(true) },
+  { id: "fx",         key: "fx",          load: () => loadFX(true) },
+  { id: "air",        key: "air_v9",      load: () => loadAir(true) },
+  { id: "anpc",       key: "anpc_active_v1", load: () => loadCivilProtection(true) },
+  { id: "gas-eu",     key: "ttf_live_v1", load: () => loadTTF(true) },
+  { id: "gas-pt",     key: "ttf_live_v1", load: () => loadGasPT(true) },
+  { id: "news-pt",    key: "rss_pt",      load: () => loadNews("pt", true) },
+  { id: "news-world", key: "rss_world",   load: () => loadNews("world", true) },
+];
+const autoRefreshInFlight = new Set();
+/* Se a fonte falhar (a cópia continua expirada), a tentativa seguinte espera 2, 4, 8… até 15 min. */
+const autoRefreshBackoff = new Map(); // id → { failures, retryAt }
+const AUTO_REFRESH_BACKOFF_MS = [2, 4, 8, 15].map(min => min * 60 * 1000);
+
+function autoRefreshExpiredCards(now = Date.now()) {
+  if (typeof document !== "undefined" && document.visibilityState === "hidden") return 0;
+  let started = 0;
+  for (const card of AUTO_REFRESH_CARDS) {
+    if (autoRefreshInFlight.has(card.id) || !isCardVisible(card.id)) continue;
+    if ((autoRefreshBackoff.get(card.id)?.retryAt || 0) > now) continue;
+    const meta = getCacheMeta(card.key);
+    if (!meta || !meta.expired) continue; // sem cópia: o carregamento inicial (lazy) trata do card
+    autoRefreshInFlight.add(card.id);
+    started++;
+    Promise.resolve()
+      .then(card.load)
+      .catch(() => {})
+      .finally(() => {
+        autoRefreshInFlight.delete(card.id);
+        if (getCacheMeta(card.key)?.expired) {
+          const failures = (autoRefreshBackoff.get(card.id)?.failures || 0) + 1;
+          const wait = AUTO_REFRESH_BACKOFF_MS[Math.min(failures, AUTO_REFRESH_BACKOFF_MS.length) - 1];
+          autoRefreshBackoff.set(card.id, { failures, retryAt: Date.now() + wait });
+        } else {
+          autoRefreshBackoff.delete(card.id);
+        }
+        try { window.refreshCardStatusFromCache?.(card.id, card.key); } catch { /* selo atualiza no ciclo seguinte */ }
+      });
+  }
+  return started;
+}
+window.autoRefreshExpiredCards = autoRefreshExpiredCards;
+setInterval(autoRefreshExpiredCards, 60 * 1000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") autoRefreshExpiredCards();
+});
+
 /* ═══ MAPA CONFLITOS v2 ═══ */
 (function(){
 
