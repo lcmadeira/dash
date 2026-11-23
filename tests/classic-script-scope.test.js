@@ -1439,11 +1439,13 @@ test("gas PT fallback labels its September snapshot and omits a fabricated seven
   context._lastN = (items, count) => items.slice(-count);
   context.renderTrendChart = () => {};
   context.GAS_TARIFAS = {
-    esc1: { label: "Esc. 1", desc: "Baixo", kwh: 0.0974 },
-    esc2: { label: "Esc. 2", desc: "Normal", kwh: 0.0716 },
+    erse: {
+      gasYear: "2026-2027", validFrom: "2026-10-01", validTo: "2027-09-30", variationPct: 6.4,
+      bills: [{ label: "Casal sem filhos", tier: "1.º escalão", kwhYear: 1610, monthly: 17.38, delta: 0.91 }],
+      socialDiscountPct: 31.2, sourceUrl: "https://www.erse.pt/", sourceLabel: "ERSE",
+    },
     mibgasSpot: 81.2, mibgasPrev: 57.3, mibgas7d: [68.5, 72, 74.8, 77.4, 79.1, 80.5, 81.2],
-    ttfSpot: 78.5, ttfPrev: 53.3, spread: 2.7, redes: 0.0821,
-    totalEsc1: 0.1694, totalEsc2: 0.1527, termoFixo: 3.42,
+    ttfSpot: 78.5, ttfPrev: 53.3, spread: 2.7,
   };
   context.document = { getElementById: id => id === "gaspt-body" ? body : null };
 
@@ -1454,7 +1456,15 @@ test("gas PT fallback labels its September snapshot and omits a fabricated seven
   assert.match(body.innerHTML, /Referências MIBGAS e TTF de setembro de 2026/);
   assert.match(body.innerHTML, /\+2\.70/);
   assert.doesNotMatch(body.innerHTML, /últimos 7 dias|vs semana/);
+  assert.match(body.innerHTML, /Tarifas reguladas ERSE 2026-2027/);
+  assert.match(body.innerHTML, /\+6,4%/);
+  assert.match(body.innerHTML, /17,38 € ?\/mês|17,38 \u20ac\/mês/);
+  assert.match(body.innerHTML, /1\.610 kWh\/ano|1 610 kWh\/ano|1610 kWh\/ano/);
   assert.equal(historyWrites, 0);
+
+  const E = context.GAS_TARIFAS.erse;
+  assert.match(context.gasErseHtml(E, new Date("2026-11-23T12:00:00")), /em vigor de 01\/10\/2026 a 30\/09\/2027/);
+  assert.match(context.gasErseHtml(E, new Date("2027-10-02T12:00:00")), /período terminou/);
 });
 
 
