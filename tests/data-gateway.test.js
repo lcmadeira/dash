@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, icaoCountry, marketToday, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
+import { handleRequest, icaoCountry, marketToday, parseBinanceTickers, parseDamsSiteCopy, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -438,4 +438,90 @@ test("indicators route returns the fixed VIX/metals/S&P/energy list", async () =
   assert.equal(payload.quotes[0].prev, 9);
   assert.ok(payload.quotes.every(q => q.series === undefined));
   assert.deepEqual([...new Set(requested)].length, 6);
+});
+
+test("crypto falls back to Binance EUR tickers in CoinGecko shape when CoinGecko rate-limits", async () => {
+  installMemoryCache();
+  const seen = [];
+  globalThis.fetch = async url => {
+    seen.push(String(url));
+    if (/coingecko/.test(String(url))) return new Response("rate limited", { status: 429 });
+    assert.match(String(url), /data-api\.binance\.vision\/api\/v3\/ticker\/24hr/);
+    return Response.json([
+      { symbol: "BTCEUR", openPrice: "50000", lastPrice: "51000" },
+      { symbol: "ETHEUR", openPrice: "2000", lastPrice: "1950" },
+    ]);
+  };
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/crypto", { headers: { Origin: env.DASH_ORIGIN } }), env, { waitUntil() {} });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.bitcoin.eur, 51000);
+  assert.equal(payload.bitcoin.eur_24h_change, 2);
+  assert.equal(payload.ethereum.eur_24h_change, -2.5);
+  assert.match(payload._meta.source, /Binance/);
+  assert.deepEqual(payload._meta.upstreamFailures ?? [], []);
+  assert.equal(seen.length, 2);
+
+  assert.deepEqual(JSON.parse(JSON.stringify(parseBinanceTickers("{}"))), {});
+});
+
+test("dams use the site copy when SNIRH refuses Cloudflare", async () => {
+  installMemoryCache();
+  const basins = ["Arade", "Ave", "Cávado", "Douro", "Guadiana", "Lima", "Mondego", "Tejo"].map((name, i) => ({ name, val: 50 + i, avg: 40 }));
+  const copy = { basins, totalVal: 60.1, totalAvg: 55, period: "2026-10", hydroYear: "2026/27", month: "OUT", _meta: { source: "x" } };
+  globalThis.fetch = async url => {
+    if (/snirh\.apambiente\.pt/.test(String(url))) return new Response("", { status: 520 });
+    assert.equal(String(url), "https://lcmadeira.github.io/dash/data/dams.json");
+    return Response.json(copy);
+  };
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/dams", { headers: { Origin: env.DASH_ORIGIN } }), env, { waitUntil() {} });
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(payload.period, "2026-10");
+  assert.match(payload._meta.source, /cópia do site/);
+  assert.equal(parseDamsSiteCopy(JSON.stringify(copy))._meta, undefined);
+});
+
+test("slow monthly routes answer from the stored copy and refresh in the background", async () => {
+  const entries = installMemoryCache();
+  const series = [{ period: "2026-09", value: 2.1 }, { period: "2026-10", value: 2.2 }];
+  const ecbBody = periods => JSON.stringify({
+    dataSets: [{ series: { "0": { observations: Object.fromEntries(periods.map((p, i) => [String(i), [p.value]])) } } }],
+    structure: { dimensions: { observation: [{ values: periods.map(p => ({ id: p.period })) }] } },
+  });
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return new Response(ecbBody(series), { headers: { "Content-Type": "application/json" } }); };
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const request = () => new Request("https://dash-data.test/v1/euribor", { headers: { Origin: env.DASH_ORIGIN } });
+  const pending = [];
+  const ctx = { waitUntil(p) { pending.push(p); } };
+
+  const first = await handleRequest(request(), env, ctx);
+  await Promise.all(pending.splice(0));
+  assert.equal(first.headers.get("X-Dash-Cache"), "MISS");
+  assert.equal(calls, 4, "one request per tenor");
+
+  // Fresh copy expired; the stored copy is recent, so it is served at once and refreshed in the background.
+  entries.delete("https://dash-data.test/v1/euribor");
+  let release;
+  globalThis.fetch = () => new Promise(resolve => { release = () => resolve(new Response(ecbBody([...series, { period: "2026-11", value: 2.3 }]))); calls++; });
+  const second = await handleRequest(request(), env, ctx);
+  assert.equal(second.headers.get("X-Dash-Cache"), "REVALIDATE");
+  assert.equal((await second.json()).series["3M"].at(-1).period, "2026-10");
+  assert.equal(pending.length, 1, "refresh scheduled with waitUntil");
+  release?.();
+});
+
+test("TTF route keeps three months of daily closes for the trend charts", () => {
+  const body = JSON.stringify({ chart: { result: [{
+    meta: { regularMarketPrice: 31, currency: "EUR", regularMarketTime: 1795400000 },
+    timestamp: [1795000000, 1795086400, 1795172800],
+    indicators: { quote: [{ close: [29.5, 30.25, 31] }] },
+  }] } });
+  const q = parseYahooTtf(body);
+  assert.equal(q.prev, 30.25);
+  assert.equal(q.series.length, 3);
+  assert.deepEqual(JSON.parse(JSON.stringify(q.series[0])), { date: new Date(1795000000 * 1000).toISOString().slice(0, 10), value: 29.5 });
 });
