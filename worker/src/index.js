@@ -119,24 +119,38 @@ function isValidAir(payload) {
 }
 const LOCAL_ORIGINS = new Set(["http://localhost:8000", "http://127.0.0.1:8000"]);
 const COIN_IDS = ["bitcoin", "ethereum", "solana", "cardano", "ripple", "binancecoin"];
-/** Pares EUR na Binance (espelho público de dados de mercado, sem chave nem bloqueio geográfico). */
-const BINANCE_EUR_PAIRS = { bitcoin: "BTCEUR", ethereum: "ETHEUR", solana: "SOLEUR", cardano: "ADAEUR", ripple: "XRPEUR", binancecoin: "BNBEUR" };
-const BINANCE_TICKER_URL = `https://data-api.binance.vision/api/v3/ticker/24hr?type=MINI&symbols=${encodeURIComponent(JSON.stringify(Object.values(BINANCE_EUR_PAIRS)))}`;
+/** Ids CoinPaprika (API pública sem chave; plano gratuito com limite mensal, por isso só como alternativa). */
+const COINPAPRIKA_IDS = { bitcoin: "btc-bitcoin", ethereum: "eth-ethereum", solana: "sol-solana", cardano: "ada-cardano", ripple: "xrp-xrp", binancecoin: "bnb-binance-coin" };
 
-/** Ticker 24h da Binance → formato do CoinGecko simple/price ({id: {eur, eur_24h_change}}). */
-export function parseBinanceTickers(body) {
-  const rows = JSON.parse(body);
-  if (!Array.isArray(rows)) return {};
-  const bySymbol = new Map(rows.map(r => [r?.symbol, r]));
-  const out = {};
-  for (const [id, symbol] of Object.entries(BINANCE_EUR_PAIRS)) {
-    const row = bySymbol.get(symbol);
-    const last = Number(row?.lastPrice);
-    const open = Number(row?.openPrice);
-    if (!(last > 0)) continue;
-    out[id] = { eur: last, eur_24h_change: open > 0 ? Math.round(((last - open) / open) * 1e4) / 100 : null };
+/** Ticker CoinPaprika → formato do CoinGecko simple/price ({eur, eur_24h_change}). */
+export function parseCoinpaprikaTicker(body) {
+  const q = JSON.parse(body)?.quotes?.EUR;
+  const eur = Number(q?.price);
+  if (!(eur > 0)) return null;
+  const change = Number(q?.percent_change_24h);
+  return { eur, eur_24h_change: Number.isFinite(change) ? change : null };
+}
+
+async function fetchCoinpaprika(route) {
+  let lastError = null;
+  const entries = await Promise.all(Object.entries(COINPAPRIKA_IDS).map(async ([id, paprikaId]) => {
+    try {
+      const response = await fetchUpstream(`https://api.coinpaprika.com/v1/tickers/${paprikaId}?quotes=EUR`, "application/json", 8000);
+      if (!response.ok) return [id, null, response.status];
+      return [id, parseCoinpaprikaTicker(await readBoundedBody(response, route.maxBytes))];
+    } catch (error) {
+      lastError = error;
+      return [id, null];
+    }
+  }));
+  const payload = Object.fromEntries(entries.filter(([, quote]) => quote).map(([id, quote]) => [id, quote]));
+  if (!Object.keys(payload).length) {
+    const status = entries.find(([, , st]) => st)?.[2];
+    if (status) return { status };
+    if (lastError) throw lastError; // falha de rede/tamanho: reportada como tal, não como resposta inválida
+    return { invalid: true };
   }
-  return out;
+  return { payload };
 }
 
 function corsHeaders(origin, env) {
@@ -525,7 +539,8 @@ function routeFor(url) {
     return { key: path, ttl: 90, staleTtl: day, maxBytes: 250_000, accept: "application/json", valid: p => COIN_IDS.some(id => Number.isFinite(p?.[id]?.eur) && p[id].eur > 0),
       upstreams: [
         { url: COINGECKO_URL, source: "CoinGecko", parse: body => JSON.parse(body) },
-        { url: BINANCE_TICKER_URL, source: "Binance · pares EUR (variação 24h)", parse: parseBinanceTickers },
+        // 6 pedidos por atualização: 30 min de cache mantém-no dentro do limite mensal gratuito.
+        { source: "CoinPaprika · EUR (variação 24h)", run: fetchCoinpaprika, ttl: 1800 },
       ] };
   }
   if (path === "/v1/geopolitics") {
@@ -628,7 +643,7 @@ async function fetchFromUpstreams(route) {
         failures.push({ source: upstream.source, error: "invalid" });
         continue;
       }
-      return { payload: result.payload, source: upstream.source };
+      return { payload: result.payload, source: upstream.source, ttl: upstream.ttl };
     } catch (error) {
       failure = { error: "Não foi possível consultar o fornecedor" };
       failures.push({ source: upstream.source, error: error?.name === "TimeoutError" ? "timeout" : String(error?.name || "error").slice(0, 40) });
@@ -728,7 +743,7 @@ async function fetchAndStore(route, cache, cacheKey, staleKey, headers, ctx) {
   }
   const observedAt = route.news ? latestNewsTimestamp(result.payload.articles) : route.observedAt?.(result.payload) || undefined;
   const output = { ...result.payload, _meta: { source: result.source, state: "live", ...(observedAt ? { observedAt } : {}), checkedAt: Date.now() } };
-  headers.set("Cache-Control", `public, max-age=30, s-maxage=${route.ttl}`);
+  headers.set("Cache-Control", `public, max-age=30, s-maxage=${result.ttl || route.ttl}`);
   headers.set("X-Dash-Cache", "MISS");
   const response = jsonResponse(output, 200, headers);
   if (cache) {
