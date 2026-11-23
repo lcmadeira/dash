@@ -229,15 +229,17 @@ async function loadPSI20Trend(force = false) {
     headerStatus.title = psi.live ? "Última cotação devolvida pela fonte externa" : reason;
   }
 
-  function miniBar(chg, w=48, h=22){
+  /* Barra divergente: eixo ao centro, comprimento proporcional à variação (±3% = meia largura).
+     Cores por style= porque variáveis CSS não funcionam em atributos de apresentação SVG. */
+  function miniBar(chg, w=64, h=12){
     const col=chg>=0?"#10B981":"#EF4444";
-    const pct=Math.min(Math.abs(chg)/3*100,100);
-    return `<svg width="${w}" height="${h}" style="flex-shrink:0">
-      <rect x="0" y="${h/2}" width="${w}" height="1" fill="var(--b)" opacity=".3"/>
-      ${chg>=0
-        ?`<rect x="${w/2}" y="${h/2-h*pct/200}" width="${w*pct/200}" height="${h*pct/200}" fill="${col}" opacity=".8" rx="1"/>`
-        :`<rect x="${w/2-w*pct/200}" y="${h/2}" width="${w*pct/200}" height="${h*pct/200}" fill="${col}" opacity=".8" rx="1"/>`}
-      <circle cx="${chg>=0?w/2+w*pct/200:w/2-w*pct/200}" cy="${h/2}" r="1.5" fill="${col}"/>
+    const half=w/2;
+    const len=chg===0?0:Math.max(2, Math.min(Math.abs(chg)/3,1)*half);
+    const x=chg>=0?half:half-len;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex-shrink:0;align-self:center" role="img" aria-label="Variação ${chg>=0?"+":""}${chg.toFixed(2)}% (escala ±3%)">
+      <rect x="0" y="${h/2-2}" width="${w}" height="4" rx="2" style="fill:var(--b);opacity:.6"/>
+      <rect x="${x.toFixed(1)}" y="${h/2-3}" width="${len.toFixed(1)}" height="6" rx="2" fill="${col}" opacity=".85"/>
+      <rect x="${half-0.5}" y="0" width="1" height="${h}" style="fill:var(--t3)"/>
     </svg>`;
   }
 
