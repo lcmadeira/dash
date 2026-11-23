@@ -1666,13 +1666,14 @@ test("heatmap tabs reuse previously mounted TradingView widgets", async () => {
     },
   }));
   const mounted = [];
+  const note = { textContent: "" };
   const context = vm.createContext({
     document: {
       querySelectorAll: () => tabs,
-      getElementById: id => id === "hmap-widget" ? root : null,
+      getElementById: id => ({ "hmap-widget": root, "hmap-note": note })[id] || null,
       createElement: () => ({ dataset: {}, hidden: false }),
     },
-    mountLazyTradingView: (host, _url, config) => mounted.push({ host, config }),
+    mountLazyTradingView: (host, url, config) => mounted.push({ host, url, config }),
   });
 
   vm.runInContext(source.slice(start, end), context);
@@ -1688,6 +1689,14 @@ test("heatmap tabs reuse previously mounted TradingView widgets", async () => {
   assert.equal(root.children[1].hidden, true);
   assert.equal(mounted[0].config.dataSource, "SPX500");
   assert.equal(mounted[1].config.dataSource, "Crypto");
+  assert.match(mounted[0].url, /embed-widget-stock-heatmap\.js$/);
+  assert.match(mounted[1].url, /embed-widget-crypto-coins-heatmap\.js$/, "crypto needs its own widget");
+  assert.match(note.textContent, /S&P 500/);
+
+  context.switchHmap("etf", tabs[2]);
+  assert.match(mounted[2].url, /embed-widget-etf-heatmap\.js$/, "ETFs need their own widget");
+  assert.equal(mounted[2].config.dataSource, "AllUSEtf");
+  assert.match(note.textContent, /ETF/);
 });
 
 test("notification panel is inert while closed and interactive while open", async () => {
