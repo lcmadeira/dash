@@ -211,6 +211,18 @@ function renderTrendChart(canvas, history, options = {}) {
   };
   
   const cfg = { ...defaults, ...options };
+  // O canvas não entende variáveis CSS ("var(--blue)" ficava preto): resolver para a cor real.
+  const resolveColor = (value, fallback) => {
+    const m = /^var\((--[\w-]+)\)$/.exec(String(value || '').trim());
+    if (!m) return value;
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim();
+      return v || fallback;
+    } catch { return fallback; }
+  };
+  cfg.borderColor = resolveColor(cfg.borderColor, defaults.borderColor);
+  cfg.backgroundColor = resolveColor(cfg.backgroundColor, defaults.backgroundColor);
+  const fmtValue = v => Number(v).toLocaleString('pt-PT', { minimumFractionDigits: cfg.decimals, maximumFractionDigits: cfg.decimals });
   const pointRadius = history.length > 40 ? 0 : 3;
   
   // Preparar dados
@@ -253,7 +265,7 @@ function renderTrendChart(canvas, history, options = {}) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx) => `${cfg.label}: ${ctx.parsed.y.toFixed(cfg.decimals)}${cfg.unit}`
+            label: (ctx) => `${cfg.label}: ${fmtValue(ctx.parsed.y)}${cfg.unit}`
           }
         }
       },
@@ -261,7 +273,7 @@ function renderTrendChart(canvas, history, options = {}) {
         y: {
           beginAtZero: false,
           ticks: {
-            callback: (val) => Number(val).toFixed(cfg.decimals) + cfg.unit,
+            callback: (val) => fmtValue(val) + cfg.unit,
             color: '#7A85A0',
             font: { size: 10 }
           },
