@@ -1,4 +1,4 @@
-/* global Date, EU_INDICES, PFX, PSI20_CONST, _lastN, _setOnByDataAttr, addToHistory, console, document, fetchStooqDailySeries, fetchStooqMulti, fetchWithCORS, localStorage, lsGet, lsSet, renderTrendChart, window, ld */
+/* global Date, EU_INDICES, PFX, PSI20_CONST, _lastN, _setOnByDataAttr, addToHistory, console, document, fetchWithCORS, localStorage, lsGet, lsSet, renderTrendChart, window, ld */
 (() => {
 	/* ── PSI20 · dados ── (config em src/config.js) */
 
@@ -68,7 +68,7 @@ async function fetchPSI20Series(force) {
     .filter(p => /^\d{4}-\d{2}-\d{2}$/.test(p?.date) && Number(p?.value) > 0)
     .map(p => ({ date: p.date, timestamp: Date.parse(p.date), value: Number(p.value) })) : [];
   if (series.length >= 10) return series;
-  return fetchStooqDailySeries('^psi20', 90, force);
+  throw new Error('Histórico indisponível');
 }
 
 async function loadPSI20Trend(force = false) {
@@ -146,10 +146,8 @@ async function loadPSI20Trend(force = false) {
 	      return isValidPSI20Quote(quote) ? quote : null;
 	    };
 	    const gatewayQuotes = allSyms.map(fromGateway);
-	    /* Stooq/Yahoo diretos ficam só para símbolos que o gateway não devolveu. */
-	    const missing = allSyms.filter((s, i) => !gatewayQuotes[i]);
-	    const stooqResults = missing.length ? await fetchStooqMulti(missing.map(s => s.sym)) : {};
-	    const needsYahoo = missing.filter(s => !isValidPSI20Quote(stooqResults[s.sym.toLowerCase()]));
+	    /* Yahoo direto (por proxy) só para símbolos que o gateway não devolveu. */
+	    const needsYahoo = allSyms.filter((s, i) => !gatewayQuotes[i]);
 	    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
 
 	    async function fetchYahoo(sym){
@@ -172,16 +170,11 @@ async function loadPSI20Trend(force = false) {
 	      }
 	    }
 
-	    /* Yahoo fica como fallback, apenas para símbolos ausentes na resposta Stooq. */
 	    const yahooRes = await Promise.allSettled(needsYahoo.map(s => fetchYahoo(s.yf)));
 	    const yahooBySymbol = new Map(needsYahoo.map((s, i) => [s.sym.toLowerCase(),
 	      yahooRes[i]?.status === 'fulfilled' ? yahooRes[i].value : null]));
 
-	    const results = allSyms.map((s, i) => {
-	      if (gatewayQuotes[i]) return gatewayQuotes[i];
-	      const quote = stooqResults[s.sym.toLowerCase()] || null;
-      return isValidPSI20Quote(quote) ? quote : null;
-	    }).map((quote, i) => quote || yahooBySymbol.get(allSyms[i].sym.toLowerCase()) || null);
+	    const results = allSyms.map((s, i) => gatewayQuotes[i] || yahooBySymbol.get(s.sym.toLowerCase()) || null);
 
       const mkFallback=(s)=>({
         price:s.fallback,
@@ -317,8 +310,8 @@ async function loadPSI20Trend(force = false) {
     }).join("")}
   </div>
   <div style="font-size:.74rem;color:var(--t3);margin-top:6px;line-height:1.4">
-    ✦ Fonte principal: ${(cache.src==="yahoo"?"Yahoo Finance":"Stooq")} · Euronext Lisboa (.LS) · 
-    ${cache.live?(cache.src==="yahoo"?"Última cotação Yahoo (pode ter atraso)":"Último fecho devolvido pela Stooq")+` · consulta recebida ${new Date(cache.ts).toLocaleString("pt-PT")}`+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
+    ✦ Fonte principal: Yahoo Finance · Euronext Lisboa (.LS) · 
+    ${cache.live?"Última cotação Yahoo (pode ter atraso)"+` · consulta recebida ${new Date(cache.ts).toLocaleString("pt-PT")}`+(cache.stocks.some(q=>q.fallback)||cache.indices.some(q=>q.fallback)?" · cotações em falta ocultadas":""):"Sem cotações atuais · valores de referência ocultados"}
   </div>`;
 
   loadPSI20Trend(false).catch(()=>{});

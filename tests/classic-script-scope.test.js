@@ -430,23 +430,29 @@ test("agriculture card isolates its cached symbol list and renders cached prices
   assert.doesNotThrow(() => vm.runInContext('var APP_AGRI_SYMS = AGRI_SYMS;', context));
 });
 
-test("agriculture Stooq fallback reads the CSV OHLCV columns correctly", async () => {
+test("agriculture falls back to Yahoo through public proxies and never asks Stooq", async () => {
   const body = { innerHTML: "" };
   let savedCache = null;
+  let textRequests = 0;
   const context = createBrowserContext();
   context.AbortSignal = AbortSignal;
   context.$ = id => id === "agri-body" ? body : null;
   context.ld = () => "loading";
   context.lsGet = () => null;
   context.lsSet = (_key, value) => { savedCache = value; };
-  context.fetchFirstOk = async () => { throw new Error("Yahoo unavailable in test"); };
-  context.fetchTextFirstOk = async () =>
-    "Symbol,Date,Time,Open,High,Low,Close,Volume\nZW.F,2026-10-29,12:00:00,100,110,90,105,5000";
+  context.fetchFirstOk = async url => {
+    assert.match(url, /query1\.finance\.yahoo\.com/);
+    return { r: Response.json({ chart: { result: [{ meta: {
+      regularMarketPrice: 105, previousClose: 100, regularMarketDayHigh: 110, regularMarketDayLow: 90, regularMarketVolume: 5000 } }] } }) };
+  };
+  context.fetchTextFirstOk = async () => { textRequests++; return ""; };
 
   const source = await readFile("src/cards/agriculture.js", "utf8");
+  assert.doesNotMatch(source, /stooq/i);
   vm.runInContext(source, context);
   await context.loadAgri(true);
 
+  assert.equal(textRequests, 0);
   assert.equal(savedCache[0].close, 105);
   assert.equal(savedCache[0].chg, 5);
   assert.equal(savedCache[0].hi, 110);
@@ -618,16 +624,14 @@ test("air traffic card only flags data as late from 5 minutes", async () => {
   assert.match(await render(6 * 60 * 1000), /🟠 Atrasado · 6min/);
 });
 
-test("market indicators come from the gateway and Stooq is only asked for missing symbols", async () => {
+test("market indicators come from the gateway only; a missing symbol shows no value", async () => {
   const body = { innerHTML: "" };
-  let stooqAsked = null;
   const context = vm.createContext({
     Date, Number, String, Math, Array,
     $: id => (id === "mstats-body" ? body : null),
     skeletonKPIs: () => "",
     lsGet: () => null,
     lsSet() {},
-    fetchStooqMulti: async syms => { stooqAsked = syms; return {}; },
   });
   context.window = context;
   context.dataApiUrl = path => `https://gw.test/${path}`;
@@ -644,7 +648,7 @@ test("market indicators come from the gateway and Stooq is only asked for missin
   };
   vm.runInContext(await readFile("src/cards/market-stats.js", "utf8"), context);
   await context.loadMarketStats(true);
-  assert.equal(JSON.stringify(stooqAsked), JSON.stringify(["ng.f"]));
+  assert.doesNotMatch(await readFile("src/cards/market-stats.js", "utf8"), /fetchStooq/);
   assert.match(body.innerHTML, /Yahoo 5\/6/);
   assert.match(body.innerHTML, /\$3[\s.\u00a0]?618,00/);
   assert.match(body.innerHTML, /\$42,140/, "decimal comma and fixed decimals below 1000 too");
@@ -1071,10 +1075,9 @@ test("PSI 20 card refreshes an invalid quote cache and validates fetched records
   assert.doesNotThrow(() => vm.runInContext("const APP_PSI20_TREND_PREF_KEY = PSI20_TREND_PREF_KEY;", context));
 });
 
-test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote source", async () => {
+test("PSI 20 queries Yahoo directly for every symbol the gateway did not return", async () => {
   const body = { innerHTML: "" };
-  let yahooCalls = 0;
-  let stooqSymbols = [];
+  const yahooUrls = [];
   let cacheWrite = null;
   const context = vm.createContext({
     Date,
@@ -1085,15 +1088,11 @@ test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote sou
     localStorage: { getItem: () => null },
     lsGet: () => null,
     lsSet: (key, value) => { cacheWrite = { key, value }; },
-    fetchWithCORS: async () => { yahooCalls++; throw new Error("Yahoo should not be needed"); },
-    fetchStooqMulti: async symbols => {
-      stooqSymbols = symbols;
-      return Object.fromEntries(symbols.map(sym => [sym, {
-        price: 100, prev: 99, hi: 101, lo: 98, vol: 1000, chg: 1,
-        live: true, src: "stooq",
-      }]));
+    fetchWithCORS: async url => {
+      yahooUrls.push(url);
+      return { json: async () => ({ chart: { result: [{ meta: {
+        regularMarketPrice: 100, previousClose: 99, regularMarketDayHigh: 101, regularMarketDayLow: 98, regularMarketVolume: 1000 } }] } }) };
     },
-    fetchStooqDailySeries: async () => [],
     _lastN: rows => rows,
     _setOnByDataAttr() {},
     addToHistory() {},
@@ -1103,15 +1102,19 @@ test("PSI 20 uses one Stooq batch before querying Yahoo and shows live quote sou
   context.window = context;
 
   vm.runInContext(await readFile("src/config.js", "utf8"), context);
-  vm.runInContext(await readFile("src/cards/psi20.js", "utf8"), context);
+  const source = await readFile("src/cards/psi20.js", "utf8");
+  assert.doesNotMatch(source, /fetchStooq/);
+  vm.runInContext(source, context);
   await context.loadPSI20();
 
-  assert.equal(stooqSymbols.length, context.EU_INDICES.length + context.PSI20_CONST.length);
-  assert.equal(yahooCalls, 0);
+  assert.equal(yahooUrls.length, context.EU_INDICES.length + context.PSI20_CONST.length, "no gateway configured: all symbols via Yahoo");
+  assert.ok(yahooUrls.every(u => u.startsWith("https://query1.finance.yahoo.com/v8/finance/chart/")));
   assert.equal(cacheWrite.value.live, true);
-  assert.match(body.innerHTML, /STOOQ/);
-  assert.doesNotMatch(body.innerHTML, /FALLBACK/);
+  assert.match(body.innerHTML, /YAHOO/);
+  assert.match(body.innerHTML, /Yahoo Finance/);
+  assert.doesNotMatch(body.innerHTML, /Stooq|FALLBACK/);
 });
+
 
 test("PSI 20 takes quotes and history from the markets gateway before Stooq or Yahoo", async () => {
   const body = { innerHTML: "" };

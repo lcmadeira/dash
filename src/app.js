@@ -1,7 +1,7 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,lsSet,fetchTextFirstOk,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
 /* Globais chamados a partir do index.html (onclick) ou de outros scripts clássicos: */
 /* exported
-   addToHistory, clearAllNotifications, dismissNotification, executeExport, fetchStooqDailySeries,
+   addToHistory, clearAllNotifications, dismissNotification, executeExport,
    filterNotifications, markAllAsRead, moveCard, openCabazEditor, openExportModal, openFuelModal,
    openNotificationSettings, quickAddTicker, removeTicker, resetSettings, saveCabazEntry, saveSettings,
    selectExportFormat, setComfortDensity, setComfortMotion, _setOnByDataAttr, showTrendModal,
@@ -291,6 +291,7 @@ function renderTrendChart(canvas, history, options = {}) {
   });
 }
 
+/* exported _lastN -- usado pelos cards (psi20, crypto, gas-markets) */
 function _lastN(arr, n) {
   if (!Array.isArray(arr)) return [];
   if (!n || n <= 0) return [];
@@ -303,47 +304,6 @@ function _setOnByDataAttr(rootEl, attr, val) {
   all.forEach(b => b.classList.toggle('on', b.getAttribute(attr) === String(val)));
 }
 
-async function fetchStooqDailySeries(sym, maxDays = 90, force = false) {
-  const cacheKey = `hist_stooq_${sym}_d_${maxDays}`;
-  if (!force) {
-    const cached = lsGet(cacheKey);
-    if (Array.isArray(cached) && cached.length >= 10) return cached;
-  }
-
-  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`;
-  try {
-    const csv = await fetchTextFirstOk(
-      url,
-      {},
-      11000,
-      ["local", "allorigins", "codetabs"],
-      (text) => !!text && text.includes("Date,Open,High,Low,Close") && !text.includes("<!DOCTYPE html>"),
-    );
-    if (!csv || csv.length < 20 || csv.includes("<!DOCTYPE html>")) {
-      throw new Error("CSV inválido ou página de erro recebida");
-    }
-    const lines = csv.trim().split("\n").filter(Boolean);
-
-    const out = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",");
-      const date = (cols[0] || "").trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-      const close = Number(cols[4]);
-      if (!Number.isFinite(close)) continue;
-      out.push({ date, timestamp: Date.parse(date), value: close });
-    }
-    out.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-    const sliced = _lastN(out, maxDays);
-    if (sliced.length >= 10) {
-      lsSet(cacheKey, sliced);
-      return sliced;
-    }
-  } catch {}
-
-  throw new Error("Stooq histórico indisponível");
-}
 
 
 /* Feriados movidos para src/cards/holidays.js */
