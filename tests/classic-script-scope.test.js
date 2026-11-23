@@ -700,22 +700,59 @@ test("Ormuz card expires stale AIS, validates positions and escapes vessel toolt
   assert.doesNotMatch(body.innerHTML, /● Ao vivo/);
 });
 
-test("CO2 card renders its reference mix without an unused network fetch", async () => {
+test("CO2 card falls back to the 2024 reference mix when Eurostat is unavailable", async () => {
   const context = createBrowserContext();
   vm.runInContext('const CO2_F = ["cached app"];', context);
   const body = { innerHTML: "" };
-  context.document = { getElementById: id => id === "co2-body" ? body : null };
+  const src = { textContent: "" };
+  context.document = { getElementById: id => (id === "co2-body" ? body : id === "co2Src" ? src : null) };
   context.$ = id => context.document.getElementById(id);
   context.ld = () => "loading";
+  context.console = { debug() {} };
+  context.lsGet = () => null;
+  context.lsSet = () => { throw new Error("nothing to cache"); };
+  context.fetchJsonFirstOk = async () => { throw new Error("offline"); };
 
   const source = await readFile("src/cards/co2.js", "utf8");
   vm.runInContext(source, context);
-  assert.equal(typeof context.loadCO2, "function");
   await context.loadCO2();
-  assert.match(body.innerHTML, /Mix energético 2024/);
-  assert.match(body.innerHTML, /comparação EU \(2023\)/);
-  assert.match(body.innerHTML, /gCO₂\/kWh/);
+  assert.match(body.innerHTML, /Produção elétrica por fonte · Portugal · 2024/);
+  assert.match(body.innerHTML, /comparação UE \(2023\)/);
+  assert.match(src.textContent, /valores fixos/);
   assert.doesNotThrow(() => vm.runInContext("const APP_CO2_F = CO2_F;", context));
+});
+
+test("CO2 card estimates intensity, mix and EU rank from Eurostat monthly production", async () => {
+  const context = createBrowserContext();
+  context.window = context;
+  vm.runInContext(await readFile("src/cards/co2.js", "utf8"), context);
+  const geos = ["PT", "SE", "PL"];
+  const siecs = ["TOTAL", "RA000", "RA100", "RA300", "RA400", "CF_R", "G3000", "O4000XBIO", "C0000"];
+  const times = Array.from({ length: 12 }, (_, i) => `2025-${String(i + 1).padStart(2, "0")}`);
+  const per = {
+    PT: { TOTAL: 100, RA000: 80, RA100: 30, RA300: 25, RA400: 20, CF_R: 5, G3000: 18, O4000XBIO: 2, C0000: 0 },
+    SE: { TOTAL: 100, RA000: 70, RA100: 45, RA300: 25, RA400: 0, CF_R: 0, G3000: 1, O4000XBIO: 0, C0000: 0 },
+    PL: { TOTAL: 100, RA000: 30, RA100: 2, RA300: 20, RA400: 8, CF_R: 0, G3000: 10, O4000XBIO: 0, C0000: 60 },
+  };
+  const value = {};
+  geos.forEach((g, gi) => siecs.forEach((s, si) => times.forEach((t, ti) => {
+    value[String((gi * siecs.length + si) * times.length + ti)] = per[g][s];
+  })));
+  const index = list => Object.fromEntries(list.map((k, i) => [k, i]));
+  const m = context.parseEurostatMix({
+    id: ["geo", "siec", "time"], size: [geos.length, siecs.length, times.length], value,
+    dimension: { geo: { category: { index: index(geos) } }, siec: { category: { index: index(siecs) } }, time: { category: { index: index(times) } } },
+  });
+  assert.equal(m.period.from, "2025-01");
+  assert.equal(m.period.to, "2025-12");
+  assert.equal(Math.round(m.intensity), Math.round(0.18 * 370 + 0.02 * 750));
+  assert.equal(Math.round(m.renPct), 80);
+  assert.equal(m.rank, 2, "SE (3,7 g) < PT (81,6 g) < PL (607 g)");
+  assert.equal(m.rankOf, 3);
+  assert.equal(m.mix[0].n, "Hídrica");
+  assert.ok(!m.mix.some(x => x.n === "Carvão"), "sources without production are left out");
+  assert.equal(JSON.stringify(m.compare.map(x => x.n)), JSON.stringify(["PT", "PL"]), "countries without data are left out of the comparison");
+  assert.equal(context.parseEurostatMix({}), null);
 });
 
 test("transport card shows current urban reference fares and avoids claiming live service status", async () => {

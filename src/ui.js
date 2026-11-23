@@ -533,7 +533,7 @@
       geo: "geo_v10",
       "news-pt": "rss_pt",
       "news-world": "rss_world",
-      co2: "co2_ren_v1",
+      co2: "co2_eurostat_v1",
       inf: "inflation_eurostat_v2",
       div: "div_eurostat_v1",
       // Só valores fixos: o estado vem de STATIC_REFERENCE_POLICY (data de referência e limite).
