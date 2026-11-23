@@ -397,7 +397,7 @@ loadAndRenderCalendar(); /* Calendário dinâmico: FOMC, BCE, NFP, CPI, INE */
 loadHolidays();
 renderInflation();
 initEuribor();
-setTimeout(()=>{renderExp();renderDiv();},50);
+setTimeout(()=>{renderExp();renderDiv();window.loadDiv?.();},50);
 loadElec();
 loadDams();
 setTimeout(()=>switchHmap("sp500",document.querySelector("#hmap-tabs .psi-tab.on")),200);

@@ -12,21 +12,24 @@
     imob: "Imobiliário",
     fng: "Fear & Greed",
     rec: "Curva de rendimentos",
-    agri: "Agro commodities",
+    agri: "Preços agrícolas",
     air: "Tráfego aéreo",
     seis: "Sismos",
     anpc: "Proteção Civil",
     ormuz: "Estreito de Ormuz",
-    smn: "Mobilidade",
+    smn: "Salário mínimo",
     transp: "Transportes",
     psi20: "PSI20",
     fx: "Câmbio",
     crypto: "Criptomoedas",
     inf: "Inflação",
-    mstats: "Market stats",
+    mstats: "Indicadores de mercado",
     cal: "Calendário",
     geo: "Geopolítica",
     co2: "Emissões CO2",
+    div: "Dívida pública",
+    exp: "Exportações",
+    conflicts: "Conflitos globais",
     press: "Liberdade de imprensa",
     "news-pt": "Notícias Portugal",
     "news-world": "Notícias mundo",
@@ -505,9 +508,6 @@
     } catch {}
 
     ["oil", "finance", "heatmap"].forEach((id) => setCardStatus(id, "live", "Live", { title: "Widget live" }));
-    ["smn", "transp", "press"].forEach((id) =>
-      setCardStatus(id, "static", "Estático", { title: "Dados estáticos (sem fetch)" }),
-    );
 
     const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     const byId = {
@@ -535,6 +535,13 @@
       "news-world": "rss_world",
       co2: "co2_ren_v1",
       inf: "inflation_eurostat_v2",
+      div: "div_eurostat_v1",
+      // Só valores fixos: o estado vem de STATIC_REFERENCE_POLICY (data de referência e limite).
+      exp: null,
+      conflicts: null,
+      smn: null,
+      transp: null,
+      press: null,
     };
 
     Object.entries(byId).forEach(([cardId, cacheKey]) => refreshCardStatusFromCache(cardId, cacheKey));

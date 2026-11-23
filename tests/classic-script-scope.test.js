@@ -111,7 +111,7 @@ test("static economic fallback references declare a review period", async () => 
   const context = createBrowserContext();
   vm.runInContext(await readFile("src/config.js", "utf8"), context);
   const policy = context.STATIC_REFERENCE_POLICY;
-  assert.deepEqual(Object.keys(policy).sort(), ["agri", "euribor", "gas-eu", "imob", "inf", "rec"]);
+  assert.deepEqual(Object.keys(policy).sort(), ["agri", "co2", "conflicts", "div", "euribor", "exp", "gas-eu", "imob", "inf", "press", "rec", "smn", "transp"]);
   for (const entry of Object.values(policy)) {
     assert.ok(Number.isFinite(Date.parse(entry.observedAt)));
     assert.ok(Number.isFinite(entry.maxAgeDays) && entry.maxAgeDays > 0);
@@ -1875,4 +1875,31 @@ test("nf and nfr write numbers in pt-PT and leave text untouched", async () => {
   assert.equal(nfr("v1.2 beta"), "v1.2 beta");
   assert.equal(nfr("<b>1.5</b>"), "<b>1.5</b>");
   assert.equal(nfr(null), null);
+});
+
+test("public debt card reads the latest Eurostat year for Portugal and its peers", async () => {
+  const context = createBrowserContext();
+  context.window = context;
+  vm.runInContext(await readFile("src/cards/public-debt.js", "utf8"), context);
+  const geos = ["EL", "IT", "FR", "BE", "ES", "PT", "EA20", "DE", "NL"];
+  const years = ["2023", "2024", "2025"];
+  const values = {};
+  const data = { EL: [164, 153.5, 145.4], IT: [134, 134.3, 136.7], FR: [109.5, 112.6, 115.7], BE: [102.3, 104, 108.1],
+    ES: [105.3, 101.4, 100.5], PT: [96.9, 93, 89.2], EA20: [86.7, 86.6, 87.7], DE: [61.8, 61.4, 62.8], NL: [45.9, 44, null] };
+  geos.forEach((g, gi) => years.forEach((y, ti) => { const v = data[g][ti]; if (v !== null) values[String(gi * years.length + ti)] = v; }));
+  const json = {
+    id: ["freq", "unit", "sector", "na_item", "geo", "time"], size: [1, 1, 1, 1, geos.length, years.length], value: values,
+    updated: "2026-10-21T11:00:00+0200",
+    dimension: { geo: { category: { index: Object.fromEntries(geos.map((g, i) => [g, i])) } },
+      time: { category: { index: Object.fromEntries(years.map((y, i) => [y, i])) } } },
+  };
+  const d = context.parseEurostatDebt(json);
+  assert.equal(d.year, 2025);
+  const pt = d.countries.find(c => c.n === "Portugal");
+  assert.equal(pt.v, 89.2);
+  assert.equal(pt.hl, true);
+  assert.equal(d.countries.find(c => c.n === "Zona Euro").v, 87.7, "EA20 before 2026");
+  assert.equal(d.countries.find(c => c.n === "Holanda"), undefined, "missing values are left out");
+  assert.equal(JSON.stringify(d.trend), JSON.stringify([{ y: "23", v: 96.9 }, { y: "24", v: 93 }, { y: "25", v: 89.2 }]));
+  assert.equal(context.parseEurostatDebt({}), null);
 });
