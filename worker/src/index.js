@@ -18,7 +18,7 @@ const RSS_FEEDS = {
   gpf: { url: "https://geopoliticalfutures.com/feed/", source: "Geopolitical Futures" },
   fa: { url: "https://feeds.bbci.co.uk/news/world/rss.xml", source: "BBC World" },
 };
-const YAHOO_TTF = ["query1", "query2"].map(host => `https://${host}.finance.yahoo.com/v8/finance/chart/TTF=F?range=5d&interval=1d`);
+const YAHOO_TTF = ["query1", "query2"].map(host => `https://${host}.finance.yahoo.com/v8/finance/chart/TTF=F?range=3mo&interval=1d`);
 /* Euribor (médias mensais) no BCE: a API demora 5-15 s por série, por isso fica em cache no gateway. */
 const EURIBOR_TENORS = { "1M": "EURIBOR1MD_", "3M": "EURIBOR3MD_", "6M": "EURIBOR6MD_", "12M": "EURIBOR1YD_" };
 /* Futuros agrícolas (CBOT/ICE) do cartão "Preços agrícolas"; lista fixa, nunca vinda do cliente. */
@@ -30,6 +30,8 @@ const MARKET_SYMBOLS = [PSI_SYMBOL, "^GDAXI", "^FCHI", "^IBEX", "^FTSE", "^STOXX
 // Card "Indicadores de Mercado": volatilidade, metais, S&P 500 e energia (lista fixa).
 const INDICATOR_SYMBOLS = ["^VIX", "GC=F", "SI=F", "^GSPC", "CL=F", "NG=F"];
 const SNIRH_PAGE = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
+/** Cópia publicada pelo cron do portátil (scripts/update-dams.mjs); o SNIRH recusa pedidos da Cloudflare. */
+const DAMS_SITE_COPY = "https://lcmadeira.github.io/dash/data/dams.json";
 const SNIRH_TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/tabelas/tabelageral.php";
 /* Alguns fornecedores recusam pedidos sem User-Agent vindos de servidores. */
 const UPSTREAM_UA = "Mozilla/5.0 (compatible; dash-data-gateway/1.1)";
@@ -117,6 +119,25 @@ function isValidAir(payload) {
 }
 const LOCAL_ORIGINS = new Set(["http://localhost:8000", "http://127.0.0.1:8000"]);
 const COIN_IDS = ["bitcoin", "ethereum", "solana", "cardano", "ripple", "binancecoin"];
+/** Pares EUR na Binance (espelho público de dados de mercado, sem chave nem bloqueio geográfico). */
+const BINANCE_EUR_PAIRS = { bitcoin: "BTCEUR", ethereum: "ETHEUR", solana: "SOLEUR", cardano: "ADAEUR", ripple: "XRPEUR", binancecoin: "BNBEUR" };
+const BINANCE_TICKER_URL = `https://data-api.binance.vision/api/v3/ticker/24hr?type=MINI&symbols=${encodeURIComponent(JSON.stringify(Object.values(BINANCE_EUR_PAIRS)))}`;
+
+/** Ticker 24h da Binance → formato do CoinGecko simple/price ({id: {eur, eur_24h_change}}). */
+export function parseBinanceTickers(body) {
+  const rows = JSON.parse(body);
+  if (!Array.isArray(rows)) return {};
+  const bySymbol = new Map(rows.map(r => [r?.symbol, r]));
+  const out = {};
+  for (const [id, symbol] of Object.entries(BINANCE_EUR_PAIRS)) {
+    const row = bySymbol.get(symbol);
+    const last = Number(row?.lastPrice);
+    const open = Number(row?.openPrice);
+    if (!(last > 0)) continue;
+    out[id] = { eur: last, eur_24h_change: open > 0 ? Math.round(((last - open) / open) * 1e4) / 100 : null };
+  }
+  return out;
+}
 
 function corsHeaders(origin, env) {
   const allowed = new Set(LOCAL_ORIGINS);
@@ -149,6 +170,11 @@ function isValidElectricity(payload) {
 function isValidTtf(payload) {
   return Number.isFinite(payload?.price) && payload.price > 0 && payload.price < 500
     && Number.isFinite(payload?.prev) && payload.prev > 0 && payload.currency === "EUR";
+}
+
+export function parseDamsSiteCopy(body) {
+  const { _meta, ...payload } = JSON.parse(body);
+  return payload;
 }
 
 function isValidDams(payload) {
@@ -187,8 +213,8 @@ export function parseYahooChart(body, { withSeries = false } = {}) {
   return quote;
 }
 
-/** Lê o TTF (EUR/MWh) do gráfico Yahoo Finance. */
-export const parseYahooTtf = parseYahooChart;
+/** Lê o TTF (EUR/MWh) do gráfico Yahoo Finance, com a série diária de 3 meses para as tendências. */
+export const parseYahooTtf = body => parseYahooChart(body, { withSeries: true });
 
 function isValidQuote(q) {
   return Number.isFinite(q?.price) && q.price > 0 && Number.isFinite(q?.prev) && q.prev > 0;
@@ -216,11 +242,14 @@ function isValidEuribor(payload) {
   return ok("3M") && ok("12M");
 }
 
+/** O BCE tem respondido em 16–25 s; abaixo do limite de 30 s de waitUntil. */
+const ECB_TIMEOUT_MS = 28000;
+
 async function fetchEuriborSeries(route) {
   const entries = await Promise.all(Object.entries(EURIBOR_TENORS).map(async ([term, code]) => {
     try {
       const url = `https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT.MM.${code}.HSTA?format=jsondata&lastNObservations=9`;
-      const response = await fetchUpstream(url, "application/json", 20000);
+      const response = await fetchUpstream(url, "application/json", ECB_TIMEOUT_MS);
       if (!response.ok) return [term, []];
       return [term, parseEcbSeries(await readBoundedBody(response, route.maxBytes))];
     } catch {
@@ -494,10 +523,14 @@ function routeFor(url) {
   const day = 86400;
   if (path === "/v1/crypto") {
     return { key: path, ttl: 90, staleTtl: day, maxBytes: 250_000, accept: "application/json", valid: p => COIN_IDS.some(id => Number.isFinite(p?.[id]?.eur) && p[id].eur > 0),
-      upstreams: [{ url: COINGECKO_URL, source: "CoinGecko", parse: body => JSON.parse(body) }] };
+      upstreams: [
+        { url: COINGECKO_URL, source: "CoinGecko", parse: body => JSON.parse(body) },
+        { url: BINANCE_TICKER_URL, source: "Binance · pares EUR (variação 24h)", parse: parseBinanceTickers },
+      ] };
   }
   if (path === "/v1/geopolitics") {
-    return { key: path, ttl: 600, staleTtl: day, maxBytes: 1_500_000, accept: "application/json", valid: p => Array.isArray(p?.articles),
+    // O GDELT limita a 1 pedido a cada 5 s por IP e as IPs da Cloudflare são partilhadas: cache longa.
+    return { key: path, ttl: 3600, staleTtl: 3 * day, swrMaxAge: 12 * 3600, maxBytes: 1_500_000, accept: "application/json", valid: p => Array.isArray(p?.articles),
       upstreams: [{ url: GDELT_URL, source: "GDELT DOC", parse: body => JSON.parse(body) }] };
   }
   if (NEWS_FEEDS[path]) {
@@ -519,7 +552,7 @@ function routeFor(url) {
       upstreams: YAHOO_TTF.map(u => ({ url: u, source: "Yahoo Finance · TTF=F (ICE Endex)", timeout: 6000, parse: parseYahooTtf })) };
   }
   if (path === "/v1/euribor") {
-    return { key: path, ttl: 12 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "application/json", valid: isValidEuribor,
+    return { key: path, ttl: 12 * 3600, staleTtl: 45 * day, swrMaxAge: 3 * day, maxBytes: 200_000, accept: "application/json", valid: isValidEuribor,
       observedAt: p => Date.parse(`${p.series["3M"].at(-1).period}-15T12:00:00Z`),
       upstreams: [{ source: "BCE · Euribor (médias mensais)", run: fetchEuriborSeries }] };
   }
@@ -545,9 +578,12 @@ function routeFor(url) {
       upstreams: [{ source: "Yahoo Finance · índices, metais e energia", run: route => fetchYahooQuotes(route, INDICATOR_SYMBOLS) }] };
   }
   if (path === "/v1/dams") {
-    return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
+    return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, swrMaxAge: 3 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
       observedAt: p => Date.parse(`${p.period}-15T12:00:00Z`),
-      upstreams: [{ source: "SNIRH · APA (albufeiras)", run: fetchSnirhDams }] };
+      upstreams: [
+        { source: "SNIRH · APA (albufeiras)", run: fetchSnirhDams },
+        { url: DAMS_SITE_COPY, source: "SNIRH · APA (cópia do site, atualizada diariamente)", parse: parseDamsSiteCopy },
+      ] };
   }
   return null;
 }
@@ -655,6 +691,35 @@ async function serveRoute(url, route, headers, ctx) {
       return new Response(cached.body, { status: cached.status, headers: responseHeaders });
     }
   }
+  // Rotas lentas ou de dados mensais: responder já com a cópia guardada (se recente) e atualizar em segundo plano.
+  if (cache && route.swrMaxAge && typeof ctx.waitUntil === "function") {
+    const revalidating = await getRevalidatingResponse(cache, staleKey, route, headers);
+    if (revalidating) {
+      ctx.waitUntil(fetchAndStore(route, cache, cacheKey, staleKey, new Headers(headers), ctx).catch(() => {}));
+      return revalidating;
+    }
+  }
+  return fetchAndStore(route, cache, cacheKey, staleKey, headers, ctx);
+}
+
+/** Cópia de reserva ainda dentro de route.swrMaxAge, devolvida tal como foi guardada (com o seu checkedAt). */
+async function getRevalidatingResponse(cache, staleKey, route, headers) {
+  const cached = await getCached(cache, staleKey);
+  if (!cached) return null;
+  try {
+    const payload = await cached.json();
+    const checkedAt = Number(payload?._meta?.checkedAt);
+    if (!route.valid(payload) || !Number.isFinite(checkedAt) || Date.now() - checkedAt > route.swrMaxAge * 1000) return null;
+    const out = new Headers(headers);
+    out.set("Cache-Control", "public, max-age=30, s-maxage=0");
+    out.set("X-Dash-Cache", "REVALIDATE");
+    return jsonResponse(payload, 200, out);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchAndStore(route, cache, cacheKey, staleKey, headers, ctx) {
   const result = await fetchFromUpstreams(route);
   if (!result.payload) {
     const stale = cache ? await getStaleResponse(cache, staleKey, route, headers, result.failure.upstreamFailures) : null;

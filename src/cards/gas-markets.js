@@ -30,6 +30,28 @@ function setTTFTrendDays(days) {
   loadTTFTrend(false).catch(() => {});
 }
 
+/* Série diária do TTF: gateway (Yahoo TTF=F, 3 meses) primeiro; Stooq só como alternativa. */
+let _ttfSeriesMemo = null;
+async function fetchTTFDailySeries(force = false) {
+  if (!force && _ttfSeriesMemo && Date.now() - _ttfSeriesMemo.at < 60000) return _ttfSeriesMemo.promise;
+  const promise = (async () => {
+    const url = window.dataApiUrl?.("v1/ttf");
+    if (url) {
+      try {
+        const j = await fetchJsonFirstOk(url, {}, 10000, ["direct"], d => Array.isArray(d?.series));
+        const series = j.series
+          .filter(p => /^\d{4}-\d{2}-\d{2}$/.test(p?.date) && Number(p?.value) > 0)
+          .map(p => ({ date: p.date, timestamp: Date.parse(p.date), value: Number(p.value) }));
+        if (series.length >= 10) return series;
+      } catch { /* alternativa abaixo */ }
+    }
+    return fetchStooqDailySeries('tg.f', 90, force);
+  })();
+  _ttfSeriesMemo = { at: Date.now(), promise };
+  promise.catch(() => { if (_ttfSeriesMemo?.promise === promise) _ttfSeriesMemo = null; });
+  return promise;
+}
+
 async function loadTTFTrend(force = false) {
   const canvas = document.getElementById('ttfTrendCanvas');
   const statusEl = document.getElementById('ttfTrendStatus');
@@ -43,7 +65,7 @@ async function loadTTFTrend(force = false) {
   try {
     let series = null;
     try {
-      series = await fetchStooqDailySeries('tg.f', 90, force);
+      series = await fetchTTFDailySeries(force);
     } catch {
       const local = getHistory('ttf_eur_mwh', 90)
         .map(h => ({ date: h.date, timestamp: h.timestamp || Date.parse(h.date), value: Number(h.value) }))
@@ -465,7 +487,7 @@ function loadGasPT(_force=false){
     statusEl.textContent = 'A carregar tendência...';
 
     try {
-      const ttf = await fetchStooqDailySeries('tg.f', 90, forceTrend);
+      const ttf = await fetchTTFDailySeries(forceTrend);
       const mib = ttf.map(p => {
         const m = new Date(p.date + 'T00:00:00').getMonth();
         const spread = GASPT_SPREAD_MENSAL[m] ?? 0;

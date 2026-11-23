@@ -49,7 +49,7 @@ async function loadGeoOnce(force = false) {
           result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
             ["direct"], payload => Array.isArray(payload?.articles));
         }
-        result.articles.slice(0, 24).forEach((article, index) => {
+        (result?.articles || []).slice(0, 24).forEach((article, index) => {
           const title = String(article?.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
           const dt = parseGdeltDate(article?.seendate) || Date.now() - index * 60000;
           if (title.length > 8 && typeof article?.url === "string") {
