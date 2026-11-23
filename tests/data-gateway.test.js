@@ -350,6 +350,9 @@ test("euribor route returns the ECB monthly series per tenor", async () => {
 test("air route converts readsb aircraft to OpenSky-like states and falls back to adsb.fi", async () => {
   assert.equal(icaoCountry("4951c4"), "Portugal");
   assert.equal(icaoCountry("4ca123"), "Irlanda");
+  assert.equal(icaoCountry("e80475"), "Chile");
+  assert.equal(icaoCountry("511171"), "Estónia");
+  assert.equal(icaoCountry("4d2505"), "Malta");
   assert.equal(icaoCountry("zzzzzz"), "");
   const sample = { now: 1795431143.0, ac: [
     { hex: "4951c4", flight: "TAP123  ", lat: 38.77, lon: -9.13, alt_baro: 10000, gs: 400, track: 90, baro_rate: -1000, seen_pos: 1 },
