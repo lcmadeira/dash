@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261120-16"/>
+<link rel="stylesheet" href="styles.css?v=20261123-14"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -117,7 +117,7 @@
           <span>Escolher e Ordenar Cards</span>
         </div>
         <p class="settings-hint">
-          Arraste os cards para reordenar. Use os toggles para mostrar/ocultar.
+          A ordem conta dentro de cada secção do painel. Arraste ou use as setas para reordenar e os interruptores para mostrar/ocultar. Fechar sem guardar descarta as alterações.
         </p>
         <div class="card-search" role="search">
           <input
@@ -219,6 +219,8 @@
     </div>
 
     <div class="settings-footer">
+      <span class="settings-dirty" id="settingsDirty" hidden>● Alterações por guardar</span>
+      <span class="settings-msg" id="settingsMsg" role="status" aria-live="polite"></span>
       <button type="button" class="settings-btn-action settings-btn-reset" onclick="resetSettings()">
         Restaurar Padrão
       </button>
@@ -539,7 +541,7 @@
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-eu','ttf_live_v1',this,loadTTF,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="ttf-body"></div>
-    <div class="src">✦ Stooq · tg.f (Dutch TTF ICE) · live · hubs secundários ref. Set 2026</div>
+    <div class="src">✦ Yahoo Finance · TTF=F (ICE Endex) pelo gateway (Stooq como alternativa) · hubs secundários ref. Set 2026</div>
   </div>
 
   <!-- Gás Natural · Portugal -->
@@ -550,7 +552,7 @@
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('gas-pt','ttf_live_v1',this,loadGasPT,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="gaspt-body"></div>
-    <div class="src">✦ TTF Stooq live + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
+    <div class="src">✦ TTF (Yahoo Finance pelo gateway) + spread sazonal MIBGAS−TTF · ERSE Tarifas 2025-2026</div>
   </div>
 
   <div class="card" id="card-elec">
@@ -1032,7 +1034,7 @@
  <script src="src/widgets/economic-calendar.js?v=20261120-27"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261123-13"></script>
+<script src="src/app.js?v=20261123-14"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>

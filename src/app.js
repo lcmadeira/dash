@@ -1026,17 +1026,17 @@ console.log('⚡ Sistema de Performance carregado!');
 // Configurações padrão
 const DEFAULT_CONFIG = {
   cards: [
-    { id: 'weather',    name: 'Meteorologia & Feriados',  desc: 'Clima, previsão 5 dias e feriados PT',        visible: true, icon: '🌡️' },
+    { id: 'weather',    name: 'Meteorologia & Feriados',  desc: 'IPMA · previsão 5 dias e feriados PT',        visible: true, icon: '🌡️' },
     { id: 'fuel',       name: 'Combustíveis',              desc: 'Preços gasolina/gasóleo · API Aberta PT',     visible: true, icon: '⛽' },
     { id: 'cabaz',      name: 'Cabaz Alimentar',           desc: '63 produtos essenciais · DECO PROteste',      visible: true, icon: '🛒' },
     { id: 'oil',        name: 'Petróleo',                  desc: 'Brent & WTI · TradingView live',              visible: true, icon: '🛢️' },
-    { id: 'gas-eu',     name: 'Gás Natural EU',            desc: 'Hubs europeus · TTF, MIBGAS, NBP…',          visible: true, icon: '🔥' },
-    { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS · Tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
-    { id: 'elec',       name: 'Eletricidade',              desc: 'Spot MIBEL · mix energético · tarifas',      visible: true, icon: '⚡' },
+    { id: 'gas-eu',     name: 'Gás Natural EU',            desc: 'TTF (Yahoo Finance) · hubs europeus de referência',          visible: true, icon: '🔥' },
+    { id: 'gas-pt',     name: 'Gás Natural PT',            desc: 'MIBGAS estimado · tarifas ERSE 2025-2026',             visible: true, icon: '🇵🇹' },
+    { id: 'elec',       name: 'Eletricidade',              desc: 'Preço OMIE · mix energético · tarifas',      visible: true, icon: '⚡' },
     { id: 'airquality', name: 'Qualidade do Ar',           desc: 'CAMS/Copernicus · 5 poluentes + UV',          visible: true, icon: '🌬️' },
     { id: 'anpc',       name: 'Proteção Civil',            desc: 'Ocorrências ANEPC e risco de incêndio · API Aberta', visible: true, icon: '🚒' },
     { id: 'dams',       name: 'Barragens',                 desc: 'Armazenamento bacias · SNIRH/APA',           visible: true, icon: '💧' },
-    { id: 'euribor',    name: 'Euribor',                   desc: 'Taxas BCE live · spread bancário PT',        visible: true, icon: '📐' },
+    { id: 'euribor',    name: 'Euribor',                   desc: 'BCE · médias mensais · spread bancário PT',        visible: true, icon: '📐' },
     { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
     { id: 'fng',        name: 'Fear & Greed',              desc: 'Sentimento cripto · Alternative.me',          visible: true, icon: '😰' },
     { id: 'rec',        name: 'Recessão EUA',              desc: 'US 10Y-2Y Spread · Tesouro dos EUA',          visible: true, icon: '📉' },
@@ -1044,20 +1044,20 @@ const DEFAULT_CONFIG = {
     { id: 'exp',        name: 'Exportações PT',            desc: 'Destinos e produtos · INE/AICEP',            visible: true, icon: '📦' },
     { id: 'div',        name: 'Dívida Pública',            desc: '% PIB · Eurostat 2024',                      visible: true, icon: '🏛️' },
     { id: 'air',        name: 'Tráfego Aéreo',             desc: 'ADS-B (adsb.lol) · Portugal continental',              visible: true, icon: '✈️' },
-    { id: 'seis',       name: 'Sismos',                    desc: 'Portugal & Açores · IPMA (USGS alt.)',           visible: true, icon: '🌍' },
+    { id: 'seis',       name: 'Sismos',                    desc: 'IPMA (alt. USGS) · continente, Madeira e Açores',           visible: true, icon: '🌍' },
     { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'Simulação ilustrativa do tráfego marítimo',      visible: true, icon: '🚢' },
     { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },
     { id: 'transp',     name: 'Transportes PT',            desc: 'Tarifas de referência · horários CP',       visible: true, icon: '🚆' },
-    { id: 'finance',    name: 'Gráfico de Mercados',       desc: 'TradingView Advanced Chart · Full width',     visible: true, icon: '📈' },
-    { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 constituíntes · Yahoo Finance',       visible: true, icon: '🇵🇹' },
-    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500, Crypto, ETFs · TradingView',        visible: true, icon: '🌡️' },
-    { id: 'fx',         name: 'Câmbio EUR',                desc: 'BCE · Taxas de conversão live',              visible: true, icon: '💱' },
+    { id: 'finance',    name: 'Gráfico de Mercados',       desc: 'TradingView · gráfico avançado',     visible: true, icon: '📈' },
+    { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 e constituintes · Yahoo Finance',       visible: true, icon: '🇵🇹' },
+    { id: 'heatmap',    name: 'Mapa de Calor',             desc: 'S&P 500, cripto e ETFs · TradingView',        visible: true, icon: '🌡️' },
+    { id: 'fx',         name: 'Câmbio EUR',                desc: 'BCE (Frankfurter) · taxas de referência diárias',              visible: true, icon: '💱' },
     { id: 'crypto',     name: 'Criptomoedas',              desc: 'BTC, ETH e Top Altcoins · CoinGecko',        visible: true, icon: '₿' },
-    { id: 'inf',        name: 'Inflação PT/EU',            desc: 'PRC_HICP · Eurostat auto-update',            visible: true, icon: '📊' },
-    { id: 'mstats',     name: 'Indicadores Mercado',       desc: '🔭 Gold, Commodities, Spread BCE',           visible: true, icon: '🔭' },
+    { id: 'inf',        name: 'Inflação PT/EU',            desc: 'IHPC · INE e Eurostat',            visible: true, icon: '📊' },
+    { id: 'mstats',     name: 'Indicadores Mercado',       desc: 'VIX, ouro, prata, S&P 500, petróleo e gás',           visible: true, icon: '🔭' },
     { id: 'cal',        name: 'Calendário Económico',      desc: 'Próximos eventos Fed/BCE/INE',               visible: true, icon: '📅' },
-    { id: 'conflicts',  name: 'Conflitos Globais',         desc: '🗺️ Mapa de tensão e guerras activas',         visible: true, icon: '🗺️' },
-    { id: 'geo',        name: 'Análise Geopolítica',       desc: '📡 Satélite e análise estratégica',          visible: true, icon: '🛰️' },
+    { id: 'conflicts',  name: 'Conflitos Globais',         desc: 'Mapa de tensão e guerras ativas',         visible: true, icon: '🗺️' },
+    { id: 'geo',        name: 'Análise Geopolítica',       desc: 'Satélite e análise estratégica',          visible: true, icon: '🛰️' },
     { id: 'co2',        name: 'Emissões CO₂',              desc: 'Mix energético PT · DGEG/REN 2024',          visible: true, icon: '🌱' },
     { id: 'press',      name: 'Liberdade Imprensa',        desc: 'RSF 2026 · EIU 2024 histórico',              visible: true, icon: '🗽' },
     { id: 'news-pt',    name: 'Notícias Portugal',         desc: 'Google News RSS · PT · tempo real',          visible: true, icon: '📰' },
@@ -1163,6 +1163,10 @@ function openSettings() {
     comfortSnapshot = { ...DEFAULT_CONFIG.comfort };
   }
   comfortPreviewDirty = false;
+  settingsSnapshot = snapshotEditableConfig();
+  disarmResetButton();
+  const msg = document.getElementById('settingsMsg');
+  if (msg) msg.textContent = '';
   
   // Sincronizar campo de pesquisa antes do render
   syncCardSearchInput();
@@ -1194,6 +1198,11 @@ function closeSettings() {
   }
   comfortSnapshot = null;
   comfortPreviewDirty = false;
+
+  // Fechar sem guardar descarta cards, localização e tickers alterados
+  restoreSettingsSnapshot();
+  settingsSnapshot = null;
+  disarmResetButton();
 
   const target = lastFocusSettings || btn;
   if (target && typeof target.focus === 'function') target.focus();
@@ -1374,83 +1383,151 @@ function setComfortDensity(density) {
   currentConfig.comfort = { ...DEFAULT_CONFIG.comfort, ...(currentConfig.comfort || {}), density };
   comfortPreviewDirty = true;
   applyComfortSettings(currentConfig.comfort);
+  updateSettingsDirtyUI();
 }
 
 function setComfortMotion(motion) {
   currentConfig.comfort = { ...DEFAULT_CONFIG.comfort, ...(currentConfig.comfort || {}), motion };
   comfortPreviewDirty = true;
   applyComfortSettings(currentConfig.comfort);
+  updateSettingsDirtyUI();
 }
 
 // ──────────────────────────────────────────────────────────────
 // CARDS TOGGLE & DRAG/DROP
 // ──────────────────────────────────────────────────────────────
 
-function renderCardToggles() {
-  console.log('renderCardToggles chamado');
-  const container = document.getElementById('cardToggles');
-  
-  if (!container) {
-    console.error('Container cardToggles não encontrado!');
-    return;
-  }
-  
-  container.innerHTML = '';
-  console.log('Renderizando', currentConfig.cards.length, 'cards');
+/** Secções do painel pela ordem em que aparecem na página (títulos iguais aos de index.html). */
+const SETTINGS_SECTIONS = [
+  { id: 'portugal', label: 'Portugal · dia a dia' },
+  { id: 'economia', label: 'Economia' },
+  { id: 'mercados', label: 'Mercados' },
+  { id: 'mundo',    label: 'Mundo' }
+];
 
+function cardSectionOf(id) {
+  return CARD_SECTIONS[id] || DEFAULT_CARD_SECTION;
+}
+
+function escSettingsHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+  ));
+}
+
+/** Índices (em currentConfig.cards) dos cards de uma secção, pela ordem guardada. */
+function sectionCardIndices(sectionId) {
+  const out = [];
+  currentConfig.cards.forEach((card, i) => {
+    if (cardSectionOf(card.id) === sectionId) out.push(i);
+  });
+  return out;
+}
+
+function renderCardToggles() {
+  const container = document.getElementById('cardToggles');
+  if (!container) return;
+
+  container.innerHTML = '';
   const q = normalizeStr(cardSearchQuery || '').trim();
+  const cards = currentConfig.cards;
   let matches = 0;
-  const total = currentConfig.cards.length;
-  
-  currentConfig.cards.forEach((card, index) => {
-    if (q) {
-      const hay = normalizeStr(`${card.icon || ''} ${card.name || ''} ${card.desc || ''} ${card.id || ''}`);
-      if (!hay.includes(q)) return;
-    }
-    matches++;
-    const div = document.createElement('div');
-    div.className = `card-toggle-item ${q ? 'no-drag' : ''}`;
-    div.draggable = !q;
-    div.dataset.index = index;
-    
-    div.innerHTML = `
-      <div class="drag-handle">⋮⋮</div>
-      <div class="card-toggle-info">
-        <div class="card-toggle-name">${card.icon} ${card.name}</div>
-        <div class="card-toggle-desc">${card.desc}</div>
+
+  SETTINGS_SECTIONS.forEach(section => {
+    const indices = sectionCardIndices(section.id);
+    if (!indices.length) return;
+    const shown = q
+      ? indices.filter(i => {
+          const card = cards[i];
+          return normalizeStr(`${card.icon || ''} ${card.name || ''} ${card.desc || ''} ${card.id || ''}`).includes(q);
+        })
+      : indices;
+    if (!shown.length) return;
+    matches += shown.length;
+
+    const visibleCount = indices.filter(i => cards[i].visible).length;
+    const group = document.createElement('section');
+    group.className = 'card-toggle-group';
+    group.dataset.section = section.id;
+    group.innerHTML = `
+      <div class="card-toggle-group-head">
+        <h3 class="card-toggle-group-title">${escSettingsHtml(section.label)}</h3>
+        <span class="card-toggle-group-count">${visibleCount} de ${indices.length} visíveis</span>
+        <div class="card-toggle-group-actions">
+          <button type="button" class="card-group-btn" data-show="1" ${visibleCount === indices.length ? 'disabled' : ''}>Mostrar todos</button>
+          <button type="button" class="card-group-btn" data-show="0" ${visibleCount === 0 ? 'disabled' : ''}>Ocultar todos</button>
+        </div>
       </div>
-      <div class="card-order-controls">
-        <button class="card-order-btn" ${index === 0 ? 'disabled' : ''} onclick="moveCard(${index}, -1)" title="Mover para cima">↑</button>
-        <button class="card-order-btn" ${index === currentConfig.cards.length - 1 ? 'disabled' : ''} onclick="moveCard(${index}, 1)" title="Mover para baixo">↓</button>
-      </div>
-      <label class="toggle-switch">
-        <input type="checkbox" ${card.visible ? 'checked' : ''} 
-               onchange="toggleCardVisibility(${index})">
-        <span class="toggle-slider"></span>
-      </label>
+      <div class="card-toggle-list"></div>
     `;
-    
-    if (!q) {
-      // Drag events
-      div.addEventListener('dragstart', handleDragStart);
-      div.addEventListener('dragend', handleDragEnd);
-      div.addEventListener('dragenter', handleDragEnter);
-      div.addEventListener('dragleave', handleDragLeave);
-      div.addEventListener('dragover', handleDragOver);
-      div.addEventListener('drop', handleDrop);
-    }
-    
-    container.appendChild(div);
+    group.querySelectorAll('.card-group-btn').forEach(btn => {
+      btn.addEventListener('click', () => setSectionVisibility(section.id, btn.dataset.show === '1'));
+    });
+    const list = group.querySelector('.card-toggle-list');
+
+    shown.forEach(index => {
+      const card = cards[index];
+      const pos = indices.indexOf(index);
+      const name = escSettingsHtml(card.name);
+      const div = document.createElement('div');
+      div.className = `card-toggle-item ${q ? 'no-drag' : ''} ${card.visible ? '' : 'is-off'}`;
+      div.draggable = !q;
+      div.dataset.index = index;
+      div.dataset.section = section.id;
+      div.dataset.cardId = card.id;
+      div.innerHTML = `
+        <div class="drag-handle" aria-hidden="true">⋮⋮</div>
+        <div class="card-toggle-info">
+          <div class="card-toggle-name">${escSettingsHtml(card.icon)} ${name}</div>
+          <div class="card-toggle-desc">${escSettingsHtml(card.desc)}</div>
+        </div>
+        <div class="card-order-controls">
+          <button type="button" class="card-order-btn" data-dir="-1" ${pos === 0 ? 'disabled' : ''}
+                  onclick="moveCard(${index}, -1)" title="Mover para cima" aria-label="Mover ${name} para cima">↑</button>
+          <button type="button" class="card-order-btn" data-dir="1" ${pos === indices.length - 1 ? 'disabled' : ''}
+                  onclick="moveCard(${index}, 1)" title="Mover para baixo" aria-label="Mover ${name} para baixo">↓</button>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" data-index="${index}" ${card.visible ? 'checked' : ''}
+                 aria-label="Mostrar ${name}" onchange="toggleCardVisibility(${index})">
+          <span class="toggle-slider"></span>
+        </label>
+      `;
+
+      if (!q) {
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragend', handleDragEnd);
+        div.addEventListener('dragenter', handleDragEnter);
+        div.addEventListener('dragleave', handleDragLeave);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('drop', handleDrop);
+      }
+      list.appendChild(div);
+    });
+
+    container.appendChild(group);
   });
 
-  updateCardSearchUI(q ? { matches, total } : null);
+  updateCardSearchUI(q ? { matches, total: cards.length } : null);
+  updateSettingsDirtyUI();
+}
+
+function focusCardControl(cardId, selector) {
+  const item = document.querySelector(`#cardToggles .card-toggle-item[data-card-id="${window.CSS.escape(cardId)}"]`);
+  const el = item?.querySelector(selector);
+  if (el && !el.disabled) el.focus();
+  else item?.querySelector('input[type="checkbox"]')?.focus();
+}
+
+function sameSettingsSection(a, b) {
+  return Boolean(a && b && a.dataset.section === b.dataset.section);
 }
 
 function handleDragStart(e) {
   draggedElement = this;
   this.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.innerHTML);
+  e.dataTransfer.setData('text/plain', this.dataset.cardId || '');
 }
 
 function handleDragEnd(_e) {
@@ -1458,10 +1535,11 @@ function handleDragEnd(_e) {
   document.querySelectorAll('.card-toggle-item').forEach(item => {
     item.classList.remove('drag-over');
   });
+  draggedElement = null;
 }
 
 function handleDragEnter(_e) {
-  if (this !== draggedElement) {
+  if (this !== draggedElement && sameSettingsSection(this, draggedElement)) {
     this.classList.add('drag-over');
   }
 }
@@ -1471,46 +1549,118 @@ function handleDragLeave(_e) {
 }
 
 function handleDragOver(e) {
-  if (e.preventDefault) {
-    e.preventDefault();
-  }
+  // Só aceitar largar dentro da mesma secção: noutra a ordem não teria efeito no painel
+  if (!sameSettingsSection(this, draggedElement)) return true;
+  if (e.preventDefault) e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   return false;
 }
 
 function handleDrop(e) {
-  if (e.stopPropagation) {
-    e.stopPropagation();
-  }
-  
-  if (draggedElement !== this) {
+  if (e.stopPropagation) e.stopPropagation();
+
+  if (draggedElement && draggedElement !== this && sameSettingsSection(this, draggedElement)) {
     const fromIndex = Number.parseInt(draggedElement.dataset.index, 10);
     let toIndex = Number.parseInt(this.dataset.index, 10);
     if (!Number.isFinite(fromIndex) || !Number.isFinite(toIndex)) return false;
-    
-    // Reordenar array
+
     const item = currentConfig.cards.splice(fromIndex, 1)[0];
-    // Se arrastar para baixo, o índice destino muda após remover o item
     if (fromIndex < toIndex) toIndex -= 1;
     currentConfig.cards.splice(toIndex, 0, item);
-    
-    // Re-renderizar
     renderCardToggles();
   }
-  
+
   return false;
 }
 
 function toggleCardVisibility(index) {
-  currentConfig.cards[index].visible = !currentConfig.cards[index].visible;
+  const card = currentConfig.cards[index];
+  if (!card) return;
+  card.visible = !card.visible;
+  renderCardToggles();
+  focusCardControl(card.id, 'input[type="checkbox"]');
 }
 
-function moveCard(fromIndex, direction) {
-  const toIndex = fromIndex + direction;
-  if (toIndex < 0 || toIndex >= currentConfig.cards.length) return;
-  const item = currentConfig.cards.splice(fromIndex, 1)[0];
-  currentConfig.cards.splice(toIndex, 0, item);
+function setSectionVisibility(sectionId, visible) {
+  currentConfig.cards.forEach(card => {
+    if (cardSectionOf(card.id) === sectionId) card.visible = Boolean(visible);
+  });
   renderCardToggles();
+}
+
+/** Move um card para antes/depois do card vizinho da mesma secção. */
+function moveCard(fromIndex, direction) {
+  const cards = currentConfig.cards;
+  const card = cards[fromIndex];
+  if (!card) return;
+  const section = cardSectionOf(card.id);
+  let toIndex = fromIndex + direction;
+  while (toIndex >= 0 && toIndex < cards.length && cardSectionOf(cards[toIndex].id) !== section) {
+    toIndex += direction;
+  }
+  if (toIndex < 0 || toIndex >= cards.length) return;
+  cards.splice(fromIndex, 1);
+  cards.splice(toIndex, 0, card);
+  renderCardToggles();
+  focusCardControl(card.id, `.card-order-btn[data-dir="${direction}"]`);
+}
+
+// ──────────────────────────────────────────────────────────────
+// SETTINGS: ALTERAÇÕES POR GUARDAR E MENSAGENS
+// ──────────────────────────────────────────────────────────────
+
+let settingsSnapshot = null;
+let settingsMsgTimer = null;
+let resetArmTimer = null;
+
+function snapshotEditableConfig() {
+  return JSON.parse(JSON.stringify({
+    cards: currentConfig.cards,
+    location: currentConfig.location,
+    tickers: currentConfig.tickers
+  }));
+}
+
+function isSettingsDirty() {
+  if (comfortPreviewDirty && comfortSnapshot
+      && JSON.stringify(normalizeComfortConfig(currentConfig.comfort)) !== JSON.stringify(comfortSnapshot)) {
+    return true;
+  }
+  if (!settingsSnapshot) return false;
+  const now = { cards: currentConfig.cards, location: currentConfig.location, tickers: currentConfig.tickers };
+  return JSON.stringify(now) !== JSON.stringify(settingsSnapshot);
+}
+
+function updateSettingsDirtyUI() {
+  const el = document.getElementById('settingsDirty');
+  if (el) el.hidden = !isSettingsDirty();
+}
+
+function restoreSettingsSnapshot() {
+  if (!settingsSnapshot) return;
+  const snap = JSON.parse(JSON.stringify(settingsSnapshot));
+  currentConfig.cards = snap.cards;
+  currentConfig.location = snap.location;
+  currentConfig.tickers = snap.tickers;
+}
+
+function showSettingsMessage(text, kind = 'info') {
+  const el = document.getElementById('settingsMsg');
+  if (!el) return;
+  el.textContent = text;
+  el.dataset.kind = kind;
+  clearTimeout(settingsMsgTimer);
+  settingsMsgTimer = setTimeout(() => { el.textContent = ''; }, 5000);
+}
+
+function disarmResetButton() {
+  clearTimeout(resetArmTimer);
+  resetArmTimer = null;
+  const btn = document.querySelector('.settings-btn-reset');
+  if (btn) {
+    btn.classList.remove('armed');
+    btn.textContent = 'Restaurar Padrão';
+  }
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -1531,6 +1681,7 @@ function renderLocationGrid() {
     `;
     container.appendChild(div);
   });
+  updateSettingsDirtyUI();
 }
 
 function selectLocation(locationId) {
@@ -1548,6 +1699,7 @@ function renderTickerList() {
   
   if (currentConfig.tickers.length === 0) {
     container.innerHTML = '<p style="font-size:.74rem;color:var(--t3);text-align:center;padding:20px">Nenhum ticker adicionado. Use as sugestões acima.</p>';
+    updateSettingsDirtyUI();
     return;
   }
   
@@ -1567,48 +1719,46 @@ function renderTickerList() {
     const div = document.createElement('div');
     div.className = 'ticker-item';
     div.innerHTML = `
-      <div class="ticker-symbol">${ticker}</div>
+      <div class="ticker-symbol">${escSettingsHtml(ticker)}</div>
       <div class="ticker-name">${tickerNames[ticker] || 'Empresa'}</div>
-      <button class="ticker-remove" onclick="removeTicker(${index})">✕</button>
+      <button type="button" class="ticker-remove" onclick="removeTicker(${index})" aria-label="Remover ${escSettingsHtml(ticker)}">✕</button>
     `;
     container.appendChild(div);
   });
+  updateSettingsDirtyUI();
+}
+
+const TICKER_MAX = 10;
+const TICKER_PATTERN = /^[A-Z0-9][A-Z0-9.-]{0,9}$/;
+
+/** Valida e adiciona um ticker; devolve true se foi adicionado (avisos aparecem no painel). */
+function tryAddTicker(raw) {
+  const ticker = String(raw || '').trim().toUpperCase();
+  if (!ticker) return false;
+  if (!TICKER_PATTERN.test(ticker)) {
+    showSettingsMessage('Ticker inválido: use só letras, números, ponto ou hífen (até 10).', 'warn');
+    return false;
+  }
+  if (currentConfig.tickers.includes(ticker)) {
+    showSettingsMessage(`${ticker} já está na lista.`, 'warn');
+    return false;
+  }
+  if (currentConfig.tickers.length >= TICKER_MAX) {
+    showSettingsMessage(`Máximo de ${TICKER_MAX} tickers.`, 'warn');
+    return false;
+  }
+  currentConfig.tickers.push(ticker);
+  renderTickerList();
+  return true;
 }
 
 function addTicker() {
   const input = document.getElementById('tickerInput');
-  const ticker = input.value.trim().toUpperCase();
-  
-  if (!ticker) return;
-  
-  if (currentConfig.tickers.includes(ticker)) {
-    alert('Este ticker já está na lista!');
-    return;
-  }
-  
-  if (currentConfig.tickers.length >= 10) {
-    alert('Máximo de 10 tickers permitidos.');
-    return;
-  }
-  
-  currentConfig.tickers.push(ticker);
-  input.value = '';
-  renderTickerList();
+  if (input && tryAddTicker(input.value)) input.value = '';
 }
 
 function quickAddTicker(ticker) {
-  if (currentConfig.tickers.includes(ticker)) {
-    alert('Este ticker já está na lista!');
-    return;
-  }
-  
-  if (currentConfig.tickers.length >= 10) {
-    alert('Máximo de 10 tickers permitidos.');
-    return;
-  }
-  
-  currentConfig.tickers.push(ticker);
-  renderTickerList();
+  tryAddTicker(ticker);
 }
 
 function removeTicker(index) {
@@ -2108,8 +2258,10 @@ function saveSettings() {
   applySettings();
   applyConfigSideEffects(prevConfig, currentConfig);
 
-  comfortSnapshot = null;
+  comfortSnapshot = normalizeComfortConfig(currentConfig.comfort);
   comfortPreviewDirty = false;
+  settingsSnapshot = snapshotEditableConfig();
+  updateSettingsDirtyUI();
   
   // Feedback visual
   const saveBtn = document.querySelector('.settings-btn-save');
@@ -2127,20 +2279,40 @@ function saveSettings() {
 }
 
 function resetSettings() {
-  if (!confirm('Restaurar configurações padrão? Esta ação não pode ser desfeita.')) {
+  // Confirmação em dois cliques, dentro do painel (sem janelas do browser)
+  const btn = document.querySelector('.settings-btn-reset');
+  if (btn && !btn.classList.contains('armed')) {
+    btn.classList.add('armed');
+    btn.textContent = 'Confirmar restauro';
+    showSettingsMessage('Clique de novo para repor cards, localização, tickers e conforto padrão.', 'warn');
+    clearTimeout(resetArmTimer);
+    resetArmTimer = setTimeout(disarmResetButton, 5000);
     return;
   }
-  
+  disarmResetButton();
+
+  let prevConfig = null;
+  try {
+    const raw = localStorage.getItem('dashboardConfig');
+    prevConfig = raw ? JSON.parse(raw) : null;
+  } catch {}
+
   currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-  localStorage.setItem('dashboardConfig', JSON.stringify(currentConfig));
-  
-  // Re-renderizar
+  syncConfigWithDOMCards(); // repõe também cards que só existem na página, e grava
+
+  applySettings();
+  applyConfigSideEffects(prevConfig, currentConfig);
+
+  comfortSnapshot = normalizeComfortConfig(currentConfig.comfort);
+  comfortPreviewDirty = false;
+  settingsSnapshot = snapshotEditableConfig();
+  cardSearchQuery = '';
+  syncCardSearchInput();
   renderCardToggles();
   renderLocationGrid();
   renderTickerList();
-  
-  // Feedback
-  alert('Configurações restauradas! Recarregue a página para ver as alterações.');
+  renderComfortControls();
+  showSettingsMessage('Configurações padrão repostas e aplicadas.', 'ok');
 }
 
 /** Secção do painel onde cada card aparece; a ordem dentro da secção segue a configuração do utilizador. */
