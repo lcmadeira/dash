@@ -131,26 +131,41 @@ export function parseCoinpaprikaTicker(body) {
   return { eur, eur_24h_change: Number.isFinite(change) ? change : null };
 }
 
-async function fetchCoinpaprika(route) {
+/** Moeda em falta numa resposta parcial: a cópia fica só 5 min, para voltar a tentar cedo. */
+const COINPAPRIKA_PARTIAL_TTL = 300;
+
+async function fetchCoinpaprika(route, { retryDelayMs = 1000 } = {}) {
   let lastError = null;
-  const entries = await Promise.all(Object.entries(COINPAPRIKA_IDS).map(async ([id, paprikaId]) => {
+  const fetchOne = async paprikaId => {
     try {
       const response = await fetchUpstream(`https://api.coinpaprika.com/v1/tickers/${paprikaId}?quotes=EUR`, "application/json", 8000);
-      if (!response.ok) return [id, null, response.status];
-      return [id, parseCoinpaprikaTicker(await readBoundedBody(response, route.maxBytes))];
+      if (!response.ok) return { status: response.status };
+      return { quote: parseCoinpaprikaTicker(await readBoundedBody(response, route.maxBytes)) };
     } catch (error) {
       lastError = error;
-      return [id, null];
+      return {};
     }
-  }));
-  const payload = Object.fromEntries(entries.filter(([, quote]) => quote).map(([id, quote]) => [id, quote]));
-  if (!Object.keys(payload).length) {
-    const status = entries.find(([, , st]) => st)?.[2];
+  };
+  const ids = Object.entries(COINPAPRIKA_IDS);
+  const results = new Map(await Promise.all(ids.map(async ([id, paprikaId]) => [id, await fetchOne(paprikaId)])));
+  // Segunda tentativa, só para as moedas que falharam (o limite de pedidos do CoinPaprika é por segundo).
+  const missing = ids.filter(([id]) => !results.get(id)?.quote);
+  if (missing.length && missing.length < ids.length) {
+    await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+    for (const [id, paprikaId] of missing) {
+      const retry = await fetchOne(paprikaId);
+      if (retry.quote) results.set(id, retry);
+    }
+  }
+  const payload = Object.fromEntries([...results].filter(([, r]) => r.quote).map(([id, r]) => [id, r.quote]));
+  const found = Object.keys(payload).length;
+  if (!found) {
+    const status = [...results.values()].find(r => r.status)?.status;
     if (status) return { status };
     if (lastError) throw lastError; // falha de rede/tamanho: reportada como tal, não como resposta inválida
     return { invalid: true };
   }
-  return { payload };
+  return found < ids.length ? { payload, ttl: COINPAPRIKA_PARTIAL_TTL, state: "partial" } : { payload };
 }
 
 function corsHeaders(origin, env) {
@@ -643,7 +658,7 @@ async function fetchFromUpstreams(route) {
         failures.push({ source: upstream.source, error: "invalid" });
         continue;
       }
-      return { payload: result.payload, source: upstream.source, ttl: upstream.ttl };
+      return { payload: result.payload, source: upstream.source, ttl: result.ttl ?? upstream.ttl, state: result.state };
     } catch (error) {
       failure = { error: "Não foi possível consultar o fornecedor" };
       failures.push({ source: upstream.source, error: error?.name === "TimeoutError" ? "timeout" : String(error?.name || "error").slice(0, 40) });
@@ -742,7 +757,7 @@ async function fetchAndStore(route, cache, cacheKey, staleKey, headers, ctx) {
     return jsonResponse(result.failure, 502, headers);
   }
   const observedAt = route.news ? latestNewsTimestamp(result.payload.articles) : route.observedAt?.(result.payload) || undefined;
-  const output = { ...result.payload, _meta: { source: result.source, state: "live", ...(observedAt ? { observedAt } : {}), checkedAt: Date.now() } };
+  const output = { ...result.payload, _meta: { source: result.source, state: result.state || "live", ...(observedAt ? { observedAt } : {}), checkedAt: Date.now() } };
   headers.set("Cache-Control", `public, max-age=30, s-maxage=${result.ttl || route.ttl}`);
   headers.set("X-Dash-Cache", "MISS");
   const response = jsonResponse(output, 200, headers);

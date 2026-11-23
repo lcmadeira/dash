@@ -443,13 +443,14 @@ test("indicators route returns the fixed VIX/metals/S&P/energy list", async () =
 test("crypto falls back to CoinPaprika in CoinGecko shape, cached for 30 minutes", async () => {
   installMemoryCache();
   const seen = [];
+  const prices = { "btc-bitcoin": [51000, 2], "eth-ethereum": [1950, -2.5], "sol-solana": [70, 8], "ada-cardano": [0.14, 6],
+    "xrp-xrp": [0.92, 8], "bnb-binance-coin": [524, 3] };
   globalThis.fetch = async url => {
     seen.push(String(url));
     if (/coingecko/.test(String(url))) return new Response("rate limited", { status: 429 });
     assert.match(String(url), /api\.coinpaprika\.com\/v1\/tickers\/[a-z-]+\?quotes=EUR$/);
-    if (/btc-bitcoin/.test(String(url))) return Response.json({ quotes: { EUR: { price: 51000, percent_change_24h: 2 } } });
-    if (/eth-ethereum/.test(String(url))) return Response.json({ quotes: { EUR: { price: 1950, percent_change_24h: -2.5 } } });
-    return new Response("nope", { status: 402 });
+    const [price, change] = prices[String(url).match(/tickers\/([a-z-]+)/)[1]];
+    return Response.json({ quotes: { EUR: { price, percent_change_24h: change } } });
   };
   const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
   const response = await handleRequest(new Request("https://dash-data.test/v1/crypto", { headers: { Origin: env.DASH_ORIGIN } }), env, { waitUntil() {} });
@@ -458,11 +459,33 @@ test("crypto falls back to CoinPaprika in CoinGecko shape, cached for 30 minutes
   assert.equal(payload.bitcoin.eur, 51000);
   assert.equal(payload.bitcoin.eur_24h_change, 2);
   assert.equal(payload.ethereum.eur_24h_change, -2.5);
-  assert.equal(payload.solana, undefined, "coins without a quote are left out");
   assert.match(payload._meta.source, /CoinPaprika/);
+  assert.equal(payload._meta.state, "live");
   assert.match(response.headers.get("Cache-Control"), /s-maxage=1800/);
   assert.equal(seen.length, 7);
   assert.equal(parseCoinpaprikaTicker(JSON.stringify({ quotes: { EUR: { price: 0 } } })), null);
+});
+
+test("CoinPaprika retries only the missing coins and keeps a partial answer for 5 minutes", async () => {
+  installMemoryCache();
+  const calls = {};
+  globalThis.fetch = async url => {
+    if (/coingecko/.test(String(url))) return new Response("rate limited", { status: 429 });
+    const id = String(url).match(/tickers\/([a-z-]+)/)[1];
+    calls[id] = (calls[id] || 0) + 1;
+    if (id === "ada-cardano" && calls[id] === 1) return new Response("too many", { status: 429 }); // recovers on retry
+    if (id === "xrp-xrp") return new Response("too many", { status: 429 }); // stays missing
+    return Response.json({ quotes: { EUR: { price: 10, percent_change_24h: 1 } } });
+  };
+  const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/crypto", { headers: { Origin: env.DASH_ORIGIN } }), env, { waitUntil() {} });
+  const payload = await response.json();
+  assert.equal(payload.cardano.eur, 10, "recovered on the second attempt");
+  assert.equal(payload.ripple, undefined);
+  assert.equal(calls["ada-cardano"], 2);
+  assert.equal(calls["btc-bitcoin"], 1, "coins that worked are not asked again");
+  assert.equal(payload._meta.state, "partial");
+  assert.match(response.headers.get("Cache-Control"), /s-maxage=300/);
 });
 
 test("dams use the site copy when SNIRH refuses Cloudflare", async () => {
