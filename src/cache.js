@@ -20,6 +20,7 @@
     fuel_es: 12 * 60 * 60 * 1000, // 12h (combustíveis ES)
     fuel: 24 * 60 * 60 * 1000, // 24h (combustíveis)
     co2: 60 * 60 * 1000, // 1h (emissões)
+    air_: 2 * 60 * 1000, // 2 min (tráfego aéreo em direto)
     hist: 6 * 60 * 60 * 1000, // 6h (históricos / séries)
     static: 7 * 24 * 60 * 60 * 1000, // 7 dias (dados estáticos)
   };

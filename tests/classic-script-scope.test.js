@@ -582,6 +582,25 @@ test("air traffic card escapes OpenSky text and lists only airports on the map",
   assert.doesNotThrow(() => vm.runInContext("const APP_AIRPORTS = AIRPORTS;", context));
 });
 
+test("air traffic card uses the gateway and shows no outdated statistics when it fails", async () => {
+  const context = createBrowserContext();
+  const body = { innerHTML: "" };
+  context.document = { getElementById: id => (id === "air-body" ? body : null) };
+  context.$ = id => context.document.getElementById(id);
+  context.ld = () => "loading";
+  context.lsGet = () => null;
+  context.lsSet = () => {};
+  const requested = [];
+  context.window.dataApiUrl = path => `https://gw.test/${path}`;
+  context.fetchFirstOk = async url => { requested.push(url); return { r: { ok: false, json: async () => ({}) } }; };
+  const source = await readFile("src/cards/air-traffic.js", "utf8");
+  vm.runInContext(source, context);
+  await context.loadAir(true);
+  assert.deepEqual(requested, ["https://gw.test/v1/air"]);
+  assert.match(body.innerHTML, /em direto indisponível/);
+  assert.doesNotMatch(body.innerHTML, /2024/);
+});
+
 test("Ormuz card expires stale AIS, validates positions and escapes vessel tooltips", async () => {
   const context = createBrowserContext();
   const body = { innerHTML: "" };

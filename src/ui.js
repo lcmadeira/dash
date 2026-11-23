@@ -523,7 +523,7 @@
       fng: "fng_v4",
       rec: "rec_v5",
       agri: "agri_v3",
-      air: "air_v8",
+      air: "air_v9",
       seis: "seis_v10",
       ormuz: "ormuz_v2",
       psi20: "psi20_v2",

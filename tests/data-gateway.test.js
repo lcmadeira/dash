@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, marketToday, parseOmieElectricity, parseSnirhTable, parseYahooTtf } from "../worker/src/index.js";
+import { handleRequest, icaoCountry, marketToday, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -345,4 +345,35 @@ test("euribor route returns the ECB monthly series per tenor", async () => {
   assert.equal(JSON.stringify(payload.series["3M"].map(r => r.period)), JSON.stringify(["2026-09", "2026-10"]));
   assert.equal(payload.series["1M"].length, 0);
   assert.equal(payload._meta.observedAt, Date.parse("2026-10-15T12:00:00Z"));
+});
+
+test("air route converts readsb aircraft to OpenSky-like states and falls back to adsb.fi", async () => {
+  assert.equal(icaoCountry("4951c4"), "Portugal");
+  assert.equal(icaoCountry("4ca123"), "Irlanda");
+  assert.equal(icaoCountry("zzzzzz"), "");
+  const sample = { now: 1795431143.0, ac: [
+    { hex: "4951c4", flight: "TAP123  ", lat: 38.77, lon: -9.13, alt_baro: 10000, gs: 400, track: 90, baro_rate: -1000, seen_pos: 1 },
+    { hex: "4ca123", flight: "RYR1", lat: 38.78, lon: -9.13, alt_baro: "ground", gs: 5 },
+    { hex: "3c0001", lat: 50, lon: 2, alt_baro: 30000 },              // fora da área
+    { hex: "3c0002", lat: 39, lon: -8, alt_baro: 30000, seen_pos: 300 }, // posição antiga
+  ] };
+  const parsed = parseReadsbAircraft(JSON.stringify(sample));
+  assert.equal(parsed.ts, 1795431143000);
+  assert.equal(parsed.states.length, 2);
+  assert.deepEqual(parsed.states[0], ["4951c4", "TAP123", "Portugal", null, null, -9.13, 38.77, 3048, false, 205.8, 90, -5.1]);
+  assert.equal(parsed.states[1][8], true);
+  assert.equal(parsed.states[1][7], null);
+
+  const requested = [];
+  globalThis.fetch = async url => {
+    const host = new URL(String(url)).hostname;
+    requested.push(host);
+    return host === "api.adsb.lol" ? new Response("busy", { status: 503 }) : new Response(JSON.stringify(sample));
+  };
+  const response = await handleRequest(new Request("https://dash-data.test/v1/air"));
+  const payload = await response.json();
+  assert.equal(response.status, 200);
+  assert.deepEqual(requested, ["api.adsb.lol", "opendata.adsb.fi"]);
+  assert.equal(payload._meta.source, "adsb.fi");
+  assert.equal(payload.states.length, 2);
 });
