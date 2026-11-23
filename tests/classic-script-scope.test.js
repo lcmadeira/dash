@@ -601,6 +601,22 @@ test("air traffic card uses the gateway and shows no outdated statistics when it
   assert.doesNotMatch(body.innerHTML, /2024/);
 });
 
+test("air traffic card only flags data as late from 5 minutes", async () => {
+  const render = async ageMs => {
+    const context = createBrowserContext();
+    const body = { innerHTML: "" };
+    context.document = { getElementById: id => (id === "air-body" ? body : null) };
+    context.$ = id => context.document.getElementById(id);
+    context.ld = () => "loading";
+    context.lsGet = () => ({ live: true, ts: Date.now() - ageMs, states: [["abc123", "TAP1", "Portugal", null, null, -9, 39, 9000, false, 200, 90, 0]] });
+    vm.runInContext(await readFile("src/cards/air-traffic.js", "utf8"), context);
+    await context.loadAir();
+    return body.innerHTML;
+  };
+  assert.match(await render(4 * 60 * 1000), /🟢 Live · 4min/);
+  assert.match(await render(6 * 60 * 1000), /🟠 Atrasado · 6min/);
+});
+
 test("Ormuz card expires stale AIS, validates positions and escapes vessel tooltips", async () => {
   const context = createBrowserContext();
   const body = { innerHTML: "" };

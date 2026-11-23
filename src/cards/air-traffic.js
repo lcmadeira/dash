@@ -3,6 +3,7 @@
 /* ══════════════════════════════════════════════════════════════
    TRÁFEGO AÉREO — ADS-B (adsb.lol) pelo gateway
    ══════════════════════════════════════════════════════════════ */
+const AIR_LATE_MS=5*60*1000;
 async function loadAir(force=false){
   const el=$("air-body"); if(!el)return;
   el.innerHTML=ld();
@@ -18,9 +19,11 @@ async function loadAir(force=false){
         const j = r.ok ? await r.json() : null;
         if(Array.isArray(j?.states) && j.states.length){
           const meta=j._meta||{};
-          d={ts:Number.isFinite(j.ts)?j.ts:Date.now(),states:j.states,live:true,source:meta.source||"ADS-B",stale:meta.state==="stale"};
-          lsSet(ck,d,{source:d.source,state:d.stale?"stale":"live",observedAt:d.ts,
-            reason:d.stale?"Fornecedor indisponível; snapshot do gateway":undefined});
+          d={ts:Number.isFinite(j.ts)?j.ts:Date.now(),states:j.states,live:true,source:meta.source||"ADS-B"};
+          // O gateway só renova de 3 em 3 min (limite do adsb.lol): só é "atrasado" a partir dos 5 min.
+          const late=Date.now()-d.ts>=AIR_LATE_MS;
+          lsSet(ck,d,{source:d.source,state:late?"stale":"live",observedAt:d.ts,
+            reason:late?"Fornecedor indisponível; snapshot do gateway":undefined});
         }
       }
     } catch(e) {
@@ -87,6 +90,7 @@ async function loadAir(force=false){
     const climbing=flying.filter(s=>s[11]>2).length;
     const descending=flying.filter(s=>s[11]<-2).length;
     const age=Math.round((Date.now()-d.ts)/60000);
+    const late=Date.now()-d.ts>=AIR_LATE_MS;
 
     const airDots=states.filter(s=>s[5]!==null&&s[5]!==undefined&&s[6]!==null&&s[6]!==undefined).map(s=>{
       const onGnd=s[8], alt=s[7]||0;
@@ -139,9 +143,9 @@ async function loadAir(force=false){
            opacity:0;transition:opacity .15s;z-index:10;max-width:200px;line-height:1.5;white-space:nowrap;
            top:8px;left:8px"></div>
       <!-- Badge live -->
-      <div style="position:absolute;top:6px;right:6px;background:${d.stale?"#F59E0B22":"#10B98122"};border:1px solid ${d.stale?"#F59E0B44":"#10B98144"};
-           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${d.stale?"var(--amber)":"var(--green)"}">
-        ${d.stale?"🟠 Atrasado":"🟢 Live"} · ${age}min
+      <div style="position:absolute;top:6px;right:6px;background:${late?"#F59E0B22":"#10B98122"};border:1px solid ${late?"#F59E0B44":"#10B98144"};
+           border-radius:4px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:${late?"var(--amber)":"var(--green)"}">
+        ${late?"🟠 Atrasado":"🟢 Live"} · ${age}min
       </div>
     </div>
 
