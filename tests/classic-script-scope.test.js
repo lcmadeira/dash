@@ -645,7 +645,9 @@ test("market indicators come from the gateway and Stooq is only asked for missin
   await context.loadMarketStats(true);
   assert.equal(JSON.stringify(stooqAsked), JSON.stringify(["ng.f"]));
   assert.match(body.innerHTML, /Yahoo 5\/6/);
-  assert.match(body.innerHTML, /\$3[\s.\u00a0]?618/);
+  assert.match(body.innerHTML, /\$3[\s.\u00a0]?618,00/);
+  assert.match(body.innerHTML, /\$42,140/, "decimal comma and fixed decimals below 1000 too");
+  assert.doesNotMatch(body.innerHTML, /\$42\.14/);
   assert.doesNotMatch(body.innerHTML, /gold-api/);
 });
 
