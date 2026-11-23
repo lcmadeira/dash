@@ -58,19 +58,22 @@ async function loadFX(force=false){
     renderFX(data.date);
   }catch(e){$("fx-body").innerHTML=er(e,{context:"Câmbio EUR",action:"clique em ↺ para recarregar as taxas"});notifyNonCriticalError("Câmbio EUR",e,"clique em ↺ para recarregar as taxas");}
 }
+/* Formato português com casas decimais fixas (vírgula decimal). */
+const fxFmt=(v,dec)=>Number(v).toLocaleString("pt-PT",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const fxDec=code=>code==="JPY"?2:4;
 function renderFX(date){
   const amt=parseFloat($("fx-amount")?.value||1)||1;
   if(!Object.keys(fxRates).length)return;
   $("fx-body").innerHTML=`<div class="fx-grid">${FX_PAIRS.map(p=>{
     const rate=fxRates[p.code];if(!rate)return"";
     const conv=(rate*amt);
-    const decimals=p.code==="JPY"?0:4;
+    const decimals=fxDec(p.code);
     return`<div class="fx-item">
       <div class="fx-flag">${p.flag}</div>
       <div class="fx-info">
         <div class="fx-pair">EUR → ${p.code}</div>
-        <div class="fx-rate" style="color:${p.color}">${conv.toLocaleString("pt-PT",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})} <span style="font-size:.74rem;color:var(--t2)">${p.code}</span></div>
-        <div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">1 EUR = ${rate.toFixed(p.code==="JPY"?2:4)}</div>
+        <div class="fx-rate" style="color:${p.color}">${fxFmt(conv,decimals)} <span style="font-size:.74rem;color:var(--t2)">${p.code}</span></div>
+        <div style="font-family:var(--mono);font-size:.74rem;color:var(--t3)">1 EUR = ${fxFmt(rate,decimals)}</div>
       </div>
     </div>`;
   }).join("")}</div>
@@ -93,7 +96,7 @@ function renderFX(date){
     </div>
   </div>
 
-  <div class="src">✦ BCE · ${date||""} · Frankfurter API · Taxa oficial de referência</div>`;
+  <div class="src">✦ Banco Central Europeu via Frankfurter API · taxa oficial de referência${date&&/^\d{4}-\d{2}-\d{2}$/.test(date)?` de ${date.split("-").reverse().join("/")}`:""} (o BCE publica por volta das 15:00 de Lisboa, em dias úteis)</div>`;
 
   try{
     FX_PAIRS.forEach(p=>{
@@ -197,10 +200,10 @@ async function loadFXTrend(force = false) {
         ${pref.days}D · EUR→${pref.code}
       </span>
       <span style="font-family:var(--mono);font-size:.74rem;color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};margin-left:8px">
-        ${sign}${pct.toFixed(1)}%
+        ${sign}${fxFmt(pct,1)}%
       </span>
       <span style="font-family:var(--mono);font-size:.74rem;color:var(--t3);margin-left:8px">
-        último: ${last.toFixed(pref.code === 'JPY' ? 2 : 4)}
+        último: ${fxFmt(last,fxDec(pref.code))}
       </span>`;
   } catch (e) {
     try {

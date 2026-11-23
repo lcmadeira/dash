@@ -964,6 +964,10 @@ test("FX card rejects malformed cached rates and sanitizes trend preferences", a
   assert.equal(cacheWrite.key, "fx");
   assert.equal(cacheWrite.value.rates.USD, 1.1);
   assert.match(body.innerHTML, /1,1000/);
+  assert.match(body.innerHTML, /1 EUR = 1,1000/, "reference line uses the decimal comma too");
+  assert.match(body.innerHTML, /170,00/, "JPY keeps two decimals");
+  assert.doesNotMatch(body.innerHTML, /1 EUR = 1\.1000/);
+  assert.match(body.innerHTML, /de 12\/10\/2026/);
   assert.deepEqual(JSON.parse(values.get("dash_fx_trend_pref_v1")), { code: "USD", days: 30 });
   assert.doesNotThrow(() => vm.runInContext("const APP_FX_PAIRS = FX_PAIRS;", context));
 });
