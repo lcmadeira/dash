@@ -23,6 +23,10 @@ const YAHOO_TTF = ["query1", "query2"].map(host => `https://${host}.finance.yaho
 const EURIBOR_TENORS = { "1M": "EURIBOR1MD_", "3M": "EURIBOR3MD_", "6M": "EURIBOR6MD_", "12M": "EURIBOR1YD_" };
 /* Futuros agrícolas (CBOT/ICE) do cartão "Preços agrícolas"; lista fixa, nunca vinda do cliente. */
 const AGRI_SYMBOLS = ["ZW=F", "ZC=F", "ZS=F", "KC=F", "SB=F", "CT=F"];
+// Card "Bolsa de Lisboa": PSI (com histórico de 3 meses), índices europeus e constituintes. Lista fixa.
+const PSI_SYMBOL = "PSI20.LS";
+const MARKET_SYMBOLS = [PSI_SYMBOL, "^GDAXI", "^FCHI", "^IBEX", "^FTSE", "^STOXX50E",
+  "EDP.LS", "GALP.LS", "JMT.LS", "BCP.LS", "NOS.LS", "SON.LS", "RENE.LS", "CTT.LS"];
 const SNIRH_PAGE = "https://snirh.apambiente.pt/index.php?idMain=1&idItem=1.3";
 const SNIRH_TABLE = "https://snirh.apambiente.pt/snirh/_dadossintese/albufeiras/tabelas/tabelageral.php";
 /* Alguns fornecedores recusam pedidos sem User-Agent vindos de servidores. */
@@ -152,12 +156,22 @@ function isValidDams(payload) {
 }
 
 /** Lê a última cotação de um gráfico Yahoo Finance (/v8/finance/chart). */
-export function parseYahooChart(body) {
-  const meta = JSON.parse(body)?.chart?.result?.[0]?.meta;
+export function parseYahooChart(body, { withSeries = false } = {}) {
+  const result = JSON.parse(body)?.chart?.result?.[0];
+  const meta = result?.meta;
   if (!meta) return null;
   const price = Number(meta.regularMarketPrice);
-  const prev = Number(meta.previousClose ?? meta.chartPreviousClose);
-  return {
+  // Com range>1d, chartPreviousClose é o fecho ANTES do intervalo (ex.: há 5 sessões), não o de ontem.
+  // O fecho anterior é o último fecho diário antes da barra mais recente.
+  const stamps = Array.isArray(result.timestamp) ? result.timestamp : [];
+  const closes = result.indicators?.quote?.[0]?.close;
+  const bars = Array.isArray(closes)
+    ? stamps.map((t, i) => ({ t: Number(t), close: Number(closes[i]) }))
+      .filter(b => Number.isFinite(b.t) && Number.isFinite(b.close) && b.close > 0) // Number(null) = 0: descarta falhas
+    : [];
+  const prevFromBars = bars.length >= 2 ? bars[bars.length - 2].close : NaN;
+  const prev = Number(meta.previousClose ?? (Number.isFinite(prevFromBars) ? prevFromBars : meta.chartPreviousClose));
+  const quote = {
     price, prev,
     hi: Number.isFinite(Number(meta.regularMarketDayHigh)) ? Number(meta.regularMarketDayHigh) : price,
     lo: Number.isFinite(Number(meta.regularMarketDayLow)) ? Number(meta.regularMarketDayLow) : price,
@@ -165,6 +179,10 @@ export function parseYahooChart(body) {
     currency: meta.currency,
     marketTime: Number.isFinite(Number(meta.regularMarketTime)) ? Number(meta.regularMarketTime) * 1000 : null,
   };
+  if (withSeries) {
+    quote.series = bars.map(b => ({ date: new Date(b.t * 1000).toISOString().slice(0, 10), value: Math.round(b.close * 100) / 100 }));
+  }
+  return quote;
 }
 
 /** Lê o TTF (EUR/MWh) do gráfico Yahoo Finance. */
@@ -224,6 +242,27 @@ async function fetchAgriQuotes(route) {
     return { symbol, price: null, prev: null };
   }));
   return { payload: { quotes } };
+}
+
+async function fetchMarketQuotes(route) {
+  const quotes = await Promise.all(MARKET_SYMBOLS.map(async symbol => {
+    const range = symbol === PSI_SYMBOL ? "3mo" : "5d";
+    for (const host of ["query1", "query2"]) {
+      try {
+        const response = await fetchUpstream(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`, route.accept, 6000);
+        if (!response.ok) continue;
+        const quote = parseYahooChart(await readBoundedBody(response, route.maxBytes), { withSeries: symbol === PSI_SYMBOL });
+        if (isValidQuote(quote)) return { symbol, ...quote };
+      } catch { /* tenta o anfitrião seguinte */ }
+    }
+    return { symbol, price: null, prev: null };
+  }));
+  return { payload: { quotes } };
+}
+
+function isValidMarkets(payload) {
+  return Array.isArray(payload?.quotes) && payload.quotes.length === MARKET_SYMBOLS.length
+    && payload.quotes.filter(q => isValidQuote(q)).length >= 8;
 }
 
 const SNIRH_MONTHS = ["OUT", "NOV", "DEZ", "JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET"];
@@ -485,6 +524,11 @@ function routeFor(url) {
       observedAt: p => p.ts,
       upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: parseReadsbAircraft })) };
   }
+  if (path === "/v1/markets") {
+    return { key: path, ttl: 300, staleTtl: 4 * day, maxBytes: 250_000, accept: "application/json", valid: isValidMarkets,
+      observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
+      upstreams: [{ source: "Yahoo Finance · Euronext Lisboa e índices europeus", run: fetchMarketQuotes }] };
+  }
   if (path === "/v1/dams") {
     return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,
       observedAt: p => Date.parse(`${p.period}-15T12:00:00Z`),
@@ -561,7 +605,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", ELECTRICITY_PATH] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", "/v1/markets", ELECTRICITY_PATH] }, 200, headers);
   }
 
   let electricityDate = null;

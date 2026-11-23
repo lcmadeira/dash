@@ -24,6 +24,53 @@ function setPSI20TrendDays(days) {
   loadPSI20Trend(false).catch(() => {});
 }
 
+/* Gateway /v1/markets: cotações Yahoo dos índices e constituintes + histórico de 3 meses do PSI.
+   O Yahoo não permite CORS e o Stooq deixou de responder, por isso o gateway é a fonte principal.
+   Um só pedido partilhado pelo card e pelo gráfico (memorizado 60 s). */
+let marketsRequest = null;
+let marketsRequestAt = 0;
+function fetchMarketsGateway(force = false) {
+  if (!force && marketsRequest && Date.now() - marketsRequestAt < 60000) return marketsRequest;
+  const url = window.dataApiUrl?.("v1/markets");
+  marketsRequestAt = Date.now();
+  marketsRequest = (async () => {
+    if (!url) return null;
+    try {
+      const { r } = await window.fetchFirstOk(url, { headers: { Accept: "application/json" } }, 12000, ["direct"]);
+      if (!r.ok) return null;
+      const j = await r.json();
+      if (!Array.isArray(j?.quotes)) return null;
+      const bySymbol = new Map();
+      for (const q of j.quotes) {
+        const price = Number(q?.price), prev = Number(q?.prev);
+        if (!(price > 0) || !(prev > 0)) continue;
+        const hi = Number(q.hi) > 0 ? Number(q.hi) : price;
+        const lo = Number(q.lo) > 0 ? Number(q.lo) : price;
+        bySymbol.set(String(q.symbol).toUpperCase(), {
+          price, prev, hi: Math.max(hi, lo), lo: Math.min(hi, lo),
+          vol: Number(q.volume) >= 0 ? Number(q.volume) : 0,
+          chg: (price - prev) / prev * 100, live: true, src: "yahoo",
+          series: Array.isArray(q.series) ? q.series : undefined,
+        });
+      }
+      return { bySymbol, meta: j._meta || {} };
+    } catch {
+      return null;
+    }
+  })();
+  return marketsRequest;
+}
+
+async function fetchPSI20Series(force) {
+  const gw = await fetchMarketsGateway(force);
+  const raw = gw?.bySymbol.get("PSI20.LS")?.series;
+  const series = Array.isArray(raw) ? raw
+    .filter(p => /^\d{4}-\d{2}-\d{2}$/.test(p?.date) && Number(p?.value) > 0)
+    .map(p => ({ date: p.date, timestamp: Date.parse(p.date), value: Number(p.value) })) : [];
+  if (series.length >= 10) return series;
+  return fetchStooqDailySeries('^psi20', 90, force);
+}
+
 async function loadPSI20Trend(force = false) {
   const canvas = document.getElementById('psi20TrendCanvas');
   const statusEl = document.getElementById('psi20TrendStatus');
@@ -35,7 +82,7 @@ async function loadPSI20Trend(force = false) {
   statusEl.textContent = 'A carregar histórico...';
 
   try {
-    const series = await fetchStooqDailySeries('^psi20', 90, force);
+    const series = await fetchPSI20Series(force);
     const view = _lastN(series, pref.days);
     if (view.length < 2) throw new Error('Histórico insuficiente');
 
@@ -90,10 +137,18 @@ async function loadPSI20Trend(force = false) {
       console.log("📈 PSI20: Mercado fechado (fim-de-semana), a usar cache.");
     } else if (!cache) {
 	    const allSyms=[...EU_INDICES,...PSI20_CONST];
-	    /* Stooq devolve os símbolos num único pedido; tentar primeiro reduz a
-       carga nos proxies públicos, que limitam pedidos paralelos ao Yahoo. */
-	    const stooqResults = await fetchStooqMulti(allSyms.map(s => s.sym));
-	    const needsYahoo = allSyms.filter(s => !isValidPSI20Quote(stooqResults[s.sym.toLowerCase()]));
+	    const gateway = await fetchMarketsGateway(force);
+	    const fromGateway = s => {
+	      const q = gateway?.bySymbol.get(String(s.yf || "").toUpperCase());
+	      if (!q) return null;
+	      const { series: _series, ...quote } = q;
+	      return isValidPSI20Quote(quote) ? quote : null;
+	    };
+	    const gatewayQuotes = allSyms.map(fromGateway);
+	    /* Stooq/Yahoo diretos ficam só para símbolos que o gateway não devolveu. */
+	    const missing = allSyms.filter((s, i) => !gatewayQuotes[i]);
+	    const stooqResults = missing.length ? await fetchStooqMulti(missing.map(s => s.sym)) : {};
+	    const needsYahoo = missing.filter(s => !isValidPSI20Quote(stooqResults[s.sym.toLowerCase()]));
 	    const YF="https://query1.finance.yahoo.com/v8/finance/chart/";
 
 	    async function fetchYahoo(sym){
@@ -121,7 +176,8 @@ async function loadPSI20Trend(force = false) {
 	    const yahooBySymbol = new Map(needsYahoo.map((s, i) => [s.sym.toLowerCase(),
 	      yahooRes[i]?.status === 'fulfilled' ? yahooRes[i].value : null]));
 
-	    const results = allSyms.map(s => {
+	    const results = allSyms.map((s, i) => {
+	      if (gatewayQuotes[i]) return gatewayQuotes[i];
 	      const quote = stooqResults[s.sym.toLowerCase()] || null;
       return isValidPSI20Quote(quote) ? quote : null;
 	    }).map((quote, i) => quote || yahooBySymbol.get(allSyms[i].sym.toLowerCase()) || null);

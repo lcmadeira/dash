@@ -152,7 +152,7 @@ const PSI20_CONST = [
 
 /* ── Índices Europeus ── */
 const EU_INDICES = [
-  {sym:"^psi20",    yf:"^PSI20",   label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
+  {sym:"^psi20",    yf:"PSI20.LS", label:"PSI 20",      flag:"🇵🇹", col:"#10B981", fallback:9178,  fChg: 0.6},
   {sym:"^dax",      yf:"^GDAXI",   label:"DAX",         flag:"🇩🇪", col:"#3B82F6", fallback:22890, fChg: 0.3},
   {sym:"^cac",      yf:"^FCHI",    label:"CAC 40",      flag:"🇫🇷", col:"#8B5CF6", fallback:8142,  fChg:-0.2},
   {sym:"^ibex",     yf:"^IBEX",    label:"IBEX 35",     flag:"🇪🇸", col:"#F59E0B", fallback:13120, fChg: 0.5},
