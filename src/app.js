@@ -99,8 +99,9 @@ const HMAP_CONFIGS={
     config:{dataSource:"SPX500",exchanges:[],grouping:"sector",blockSize:"market_cap_basic",blockColor:"change"}},
   crypto:{script:"https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js",note:"Criptomoedas · Tamanho = capitalização · Cor = variação 24 h",
     config:{dataSource:"Crypto",blockSize:"market_cap_calc",blockColor:"24h_close_change|5"}},
-  etf:{script:"https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js",note:"ETF dos EUA · Por classe de ativos · Tamanho = ativos sob gestão · Cor = variação dia",
-    config:{dataSource:"AllUSEtf",grouping:"asset_class",blockSize:"aum",blockColor:"change"}},
+  etf:{script:"https://s3.tradingview.com/external-embedding/embed-widget-etf-heatmap.js",note:"ETF dos EUA · Por classe de ativos · Tamanho = volume do dia · Cor = variação dia",
+    // O widget de ETF só aceita volume/turnover/mono (sem AUM): "aum" caía em volume.
+    config:{dataSource:"AllUSEtf",grouping:"asset_class",blockSize:"volume",blockColor:"change"}},
 };
 const HMAP_WIDGET_HOSTS = new Map();
 function switchHmap(key,btn){
