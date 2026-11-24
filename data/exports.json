@@ -1,0 +1,91 @@
+{
+  "period": {
+    "from": "2025-10",
+    "to": "2026-09"
+  },
+  "totalEur": 80779433621,
+  "destinos": [
+    {
+      "code": "ES",
+      "n": "Espanha",
+      "v": 26.6
+    },
+    {
+      "code": "DE",
+      "n": "Alemanha",
+      "v": 12.1
+    },
+    {
+      "code": "FR",
+      "n": "França",
+      "v": 11.9
+    },
+    {
+      "code": "US",
+      "n": "EUA",
+      "v": 5.2
+    },
+    {
+      "code": "IT",
+      "n": "Itália",
+      "v": 4.5
+    },
+    {
+      "code": "XU",
+      "n": "Reino Unido",
+      "v": 4.2
+    },
+    {
+      "code": "NL",
+      "n": "Países Baixos",
+      "v": 3.4
+    },
+    {
+      "code": "BE",
+      "n": "Bélgica",
+      "v": 2.8
+    }
+  ],
+  "produtos": [
+    {
+      "code": "2",
+      "n": "Fornecimentos industriais",
+      "v": 31.7
+    },
+    {
+      "code": "6",
+      "n": "Bens de consumo",
+      "v": 17.2
+    },
+    {
+      "code": "5",
+      "n": "Material de transporte",
+      "v": 16.4
+    },
+    {
+      "code": "4",
+      "n": "Máquinas e bens de capital",
+      "v": 16.1
+    },
+    {
+      "code": "1",
+      "n": "Alimentares e bebidas",
+      "v": 12.2
+    },
+    {
+      "code": "3",
+      "n": "Combustíveis",
+      "v": 6.3
+    },
+    {
+      "code": "7",
+      "n": "Outros bens",
+      "v": 0.1
+    }
+  ],
+  "_meta": {
+    "source": "INE · exportações de bens por destino e tipo de bens (indicador 0001400), últimos 12 meses",
+    "state": "live",
+    "observedAt": "2026-09-15"
+  }
+}
