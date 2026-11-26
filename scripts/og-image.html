@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  Modelo da imagem de pré-visualização (og.png, 1200x630) usada nas redes sociais.
+  Para a refazer, servir o repositório e fotografar com um Chrome ou Chromium sem janela:
+    python3 -m http.server 8000
+    chrome --headless --hide-scrollbars --window-size=1200,630 --virtual-time-budget=5000 \
+      --screenshot=og.png "http://localhost:8000/scripts/og-image.html"
+  Depois de mudar a imagem, subir o ?v= de og:image em index.html.
+-->
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Imagem de pré-visualização</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=block">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #0C0E13; font-family: "Inter", sans-serif; }
+  .card {
+    position: absolute; inset: 57px; box-sizing: border-box;
+    background: #161A22; border: 1px solid #232834; border-radius: 24px;
+    padding: 52px 64px 50px;
+    display: grid; grid-template-rows: 1fr auto;
+  }
+  .main { display: grid; grid-template-columns: 150px 1fr; column-gap: 56px; align-items: center; }
+  .logo { width: 150px; height: 150px; display: block; }
+  .kicker { margin: 0 0 14px; font: 600 20px/1 "Inter", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #8A93A5; }
+  h1 { margin: 0 0 18px; font: 700 64px/1.05 "Inter", sans-serif; color: #E7EAF0; letter-spacing: -0.03em; }
+  .lede { margin: 0; max-width: 760px; font: 400 28px/1.45 "Inter", sans-serif; color: #B7BFCC; }
+  .foot { display: flex; justify-content: space-between; align-items: center; padding-top: 26px; border-top: 1px solid #232834; }
+  .pills { display: flex; gap: 12px; }
+  .pills span { font: 500 20px/1 "Inter", sans-serif; color: #B7BFCC; border: 1px solid #2E3442; border-radius: 999px; padding: 9px 16px; display: flex; align-items: center; gap: 10px; }
+  .pills i { width: 10px; height: 10px; border-radius: 50%; background: #6EA8FE; }
+  .domain { font: 600 24px/1 "Inter", sans-serif; color: #6EA8FE; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="main">
+    <img class="logo" src="../pwa-icon.svg" alt="">
+    <div>
+      <p class="kicker">Painel público</p>
+      <h1>Painel Pessoal · Portugal</h1>
+      <p class="lede">Indicadores de Portugal, dos mercados e da atualidade numa só página, com a fonte e a data de cada dado.</p>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="pills"><span><i></i>Eletricidade</span><span><i></i>Combustíveis</span><span><i></i>Euribor</span><span><i></i>PSI 20</span></div>
+    <span class="domain">lcmadeira.github.io/dash</span>
+  </div>
+</div>
+</body>
+</html>

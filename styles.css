@@ -3559,3 +3559,10 @@ html.masonry .grid > *{grid-row-start:auto}
 .carris-until{font-size:.74rem;color:var(--t3);margin-top:2px}
 .carris-more{font-size:.78rem;color:var(--t3);padding:4px 0}
 .carris-src{font-size:.74rem;color:var(--t3);margin-top:8px}
+
+/* Sobre este painel: texto estático no fim da página (também para os motores de pesquisa) */
+.site-about{margin:32px 0 8px;padding:18px 0 0;border-top:1px solid var(--b);color:var(--t3);font-size:.78rem;line-height:1.6;max-width:860px}
+.site-about-title{margin:0 0 6px;font-size:.74rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3)}
+.site-about p{margin:0 0 6px}
+.site-about a{color:var(--t2);text-decoration:underline dotted;text-underline-offset:3px}
+.site-about a:hover{color:var(--accent)}
