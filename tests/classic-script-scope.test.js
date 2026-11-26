@@ -1265,28 +1265,30 @@ test("CoinGecko uses its direct CORS endpoint before public proxies", async () =
   assert.match(body.innerHTML, /Bitcoin/);
 });
 
-test("geopolitics loads recent GDELT JSON directly before fallback RSS feeds", async () => {
+test("geopolitics loads the three gateway feeds in parallel and mixes them (no GDELT)", async () => {
   const body = { innerHTML: "" };
-  let requestedSources = null;
+  const requested = [];
   let saved = null;
   const context = vm.createContext({
     AbortSignal, Date, URL, URLSearchParams,
-    console: { log() {}, warn() {} },
+    console: { log() {}, warn() { throw new Error("no feed should fail"); } },
     document: { querySelectorAll: () => [] },
     $: () => body,
     skeletonGeneric: () => "loading",
     lsGet: () => null,
-    lsSet: (key, value) => { saved = { key, value }; },
+    lsSet: (key, value, meta) => { saved = { key, value, meta }; },
+    dataApiUrl: route => `https://gateway.example/${route}`,
     fetchJsonFirstOk: async (url, _options, _timeout, sources) => {
-      requestedSources = Array.from(sources);
-      assert.match(url, /api\.gdeltproject\.org\/api\/v2\/doc\/doc/);
-      return { articles: Array.from({ length: 8 }, (_, index) => ({
-        title: `Global conflict headline ${index}`,
-        url: `https://news.example/story-${index}`,
-        seendate: "20261029T110000Z",
+      requested.push(url);
+      assert.deepEqual(Array.from(sources), ["direct"]);
+      const id = url.split("feed-")[1];
+      return { articles: Array.from({ length: 10 }, (_, index) => ({
+        title: `${id} headline number ${index}`,
+        link: `https://news.example/${id}-${index}`,
+        pubDate: new Date(Date.UTC(2026, 10, 26, 12 - index, { icg: 0, gpf: 10, fa: 20 }[id])).toUTCString(),
       })) };
     },
-    fetchTextFirstOk: async () => { throw new Error("RSS fallback should not be needed"); },
+    fetchTextFirstOk: async () => { throw new Error("RSS proxies should not be needed"); },
     notifyNonCriticalError() {},
     er: () => "error",
   });
@@ -1295,19 +1297,23 @@ test("geopolitics loads recent GDELT JSON directly before fallback RSS feeds", a
   vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
   await context.loadGeo();
 
-  assert.deepEqual(requestedSources, ["direct"]);
-  assert.equal(saved.key, "geo_v10");
-  assert.equal(saved.value[0].id, "gdelt");
-  assert.match(body.innerHTML, /GDELT/);
-  assert.match(body.innerHTML, /Global conflict headline/);
+  assert.deepEqual(requested, ["icg", "gpf", "fa"].map(id => `https://gateway.example/v1/feed-${id}`));
+  assert.equal(requested.filter(url => /gdelt|geopolitics/i.test(url)).length, 0);
+  assert.equal(saved.key, "geo_v11");
+  assert.equal(saved.value.length, 24, "8 per feed");
+  assert.deepEqual([...new Set(saved.value.map(item => item.id))].sort(), ["fa", "gpf", "icg"]);
+  assert.equal(saved.meta.state, "live");
+  assert.match(body.innerHTML, /BBC World/);
+  assert.match(body.innerHTML, /Crisis Group/);
+  assert.doesNotMatch(body.innerHTML, /GDELT/);
 });
 
-test("geopolitics does not repeat GDELT in the browser when the configured gateway fails", async () => {
+test("geopolitics falls back to public proxies per feed and reports only the feeds that failed", async () => {
   const body = { innerHTML: "" };
-  const jsonRequests = [];
   const textRequests = [];
-  const textSources = [];
   const warnings = [];
+  const rss = '<rss><channel><item><title>BBC fallback headline</title><link>https://www.bbc.co.uk/news/1</link>'
+    + '<pubDate>Thu, 26 Nov 2026 10:00:00 GMT</pubDate></item></channel></rss>';
   const context = vm.createContext({
     AbortSignal, Date, URL, URLSearchParams,
     console: { log() {}, warn: (...args) => warnings.push(args) },
@@ -1317,11 +1323,23 @@ test("geopolitics does not repeat GDELT in the browser when the configured gatew
     lsGet: () => null,
     lsSet() {},
     dataApiUrl: route => `https://gateway.example/${route}`,
-    fetchJsonFirstOk: async url => { jsonRequests.push(url); throw new Error("gateway unavailable"); },
+    fetchJsonFirstOk: async () => { throw new Error("gateway unavailable"); },
     fetchTextFirstOk: async (url, _options, _timeout, sources) => {
       textRequests.push(url);
-      textSources.push(Array.from(sources));
+      assert.deepEqual(Array.from(sources), ["corsproxy", "allorigins", "codetabs"]);
+      if (url.includes("bbci")) return rss;
       throw new Error("RSS unavailable");
+    },
+    DOMParser: class {
+      parseFromString(text) {
+        const items = [...text.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(([, inner]) => ({
+          querySelector: tag => {
+            const m = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`).exec(inner);
+            return m ? { textContent: m[1] } : null;
+          },
+        }));
+        return { querySelector: () => null, querySelectorAll: () => items };
+      }
     },
     notifyNonCriticalError() {},
     er: () => "error",
@@ -1331,22 +1349,14 @@ test("geopolitics does not repeat GDELT in the browser when the configured gatew
   vm.runInContext(await readFile("src/cards/geopolitics.js", "utf8"), context);
   await context.loadGeo();
 
-  assert.deepEqual(jsonRequests, [
-    "https://gateway.example/v1/geopolitics",
-    "https://gateway.example/v1/feed-icg",
-    "https://gateway.example/v1/feed-gpf",
-    "https://gateway.example/v1/feed-fa",
-  ]);
-  assert.equal(jsonRequests.filter(url => /gdelt/i.test(url)).length, 0);
-  assert.deepEqual(textRequests, [
-    "https://www.crisisgroup.org/rss/139",
-    "https://geopoliticalfutures.com/feed/",
+  assert.deepEqual(textRequests.sort(), [
     "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "https://geopoliticalfutures.com/feed/",
+    "https://www.crisisgroup.org/rss/139",
   ]);
-  assert.deepEqual(textSources[2], ["corsproxy", "allorigins", "codetabs"]);
-  assert.match(body.innerHTML, /error/);
+  assert.match(body.innerHTML, /BBC fallback headline/);
   assert.equal(warnings.length, 1);
-  assert.match(warnings[0][0], /fontes indisponíveis/i);
+  assert.deepEqual(Array.from(warnings[0][1], item => item.split(" (")[0]).sort(), ["Crisis Group", "Geop. Futures"]);
 });
 
 test("dams card deduplicates failed refreshes and does not invent storage values", async () => {

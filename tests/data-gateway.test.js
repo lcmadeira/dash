@@ -71,27 +71,34 @@ test("gateway serves a visibly stale snapshot when the upstream is unavailable",
   assert.ok(Number.isFinite(payload._meta.fallbackAt));
 });
 
-test("gateway returns recent GDELT JSON and rejects unapproved origins", async () => {
+test("gateway serves fixed RSS feeds, rejects unapproved origins and no longer has the GDELT route", async () => {
   let upstreamCalls = 0;
   globalThis.fetch = async url => {
     upstreamCalls++;
-    assert.match(String(url), /api\.gdeltproject\.org/);
-    return Response.json({ articles: [{ title: "Diplomatic talks", url: "https://news.example/item" }] });
+    assert.equal(String(url), "https://www.crisisgroup.org/rss/139");
+    return new Response(`<?xml version="1.0"?><rss><channel><item><title>Diplomatic talks resume</title>
+      <link>https://www.crisisgroup.org/item</link><pubDate>Thu, 26 Nov 2026 10:00:00 GMT</pubDate></item></channel></rss>`);
   };
   const env = { DASH_ORIGIN: "https://lcmadeira.github.io" };
-  const denied = await handleRequest(new Request("https://dash-data.test/v1/geopolitics", {
+  const denied = await handleRequest(new Request("https://dash-data.test/v1/feed-icg", {
     headers: { Origin: "https://untrusted.example" },
   }), env);
   assert.equal(denied.status, 403);
   assert.equal(upstreamCalls, 0);
 
-  const allowed = await handleRequest(new Request("https://dash-data.test/v1/geopolitics", {
+  const allowed = await handleRequest(new Request("https://dash-data.test/v1/feed-icg", {
     headers: { Origin: env.DASH_ORIGIN },
   }), env);
   const payload = await allowed.json();
   assert.equal(allowed.status, 200);
-  assert.equal(payload.articles[0].title, "Diplomatic talks");
-  assert.equal(payload._meta.source, "GDELT DOC");
+  assert.equal(payload.articles[0].title, "Diplomatic talks resume");
+  assert.equal(payload._meta.source, "Crisis Group");
+  assert.equal(upstreamCalls, 1);
+
+  const removed = await handleRequest(new Request("https://dash-data.test/v1/geopolitics", {
+    headers: { Origin: env.DASH_ORIGIN },
+  }), env);
+  assert.equal(removed.status, 404);
   assert.equal(upstreamCalls, 1);
 });
 

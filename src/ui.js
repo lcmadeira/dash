@@ -534,7 +534,7 @@
       mstats: "mstats_v4",
       fx: "fx",
       crypto: "cg",
-      geo: "geo_v10",
+      geo: "geo_v11",
       "news-pt": "rss_pt",
       "news-world": "rss_world",
       co2: "co2_eurostat_v1",

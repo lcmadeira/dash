@@ -1,107 +1,79 @@
-/* global AbortSignal, $, DOMParser, URL, URLSearchParams, console, document, er, fetchJsonFirstOk, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
+/* global AbortSignal, $, DOMParser, URL, console, document, er, fetchJsonFirstOk, fetchTextFirstOk, lsGet, lsSet, notifyNonCriticalError, skeletonGeneric, window */
 (() => {
+// O GDELT saiu a 26-11-2026: recusava a Cloudflare desde 20-11 e passou a recusar também pedidos
+// isolados de outros IPs (429). Os três feeds são pedidos em paralelo, até 8 artigos de cada.
 const GEO_FEEDS = [
-  { id: "gdelt", label: "GDELT · Mundo", color: "#22D3EE", url: "https://www.gdeltproject.org/", api: true },
   { id: "icg", label: "Crisis Group", color: "#EF4444", url: "https://www.crisisgroup.org/rss/139", proxy: true },
   { id: "gpf", label: "Geop. Futures", color: "#F59E0B", url: "https://geopoliticalfutures.com/feed/", proxy: true },
   { id: "fa", label: "BBC World", color: "#8B5CF6", url: "https://feeds.bbci.co.uk/news/world/rss.xml", proxy: true },
 ];
+const GEO_PER_FEED = 8;
 let GEO_DATA = [];
 let GEO_FILTER = "all";
-
 function loadGeo(force = false) {
   const run = window.runSingleFlight || ((_key, task) => Promise.resolve().then(task));
   return run("card:geopolitics", () => loadGeoOnce(force));
+}
+
+const cleanTitle = value => String(value || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+
+/** Artigos de um feed: gateway próprio primeiro (cópia de reserva no servidor), depois proxies públicos. */
+async function loadGeoFeed(feed) {
+  const feedGateway = window.dataApiUrl?.(`v1/feed-${feed.id}`);
+  if (feedGateway) {
+    try {
+      const payload = await fetchJsonFirstOk(feedGateway, { signal: AbortSignal.timeout(10000) }, 10000,
+        ["direct"], value => Array.isArray(value?.articles) && value.articles.length > 0);
+      return {
+        stale: payload?._meta?.state === "stale",
+        articles: payload.articles.slice(0, GEO_PER_FEED).map((article, index) => ({
+          id: feed.id, title: cleanTitle(article.title), link: article.link,
+          dt: Date.parse(article.pubDate || "") || Date.now() - index * 3600000,
+        })),
+      };
+    } catch {
+      /* segue para os proxies públicos */
+    }
+  }
+  const sources = feed.proxy ? ["corsproxy", "allorigins", "codetabs"] : ["direct", "corsproxy", "allorigins", "codetabs"];
+  const raw = await fetchTextFirstOk(feed.url, { signal: AbortSignal.timeout(10000) }, 10000,
+    sources, text => text.includes("<item>"));
+  const xml = new DOMParser().parseFromString(raw, "text/xml");
+  if (xml.querySelector("parsererror")) throw new Error("RSS inválido");
+  return {
+    stale: false,
+    articles: Array.from(xml.querySelectorAll("item")).slice(0, GEO_PER_FEED).map((item, index) => {
+      const published = item.querySelector("pubDate")?.textContent || "";
+      return {
+        id: feed.id,
+        title: cleanTitle(item.querySelector("title")?.textContent),
+        link: (item.querySelector("link")?.textContent || "").trim(),
+        dt: (published && Date.parse(published)) || Date.now() - index * 3600000,
+      };
+    }),
+  };
 }
 
 async function loadGeoOnce(force = false) {
   const body = $("geo-body");
   if (!body) return;
   body.innerHTML = skeletonGeneric(6);
-
   try {
-    const cacheKey = "geo_v10";
+    const cacheKey = "geo_v11";
     let cached = force ? null : sanitizeGeoItems(lsGet(cacheKey));
     if (!cached?.length) {
+      const results = await Promise.allSettled(GEO_FEEDS.map(loadGeoFeed));
       const articles = [];
       const failedFeeds = [];
-      const params = new URLSearchParams({
-        query: "(geopolitics OR conflict OR war OR diplomacy OR sanctions)",
-        mode: "ArtList", format: "json", maxrecords: "30", sort: "DateDesc", timespan: "7d",
+      let anyStale = false;
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          articles.push(...result.value.articles);
+          anyStale ||= result.value.stale;
+        } else {
+          failedFeeds.push(`${GEO_FEEDS[index].label} (${result.reason?.message || "erro"})`);
+        }
       });
-      const gatewayUrl = window.dataApiUrl?.("v1/geopolitics");
-      let result = null;
-      let gatewayMeta = null;
-      let gatewayConfigured = false;
-      if (gatewayUrl) {
-        gatewayConfigured = true;
-        try {
-          result = await fetchJsonFirstOk(gatewayUrl, { signal: AbortSignal.timeout(10000) }, 10000,
-            ["direct"], payload => Array.isArray(payload?.articles));
-          gatewayMeta = result?._meta || null;
-        } catch (error) {
-          failedFeeds.push(`gateway GDELT (${error?.message || "erro"})`);
-        }
-      }
-      try {
-        if (!result && !gatewayConfigured) {
-          const url = `https://api.gdeltproject.org/api/v2/doc/doc?${params}`;
-          result = await fetchJsonFirstOk(url, { signal: AbortSignal.timeout(10000) }, 10000,
-            ["direct"], payload => Array.isArray(payload?.articles));
-        }
-        (result?.articles || []).slice(0, 24).forEach((article, index) => {
-          const title = String(article?.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
-          const dt = parseGdeltDate(article?.seendate) || Date.now() - index * 60000;
-          if (title.length > 8 && typeof article?.url === "string") {
-            articles.push({ id: "gdelt", title, link: article.url, dt });
-          }
-        });
-      } catch (error) {
-        failedFeeds.push(`GDELT (${error?.message || "erro"})`);
-      }
-
-      for (const feed of GEO_FEEDS.filter(source => !source.api)) {
-        if (articles.length >= 8) break;
-        let raw = null;
-        /* 1. Gateway próprio (feeds fixos por id, com cópia de reserva no servidor). */
-        const feedGateway = window.dataApiUrl?.(`v1/feed-${feed.id}`);
-        if (feedGateway) {
-          try {
-            const payload = await fetchJsonFirstOk(feedGateway, { signal: AbortSignal.timeout(10000) }, 10000,
-              ["direct"], value => Array.isArray(value?.articles) && value.articles.length > 0);
-            payload.articles.slice(0, 8).forEach((article, index) => {
-              const title = String(article.title || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
-              const timestamp = Date.parse(article.pubDate || "") || Date.now() - index * 3600000;
-              if (title.length > 8 && typeof article.link === "string") articles.push({ id: feed.id, title, link: article.link, dt: timestamp });
-            });
-            continue;
-          } catch {
-            /* segue para os proxies públicos */
-          }
-        }
-        try {
-          const sources = feed.proxy ? ["corsproxy", "allorigins", "codetabs"] : ["direct", "corsproxy", "allorigins", "codetabs"];
-          raw = await fetchTextFirstOk(feed.url, { signal: AbortSignal.timeout(10000) }, 10000,
-            sources, text => text.includes("<item>"));
-          if (!raw) continue;
-
-          const xml = new DOMParser().parseFromString(raw, "text/xml");
-          if (xml.querySelector("parsererror")) continue;
-          const items = xml.querySelectorAll("item");
-          for (let index = 0; index < Math.min(items.length, 8); index++) {
-            const item = items[index];
-            const title = (item.querySelector("title")?.textContent || "")
-              .replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
-            const link = (item.querySelector("link")?.textContent || "").trim();
-            const published = item.querySelector("pubDate")?.textContent || "";
-            const timestamp = published ? Date.parse(published) : Date.now() - index * 3600000;
-            if (title.length > 8) articles.push({ id: feed.id, title, link, dt: timestamp });
-          }
-        } catch (error) {
-          failedFeeds.push(`${feed.label} (${error?.message || "erro"})`);
-        }
-      }
-
       if (failedFeeds.length) console.warn("Geopolítica: fontes indisponíveis", failedFeeds);
 
       cached = sanitizeGeoItems(articles);
@@ -110,10 +82,10 @@ async function loadGeoOnce(force = false) {
       const observedAt = Math.max(...cached.map(item => item.dt));
       lsSet(cacheKey, cached, {
         source: sources.map(id => GEO_FEEDS.find(feed => feed.id === id)?.label || id).join(", "),
-        state: failedFeeds.length || sources.length > 1 ? "partial" : gatewayMeta?.state === "stale" ? "stale" : "live",
+        state: failedFeeds.length ? "partial" : anyStale ? "stale" : "live",
         observedAt,
         reason: failedFeeds.length ? `Fontes indisponíveis: ${failedFeeds.map(item => item.split(" (")[0]).join(", ")}`
-          : gatewayMeta?.state === "stale" ? "Fornecedor indisponível; snapshot do gateway" : undefined,
+          : anyStale ? "Fornecedor indisponível; snapshot do gateway" : undefined,
       });
     }
     GEO_DATA = cached;
@@ -171,14 +143,6 @@ function sanitizeGeoItems(items) {
     if (title.length <= 8 || !Number.isFinite(timestamp) || timestamp <= 0) return null;
     return { id: feed.id, title, link: url.href, dt: timestamp };
   }).filter(Boolean).sort((a, b) => b.dt - a.dt);
-}
-
-function parseGdeltDate(value) {
-  const match = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$/.exec(String(value || ""));
-  if (!match) return 0;
-  const [year, month, day, hour, minute, second] = match.slice(1).map(Number);
-  const timestamp = Date.UTC(year, month - 1, day, hour, minute, second);
-  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function escapeHTML(value) {

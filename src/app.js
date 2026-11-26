@@ -1042,13 +1042,18 @@ function perfMark(name) {
   perfMonitor.marks[name] = performance.now();
 }
 
+// Limites do relatório de desempenho. A inicialização total ronda os 100 ms no portátil (26-11-2026):
+// só se avisa acima de 250 ms, para o aviso no console indicar um problema real.
+const PERF_OK_MS = 100;
+const PERF_SLOW_MS = 250;
+
 function perfMeasure(name, startMark) {
   if (!perfMonitor.marks[startMark]) return;
   
   const duration = performance.now() - perfMonitor.marks[startMark];
   perfMonitor.measures[name] = duration;
   
-  if (duration > 100) {
+  if (duration > PERF_SLOW_MS) {
     console.warn(`⚠️ Operação lenta: ${name} levou ${duration.toFixed(2)}ms`);
   }
   
@@ -1058,7 +1063,7 @@ function perfMeasure(name, startMark) {
 function perfReport() {
   console.group('📊 Performance Report');
   Object.entries(perfMonitor.measures).forEach(([name, duration]) => {
-    const status = duration < 50 ? '✅' : duration < 100 ? '⚠️' : '❌';
+    const status = duration < PERF_OK_MS ? '✅' : duration < PERF_SLOW_MS ? '⚠️' : '❌';
     console.log(`${status} ${name}: ${duration.toFixed(2)}ms`);
   });
   console.groupEnd();
