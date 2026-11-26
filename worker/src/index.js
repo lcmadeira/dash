@@ -1,5 +1,4 @@
 const COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,cardano,ripple,binancecoin&vs_currencies=eur&include_24hr_change=true";
-const GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc?query=%28geopolitics%20OR%20conflict%20OR%20war%20OR%20diplomacy%20OR%20sanctions%29&mode=ArtList&format=json&maxrecords=30&sort=DateDesc&timespan=7d";
 /* Fontes que respondem à Cloudflare primeiro: o Google News recusa (503) pedidos do gateway. */
 const NEWS_FEEDS = {
   "/v1/news-pt": [
@@ -560,11 +559,7 @@ function routeFor(url) {
         { source: "CoinPaprika · EUR (variação 24h)", run: fetchCoinpaprika, ttl: 1800 },
       ] };
   }
-  if (path === "/v1/geopolitics") {
-    // O GDELT limita a 1 pedido a cada 5 s por IP e as IPs da Cloudflare são partilhadas: cache longa.
-    return { key: path, ttl: 3600, staleTtl: 3 * day, swrMaxAge: 12 * 3600, maxBytes: 1_500_000, accept: "application/json", valid: p => Array.isArray(p?.articles),
-      upstreams: [{ url: GDELT_URL, source: "GDELT DOC", parse: body => JSON.parse(body) }] };
-  }
+
   if (NEWS_FEEDS[path]) {
     return { key: path, ttl: 300, staleTtl: day, maxBytes: 500_000, accept: "application/rss+xml, application/xml, text/xml", valid: isValidNews, news: true,
       upstreams: NEWS_FEEDS[path].map(feed => ({ url: feed.url, source: feed.source, timeout: 5000,
@@ -689,7 +684,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   }
   if (request.method !== "GET") return jsonResponse({ error: "Método não permitido" }, 405, headers);
   if (url.pathname === "/v1/status") {
-    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", "/v1/geopolitics", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", "/v1/markets", "/v1/indicators", ELECTRICITY_PATH] }, 200, headers);
+    return jsonResponse({ service: "dash-data-gateway", routes: ["/v1/crypto", ...Object.keys(NEWS_FEEDS), ...Object.keys(RSS_FEEDS).map(id => `/v1/feed-${id}`), "/v1/ttf", "/v1/agri", "/v1/euribor", "/v1/dams", "/v1/air", "/v1/markets", "/v1/indicators", ELECTRICITY_PATH] }, 200, headers);
   }
 
   let electricityDate = null;

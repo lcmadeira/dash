@@ -92,7 +92,6 @@ Produção: `https://dash-data-gateway.luiscarlosmadeira.workers.dev` (`CFG.DATA
 | `/v1/news-pt` | RTP → Público → Google News | 5 min · 1 dia |
 | `/v1/news-world` | BBC World → Google News | 5 min · 1 dia |
 | `/v1/feed-icg`, `/v1/feed-gpf`, `/v1/feed-fa` | Crisis Group, Geopolitical Futures, BBC World (RSS) | 15 min · 2 dias |
-| `/v1/geopolitics` | GDELT DOC | 1 h · 3 dias (responde com a cópia até 12 h e atualiza em segundo plano) |
 | `/v1/crypto` | CoinGecko → CoinPaprika (EUR, 24h) | 90 s (30 min se vier do CoinPaprika) · 1 dia |
 | `/v1/ttf` | Yahoo Finance `TTF=F` (só EUR), com série diária de 3 meses | 15 min · 7 dias |
 | `/v1/agri` | Yahoo Finance: trigo, milho, soja, café, açúcar, algodão (`query1` → `query2`) | 15 min · 7 dias |
@@ -144,7 +143,7 @@ O painel combina fontes públicas sem chave:
 - **CoinGecko** e **CoinPaprika** (cripto), **Yahoo Finance** (mercados, TTF e agrícolas, via gateway). O **Stooq** deixou de responder em 2026 e foi retirado (23/11/2026).
 - **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar), **adsb.lol** (ODbL, tráfego aéreo ADS-B)
 - **USGS** (sismos, alternativa ao IPMA), **FRED** (spread, alternativa ao Tesouro)
-- Notícias e geopolítica: RTP, Público, BBC, Crisis Group, Geopolitical Futures, Google News RSS e GDELT
+- Notícias e geopolítica: RTP, Público, BBC, Crisis Group, Geopolitical Futures e Google News RSS
 
 Notas:
 
@@ -154,7 +153,7 @@ Dados fora do gateway e de `data/` continuam dependentes dos fornecedores e, em 
 - **Séries que mudaram de endereço em 2026** (documentado para evitar regressões): Eurostat congelou `PRC_HICP_MANR` em dez/2025 (o IHPC passou a `PRC_HICP_MINR`, `unit=RCH_A`, `coicop18=TOTAL`); a chave da Euribor no BCE é `RT` e não `RT0`, e a Euribor a 1 semana foi descontinuada em 2018; o INE 0009494 parou em 2021 (usar 0012234); a FRED deixou de responder de forma fiável; a página do SNIRH passou a mapa (os dados estão em `tabelageral.php`); a conta pública da AISHub deixou de ser aceite; o Stooq não responde.
 - A API Air Quality da Open-Meteo usa `nitrogen_dioxide`, `ozone` e `sulphur_dioxide` para os poluentes; o card converte estes campos para os nomes internos `no2`, `o3` e `so2`.
 - O card PSI 20 obtém as cotações pelo gateway (`/v1/markets`, Yahoo), usa Yahoo por proxies públicos para símbolos em falta e oculta os valores de referência quando não há cotações atuais. A ligação oficial da Euronext permanece disponível para consulta.
-- O card de geopolítica tenta o gateway para GDELT e para os feeds RSS (`/v1/feed-*`); quando o gateway está configurado mas indisponível, não repete a consulta GDELT no browser. O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
+- O card de geopolítica pede em paralelo os três feeds RSS (`/v1/feed-icg`, `/v1/feed-gpf`, `/v1/feed-fa`), até 8 artigos de cada, e recorre a proxies públicos só para o feed cujo gateway falhar. O GDELT saiu a 26/11/2026: recusava a Cloudflare e passou a recusar também pedidos isolados de outros IPs (429). O card de cripto tenta CoinGecko diretamente antes de recorrer a proxies.
 - O card de eletricidade usa o ficheiro diário oficial OMIE `MARGINALPDBCPT` da zona portuguesa pelo gateway. O OMIE passou a publicar períodos de 15 minutos em outubro de 2025; a média diária e o gráfico usam agregação horária, enquanto a janela de três horas é calculada sobre os períodos originais. Horas de mercado são apresentadas no fuso CET/CEST (uma hora à frente de Portugal continental). O dia seguinte só existe depois da publicação OMIE (à tarde); até lá o card mostra "Ainda não publicado". O spot é grossista; não se infere a fatura nem se apresentam tarifas fixas hardcoded. O estimador doméstico calcula apenas o subtotal com os preços contratuais introduzidos localmente. Ver [preços OMIE](https://www.omie.es/pt/market-results/daily/daily-market/day-ahead-price) e [tarifas/horários ERSE](https://www.erse.pt/atividade/regulacao/tarifas-e-precos-eletricidade/).
 - Euribor: a próxima reunião do BCE vem das datas oficiais em `src/widgets/economic-calendar.js` (`window.ECB_MEETING_DATES`); as "probabilidades de consenso" de `EURIBOR_FALLBACK.bceNext` são estáticas e só aparecem enquanto a reunião a que se referem for a próxima.
 - Imobiliário: o preço (total/novos/existentes) é automático; transações e regiões NUTS III continuam como referência do 3.º trimestre de 2025, assinaladas como tal.
