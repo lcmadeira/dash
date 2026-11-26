@@ -507,7 +507,11 @@
       list.forEach((c) => ensureCardStatusEl(c.id));
     } catch {}
 
-    ["oil", "finance", "heatmap"].forEach((id) => setCardStatus(id, "live", "Live", { title: "Widget live" }));
+    // Widgets TradingView: "Live" só se o widget não tiver sido dado como indisponível (app.js).
+    ["oil", "finance", "heatmap"].forEach((id) => {
+      if (getCardElById(id)?.querySelector(".tv-unavailable")) return;
+      setCardStatus(id, "live", "Live", { title: "Widget live" });
+    });
 
     const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     const byId = {

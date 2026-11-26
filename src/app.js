@@ -30,8 +30,40 @@ tick();setInterval(tick,1000);
 
 /* Dev proxy + fetch/cache helpers movidos para src/fetch.js e src/cache.js */
 
+// Sem iframe ao fim deste tempo, o widget é dado como indisponível (ex.: nó da CDN do TradingView
+// sem resposta a 26-11-2026, ERR_CONNECTION_TIMED_OUT): mostra-se aviso em vez de um card vazio.
+const TV_LOAD_TIMEOUT_MS = 20000;
+
 function mountLazyTradingView(host, scriptUrl, config, height = 0) {
   if (!host) return;
+
+  const cardIdOf = () => {
+    const card = host.closest('.card, .tv-chart-card');
+    return card?.dataset.cardId || (card?.id?.startsWith('card-') ? card.id.slice(5) : '');
+  };
+
+  const showUnavailable = (container) => {
+    if (!container.isConnected || container.querySelector('iframe')) return;
+    const box = document.createElement('div');
+    box.className = 'tv-lazy-placeholder tv-unavailable';
+    box.setAttribute('role', 'status');
+    if (height) box.style.minHeight = `${height}px`;
+    const text = document.createElement('span');
+    text.textContent = 'TradingView indisponível: o serviço não respondeu.';
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'rbtn';
+    retry.textContent = 'Tentar novamente';
+    retry.addEventListener('click', () => loadWidget());
+    box.append(text, retry);
+    host.replaceChildren(box);
+    const cardId = cardIdOf();
+    if (cardId && typeof window.setCardStatus === 'function') {
+      window.setCardStatus(cardId, 'error', 'TradingView indisponível', { force: true, title: 'O script do TradingView não carregou' });
+      const inline = document.querySelector(`.card-inline-retry[data-retry-for="${cardId}"]`);
+      if (inline) inline.onclick = () => loadWidget();
+    }
+  };
 
   const loadWidget = () => {
     const container = document.createElement('div');
@@ -47,9 +79,15 @@ function mountLazyTradingView(host, scriptUrl, config, height = 0) {
     script.src = scriptUrl;
     script.async = true;
     script.text = JSON.stringify(config);
+    script.addEventListener('error', () => showUnavailable(container));
     container.appendChild(script);
 
     host.replaceChildren(container);
+    setTimeout(() => showUnavailable(container), TV_LOAD_TIMEOUT_MS);
+    const cardId = cardIdOf();
+    if (cardId && typeof window.setCardStatus === 'function') {
+      window.setCardStatus(cardId, 'live', 'Live', { force: true, title: 'Widget live' });
+    }
   };
 
   host.dataset.lazyId = 'tradingview';

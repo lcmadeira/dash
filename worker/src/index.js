@@ -594,8 +594,9 @@ function routeFor(url) {
       upstreams: [{ source: "Yahoo Finance · futuros CBOT/ICE", run: fetchAgriQuotes }] };
   }
   if (path === "/v1/air") {
-    // Dados em tempo real: cache de 3 min (limite do adsb.lol) e cópia de reserva de no máximo 15 min.
-    return { key: path, ttl: 180, staleTtl: 900, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
+    // Dados em tempo real: cache de 3 min (limite do adsb.lol). Cópia de reserva até 1 h (era 15 min):
+    // com o adsb.lol a recusar a Cloudflare (429) o card mostrava-se vazio; o card marca-a como atrasada.
+    return { key: path, ttl: 180, staleTtl: 3600, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
       observedAt: p => p.ts,
       upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: parseReadsbAircraft })) };
   }
