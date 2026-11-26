@@ -45,3 +45,30 @@ test("inflation reads the ECOICOP v2 HICP dataset (PRC_HICP_MINR) for Portugal a
   assert.match(requested, /unit=RCH_A/);
   assert.match(requested, /coicop18=TOTAL/);
 });
+
+test("recession chart never draws a negative-height clip when the spread stays on one side of zero", async () => {
+  const render = async rows => {
+    const el = { innerHTML: "" };
+    const context = await loadScript("src/cards/recession.js", {
+      $: id => (id === "rec-body" ? el : null),
+      ld: () => "",
+      lsGet: () => rows,
+      lsSet() {},
+      PFX: "t_",
+      _lastN: (arr, n) => arr.slice(Math.max(0, arr.length - n)),
+    });
+    await context.loadRec(false);
+    return el.innerHTML;
+  };
+  const days = n => Array.from({ length: n }, (_, i) => `2026-${String(9 + Math.floor(i / 28)).padStart(2, "0")}-${String(1 + (i % 28)).padStart(2, "0")}`);
+  const positive = days(40).map((d, i) => [d, 0.4 + (i % 5) * 0.05]);
+  const negative = days(40).map((d, i) => [d, -0.4 - (i % 5) * 0.05]);
+  for (const html of [await render(positive), await render(negative)]) {
+    const heights = [...html.matchAll(/<rect[^>]*height="(-?[\d.]+)"/g)].map(m => Number(m[1]));
+    assert.equal(heights.length, 2);
+    assert.ok(heights.every(h => h >= 0), `alturas: ${heights}`);
+    assert.ok(!html.includes('stroke-dasharray="4,3"'), "linha zero fora do gráfico não deve ser desenhada");
+  }
+  const crossing = days(40).map((d, i) => [d, i < 20 ? -0.2 : 0.3]);
+  assert.ok((await render(crossing)).includes('stroke-dasharray="4,3"'));
+});

@@ -125,7 +125,11 @@ async function loadRec(force=false){
   }).join("");
 
   /* Zero line */
+  /* Com o spread todo acima (ou abaixo) de zero, py(0) sai do gráfico:
+     limita-se o corte a [0, H+2] e só se desenha a linha zero se estiver visível. */
   const zeroLineY=py(0);
+  const clipY=Math.min(Math.max(zeroLineY,0),H+2);
+  const showZero=zeroLineY>=0&&zeroLineY<=H;
 
   /* Indicadores complementares: histórico de inversões */
   const invertedDays=view.filter(x=>x[1]<0).length;
@@ -163,15 +167,15 @@ async function loadRec(force=false){
   <!-- Gráfico com zona acima/abaixo de zero -->
   <svg viewBox="0 0 ${W} ${H+18}" style="width:100%;height:${H+18}px;margin-bottom:8px">
     <!-- Área negativa (abaixo de zero) -->
-    <clipPath id="clip-neg"><rect x="0" y="${zeroLineY}" width="${W}" height="${H-zeroLineY+2}"/></clipPath>
+    <clipPath id="clip-neg"><rect x="0" y="${clipY}" width="${W}" height="${H+2-clipY}"/></clipPath>
     <!-- Área positiva (acima de zero) -->
-    <clipPath id="clip-pos"><rect x="0" y="0" width="${W}" height="${zeroLineY}"/></clipPath>
+    <clipPath id="clip-pos"><rect x="0" y="0" width="${W}" height="${clipY}"/></clipPath>
     <polygon points="${fill}" fill="#EF444415" clip-path="url(#clip-neg)"/>
     <polygon points="${fill}" fill="#10B98115" clip-path="url(#clip-pos)"/>
     <!-- Linha zero -->
-    <line x1="0" y1="${zeroLineY}" x2="${W}" y2="${zeroLineY}"
+    ${showZero?`<line x1="0" y1="${zeroLineY}" x2="${W}" y2="${zeroLineY}"
           stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
-    <text x="2" y="${zeroLineY-2}" font-size="7" fill="rgba(255,255,255,0.3)">0</text>
+    <text x="2" y="${zeroLineY-2}" font-size="7" fill="rgba(255,255,255,0.3)">0</text>`:""}
     <!-- Linha do spread -->
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>
     <circle cx="${px(vals.length-1)}" cy="${py(cur)}" r="3.5" fill="${col}"/>
