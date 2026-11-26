@@ -27,7 +27,7 @@ Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global �
 - **Acessibilidade Profissional (WCAG AA)**: Contraste verificado, `aria-*` landmarks, foco visível por teclado e modais com focus trap.
 - **UI Consistente**: Padronização de tabelas, footers, badges de estado, micro-interações e **scroll interno com headers sticky** em cards longos.
 - **Gráficos históricos (7/30/90 dias)** em alguns módulos (ex.: eletricidade, TTF, PSI20, câmbio, gás PT e spread 10Y−2Y).
-- **Monitorização em tempo-real**: Tráfego aéreo em direto sobre Portugal continental (ADS-B de adsb.lol pelo gateway `/v1/air`, atualizado no máximo de 3 em 3 min) com mapa interactivo em Canvas/TopoJSON; sem dados em direto o card diz-o, sem estatísticas antigas.
+- **Monitorização em tempo-real**: Tráfego aéreo em direto sobre Portugal continental (ADS-B de adsb.lol, com OpenSky Network como alternativa, pelo gateway `/v1/air`, atualizado no máximo de 3 em 3 min) com mapa interactivo em Canvas/TopoJSON; sem dados em direto o card diz-o, sem estatísticas antigas.
 - **Combustíveis PT vs ES**: Comparação de preços entre Portugal e Espanha, com detalhe de postos, timestamps e preferências de combustível.
 - **Estreito de Ormuz (simulação identificada)**: a conta pública da AISHub deixou de ser aceite em 2026 e não há fonte AIS gratuita estável; o card mostra uma simulação ilustrativa do tráfego, assinalada como "Simulação".
 - **Barragens**: armazenamento das 12 bacias do boletim mensal SNIRH/APA, com média histórica do mês e total ponderado pela capacidade (`data/dams.json`, ver "Dados atualizados fora do browser"); sem fonte nem cache verificável, o card mostra indisponibilidade em vez de percentagens aproximadas.
@@ -85,7 +85,7 @@ Produção: `https://dash-data-gateway.luiscarlosmadeira.workers.dev` (`CFG.DATA
 
 | Rota | Fonte(s), por ordem | Cache · cópia de reserva |
 |---|---|---|
-| `/v1/air` | adsb.lol (aeronaves ADS-B em lat 36–44, lon −12 a −5, convertidas para vetores de estado ao estilo OpenSky; país pelo bloco ICAO). O adsb.fi recusa a Cloudflare (403) e o adsb.lol limita os IPs da Cloudflare (429), daí a cache de 3 min | 3 min · 15 min |
+| `/v1/air` | adsb.lol → OpenSky Network (aeronaves ADS-B em lat 36–44, lon −12 a −5, convertidas para vetores de estado ao estilo OpenSky; país pelo bloco ICAO). O adsb.fi recusa a Cloudflare (403) e o adsb.lol limita os IPs da Cloudflare (429), daí a cache de 3 min; o OpenSky anónimo (2 créditos por pedido, 400 por dia) só é chamado quando o adsb.lol falha | 3 min · 15 min |
 | `/v1/markets` | Yahoo Finance (query1 → query2): PSI 20 (`PSI20.LS`, com 3 meses de fechos), DAX, CAC 40, IBEX 35, FTSE 100, EURO STOXX 50 e 8 constituintes do PSI; fecho anterior = fecho diário anterior | 5 min · 4 dias |
 | `/v1/indicators` | Yahoo Finance (query1 → query2): VIX, ouro (GC=F), prata (SI=F), S&P 500, WTI (CL=F) e gás natural (NG=F) | 5 min · 4 dias |
 | `/v1/electricity?date=AAAA-MM-DD` | OMIE `MARGINALPDBCPT` (zona PT); dia ainda não publicado → `200 {published:false}` | 5 min · 1 dia |
@@ -142,7 +142,7 @@ O painel combina fontes públicas sem chave:
 - **BCE** (Euribor, via gateway), **Eurostat** (IHPC `PRC_HICP_MINR`, ECOICOP v2), **Tesouro dos EUA** (curva diária, spread 10Y−2Y), **INE** (habitação 0012234), **SNIRH/APA** (barragens), **DECO PROteste via Lusa** (cabaz)
 - **OMIE** (preços do mercado diário, zona portuguesa; ficheiros `MARGINALPDBCPT`)
 - **CoinGecko** e **CoinPaprika** (cripto), **Yahoo Finance** (mercados, TTF e agrícolas, via gateway). O **Stooq** deixou de responder em 2026 e foi retirado (23/11/2026).
-- **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar), **adsb.lol** (ODbL, tráfego aéreo ADS-B)
+- **Open-Meteo (Air Quality / CAMS + UV)** (qualidade do ar), **adsb.lol** (ODbL) e **OpenSky Network** (tráfego aéreo ADS-B)
 - **USGS** (sismos, alternativa ao IPMA), **FRED** (spread, alternativa ao Tesouro)
 - Notícias e geopolítica: RTP, Público, BBC, Crisis Group, Geopolitical Futures, Google News RSS e GDELT
 
