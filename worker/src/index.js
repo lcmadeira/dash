@@ -40,13 +40,11 @@ const ELECTRICITY_PATH = "/v1/electricity";
 // Tráfego aéreo: Portugal continental (mesma área que o card usava com o OpenSky).
 const AIR_BOX = { latMin: 36, latMax: 44, lonMin: -12, lonMax: -5 };
 // O adsb.fi recusa a Cloudflare (403) e o adsb.lol limita os IPs partilhados da Cloudflare (429),
-// verificado a 23-11-2026: adsb.lol primeiro, com cache de 3 min para gastar poucos pedidos.
-// Alternativa (26-11-2026): OpenSky anónimo, 400 créditos/dia por IP; esta área (56 graus²) custa 2
-// e só é pedida quando o adsb.lol falha. airplanes.live e adsb.one recusam clientes sem registo (403).
+// verificado a 23-11-2026: só o adsb.lol, com cache de 3 min para gastar poucos pedidos.
+// O OpenSky anónimo foi testado como alternativa a 26-11-2026: responde ao portátil, mas dá timeout
+// a partir da Cloudflare; airplanes.live e adsb.one recusam clientes sem registo (403).
 const AIR_UPSTREAMS = [
-  { url: "https://api.adsb.lol/v2/lat/40/lon/-8.5/dist/250", source: "adsb.lol (ODbL)", parse: body => parseReadsbAircraft(body) },
-  { url: `https://opensky-network.org/api/states/all?lamin=${AIR_BOX.latMin}&lomin=${AIR_BOX.lonMin}&lamax=${AIR_BOX.latMax}&lomax=${AIR_BOX.lonMax}`,
-    source: "OpenSky Network", parse: body => parseOpenSkyStates(body) },
+  { url: "https://api.adsb.lol/v2/lat/40/lon/-8.5/dist/250", source: "adsb.lol (ODbL)" },
 ];
 // Blocos de endereços ICAO 24-bit atribuídos a cada Estado (Anexo 10 da ICAO).
 const ICAO_BLOCKS = [
@@ -116,43 +114,6 @@ export function parseReadsbAircraft(body) {
   }
   const now = num(json.now);
   return { ts: now === null ? Date.now() : (now > 1e12 ? now : Math.round(now * 1000)), states };
-}
-
-/**
- * Resposta /states/all do OpenSky → os mesmos 12 campos que parseReadsbAircraft devolve
- * (país em português pelo bloco ICAO, com o nome do OpenSky como recurso).
- */
-export function parseOpenSkyStates(body) {
-  const json = typeof body === "string" ? JSON.parse(body) : body;
-  if (!json || !Number.isFinite(json.time) || !(Array.isArray(json.states) || json.states === null)) return null;
-  const num = value => (typeof value === "number" && Number.isFinite(value) ? value : null);
-  const round = (value, digits) => (value === null ? null : Math.round(value * 10 ** digits) / 10 ** digits);
-  const states = [];
-  for (const sv of json.states || []) {
-    if (!Array.isArray(sv)) continue;
-    const lon = num(sv[5]), lat = num(sv[6]);
-    if (lat === null || lon === null || lat < AIR_BOX.latMin || lat > AIR_BOX.latMax
-        || lon < AIR_BOX.lonMin || lon > AIR_BOX.lonMax) continue;
-    if (num(sv[3]) !== null && json.time - sv[3] > 60) continue;
-    const hex = String(sv[0] || "").toLowerCase().slice(0, 6);
-    const onGround = sv[8] === true;
-    const alt = onGround ? null : num(sv[7]) ?? num(sv[13]);
-    states.push([
-      hex,
-      String(sv[1] || "").trim().slice(0, 8),
-      icaoCountry(hex) || String(sv[2] || ""),
-      null,
-      null,
-      round(lon, 4),
-      round(lat, 4),
-      alt === null ? null : Math.round(alt),
-      onGround,
-      round(num(sv[9]), 1),
-      num(sv[10]),
-      round(num(sv[11]), 1),
-    ]);
-  }
-  return { ts: json.time * 1000, states };
 }
 
 function isValidAir(payload) {
@@ -633,10 +594,10 @@ function routeFor(url) {
       upstreams: [{ source: "Yahoo Finance · futuros CBOT/ICE", run: fetchAgriQuotes }] };
   }
   if (path === "/v1/air") {
-    // Dados em tempo real: cache de 3 min (limite do adsb.lol, OpenSky como alternativa) e cópia de reserva de no máximo 15 min.
+    // Dados em tempo real: cache de 3 min (limite do adsb.lol) e cópia de reserva de no máximo 15 min.
     return { key: path, ttl: 180, staleTtl: 900, maxBytes: 3_000_000, accept: "application/json", valid: isValidAir,
       observedAt: p => p.ts,
-      upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: u.parse })) };
+      upstreams: AIR_UPSTREAMS.map(u => ({ url: u.url, source: u.source, timeout: 7000, parse: parseReadsbAircraft })) };
   }
   if (path === "/v1/markets") {
     return { key: path, ttl: 300, staleTtl: 4 * day, maxBytes: 250_000, accept: "application/json", valid: isValidMarkets,

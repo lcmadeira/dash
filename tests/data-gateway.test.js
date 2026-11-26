@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { readFile } from "node:fs/promises";
-import { handleRequest, icaoCountry, marketToday, parseCoinpaprikaTicker, parseDamsSiteCopy, parseOmieElectricity, parseOpenSkyStates, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
+import { handleRequest, icaoCountry, marketToday, parseCoinpaprikaTicker, parseDamsSiteCopy, parseOmieElectricity, parseReadsbAircraft, parseSnirhTable, parseYahooChart, parseYahooTtf } from "../worker/src/index.js";
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -382,44 +382,7 @@ test("air route converts readsb aircraft to OpenSky-like states and reports adsb
   globalThis.fetch = async () => new Response("slow down", { status: 429 });
   const limited = await handleRequest(new Request("https://dash-data.test/v1/air"));
   assert.equal(limited.status, 502);
-  assert.deepEqual((await limited.json()).upstreamFailures, [
-    { source: "adsb.lol (ODbL)", status: 429 }, { source: "OpenSky Network", status: 429 }]);
-});
-
-test("air route falls back to OpenSky when adsb.lol is rate limited", async () => {
-  const time = 1795718330;
-  const opensky = { time, states: [
-    ["4951c4", "TAP123  ", "Portugal", time - 2, time, -9.13, 38.77, 3048.2, false, 205.83, 90, -5.12, null, 3100, "1000", false, 0],
-    ["44028a", "EJU67DJ ", "Austria", time, time, -7.38, 39.31, 11582.4, false, 196.49, 32.82, -0.33, null, 11894.8, "6266", false, 0],
-    ["4ca123", "RYR1", "Ireland", time, time, -9.13, 38.78, null, true, 2.1, 0, null, null, null, null, false, 0],
-    ["3c0002", "OLD", "Germany", time - 300, time, -8, 39, 9000, false, 200, 0, 0, null, 9000, null, false, 0], // posição antiga
-    ["3c0003", "FAR", "Germany", time, time, 2, 50, 9000, false, 200, 0, 0, null, 9000, null, false, 0],       // fora da área
-  ] };
-  const parsed = parseOpenSkyStates(JSON.stringify(opensky));
-  assert.equal(parsed.ts, time * 1000);
-  assert.equal(parsed.states.length, 3);
-  assert.deepEqual(parsed.states[0], ["4951c4", "TAP123", "Portugal", null, null, -9.13, 38.77, 3048, false, 205.8, 90, -5.1]);
-  assert.equal(parsed.states[1][2], "Áustria");
-  assert.equal(parsed.states[2][8], true);
-  assert.equal(parsed.states[2][7], null);
-  assert.equal(parseOpenSkyStates("{}"), null);
-  assert.deepEqual(parseOpenSkyStates(JSON.stringify({ time, states: null })).states, []);
-
-  const requested = [];
-  globalThis.fetch = async url => {
-    const { hostname, searchParams } = new URL(String(url));
-    requested.push(hostname);
-    if (hostname === "api.adsb.lol") return new Response("slow down", { status: 429 });
-    assert.equal(searchParams.get("lamin"), "36");
-    assert.equal(searchParams.get("lomax"), "-5");
-    return new Response(JSON.stringify(opensky));
-  };
-  const response = await handleRequest(new Request("https://dash-data.test/v1/air"));
-  const payload = await response.json();
-  assert.equal(response.status, 200);
-  assert.deepEqual(requested, ["api.adsb.lol", "opensky-network.org"]);
-  assert.equal(payload._meta.source, "OpenSky Network");
-  assert.equal(payload.states.length, 3);
+  assert.deepEqual((await limited.json()).upstreamFailures, [{ source: "adsb.lol (ODbL)", status: 429 }]);
 });
 
 test("Yahoo parser takes the previous daily close, not the close before a multi-day range", () => {
