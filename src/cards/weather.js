@@ -63,6 +63,52 @@ async function loadWeatherWarnings(cityId, cityName, force = false) {
   }
 }
 
+/* Nascer e pôr do sol (algoritmo do NOAA, zénite 90,833°: erro de ~1 min). Sem fonte externa. */
+const SUN_TZ = { 2310300: "Atlantic/Madeira", 3420300: "Atlantic/Azores" };
+/** Instantes (ms UTC) do nascer e do pôr do sol no dia civil `date` (local), em lat/lon. null em dia polar. */
+function sunTimes(date, lat, lon) {
+  const rad = Math.PI / 180;
+  const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
+  const n = Math.round((Date.UTC(y, m, d) - Date.UTC(y, 0, 0)) / 864e5);
+  const lngHour = lon / 15;
+  const calc = (rising) => {
+    const t = n + ((rising ? 6 : 18) - lngHour) / 24;
+    const M = 0.9856 * t - 3.289;
+    let L = M + 1.916 * Math.sin(M * rad) + 0.020 * Math.sin(2 * M * rad) + 282.634;
+    L = ((L % 360) + 360) % 360;
+    let RA = Math.atan(0.91764 * Math.tan(L * rad)) / rad;
+    RA = ((RA % 360) + 360) % 360;
+    RA += Math.floor(L / 90) * 90 - Math.floor(RA / 90) * 90;
+    RA /= 15;
+    const sinDec = 0.39782 * Math.sin(L * rad), cosDec = Math.cos(Math.asin(sinDec));
+    const cosH = (Math.cos(90.833 * rad) - sinDec * Math.sin(lat * rad)) / (cosDec * Math.cos(lat * rad));
+    if (cosH > 1 || cosH < -1) return null;
+    const H = (rising ? 360 - Math.acos(cosH) / rad : Math.acos(cosH) / rad) / 15;
+    const T = H + RA - 0.06571 * t - 6.622;
+    const UT = ((T - lngHour) % 24 + 24) % 24;
+    return Date.UTC(y, m, d) + UT * 3600e3;
+  };
+  const rise = calc(true), set = calc(false);
+  return rise === null || set === null ? null : { rise, set, dayMs: set - rise };
+}
+
+function renderDaylight(cityId) {
+  const c = window.AQ_CITY_COORDS?.[cityId];
+  if (!c) return "";
+  const now = new Date();
+  const today = sunTimes(now, c.lat, c.lon);
+  const yesterday = sunTimes(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1), c.lat, c.lon);
+  if (!today) return "";
+  const tz = SUN_TZ[cityId] || "Europe/Lisbon";
+  const hm = (ms) => new Date(ms).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+  const mins = Math.round(today.dayMs / 60000);
+  const diff = yesterday ? Math.round((today.dayMs - yesterday.dayMs) / 60000) : 0;
+  const trend = diff === 0 ? "igual a ontem" : `${diff > 0 ? "+" : "−"}${Math.abs(diff)} min que ontem`;
+  return `<div class="wx-line wx-sun" title="Cálculo astronómico para ${escapeText(c.name)} (erro de ~1 min)">
+    <span>🌅 Nasce ${hm(today.rise)}</span><span>🌇 Põe-se ${hm(today.set)}</span>
+    <span>☀️ ${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, "0")} de luz · ${trend}</span></div>`;
+}
+
 /* ── IPMA Meteorologia ── */
 async function loadWeather(force=false){
   $("wx-body").innerHTML=skeletonWeather();
@@ -96,6 +142,7 @@ async function loadWeather(force=false){
         <div class="wx-tlbl">mínima / máxima previstas para hoje</div>
         <div class="wx-desc">${desc}</div><div class="wx-loc">${window.nfr(city)} · Portugal</div></div></div>
       <div class="wx-line"><span>💧 Chuva ${window.nf(rain,0)}%</span><span>💨 ${escapeText(windTxt)}</span></div>
+      ${renderDaylight(id)}
       <div class="wx-warnings" id="wx-warnings" aria-live="polite"><div class="wx-warning-note">A verificar avisos IPMA…</div></div>
       <div class="fc-strip">${days.slice(0,5).map(e=>{
         const dn=e.forecastDate===todayStr?"Hoje":DAY_NAMES[new Date(e.forecastDate).getDay()],[fi]=wxIPMA(e.idWeatherType);
@@ -104,7 +151,7 @@ async function loadWeather(force=false){
           <div class="fc-td">${Math.round(parseFloat(e.tMin))}°</div>
           <div style="font-family:var(--mono);font-size:.74rem;color:var(--blue);margin-top:2px">${window.nf(parseFloat(e.precipitaProb||0), 0)}%</div>
         </div>`;}).join("")}</div>
-      <div class="src">✦ IPMA · previsão a 5 dias e avisos · atualizado às ${window.nfr(upd)}</div>`;
+      <div class="src">✦ IPMA · previsão a 5 dias e avisos · nascer/pôr do sol calculados · atualizado às ${window.nfr(upd)}</div>`;
     loadWeatherWarnings(id, city, force);
     window.renderPortugalBriefing?.();
   }catch(e){$("wx-body").innerHTML=er(e,{context:"Meteorologia IPMA",action:"clique em ↺ para atualizar"});notifyNonCriticalError("Meteorologia IPMA",e,"clique em ↺ para atualizar");}
@@ -121,5 +168,6 @@ async function loadWeather(force=false){
     window.loadHolidays?.();
   };
   window.activeWarnings = activeWarnings;
+  window.sunTimes = sunTimes;
   window.IPMA_WARNING_AREA = IPMA_WARNING_AREA;
 })();
