@@ -6,7 +6,7 @@
    openNotificationSettings, quickAddTicker, removeTicker, resetSettings, saveCabazEntry, saveSettings,
    selectExportFormat, setComfortDensity, setComfortMotion, _setOnByDataAttr, showTrendModal,
    skeletonKPIs, skeletonNews, skeletonTable, switchOil, switchSettingsTab, toggleAllCards,
-   toggleCardSelection, toggleCardVisibility, toggleNotifications */
+   toggleCardSelection, toggleCardVisibility, toggleNotifications, exportSelectPreset */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
 /* Relógio do cabeçalho: data e hora sem segundos (só reescreve quando muda) */
 function tick(){
@@ -3127,433 +3127,333 @@ document.addEventListener('click', (e) => {
 });
 
 function selectExportFormat(element, format) {
-  // Remover seleção anterior
   document.querySelectorAll('.export-option-item[data-format]').forEach(item => {
-    item.classList.remove('selected');
+    const on = item === element;
+    item.classList.toggle('selected', on);
+    item.setAttribute('aria-checked', String(on));
   });
-  
-  // Selecionar novo
-  element.classList.add('selected');
   exportState.format = format;
-  
-  console.log('Formato selecionado:', format);
+  updateExportButton();
+}
+
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+const EXPORT_SECTION_LABELS = { portugal: 'Portugal', economia: 'Economia', mercados: 'Mercados', mundo: 'Mundo' };
+
+function exportCardIsVisible(card) {
+  return !card.classList.contains('hidden') && !card.classList.contains('profile-hidden') && card.offsetParent !== null;
+}
+
+/** Título do card sem botões de ajuda ("?") nem outros controlos. */
+function exportCardName(card, id) {
+  const label = card.querySelector('.ch-lbl');
+  if (!label) return id;
+  const copy = label.cloneNode(true);
+  copy.querySelectorAll('button, [role="button"], .help-tip, [aria-hidden="true"]').forEach(el => el.remove());
+  return (copy.textContent || id).replace(/\s+/g, ' ').trim().replace(/\s*\?$/, '') || id;
 }
 
 function renderExportCardsList() {
   const list = document.getElementById('exportCardsList');
   if (!list) return;
-  
-  // Obter todos os cards visíveis
-  const cards = document.querySelectorAll('.card[data-card-id]');
-  exportState.allCards = [];
-  
-  cards.forEach(card => {
-    const cardId = card.dataset.cardId;
-    const label = card.querySelector('.ch-lbl');
-    const name = label ? label.textContent.trim() : cardId;
-    
-    exportState.allCards.push({
-      id: cardId,
-      name: name,
-      element: card
+
+  exportState.allCards = Array.from(document.querySelectorAll('[data-section-grid] > .card[data-card-id]')).map(card => {
+    const id = card.dataset.cardId;
+    const grid = card.closest('[data-section-grid]');
+    return {
+      id,
+      name: exportCardName(card, id),
+      section: EXPORT_SECTION_LABELS[grid?.dataset.sectionGrid] || 'Outros',
+      sectionKey: grid?.dataset.sectionGrid || 'outros',
+      visible: exportCardIsVisible(card),
+      element: card,
+    };
+  });
+
+  const groups = [];
+  exportState.allCards.forEach(card => {
+    let group = groups.find(g => g.key === card.sectionKey);
+    if (!group) groups.push(group = { key: card.sectionKey, label: card.section, cards: [] });
+    group.cards.push(card);
+  });
+
+  list.innerHTML = groups.map(group => `
+    <div class="export-group" data-export-group="${escapeHtml(group.key)}">
+      <label class="export-group-head">
+        <input type="checkbox" class="export-group-check" data-group="${escapeHtml(group.key)}">
+        <span>${escapeHtml(group.label)}</span>
+        <span class="export-group-count" data-group-count="${escapeHtml(group.key)}"></span>
+      </label>
+      <div class="export-group-cards">
+        ${group.cards.map(card => `
+          <label class="export-card-item${card.visible ? '' : ' is-hidden-card'}">
+            <input type="checkbox" class="export-card-check" value="${escapeHtml(card.id)}">
+            <span class="export-card-name">${escapeHtml(card.name)}</span>
+            ${card.visible ? '' : '<span class="export-card-desc">oculto</span>'}
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+
+  list.querySelectorAll('.export-card-check').forEach(input => {
+    input.addEventListener('change', () => setExportSelection(input.value, input.checked));
+  });
+  list.querySelectorAll('.export-group-check').forEach(input => {
+    input.addEventListener('change', () => {
+      exportState.allCards.filter(c => c.sectionKey === input.dataset.group).forEach(c => setExportSelection(c.id, input.checked, false));
+      syncExportChecks();
     });
   });
-  
-  // Renderizar lista
-  list.innerHTML = exportState.allCards.map(card => `
-    <button type="button" class="export-card-item" data-card-id="${card.id}" onclick="toggleCardSelection('${card.id}')">
-      <div class="export-card-checkbox"></div>
-      <div class="export-card-info">
-        <div class="export-card-name">${card.name}</div>
-        <div class="export-card-desc">${card.id}</div>
-      </div>
-    </button>
-  `).join('');
-  
-  console.log(`📋 ${exportState.allCards.length} cards disponíveis para exportação`);
+  syncExportChecks();
 }
 
-function toggleCardSelection(cardId) {
-  const item = document.querySelector(`.export-card-item[data-card-id="${cardId}"]`);
-  if (!item) return;
-  
-  const index = exportState.selectedCards.indexOf(cardId);
-  
-  if (index === -1) {
-    // Adicionar
-    exportState.selectedCards.push(cardId);
-    item.classList.add('selected');
-  } else {
-    // Remover
-    exportState.selectedCards.splice(index, 1);
-    item.classList.remove('selected');
-  }
-  
+function setExportSelection(cardId, on, sync = true) {
+  const has = exportState.selectedCards.includes(cardId);
+  if (on && !has) exportState.selectedCards.push(cardId);
+  if (!on && has) exportState.selectedCards = exportState.selectedCards.filter(id => id !== cardId);
+  if (sync) syncExportChecks();
+}
+
+/** Mantém caixas, contagens por secção e botão coerentes com exportState.selectedCards. */
+function syncExportChecks() {
+  const selected = new Set(exportState.selectedCards);
+  document.querySelectorAll('#exportCardsList .export-card-check').forEach(input => {
+    input.checked = selected.has(input.value);
+    input.closest('.export-card-item')?.classList.toggle('selected', input.checked);
+  });
+  document.querySelectorAll('#exportCardsList .export-group-check').forEach(input => {
+    const cards = exportState.allCards.filter(c => c.sectionKey === input.dataset.group);
+    const n = cards.filter(c => selected.has(c.id)).length;
+    input.checked = n > 0 && n === cards.length;
+    input.indeterminate = n > 0 && n < cards.length;
+    const count = document.querySelector(`[data-group-count="${input.dataset.group}"]`);
+    if (count) count.textContent = n ? `${n}/${cards.length}` : `${cards.length}`;
+  });
   updateExportButton();
 }
 
-function toggleAllCards() {
-  const allSelected = exportState.selectedCards.length === exportState.allCards.length;
-  
-  if (allSelected) {
-    // Desselecionar todos
-    exportState.selectedCards = [];
-    document.querySelectorAll('.export-card-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-    document.getElementById('toggleAllText').textContent = 'Todos';
-  } else {
-    // Selecionar todos
-    exportState.selectedCards = exportState.allCards.map(c => c.id);
-    document.querySelectorAll('.export-card-item').forEach(item => {
-      item.classList.add('selected');
-    });
-    document.getElementById('toggleAllText').textContent = 'Nenhum';
-  }
-  
-  updateExportButton();
+function exportSelectPreset(preset) {
+  // Ordem da página, para o PNG/PDF/CSV seguirem a ordem dos cards.
+  if (preset === 'all') exportState.selectedCards = exportState.allCards.map(c => c.id);
+  else if (preset === 'visible') exportState.selectedCards = exportState.allCards.filter(c => c.visible).map(c => c.id);
+  else exportState.selectedCards = [];
+  syncExportChecks();
 }
+
+/* Compatibilidade com chamadas antigas (onclick). */
+function toggleCardSelection(cardId) { setExportSelection(cardId, !exportState.selectedCards.includes(cardId)); }
+function toggleAllCards() { exportSelectPreset(exportState.selectedCards.length === exportState.allCards.length ? 'none' : 'all'); }
 
 function updateExportButton() {
   const btn = document.getElementById('exportBtn');
   if (!btn) return;
-  
   const count = exportState.selectedCards.length;
   btn.disabled = count === 0;
-  btn.textContent = count === 0 ? 'Exportar' : `Exportar (${count})`;
+  btn.textContent = count === 0 ? 'Escolha os cards' : `Exportar ${count} ${count === 1 ? 'card' : 'cards'}`;
 }
 
 // ──────────────────────────────────────────────────────────────
 // EXPORTAÇÃO - Diferentes formatos
 // ──────────────────────────────────────────────────────────────
 
+/** Cards escolhidos, pela ordem da página. */
+function selectedExportCards() {
+  const selected = new Set(exportState.selectedCards);
+  return exportState.allCards.filter(c => selected.has(c.id));
+}
+
+function exportStamp(now = new Date()) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => { link.remove(); URL.revokeObjectURL(url); }, 1500);
+}
+
 async function executeExport() {
   if (exportState.selectedCards.length === 0) {
-    window.showNotice('Exportação', 'Selecione pelo menos um card para exportar.', 'warn');
+    window.showNotice('Exportação', 'Escolha pelo menos um card para exportar.', 'warn');
     return;
   }
-  
-  console.log(`🚀 Iniciando exportação (${exportState.format})...`);
-  console.log('Cards selecionados:', exportState.selectedCards);
-  
-  // Mostrar progress
   const progress = document.getElementById('exportProgress');
-  if (progress) {
-    progress.classList.add('active');
-  }
-  
+  progress?.classList.add('active');
+  const btn = document.getElementById('exportBtn');
+  if (btn) btn.disabled = true;
   try {
-    switch (exportState.format) {
-      case 'png':
-        console.log('📸 Executando exportAsPNG...');
-        await exportAsPNG();
-        break;
-      case 'pdf':
-        console.log('📄 Executando exportAsPDF...');
-        await exportAsPDF();
-        break;
-      case 'csv':
-        console.log('📊 Executando exportAsCSV...');
-        await exportAsCSV();
-        break;
-      case 'json':
-        console.log('💾 Executando exportAsJSON...');
-        await exportAsJSON();
-        break;
-    }
-    
-    console.log('✅ Exportação concluída com sucesso!');
-    showExportSuccess(`Exportação ${exportState.format.toUpperCase()} concluída!`);
-    
-    setTimeout(() => {
-      closeExportModal();
-    }, 1000);
-    
+    const run = { png: exportAsPNG, pdf: exportAsPDF, csv: exportAsCSV, json: exportAsJSON }[exportState.format];
+    await run();
+    showExportSuccess(`Exportação ${exportState.format.toUpperCase()} concluída.`);
+    setTimeout(() => closeExportModal(), 1000);
   } catch (error) {
-    console.error('❌ Erro na exportação:', error);
-    console.error('Stack trace:', error.stack);
+    console.error('Erro na exportação:', error);
     window.showNotice('Erro ao exportar', error?.message || 'Erro inesperado (detalhes na consola).', 'error');
   } finally {
-    if (progress) {
-      progress.classList.remove('active');
-    }
+    progress?.classList.remove('active');
+    updateExportButton();
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// PNG Export (usando html2canvas)
-// ──────────────────────────────────────────────────────────────
-
-async function exportAsPNG() {
-  updateProgress(10, 'Carregando biblioteca...');
-  
-  // Carregar html2canvas dinamicamente
+/* Captura de cada card (html2canvas), com o fundo do tema. */
+async function captureExportCards(cards, scale) {
   if (!window.html2canvas) {
+    updateProgress(5, 'A carregar a biblioteca de imagem…');
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
   }
-  
-  updateProgress(30, 'Capturando cards...');
-  
-  const selectedCardElements = exportState.selectedCards.map(id => {
-    return exportState.allCards.find(c => c.id === id)?.element;
-  }).filter(Boolean);
-  
-  // Exportar cada card como PNG
-  for (let i = 0; i < selectedCardElements.length; i++) {
-    const card = selectedCardElements[i];
-    const cardId = card.dataset.cardId;
-    
-    updateProgress(30 + (i / selectedCardElements.length) * 60, `Exportando ${cardId}...`);
-    
-    const canvas = await html2canvas(card, {
-      backgroundColor: '#0F1220',
-      scale: 2 // 2x para melhor qualidade
-    });
-    
-    // Download
-    const link = document.createElement('a');
-    link.download = `painel-${cardId}-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    
-    // Pequeno delay entre downloads
-    await new Promise(resolve => { setTimeout(resolve, 300); });
+  const bg = window.getComputedStyle(document.body).backgroundColor || '#0C0E13';
+  const shots = [];
+  for (let i = 0; i < cards.length; i++) {
+    updateProgress(10 + (i / cards.length) * 70, `A capturar ${cards[i].name}…`);
+    shots.push({ card: cards[i], canvas: await html2canvas(cards[i].element, { backgroundColor: bg, scale, logging: false }) });
   }
-  
-  updateProgress(100, 'Concluído!');
+  return { shots, bg };
 }
 
-// ──────────────────────────────────────────────────────────────
-// PDF Export (usando jsPDF)
-// ──────────────────────────────────────────────────────────────
+const EXPORT_SITE = 'lcmadeira.github.io/dash';
 
+function exportDateText(now = new Date()) {
+  return now.toLocaleString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// PNG: uma só imagem com os cards em coluna, cabeçalho e rodapé.
+async function exportAsPNG() {
+  const cards = selectedExportCards();
+  const scale = cards.length > 8 ? 1 : 1.5;
+  const { shots, bg } = await captureExportCards(cards, scale);
+  updateProgress(85, 'A montar a imagem…');
+  const pad = Math.round(24 * scale);
+  const gap = Math.round(16 * scale);
+  const head = Math.round(64 * scale);
+  const foot = Math.round(40 * scale);
+  const width = Math.max(...shots.map(s => s.canvas.width)) + pad * 2;
+  const MAX_H = 30000; // limite prático de altura de um canvas no Chrome
+  const pages = [];
+  let current = [];
+  let h = head + foot + pad;
+  shots.forEach(s => {
+    const add = s.canvas.height + gap;
+    if (current.length && h + add > MAX_H) { pages.push(current); current = []; h = head + foot + pad; }
+    current.push(s); h += add;
+  });
+  if (current.length) pages.push(current);
+
+  const textColor = window.getComputedStyle(document.body).color || '#E7EAF0';
+  const stamp = exportStamp();
+  for (let p = 0; p < pages.length; p++) {
+    const group = pages[p];
+    const height = head + foot + pad + group.reduce((a, s) => a + s.canvas.height + gap, 0);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = textColor;
+    ctx.font = `700 ${Math.round(22 * scale)}px Inter, system-ui, sans-serif`;
+    ctx.fillText('Portugal hoje', pad, Math.round(36 * scale));
+    ctx.globalAlpha = 0.65;
+    ctx.font = `500 ${Math.round(13 * scale)}px Inter, system-ui, sans-serif`;
+    ctx.fillText(`${exportDateText()}${pages.length > 1 ? ` · parte ${p + 1} de ${pages.length}` : ''}`, pad, Math.round(56 * scale));
+    ctx.globalAlpha = 1;
+    let y = head;
+    group.forEach(s => { ctx.drawImage(s.canvas, pad, y); y += s.canvas.height + gap; });
+    ctx.globalAlpha = 0.6;
+    ctx.font = `500 ${Math.round(12 * scale)}px Inter, system-ui, sans-serif`;
+    ctx.fillText(`${EXPORT_SITE} · valores indicativos; confirme na fonte de cada card`, pad, height - Math.round(16 * scale));
+    ctx.globalAlpha = 1;
+    const blob = await new Promise(resolve => { canvas.toBlob(resolve, 'image/png'); });
+    if (!blob) throw new Error('Não foi possível gerar a imagem (demasiado grande?). Experimente com menos cards.');
+    downloadBlob(blob, `portugal-hoje_${stamp}${pages.length > 1 ? `_${p + 1}` : ''}.png`);
+  }
+  updateProgress(100, 'Concluído');
+}
+
+// PDF: um card por página, redimensionado para caber, com cabeçalho e rodapé.
 async function exportAsPDF() {
-  updateProgress(10, 'Carregando biblioteca...');
-  
-  // Carregar jsPDF
+  const cards = selectedExportCards();
   if (!window.jspdf) {
+    updateProgress(3, 'A carregar a biblioteca de PDF…');
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
   }
-  
-  updateProgress(30, 'Gerando PDF...');
-  
+  const { shots } = await captureExportCards(cards, 1.5);
+  updateProgress(85, 'A montar o PDF…');
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('p', 'mm', 'a4');
-  
-  // Carregar html2canvas também
-  if (!window.html2canvas) {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-  }
-  
-  const selectedCardElements = exportState.selectedCards.map(id => {
-    return exportState.allCards.find(c => c.id === id)?.element;
-  }).filter(Boolean);
-  
-  for (let i = 0; i < selectedCardElements.length; i++) {
-    const card = selectedCardElements[i];
-    const cardId = card.dataset.cardId;
-    
-    updateProgress(30 + (i / selectedCardElements.length) * 60, `Capturando ${cardId}...`);
-    
-    if (i > 0) {
-      pdf.addPage();
-    }
-    
-    const canvas = await html2canvas(card, {
-      backgroundColor: '#0F1220',
-      scale: 2
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const imgWidth = 190;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    pdf.text(card.querySelector('.ch-lbl')?.textContent || cardId, 10, 10);
-    pdf.addImage(imgData, 'PNG', 10, 15, imgWidth, imgHeight);
-  }
-  
-  updateProgress(90, 'Salvando PDF...');
-  
-  pdf.save(`painel-portugal-${Date.now()}.pdf`);
-  
-  updateProgress(100, 'Concluído!');
+  const pageW = 210, pageH = 297, margin = 12, top = 26, bottom = 16;
+  const when = exportDateText();
+  shots.forEach((s, i) => {
+    if (i > 0) pdf.addPage();
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(14); pdf.setTextColor(20);
+    pdf.text('Portugal hoje', margin, 14);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.setTextColor(110);
+    pdf.text(`${s.card.name} · ${s.card.section} · ${when}`, margin, 20);
+    const maxW = pageW - margin * 2;
+    const maxH = pageH - top - bottom;
+    let w = maxW;
+    let h = (s.canvas.height * w) / s.canvas.width;
+    if (h > maxH) { h = maxH; w = (s.canvas.width * h) / s.canvas.height; }
+    // JPEG: fundo liso, ~10x mais leve do que PNG para capturas de cards.
+    pdf.addImage(s.canvas.toDataURL('image/jpeg', 0.88), 'JPEG', margin + (maxW - w) / 2, top, w, h);
+    pdf.setFontSize(8); pdf.setTextColor(130);
+    pdf.text(`${EXPORT_SITE} · valores indicativos; confirme na fonte indicada no card`, margin, pageH - 8);
+    pdf.text(`${i + 1}/${shots.length}`, pageW - margin, pageH - 8, { align: 'right' });
+  });
+  pdf.save(`portugal-hoje_${exportStamp()}.pdf`);
+  updateProgress(100, 'Concluído');
 }
 
-// ──────────────────────────────────────────────────────────────
-// CSV Export
-// ──────────────────────────────────────────────────────────────
+/** Leitor de cache para a exportação: devolve também dados expirados, com a data e a fonte. */
+function readExportCache(key) {
+  try {
+    const raw = localStorage.getItem((window.PFX || 'dash_v15_') + key);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || !Object.prototype.hasOwnProperty.call(parsed, 'd')) return null;
+    const meta = window.getCacheMeta?.(key);
+    return { d: parsed.d, sourceTs: meta?.sourceTs || Number(parsed.ts) || null, source: meta?.dataMeta?.source || '' };
+  } catch { return null; }
+}
+
+function exportRows() {
+  // Texto visível do card sem o cabeçalho (título e botões), para os cards sem extrator.
+  const cards = selectedExportCards().map(c => ({ id: c.id, name: c.name, section: c.section,
+    text: Array.from(c.element.children).filter(el => !el.classList.contains('ch')).map(el => el.innerText || '').join(' ') }));
+  const cityId = Number(CFG?.IPMA_CITY_ID || 1110600);
+  return window.buildExportRows(cards, {
+    read: readExportCache,
+    now: Date.now(),
+    cityId,
+    cityName: IPMA_CITIES?.[cityId] || '',
+    summarizeFuelEvora: window.summarizeFuelEvora,
+    cabaz: window.getCabazBriefingData,
+    statusOf: id => {
+      const title = document.querySelector(`.card-status[data-status-for="${id}"]`)?.title || '';
+      return {
+        source: /Fonte: (.+?)(?= · Observado:| · Idade baseada| · Fonte:|$)/.exec(title)?.[1] || /^(.+?) · referência de /.exec(title)?.[1] || '',
+        observedAt: /Observado: ([^·]+)/.exec(title)?.[1]?.trim() || /referência de ([^·]+)/.exec(title)?.[1]?.trim() || '',
+      };
+    },
+  });
+}
 
 async function exportAsCSV() {
-  updateProgress(20, 'Coletando dados...');
-  
-  const data = [];
-  
-  // Header
-  data.push(['Card', 'Tipo', 'Valor', 'Unidade', 'Timestamp']);
-  
-  // Extrair dados de cada card
-  exportState.selectedCards.forEach((cardId, index) => {
-    const card = exportState.allCards.find(c => c.id === cardId);
-    if (!card) return;
-    
-    updateProgress(20 + (index / exportState.selectedCards.length) * 70, `Extraindo ${cardId}...`);
-    
-    const element = card.element;
-    const name = card.name;
-    
-    // Tentar extrair valores numéricos do card
-    const values = element.querySelectorAll('[class*="val"], [class*="price"], [class*="temp"]');
-    
-    values.forEach(val => {
-      const text = val.textContent.trim();
-      const number = text.match(/[\d,.]+/);
-      const unit = text.replace(/[\d,.]+/, '').trim();
-      
-      data.push([
-        name,
-        cardId,
-        number ? number[0] : text,
-        unit,
-        new Date().toISOString()
-      ]);
-    });
-  });
-  
-  updateProgress(90, 'Gerando CSV...');
-  
-  // Converter para CSV
-  const csv = data.map(row => row.join(',')).join('\n');
-  
-  console.log('CSV gerado:', csv.substring(0, 200) + '...');
-  console.log('Linhas:', data.length);
-  
-  // Download
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const filename = `painel-dados-${Date.now()}.csv`;
-  const link = document.createElement('a');
-  link.style.display = 'none';
-  link.href = url;
-  link.download = filename;
-  link.setAttribute('download', filename);
-  
-  document.body.appendChild(link);
-  
-  setTimeout(() => {
-    link.click();
-    console.log('✅ CSV download iniciado');
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 1000);
-  }, 100);
-  
-  updateProgress(100, 'Concluído!');
+  updateProgress(30, 'A recolher os dados…');
+  const rows = exportRows();
+  updateProgress(80, 'A gerar o CSV…');
+  downloadBlob(new Blob([window.exportRowsToCsv(rows)], { type: 'text/csv;charset=utf-8' }), `portugal-hoje_${exportStamp()}.csv`);
+  updateProgress(100, 'Concluído');
 }
 
-// ──────────────────────────────────────────────────────────────
-// JSON Export
-// ──────────────────────────────────────────────────────────────
-
 async function exportAsJSON() {
-  console.log('💾 Iniciando exportAsJSON...');
-  updateProgress(20, 'Coletando dados...');
-  
-  const exportData = {
-    metadata: {
-      exportDate: new Date().toISOString(),
-      format: 'JSON',
-      version: '1.0',
-      source: 'Painel Pessoal Portugal'
-    },
-    cards: []
-  };
-  
-  console.log(`Processando ${exportState.selectedCards.length} cards...`);
-  
-  exportState.selectedCards.forEach((cardId, index) => {
-    console.log(`  Card ${index + 1}/${exportState.selectedCards.length}: ${cardId}`);
-    
-    const card = exportState.allCards.find(c => c.id === cardId);
-    if (!card) {
-      console.warn(`  ⚠️ Card ${cardId} não encontrado!`);
-      return;
-    }
-    
-    updateProgress(20 + (index / exportState.selectedCards.length) * 70, `Extraindo ${cardId}...`);
-    
-    const element = card.element;
-    
-    const cardData = {
-      id: cardId,
-      name: card.name,
-      type: cardId.split('-')[0],
-      data: {},
-      html: element.innerHTML.substring(0, 500) // Preview
-    };
-    
-    // Extrair dados estruturados
-    const values = element.querySelectorAll('[class*="val"], [class*="price"], [class*="temp"], [class*="kpi"]');
-    
-    console.log(`    Encontrados ${values.length} valores`);
-    
-    values.forEach((val, i) => {
-      const key = val.className.split(' ')[0] || `value_${i}`;
-      cardData.data[key] = val.textContent.trim();
-    });
-    
-    exportData.cards.push(cardData);
-  });
-  
-  updateProgress(90, 'Gerando JSON...');
-  
-  console.log('Dados coletados:', exportData);
-  
-  // Download
-  const json = JSON.stringify(exportData, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const filename = `painel-dados-${Date.now()}.json`;
-  
-  console.log('Criando link de download:', filename);
-  console.log('Blob size:', blob.size, 'bytes');
-  console.log('Blob URL:', url);
-  
-  // Criar link e forçar download
-  const link = document.createElement('a');
-  link.style.display = 'none';
-  link.href = url;
-  link.download = filename;
-  link.setAttribute('download', filename); // Garantir atributo
-  
-  // Adicionar ao DOM (necessário em alguns browsers)
-  document.body.appendChild(link);
-  
-  // Click com delay para garantir que DOM está pronto
-  setTimeout(() => {
-    try {
-      link.click();
-      console.log('✅ Click executado no link');
-    } catch (e) {
-      console.error('❌ Erro ao clicar:', e);
-      // Fallback: abrir em nova janela
-      window.open(url, '_blank');
-    }
-    
-    // Cleanup após delay maior
-    setTimeout(() => {
-      try {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        console.log('🧹 Cleanup concluído');
-      } catch (e) {
-        console.warn('Aviso no cleanup:', e);
-      }
-    }, 1000);
-  }, 100);
-  
-  updateProgress(100, 'Concluído!');
-  console.log('✅ JSON exportado com sucesso!');
+  updateProgress(30, 'A recolher os dados…');
+  const rows = exportRows();
+  updateProgress(80, 'A gerar o JSON…');
+  downloadBlob(new Blob([window.exportRowsToJson(rows)], { type: 'application/json' }), `portugal-hoje_${exportStamp()}.json`);
+  updateProgress(100, 'Concluído');
 }
 
 // ──────────────────────────────────────────────────────────────
