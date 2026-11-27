@@ -164,13 +164,34 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.cost-of-living{margin-top:9px;padding:9px 11px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t2);font-size:.74rem}
 	.cost-of-living summary{cursor:pointer;color:var(--blue);font-weight:700}
 	.cost-of-living p,.cost-of-living-note{display:block;margin:7px 0;color:var(--t3);font-size:.74rem;line-height:1.5}
-	.cost-of-living-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+	.cost-of-living-fields{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px}
 	.cost-of-living-fields label{display:flex;flex-direction:column;gap:4px;color:var(--t2);font-size:.74rem}
-	.cost-of-living-fields input{width:100%;box-sizing:border-box;padding:7px;border:1px solid var(--b);border-radius:6px;background:var(--card);color:var(--text);font: .62rem var(--mono)}
-	.cost-of-living output{display:block;margin-top:8px;color:var(--green);font:700 .68rem var(--mono)}
+	.cost-of-living-fields input{width:120px;box-sizing:border-box;padding:6px 8px;border:1px solid var(--b2);border-radius:6px;background:var(--card);color:var(--text);font: .8rem var(--mono)}
+	.cost-of-living output{display:block;margin-top:9px;color:var(--green);font:700 .78rem var(--mono);line-height:1.5}
+	.cost-of-living output.is-hint,.briefing-tool output.is-hint{color:var(--t3);font-weight:400}
 	.offline-banner{position:sticky;top:0;z-index:30;padding:9px 12px;background:#513b0b;color:#fff2c2;text-align:center;font-size:.74rem}
 	.offline-banner a{margin-left:6px;color:#fff;font-weight:700;text-underline-offset:2px}
 	.offline-banner[hidden]{display:none}
+	.briefing-tool{display:flex;flex-direction:column;gap:8px;margin:0 0 9px;padding:10px 12px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);font-size:.78rem;color:var(--t2)}
+	.briefing-tool-head{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+	.briefing-tool-head strong{color:var(--text);font-size:.85rem;margin-right:4px}
+	.briefing-seg{display:inline-flex;border:1px solid var(--b2);border-radius:6px;overflow:hidden}
+	.briefing-seg button{padding:5px 10px;border:0;background:var(--card);color:var(--t2);font-size:.74rem;cursor:pointer}
+	.briefing-seg button+button{border-left:1px solid var(--b2)}
+	.briefing-seg button.on{background:var(--accent);color:#0a0d1c;font-weight:700}
+	.briefing-seg button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+	.briefing-tool-price{color:var(--t3);font-size:.74rem}
+	.briefing-tool-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+	.briefing-tool-row input{width:110px;padding:6px 8px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font: .8rem var(--mono)}
+	.briefing-tool-row input:focus-visible,.cost-of-living-fields input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+	.briefing-tool output{color:var(--green);font:700 .85rem var(--mono)}
+	.briefing-spark-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+	.briefing-spark-list li{display:grid;grid-template-columns:minmax(150px,220px) 120px 1fr;align-items:center;gap:12px}
+	.briefing-spark-name{color:var(--t2)}
+	.briefing-spark{color:var(--blue);display:block}
+	.briefing-spark-empty{color:var(--t3);font-size:.7rem}
+	.briefing-spark-val b{color:var(--text);font-family:var(--mono);font-weight:600}
+	.briefing-spark-val span{color:var(--t3)}
 	.briefing-impact{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 9px;padding:10px 12px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface)}
 	.briefing-impact label{display:flex;flex-direction:column;gap:3px;color:var(--t2);font-size:.74rem}
 	.briefing-impact label span{color:var(--t3);font-size:.74rem}
@@ -178,7 +199,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-impact input{width:135px;padding:6px 8px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font: .62rem var(--mono)}
 	.briefing-impact input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 	.briefing-impact output{min-width:125px;color:var(--green);font:700 .76rem var(--mono)}
-	.briefing-fuel-alert{display:grid;gap:6px;flex-basis:100%;padding-top:7px;border-top:1px solid var(--b);font-size:.74rem;color:var(--t2)}
+	.briefing-fuel-alert{display:grid;gap:6px;padding-top:7px;border-top:1px solid var(--b);font-size:.74rem;color:var(--t2)}
 	.briefing-fuel-alert summary{cursor:pointer;color:var(--blue)}
 	.briefing-fuel-alert label{display:block}
 	.briefing-fuel-alert button{padding:6px 9px;border:1px solid var(--b2);border-radius:5px;background:var(--card);color:var(--text);font-size:.74rem;cursor:pointer}
@@ -219,7 +240,10 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   .hdr-center{order:2}
   .hdr-right{order:3;justify-content:center}
   .briefing-grid{grid-template-columns:1fr}
-  .cost-of-living-fields{grid-template-columns:1fr}
+  .cost-of-living-fields input{width:100%}
+  .cost-of-living-fields label{flex:1 1 100%}
+  .briefing-spark-list li{grid-template-columns:1fr 100px;gap:4px 10px}
+  .briefing-spark-list li .briefing-spark-val{grid-column:1/-1}
   .briefing-impact{align-items:flex-start;flex-direction:column}
   .briefing-impact-control{width:100%;flex-wrap:wrap}
   .briefing-impact input{flex:1}
@@ -3419,7 +3443,8 @@ textarea.nta::placeholder{color:var(--t3)}
   .briefing-item{min-height:44px;padding:12px}
   .briefing-preference-options label{min-height:40px;padding:4px 2px}
   .briefing-preference-options input{width:18px;height:18px}
-  .briefing-impact input,.cost-of-living-fields input{min-height:44px;font-size:16px}
+  .briefing-impact input,.cost-of-living-fields input,.briefing-tool-row input{min-height:44px;font-size:16px}
+  .briefing-seg button{min-height:40px}
   .briefing-fuel-alert button{min-height:44px;padding:9px 12px}
 }
 

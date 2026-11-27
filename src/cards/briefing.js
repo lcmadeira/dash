@@ -12,9 +12,16 @@
   const LEGACY_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
   const GROUP_LABELS = { weather: "Meteorologia", holidays: "Feriados", fuel: "Combustível", basket: "Cabaz alimentar", inflation: "Inflação", euribor: "Euribor" };
   const OBSERVATION_HISTORY_DAYS = 90;
+  /* Histórico local: os grupos do resumo mais séries só de histórico (gasóleo nacional e mais barato em Évora). */
+  const HISTORY_ONLY = { diesel: "Gasóleo · média nacional", dieselEvora: "Gasóleo · mais barato em Évora" };
+  const HISTORY_GROUPS = [...BRIEFING_GROUPS, ...Object.keys(HISTORY_ONLY)];
+  const FUEL_CHOICE_KEY = (window.PFX || "dash_v15_") + "briefing_fuel_choice_v1";
+  const FUEL_CHOICES = { fuel: ["gasoline_95", "diesel"], ref: ["national", "evora"] };
+  const FUEL_LABELS = { gasoline_95: "Gasolina 95", diesel: "Gasóleo" };
   let briefingPreferencesMemory = null;
   let currentFuelPrice = null;
   let currentFuelObserved = null;
+  let currentFuelLabel = "Gasolina 95";
   let lastVisitSnapshotSavedAt = 0;
   let lastVisitSnapshot = readVisitSnapshot();
   let currentVisitSnapshot = {};
@@ -47,7 +54,7 @@
       const parsed = JSON.parse(window.localStorage?.getItem(OBSERVATION_HISTORY_KEY) || "{}");
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
       const cutoff = Date.now() - OBSERVATION_HISTORY_DAYS * 86400000;
-      return Object.fromEntries(BRIEFING_GROUPS.map(group => [group, Array.isArray(parsed[group])
+      return Object.fromEntries(HISTORY_GROUPS.map(group => [group, Array.isArray(parsed[group])
         ? parsed[group].filter(item => Number.isFinite(item?.timestamp) && item.timestamp >= cutoff && item.timestamp <= Date.now() &&
           (Number.isFinite(item?.snapshot) || Array.isArray(item?.snapshot) && item.snapshot.length <= 4 && item.snapshot.every(part => part === null || Number.isFinite(part))))
           .sort((a, b) => a.timestamp - b.timestamp).slice(-OBSERVATION_HISTORY_DAYS)
@@ -59,7 +66,7 @@
     const history = readObservationHistory();
     const cutoff = Date.now() - OBSERVATION_HISTORY_DAYS * 86400000;
     observations.forEach(item => {
-      if (!BRIEFING_GROUPS.includes(item.group) || item.snapshot === undefined || !Number.isFinite(item.observedAt)) return;
+      if (!HISTORY_GROUPS.includes(item.group) || item.snapshot === undefined || !Number.isFinite(item.observedAt)) return;
       const rows = history[item.group] || [];
       const date = new Date(item.observedAt).toISOString().slice(0, 10);
       const validSnapshot = Number.isFinite(item.snapshot) || Array.isArray(item.snapshot) && item.snapshot.length <= 4 && item.snapshot.every(Number.isFinite);
@@ -76,7 +83,7 @@
 
   function historyDelta(group, previous, current) {
     const delta = (a, b, digits = 1) => `${b - a > 0 ? "+" : ""}${(b - a).toFixed(digits).replace(".", ",")}`;
-    if (group === "fuel") return `${delta(previous / 1000, current / 1000, 3)} €/L`;
+    if (group === "fuel" || group in HISTORY_ONLY) return `${delta(previous / 1000, current / 1000, 3)} €/L`;
     if (group === "basket") return `${delta(previous / 100, current / 100, 2)} €`;
     if (group === "weather") {
       if (!Number.isFinite(previous[0]) || !Number.isFinite(current[0])) return "";
@@ -91,19 +98,59 @@
     return "";
   }
 
+  /** Valor numérico de um snapshot para o gráfico (e a unidade a mostrar). */
+  function sparkValue(group, snapshot) {
+    if (group === "fuel" || group in HISTORY_ONLY) return Number.isFinite(snapshot) ? snapshot / 1000 : null;
+    if (group === "basket") return Number.isFinite(snapshot) ? snapshot / 100 : null;
+    if (Array.isArray(snapshot)) return Number.isFinite(snapshot[0]) ? snapshot[0] : null;
+    return null;
+  }
+  const SPARK_FORMAT = {
+    weather: v => `${Math.round(v)} °C máx.`,
+    fuel: v => `${v.toFixed(3).replace(".", ",")} €/L`,
+    diesel: v => `${v.toFixed(3).replace(".", ",")} €/L`,
+    dieselEvora: v => `${v.toFixed(3).replace(".", ",")} €/L`,
+    basket: v => eur(v),
+    inflation: v => `${v.toFixed(1).replace(".", ",")}%`,
+    euribor: v => `3M ${v.toFixed(3).replace(".", ",")}%`,
+  };
+  const SPARK_TITLES = { weather: "Meteorologia · máxima", fuel: "Gasolina 95 · média nacional", basket: "Cabaz alimentar", inflation: "Inflação PT", euribor: "Euribor 3M", ...HISTORY_ONLY };
+
+  /** Mini gráfico SVG (linha) de uma série; devolve "" com menos de 2 pontos. */
+  function sparkline(values, label) {
+    const points = values.filter(Number.isFinite);
+    if (points.length < 2) return "";
+    const w = 120, h = 30, pad = 3;
+    const min = Math.min(...points), max = Math.max(...points);
+    const span = max - min || 1;
+    const xy = points.map((v, i) => [pad + i * (w - 2 * pad) / (points.length - 1), h - pad - (v - min) / span * (h - 2 * pad)]);
+    const path = xy.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+    const [lx, ly] = xy[xy.length - 1];
+    return `<svg class="briefing-spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${escapeHTML(label)}"><path d="${path}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.4" fill="currentColor"/></svg>`;
+  }
+
   function renderObservationHistory(observations, visibleObservations = observations) {
     const root = document.getElementById("briefingHistory");
     if (!root) return;
     const history = saveObservationHistory(observations);
-    const rows = visibleObservations.flatMap(item => {
-      const prior = (history[item.group] || []).filter(entry => entry.timestamp < item.observedAt);
-      if (!prior.length || item.snapshot === undefined) return [];
-      const reference = prior[prior.length - 1];
-      const delta = historyDelta(item.group, reference.snapshot, item.snapshot);
-      return delta ? [`<li><strong>${escapeHTML(item.title)}</strong>: ${escapeHTML(delta)} desde ${formatDate(reference.timestamp)} · ${prior.length + 1} observações locais</li>`] : [];
+    const visibleGroups = visibleObservations.flatMap(item => item.group === "fuel"
+      ? ["fuel", ...Object.keys(HISTORY_ONLY)]
+      : [item.group]);
+    const rows = visibleGroups.flatMap(group => {
+      const entries = history[group] || [];
+      if (!entries.length) return [];
+      const values = entries.map(entry => sparkValue(group, entry.snapshot));
+      const last = entries[entries.length - 1];
+      const first = entries[0];
+      const current = sparkValue(group, last.snapshot);
+      if (!Number.isFinite(current)) return [];
+      const delta = entries.length > 1 ? historyDelta(group, first.snapshot, last.snapshot) : "";
+      const title = SPARK_TITLES[group] || group;
+      const spark = sparkline(values, `${title}: ${entries.length} observações desde ${formatDate(first.timestamp)}`);
+      return [`<li><span class="briefing-spark-name">${escapeHTML(title)}</span>${spark || '<span class="briefing-spark-empty">a reunir dados</span>'}<span class="briefing-spark-val"><b>${escapeHTML(SPARK_FORMAT[group]?.(current) ?? String(current))}</b>${delta ? ` <span>${escapeHTML(delta)} desde ${formatDate(first.timestamp)}</span>` : ""}</span></li>`];
     });
     root.innerHTML = rows.length
-      ? `<strong>Tendência local (até 90 dias; amostras recolhidas neste browser)</strong><ul>${rows.join("")}</ul>`
+      ? `<strong>Tendência local · até 90 dias, uma observação por dia, guardada só neste browser</strong><ul class="briefing-spark-list">${rows.join("")}</ul>`
       : "Histórico local: a reunir observações diárias com fonte e data; guardado apenas neste browser.";
   }
   const MATERIAL_CHANGE = { weather: [2, 20], fuel: 10, basket: 100, inflation: 0.1, euribor: 0.05 };
@@ -123,6 +170,7 @@
     const root = document.getElementById("briefingBody");
     if (!root) return;
     const observations = [];
+    const historyExtras = [];
 
     const cityId = Number(window.CFG?.IPMA_CITY_ID || 1110600);
     const weather = window.lsGet?.(`ipma_${cityId}`);
@@ -140,7 +188,7 @@
         title: "Meteorologia",
         value: `${Number.isFinite(tempMin) ? `${Math.round(tempMin)}° / ` : ""}${Math.round(tempMax)}°C${Number.isFinite(rain) ? ` · ${Math.round(rain)}% de chuva` : ""}`,
         extra: weatherWarningText(cityId, now),
-        warn: Boolean(weatherWarningText(cityId, now)),
+        warn: /^⚠/.test(weatherWarningText(cityId, now)),
         detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · IPMA · ${formatDateTime(weatherObserved)}`,
         href: "#card-weather",
         snapshot: [Math.round(tempMax), Number.isFinite(rain) ? Math.round(rain) : null],
@@ -159,12 +207,7 @@
     const gas95 = Array.isArray(fuel) ? fuel.find(item => item?.fuel_slug === "gasoline_95") : null;
     const fuelObserved = Date.parse(gas95?.updated_at || "");
     const fuelPrice = Number(gas95?.avg_price_eur);
-    currentFuelPrice = null;
-    currentFuelObserved = null;
     if (gas95 && Number.isFinite(fuelObserved) && now >= fuelObserved && now - fuelObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(fuelPrice) && fuelPrice > 0) {
-      currentFuelPrice = fuelPrice;
-      currentFuelObserved = fuelObserved;
-      checkFuelAlert(fuelPrice, fuelObserved);
       const esObserved = Number(fuelEs?.ts);
       // Margem de 2 h: caches antigas guardaram a hora de Madrid como se fosse de Lisboa.
       const esIsFresh = Number.isFinite(esObserved) && now >= esObserved - 2 * 3600000 && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000;
@@ -187,6 +230,11 @@
         snapshot: Math.round(fuelPrice * 1000),
         observedAt: fuelObserved,
       });
+      if (Number.isFinite(dieselPrice) && dieselPrice > 0) historyExtras.push({ group: "diesel", title: HISTORY_ONLY.diesel, value: `${dieselPrice.toFixed(3).replace(".", ",")} €/L`, snapshot: Math.round(dieselPrice * 1000), observedAt: fuelObserved });
+      const evora = evoraCheapest(fuel, "diesel");
+      if (evora && Number.isFinite(evora.observedAt) && now >= evora.observedAt && now - evora.observedAt <= MAX_FUEL_AGE_HOURS * 3600000) {
+        historyExtras.push({ group: "dieselEvora", title: HISTORY_ONLY.dieselEvora, value: `${evora.price.toFixed(3).replace(".", ",")} €/L`, snapshot: Math.round(evora.price * 1000), observedAt: evora.observedAt });
+      }
     } else if (fuelCache?.age > MAX_FUEL_AGE_HOURS * 3600000) {
       observations.push({ group: "fuel", title: "Combustível", value: "Preço desatualizado", detail: `Cache local há ${window.fmtAgeShort?.(fuelCache.age) || "mais de 72h"}`, href: "#card-fuel", stale: true });
     }
@@ -264,7 +312,8 @@
     observations.forEach(item => {
       if (item.snapshot !== undefined) currentVisitSnapshot[item.group] = { snapshot: item.snapshot, value: item.value, observedAt: item.observedAt };
     });
-    renderObservationHistory(observations, visibleObservations);
+    renderObservationHistory([...observations, ...historyExtras], visibleObservations);
+    selectToolFuel(now);
     bindBriefingNavigation();
     const offlineSnapshot = window.navigator?.onLine === false && lastVisitSnapshot && lastVisitSnapshotSavedAt > 0 &&
       now >= lastVisitSnapshotSavedAt && now - lastVisitSnapshotSavedAt <= OBSERVATION_HISTORY_DAYS * 86400000
@@ -342,24 +391,30 @@
     const income = Number(incomeInput.value);
     if (!Number.isFinite(income) || income <= 0 || income > 1000000) {
       output.textContent = "Indique o rendimento líquido mensal do agregado.";
+      output.classList?.add("is-hint");
       return;
     }
-    const expenses = ["costMonthlyFood", "costMonthlyElectricity"].map(id => Number(document.getElementById(id)?.value))
-      .filter(value => Number.isFinite(value) && value > 0 && value <= 100000);
+    const money = value => new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
+    const parts = [["Alimentação", "costMonthlyFood"], ["Eletricidade", "costMonthlyElectricity"]].flatMap(([label, id]) => {
+      const value = Number(document.getElementById(id)?.value);
+      return Number.isFinite(value) && value > 0 && value <= 100000 ? [[label, value]] : [];
+    });
     const litres = Number(document.getElementById("fuelMonthlyLitres")?.value);
     const fuelCost = Number.isFinite(currentFuelPrice) && Number.isFinite(litres) && litres > 0 && litres <= 5000
       ? currentFuelPrice * litres : null;
-    if (fuelCost !== null) expenses.push(fuelCost);
-    if (!expenses.length) {
+    if (fuelCost !== null) parts.push(["Combustível", fuelCost]);
+    if (!parts.length) {
       output.textContent = "Indique compras, eletricidade ou litros de combustível para calcular os custos introduzidos.";
+      output.classList?.add("is-hint");
       return;
     }
-    const total = expenses.reduce((sum, value) => sum + value, 0);
+    const total = parts.reduce((sum, [, value]) => sum + value, 0);
     const share = (total / income) * 100;
     const fuelNote = Number.isFinite(litres) && litres > 0 && fuelCost === null
-      ? " Gasolina excluída: preço recente indisponível."
+      ? " Combustível excluído: preço recente indisponível."
       : "";
-    output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(total)} em custos indicados · ${share.toFixed(1).replace(".", ",")}% do rendimento líquido.${fuelNote}`;
+    output.textContent = `${parts.map(([label, value]) => `${label} ${money(value)}`).join(" · ")} = ${money(total)} · ${share.toFixed(1).replace(".", ",")}% do rendimento líquido.${fuelNote}`;
+    output.classList?.remove("is-hint");
   }
 
   /** Indicadores visíveis. Guarda-se a lista dos escondidos para que um indicador novo apareça por omissão;
@@ -397,7 +452,7 @@
       const list = window.lsGet?.("ipma_warnings_v1");
       if (!area || !Array.isArray(list) || typeof window.activeWarnings !== "function") return "";
       const local = window.activeWarnings(list, now).filter(w => w.idAreaAviso === area);
-      if (!local.length) return "";
+      if (!local.length) return "Sem avisos IPMA";
       const levels = { yellow: "amarelo", orange: "laranja", red: "vermelho" };
       const first = local[0];
       return `⚠ Aviso ${levels[first.awarenessLevelID] || ""} · ${first.awarenessTypeName || "IPMA"}${local.length > 1 ? ` (+${local.length - 1})` : ""}`;
@@ -437,19 +492,89 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
-  /** Gasóleo mais barato no município de Évora (cache do separador Évora do card de combustíveis). */
-  function fuelLocalText(nationalRows) {
+  /** Posto mais barato do município de Évora para um combustível (cache do separador Évora). */
+  function evoraCheapest(nationalRows, fuelKey) {
     try {
       const ev = window.lsGet?.("fuel_evora");
-      if (!Array.isArray(ev?.stations) || typeof window.summarizeFuelEvora !== "function") return "";
+      if (!Array.isArray(ev?.stations) || typeof window.summarizeFuelEvora !== "function") return null;
       const national = {};
       (Array.isArray(nationalRows) ? nationalRows : []).forEach(row => { if (row?.fuel_slug) national[row.fuel_slug] = row; });
-      const s = window.summarizeFuelEvora(ev.stations, national);
-      const d = s?.diesel;
-      if (!d?.cheapest) return "";
-      const delta = Number.isFinite(d.cheapestDelta) ? ` (${signedEur(d.cheapestDelta, 3)} vs média)` : "";
-      return `Évora: gasóleo desde ${d.cheapest.price.toFixed(3).replace(".", ",")} € · ${d.cheapest.stations[0]?.name || ""}${delta}`;
-    } catch { return ""; }
+      const s = window.summarizeFuelEvora(ev.stations, national)?.[fuelKey];
+      if (!s?.cheapest) return null;
+      return { price: s.cheapest.price, station: s.cheapest.stations[0]?.name || "", delta: s.cheapestDelta, observedAt: Number(ev.observedAt) || null };
+    } catch { return null; }
+  }
+
+  /** Gasóleo mais barato no município de Évora, para a linha extra do combustível. */
+  function fuelLocalText(nationalRows) {
+    const d = evoraCheapest(nationalRows, "diesel");
+    if (!d) return "";
+    const delta = Number.isFinite(d.delta) ? ` (${signedEur(d.delta, 3)} vs média)` : "";
+    return `Évora: gasóleo desde ${d.price.toFixed(3).replace(".", ",")} € · ${d.station}${delta}`;
+  }
+
+  function readFuelChoice() {
+    try {
+      const value = JSON.parse(window.localStorage?.getItem(FUEL_CHOICE_KEY) || "null");
+      return {
+        fuel: FUEL_CHOICES.fuel.includes(value?.fuel) ? value.fuel : "gasoline_95",
+        ref: FUEL_CHOICES.ref.includes(value?.ref) ? value.ref : "national",
+      };
+    } catch { return { fuel: "gasoline_95", ref: "national" }; }
+  }
+
+  /** Preço usado pela estimativa mensal e pelo alerta, conforme o combustível e a referência escolhidos. */
+  function selectToolFuel(now) {
+    const choice = readFuelChoice();
+    const fuel = window.lsGet?.("fuel");
+    let price = null, observed = null, source = "";
+    if (choice.ref === "evora") {
+      const c = evoraCheapest(fuel, choice.fuel);
+      if (c && Number.isFinite(c.observedAt) && now >= c.observedAt && now - c.observedAt <= MAX_FUEL_AGE_HOURS * 3600000) {
+        price = c.price; observed = c.observedAt; source = `mais barato em Évora · ${c.station}`;
+      }
+    } else {
+      const row = Array.isArray(fuel) ? fuel.find(item => item?.fuel_slug === choice.fuel) : null;
+      const p = Number(row?.avg_price_eur), t = Date.parse(row?.updated_at || "");
+      if (Number.isFinite(p) && p > 0 && Number.isFinite(t) && now >= t && now - t <= MAX_FUEL_AGE_HOURS * 3600000) {
+        price = p; observed = t; source = "média nacional";
+      }
+    }
+    currentFuelPrice = price;
+    currentFuelObserved = observed;
+    currentFuelLabel = `${FUEL_LABELS[choice.fuel]}${choice.ref === "evora" ? " (mais barato em Évora)" : ""}`;
+    const priceEl = document.getElementById("toolFuelPrice");
+    if (priceEl) priceEl.textContent = price === null
+      ? `${currentFuelLabel}: preço recente indisponível${choice.ref === "evora" ? " (abra o separador Évora do card de combustíveis)" : ""}`
+      : `${FUEL_LABELS[choice.fuel]} ${price.toFixed(3).replace(".", ",")} €/L · ${source} · ${formatDateTime(observed)}`;
+    syncFuelChoiceButtons(choice);
+    if (price !== null) checkFuelAlert(price, observed);
+    return choice;
+  }
+
+  function syncFuelChoiceButtons(choice) {
+    ["fuel", "ref"].forEach(kind => FUEL_CHOICES[kind].forEach(value => {
+      const btn = document.getElementById(`toolFuel_${kind}_${value}`);
+      if (!btn) return;
+      const on = choice[kind] === value;
+      btn.classList?.toggle("on", on);
+      btn.setAttribute?.("aria-pressed", String(on));
+      if (!btn.dataset.bound) {
+        btn.addEventListener("click", () => {
+          const next = { ...readFuelChoice(), [kind]: value };
+          try { window.localStorage?.setItem(FUEL_CHOICE_KEY, JSON.stringify(next)); } catch {}
+          // Outro preço: o alerta pode voltar a avisar.
+          const alert = readFuelAlert();
+          writeFuelAlert({ ...alert, lastNotifiedAt: 0 });
+          selectToolFuel(Date.now());
+          updateFuelImpact();
+          updateCostOfLivingCalculator();
+        });
+        btn.dataset.bound = "true";
+      }
+    }));
+    const unit = document.getElementById("fuelAlertLabel");
+    if (unit) unit.textContent = `Avisar quando ${choice.fuel === "diesel" ? "o gasóleo" : "a gasolina 95"}${choice.ref === "evora" ? " mais barato em Évora" : ""} ficar em ou abaixo de`;
   }
 
   function updateFuelImpact() {
@@ -461,13 +586,16 @@
       input.dataset.bound = "true";
     }
     const litres = Number(input.value);
+    let result = false;
     if (!Number.isFinite(currentFuelPrice)) {
       output.textContent = "Preço atual indisponível";
     } else if (!Number.isFinite(litres) || litres <= 0 || litres > 5000) {
       output.textContent = "Indique 1–5 000 litros";
     } else {
       output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(litres * currentFuelPrice)} / mês`;
+      result = true;
     }
+    output.classList?.toggle("is-hint", !result);
   }
 
   function readFuelAlert() {
@@ -557,10 +685,10 @@
     if (!state.enabled || price > state.threshold || observedAt <= state.lastNotifiedAt) return 0;
     if (typeof window.addNotification !== "function") return 0;
     const timestamp = new Date(observedAt).toISOString();
-    window.addNotification("energy", "Gasolina 95 abaixo do limite", `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L (limite ${state.threshold.toFixed(2).replace(".", ",")} €/L).`, "medium", { source: "API Aberta", observedAt: timestamp });
+    window.addNotification("energy", `${currentFuelLabel} abaixo do limite`, `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L (limite ${state.threshold.toFixed(2).replace(".", ",")} €/L).`, "medium", { source: "API Aberta", observedAt: timestamp });
     if (state.desktopEnabled && window.Notification?.permission === "granted") {
       try {
-        new window.Notification("Gasolina 95 abaixo do limite", {
+        new window.Notification(`${currentFuelLabel} abaixo do limite`, {
           body: `Preço observado: ${price.toFixed(3).replace(".", ",")} €/L.`,
           tag: "dash-fuel-" + observedAt,
         });

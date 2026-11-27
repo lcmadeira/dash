@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-9"/>
+<link rel="stylesheet" href="styles.css?v=20261127-11"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -432,28 +432,46 @@
   <details class="briefing-tools">
     <summary>Ferramentas: estimativas, alerta de preço e histórico local</summary>
   <div class="briefing-history" id="briefingHistory" aria-live="polite">O histórico local começa a reunir observações recentes.</div>
-  <div class="briefing-impact" aria-labelledby="fuelImpactTitle">
-    <label for="fuelMonthlyLitres"><strong id="fuelImpactTitle">Estimativa mensal de gasolina 95</strong><span>Calculada no browser; o consumo não é guardado.</span></label>
-    <div class="briefing-impact-control"><input id="fuelMonthlyLitres" type="number" inputmode="decimal" min="1" max="5000" step="1" placeholder="Litros por mês" aria-label="Consumo mensal de gasolina 95 em litros"><output id="fuelMonthlyCost" aria-live="polite">Indique o consumo mensal</output></div>
+  <div class="briefing-tool" aria-labelledby="fuelToolTitle">
+    <div class="briefing-tool-head">
+      <strong id="fuelToolTitle">Combustível</strong>
+      <div class="briefing-seg" role="group" aria-label="Combustível">
+        <button type="button" id="toolFuel_fuel_diesel" aria-pressed="false">Gasóleo</button>
+        <button type="button" id="toolFuel_fuel_gasoline_95" aria-pressed="true">Gasolina 95</button>
+      </div>
+      <div class="briefing-seg" role="group" aria-label="Preço de referência">
+        <button type="button" id="toolFuel_ref_national" aria-pressed="true">Média nacional</button>
+        <button type="button" id="toolFuel_ref_evora" aria-pressed="false">Mais barato em Évora</button>
+      </div>
+    </div>
+    <div class="briefing-tool-price" id="toolFuelPrice" aria-live="polite">A obter o preço…</div>
+    <div class="briefing-tool-row">
+      <label for="fuelMonthlyLitres">Litros por mês</label>
+      <input id="fuelMonthlyLitres" type="number" inputmode="decimal" min="1" max="5000" step="1" placeholder="ex.: 60">
+      <span aria-hidden="true">→</span>
+      <output id="fuelMonthlyCost" class="is-hint" aria-live="polite">Indique o consumo mensal</output>
+    </div>
     <details class="briefing-fuel-alert">
-      <summary>Alerta opcional de preço</summary>
-      <label for="fuelAlertThreshold">Avisar quando a gasolina 95 atingir ou ficar abaixo de (€/L)</label>
-      <div class="briefing-impact-control"><input id="fuelAlertThreshold" type="number" inputmode="decimal" min="0.5" max="5" step="0.01" value="1.50" aria-label="Limite de preço da gasolina 95 em euros por litro"><button type="button" id="fuelAlertToggle" aria-pressed="false">Ativar alerta</button></div>
-      <button type="button" id="fuelDesktopToggle" aria-pressed="false">Ativar aviso no computador</button>
-      <span class="briefing-fuel-alert-note">O browser só pode mostrar o aviso enquanto o dashboard estiver aberto e a atualizar dados.</span>
+      <summary>Alerta de preço</summary>
+      <div class="briefing-tool-row">
+        <label for="fuelAlertThreshold" id="fuelAlertLabel">Avisar quando a gasolina 95 ficar em ou abaixo de</label>
+        <input id="fuelAlertThreshold" type="number" inputmode="decimal" min="0.5" max="5" step="0.01" value="1.50"><span>€/L</span>
+        <button type="button" id="fuelAlertToggle" aria-pressed="false">Ativar alerta</button>
+        <button type="button" id="fuelDesktopToggle" aria-pressed="false">Ativar aviso no computador</button>
+      </div>
       <span id="fuelAlertStatus" aria-live="polite">Desativado. O limite fica guardado apenas neste browser.</span>
+      <span class="briefing-fuel-alert-note">O aviso só aparece enquanto o painel estiver aberto e a atualizar dados.</span>
     </details>
   </div>
   <details class="cost-of-living" id="costOfLiving">
-    <summary>Custos do agregado · estimativa local opcional</summary>
-    <p>Introduza apenas os valores que quiser comparar. O cálculo inclui só compras e eletricidade indicadas, mais combustível estimado acima; não representa o orçamento completo nem guarda os valores.</p>
+    <summary>Custos do agregado · estimativa local</summary>
     <div class="cost-of-living-fields">
-      <label for="costMonthlyIncome">Rendimento líquido mensal do agregado (€)<input id="costMonthlyIncome" type="number" inputmode="decimal" min="1" max="1000000" step="50" placeholder="Ex.: 2200"></label>
-      <label for="costMonthlyFood">Compras de alimentação por mês (€)<input id="costMonthlyFood" type="number" inputmode="decimal" min="0" max="100000" step="10" placeholder="Ex.: 450"></label>
-      <label for="costMonthlyElectricity">Fatura de eletricidade por mês (€)<input id="costMonthlyElectricity" type="number" inputmode="decimal" min="0" max="100000" step="5" placeholder="Ex.: 75"></label>
+      <label for="costMonthlyIncome">Rendimento líquido (€/mês)<input id="costMonthlyIncome" type="number" inputmode="decimal" min="1" max="1000000" step="50" placeholder="2200"></label>
+      <label for="costMonthlyFood">Alimentação (€/mês)<input id="costMonthlyFood" type="number" inputmode="decimal" min="0" max="100000" step="10" placeholder="450"></label>
+      <label for="costMonthlyElectricity">Eletricidade (€/mês)<input id="costMonthlyElectricity" type="number" inputmode="decimal" min="0" max="100000" step="5" placeholder="75"></label>
     </div>
-    <output id="costOfLivingResult" aria-live="polite">Indique o rendimento líquido mensal do agregado.</output>
-    <span class="cost-of-living-note">O combustível usa os litros mensais acima e só entra quando há preço observado recente. Os restantes montantes são introduzidos por si.</span>
+    <output id="costOfLivingResult" class="is-hint" aria-live="polite">Indique o rendimento líquido mensal do agregado.</output>
+    <span class="cost-of-living-note">Soma só o que indicar, mais o combustível estimado acima. Nada é guardado.</span>
   </details>
   </details>
 </section>
@@ -1041,7 +1059,7 @@
  <script src="src/fetch.js?v=20261123-26"></script>
 <script src="src/ui.js?v=20261127-6" integrity="sha384-AKtriwQtub8GcgyjvLIuKr6nrr4lxDwynq4qv1Gcr3L8UmXQ/0/p7+Pvb/X9B1vh"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
- <script src="src/cards/briefing.js?v=20261127-9" integrity="sha384-tk+fWVBJZovORWu1N2A8M0MFFNSkkgLPuwuC9BosxnOCqkUusF9nC3Nu3iatGgwj"></script>
+ <script src="src/cards/briefing.js?v=20261127-11" integrity="sha384-sG/5KoS10FD2+JlOnCXOwna1ekXggZPpC4uw3W/KrWjp+aB6G6kF4bHld+aYgkL0"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
  <script src="src/cards/elec.js?v=20261123-22"></script>
  <script src="src/cards/news.js?v=20261029-4"></script>
