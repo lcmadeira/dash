@@ -240,7 +240,7 @@
     const el = ensureCardStatusEl(cardId);
     if (!el) return;
     if (el.dataset.state === "loading" && state !== "loading" && !meta.force) return;
-    el.dataset.state = state || "idle";
+    if (el.dataset.state !== (state || "idle")) el.dataset.state = state || "idle";
     const visibleText = text || "—";
     el.textContent = compactStatusText(state || "idle", visibleText);
     el.dataset.fullText = visibleText;

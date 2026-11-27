@@ -61,8 +61,10 @@
       placed[card.index] = { start: slot.start, span: card.span, top: slot.top, rows: footprint / ROW_PX, fill: false };
     }
     const height = Math.max(0, ...sky);
-    // Fundo alinhado: estica o card que é o último em todas as colunas que ocupa.
-    placed.forEach((p) => {
+    // Fundo alinhado: estica o card que é o último em todas as colunas que ocupa
+    // (exceto cards marcados noFill: em erro ou ainda sem dados ficariam quase vazios).
+    placed.forEach((p, i) => {
+      if (cards[i].noFill) return;
       let last = true;
       for (let c = p.start; c < p.start + p.span; c++) if (sky[c] !== p.top + p.rows * ROW_PX) last = false;
       if (last && p.top + p.rows * ROW_PX < height) {
@@ -80,6 +82,13 @@
     // "grid-column: span 2" fica em grid-column-start; "x / span 2" fica em grid-column-end.
     const match = /span\s+(\d+)/.exec(`${style.gridColumnStart} ${end}`);
     return match ? Number(match[1]) : 1;
+  }
+
+  /** Card com dados (ao vivo ou em cache)? Em erro, a carregar ou sem estado: não esticar. */
+  function hasData(item) {
+    const status = item.querySelector(".card-status[data-status-for]");
+    if (!status) return true;
+    return !["error", "loading", "idle"].includes(status.dataset.state);
   }
 
   function outerHeight(item) {
@@ -110,7 +119,7 @@
       item.style.gridRowStart = "";
       item.style.gridRowEnd = "";
     });
-    const cards = items.map((item) => ({ span: naturalSpan(item, cols) }));
+    const cards = items.map((item) => ({ span: naturalSpan(item, cols), noFill: !hasData(item) }));
     items.forEach((item, i) => {
       item.style.gridColumn = `span ${cards[i].span}`;
     });
@@ -145,6 +154,8 @@
     // O ResizeObserver só avisa quando o tamanho final muda; medir e repor no mesmo frame não o dispara.
     const resize = new window.ResizeObserver(schedule);
     const observeChildren = (grid) => Array.from(grid.children).forEach((child) => resize.observe(child));
+    const statusChanges = new window.MutationObserver(schedule);
+    const watchStatus = (grid) => statusChanges.observe(grid, { subtree: true, attributes: true, attributeFilter: ["data-state"] });
     const mutations = new window.MutationObserver((records) => {
       records.forEach((record) => record.addedNodes.forEach((node) => {
         if (node.nodeType === 1) resize.observe(node);
@@ -153,6 +164,7 @@
     });
     grids().forEach((grid) => {
       observeChildren(grid);
+      watchStatus(grid);
       mutations.observe(grid, { childList: true });
     });
     window.addEventListener("resize", schedule);

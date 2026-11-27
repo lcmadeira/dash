@@ -6,6 +6,11 @@
  * Confirmados em santander.pt/salto/feriados-municipais-portugal-2026 (2026): Lisboa, Porto, Coimbra, Faro,
  * Santarém, Sines, Viana do Castelo. Os restantes seguem a data tradicional do município.
  * Cidades sem entrada: o card diz que não há feriado municipal registado. */
+/* Feriados municipais (verificados a 27-11-2026):
+   Lisboa, Porto, Coimbra, Faro, Santarém, Sines, Viana: lista do Santander;
+   Évora: cm-evora.pt (feriado-municipal); Aveiro: cm-aveiro.pt (festas de Santa Joana);
+   Viseu: Diocese de Viseu e timeanddate; Setúbal: CM Setúbal (Dia de Bocage e da Cidade) e timeanddate;
+   Braga: só a lista "Public holidays in Portugal" da Wikipédia (o site da câmara não abriu). */
 const HOL_MUNIC = {
   "Lisboa":           { month: 6, day: 13, name: "Santo António" },
   "Porto":            { month: 6, day: 24, name: "São João" },

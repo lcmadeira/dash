@@ -34,3 +34,10 @@ test("the last card of each column stretches to the section bottom", async () =>
   assert.equal(placed[0].rows * 2, 300);
   assert.equal(placed[1].fill, false);
 });
+
+test("cards marked noFill (error or loading) are not stretched", async () => {
+  const pack = await loadPack();
+  const { placed } = pack([{ span: 3, height: 100, noFill: true }, { span: 3, height: 300 }], 6, 0);
+  assert.equal(placed[0].fill, false);
+  assert.equal(placed[0].rows * 2, 100);
+});
