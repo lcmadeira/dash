@@ -10,6 +10,9 @@ const CRYPTO_IDS=[
   {id:"binancecoin",name:"BNB",      sym:"BNB",color:"#F59E0B"},
 ];
 
+/* IDs do CoinPaprika (iguais aos do gateway, worker/src/index.js). */
+const COINPAPRIKA_IDS = { bitcoin: "btc-bitcoin", ethereum: "eth-ethereum", solana: "sol-solana", cardano: "ada-cardano", ripple: "xrp-xrp", binancecoin: "bnb-binance-coin" };
+
 const CRYPTO_TREND_PREF_KEY = 'crypto_trend_pref_v1';
 const CRYPTO_TREND_COINS = ['bitcoin', 'ethereum'];
 function getCryptoTrendPref() {
@@ -141,6 +144,18 @@ async function loadCryptoOnce(force=false){
         }
       }catch{}
       if(!isValidCryptoData(data))throw new Error("Crypto fetch failed");
+      /* Gateway parcial: pedir as moedas em falta diretamente ao CoinPaprika (aceita pedidos do browser). */
+      if (data?._meta?.state === "partial") {
+        const missing = CRYPTO_IDS.filter(c => !(Number(data?.[c.id]?.eur) > 0) && COINPAPRIKA_IDS[c.id]);
+        await Promise.all(missing.map(async c => {
+          try {
+            const r = await fetch(`https://api.coinpaprika.com/v1/tickers/${COINPAPRIKA_IDS[c.id]}?quotes=EUR`, { signal: AbortSignal.timeout(8000) });
+            const q = r.ok ? (await r.json())?.quotes?.EUR : null;
+            if (Number(q?.price) > 0) data[c.id] = { eur: Number(q.price), eur_24h_change: Number.isFinite(Number(q.percent_change_24h)) ? Number(q.percent_change_24h) : null };
+          } catch {}
+        }));
+        if (CRYPTO_IDS.every(c => Number(data?.[c.id]?.eur) > 0)) data._meta = { ...data._meta, state: "live" };
+      }
       const sourceMeta = data?._meta;
       lsSet("cg", data, {
         source: sourceMeta?.source || "CoinGecko",

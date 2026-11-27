@@ -111,7 +111,7 @@ test("static economic fallback references declare a review period", async () => 
   const context = createBrowserContext();
   vm.runInContext(await readFile("src/config.js", "utf8"), context);
   const policy = context.STATIC_REFERENCE_POLICY;
-  assert.deepEqual(Object.keys(policy).sort(), ["agri", "co2", "conflicts", "div", "euribor", "exp", "gas-eu", "imob", "inf", "press", "rec", "smn", "transp"]);
+  assert.deepEqual(Object.keys(policy).sort(), ["agri", "cal", "co2", "conflicts", "div", "euribor", "exp", "gas-eu", "imob", "inf", "ormuz", "press", "rec", "smn", "transp"]);
   for (const entry of Object.values(policy)) {
     assert.ok(Number.isFinite(Date.parse(entry.observedAt)));
     assert.ok(Number.isFinite(entry.maxAgeDays) && entry.maxAgeDays > 0);
@@ -2010,4 +2010,15 @@ test("clearing notifications asks for a second click on the same button", async 
   assert.equal(saved, 1);
   assert.equal(btn.textContent, "Limpar");
   assert.equal(vm.runInContext("notifications.length", context), 0);
+});
+
+test("nearestLocation picks the closest city in the list", async () => {
+  const source = await readFile("src/app.js", "utf8");
+  const locations = source.match(/const LOCATIONS = \[[\s\S]*?\n\];/)[0];
+  const fn = source.match(/function nearestLocation\(lat, lon\) \{[\s\S]*?\n\}/)[0];
+  const nearest = vm.runInNewContext(`${locations}\n${fn}\nnearestLocation`);
+  assert.equal(nearest(38.57, -7.91).loc.id, "evora");
+  assert.equal(nearest(41.2, -8.6).loc.id, "porto");
+  assert.equal(nearest(37.1, -8.2).loc.id, "faro");
+  assert.equal(nearest(32.65, -16.9).loc.id, "funchal");
 });

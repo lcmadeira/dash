@@ -292,10 +292,13 @@
     const hdrStatus = document.getElementById("hdrStatus");
     const hdrStatusText = document.getElementById("hdrStatusText");
     if (hdrStatus && hdrStatusText && statuses.length) {
-      hdrStatusText.textContent = `${available}/${statuses.length} com dados`;
-      hdrStatus.dataset.state = counts.error ? "error" : attention ? "warn" : "ok";
-      hdrStatus.title = `${available} de ${statuses.length} cards com dados atuais ou em cache`
-        + (attention ? ` · ${attention} a verificar` : "")
+      // Cards de referência (valores fixos, dentro do prazo) têm dados: contam como OK no cabeçalho.
+      const withData = available + counts.static;
+      const problems = counts.error + counts.stale;
+      hdrStatusText.textContent = `${withData}/${statuses.length} com dados`;
+      hdrStatus.dataset.state = counts.error ? "error" : problems ? "warn" : "ok";
+      hdrStatus.title = `${withData} de ${statuses.length} cards com dados (${available} atuais ou em cache, ${counts.static} de referência)`
+        + (problems ? ` · ${problems} a verificar` : "")
         + (counts.loading + counts.idle ? ` · ${counts.loading + counts.idle} a carregar` : "")
         + ` · verificado às ${new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}. Clique para ver o estado de cada card.`;
     }
@@ -541,7 +544,10 @@
       agri: "agri_v3",
       air: "air_v9",
       seis: "seis_v10",
-      ormuz: "ormuz_v2",
+      anpc: "anpc_active_v1",
+      // Simulação (sem fonte AIS gratuita): estado vem de STATIC_REFERENCE_POLICY.
+      ormuz: null,
+      cal: null,
       psi20: "psi20_v2",
       mstats: "mstats_v4",
       fx: "fx",

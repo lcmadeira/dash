@@ -114,6 +114,10 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 .clk-date{font-size:.8rem;color:var(--t2);text-align:center;white-space:nowrap}
 .hdr-city{display:flex;align-items:center;gap:6px;padding:2px 4px 2px 9px;border:1px solid var(--b);border-radius:8px;background:transparent;font:500 .78rem var(--font);color:var(--t2)}
 .hdr-city select{background:transparent;border:0;color:var(--text);font:inherit;cursor:pointer;padding:3px 2px;outline:none}
+.hdr-locate{display:flex;align-items:center;justify-content:center;padding:3px 4px;margin-left:2px;border:0;border-left:1px solid var(--b);border-radius:0;background:transparent;color:var(--t3);cursor:pointer}
+.hdr-locate:hover,.hdr-locate:focus-visible{color:var(--accent)}
+.hdr-locate .hdr-ico{color:inherit}
+.hdr-locate[aria-busy="true"] .hdr-ico{animation:spin 1s linear infinite}
 .hdr-city select option{background:var(--card);color:var(--text)}
 .hdr-city:focus-within{border-color:var(--accent)}
 .hdr-status{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--b);border-radius:20px;font:.74rem var(--mono);color:var(--t2);text-decoration:none;white-space:nowrap}

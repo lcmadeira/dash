@@ -133,7 +133,7 @@ async function loadAirQuality(force=false) {
 
       data = normalizeAirQualityPayload(data);
       const observedHour = data.hourly?.time?.filter(value => Number.isFinite(Date.parse(value)) && Date.parse(value) <= Date.now()).at(-1);
-      lsSet(ck, data, {source:"Open-Meteo · CAMS",state:"partial",observedAt:observedHour,reason:"AQI pode ser estimado quando a série não fornece o índice europeu"});
+      lsSet(ck, data, {source:"Open-Meteo · CAMS",state:"live",observedAt:observedHour,reason:"AQI pode ser estimado quando a série não fornece o índice europeu"});
     } catch(e) {
       el.innerHTML = er(e, { context: "Qualidade do ar", action: "clique em ↺ para nova tentativa" });
       notifyNonCriticalError("Qualidade do ar", e, "clique em ↺ para nova tentativa");
