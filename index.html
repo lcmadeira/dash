@@ -142,7 +142,7 @@
     <li>Mercados: Yahoo Finance e TradingView · Notícias: feeds RSS dos próprios jornais</li>
   </ul>
   <h3>Privacidade</h3>
-  <p id="aboutPrivacy">Não há contas nem cookies. A cidade, os cards escolhidos, os alertas e o histórico local ficam guardados apenas neste browser.</p>
+  <p id="aboutPrivacy">Não há contas nem cookies. A cidade, os cards escolhidos, os alertas e o histórico local ficam guardados apenas neste browser. As visitas são contadas de forma anónima pelo <a href="https://www.cloudflare.com/web-analytics/" rel="noopener" target="_blank">Cloudflare Web Analytics</a>, que não usa cookies nem identifica quem visita.</p>
   <h3>Aviso</h3>
   <p>Os valores são indicativos e podem ter atraso. Para decisões, consulte a fonte oficial indicada em cada card.</p>
   <p class="about-foot">Código aberto no <a href="https://github.com/lcmadeira/dash" rel="noopener" target="_blank">GitHub</a>.</p>
@@ -1122,5 +1122,9 @@
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
 <script src="src/app.js?v=20261127-15"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
+<!-- Cloudflare Web Analytics (sem cookies) -->
+<!-- [html-validate-disable require-sri] -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "feb824df5867472daf1f4d33da525597"}'></script>
+<!-- [html-validate-enable require-sri] -->
 </body>
 </html>
