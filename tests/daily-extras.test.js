@@ -67,3 +67,31 @@ test("school calendar 2026/27: next break, current break and end of classes", as
   assert.equal(schoolCalendarStatus(new Date(2027, 6, 15)), null); // fora do ano letivo conhecido
   assert.ok(plain(schoolCalendarStatus(new Date(2026, 6, 20))).beforeStart); // verão antes do arranque
 });
+
+test("civil protection: IPMA RCM by district, nearby incidents and hotspot summary", async () => {
+  const c = await load("src/cards/civil-protection.js");
+  const rows = plain(c.ipmaRcmRows({ local: {
+    "0701": { dico: "0701", data: { rcm: 2 } }, "0705": { dico: "0705", data: { rcm: 4 } }, "1106": { dico: "1106", data: { rcm: 1 } }, "9999": { dico: "9999", data: { rcm: 3 } },
+  } }));
+  assert.deepEqual(plain(c.riskByDistrict(rows)).map(d => [d.district, d.level]), [["Évora", 4], ["Lisboa", 1]]);
+
+  const evora = { lat: 38.57, lon: -7.91 };
+  const incidents = [
+    { id: "a", location: { district: "Beja", lat: 37.87, lng: -8.13 } },          // ~80 km, outro distrito
+    { id: "b", location: { district: "Évora", lat: 38.90, lng: -7.30 } },          // distrito, ~65 km
+    { id: "c", location: { district: "Setúbal", lat: 38.50, lng: -8.20 } },        // ~26 km, outro distrito
+  ];
+  assert.deepEqual(plain(c.nearbyIncidents(incidents, "Évora", evora)).map(i => i.id), ["c", "b"]);
+
+  const now = Date.parse("2026-08-10T15:00:00Z");
+  const hs = plain(c.hotspotSummary({ sources: ["VIIRS NOAA-20"], points: [
+    { lat: 38.60, lon: -7.95, region: "continente", at: now - 3600e3 },
+    { lat: 41.15, lon: -8.61, region: "continente", at: now - 3600e3 },
+    { lat: 32.70, lon: -16.90, region: "Madeira", at: now - 3600e3 },
+    { lat: 38.58, lon: -7.92, region: "continente", at: now - 40 * 3600e3 }, // antigo: fora
+  ] }, evora, now));
+  assert.equal(hs.total, 3);
+  assert.deepEqual(hs.byRegion, { continente: 2, Madeira: 1 });
+  assert.equal(hs.near.length, 1);
+  assert.ok(hs.near[0].km < 6);
+});
