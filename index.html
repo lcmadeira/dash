@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-24"/>
+<link rel="stylesheet" href="styles.css?v=20261127-28"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -294,57 +294,48 @@
 <div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle" aria-hidden="true" inert tabindex="-1">
   <div class="export-modal-content">
     <div class="export-modal-header">
-      <div class="export-modal-title" id="exportModalTitle">
-        <span>📥</span>
-        <span>Exportar Dados</span>
-      </div>
+      <h2 class="export-modal-title" id="exportModalTitle">Exportar dados</h2>
       <button class="export-modal-close" type="button" onclick="closeExportModal()" aria-label="Fechar exportação">✕</button>
     </div>
 
     <div class="export-modal-body">
-      <!-- Formato de exportação -->
-      <div class="export-option-group">
-        <div class="export-option-title">
-          <span>📄</span>
-          <span>Formato</span>
-        </div>
-        <div class="export-option-grid">
-          <button type="button" class="export-option-item selected" data-format="png" onclick="selectExportFormat(this, 'png')">
-            <span class="export-option-icon">🖼️</span>
+      <fieldset class="export-option-group">
+        <legend class="export-option-title">Formato</legend>
+        <div class="export-option-grid" role="radiogroup" aria-label="Formato">
+          <button type="button" class="export-option-item selected" data-format="png" role="radio" aria-checked="true" onclick="selectExportFormat(this, 'png')">
+            <span class="export-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span>
             <span class="export-option-label">Imagem</span>
-            <span class="export-option-desc">PNG</span>
+            <span class="export-option-desc">Um PNG com os cards</span>
           </button>
-          <button type="button" class="export-option-item" data-format="pdf" onclick="selectExportFormat(this, 'pdf')">
-            <span class="export-option-icon">📕</span>
+          <button type="button" class="export-option-item" data-format="pdf" role="radio" aria-checked="false" onclick="selectExportFormat(this, 'pdf')">
+            <span class="export-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
             <span class="export-option-label">PDF</span>
-            <span class="export-option-desc">Documento</span>
+            <span class="export-option-desc">Um card por página</span>
           </button>
-          <button type="button" class="export-option-item" data-format="csv" onclick="selectExportFormat(this, 'csv')">
-            <span class="export-option-icon">📊</span>
-            <span class="export-option-label">Dados</span>
-            <span class="export-option-desc">CSV</span>
+          <button type="button" class="export-option-item" data-format="csv" role="radio" aria-checked="false" onclick="selectExportFormat(this, 'csv')">
+            <span class="export-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/></svg></span>
+            <span class="export-option-label">Folha de cálculo</span>
+            <span class="export-option-desc">CSV para Excel, com fonte e data</span>
           </button>
-          <button type="button" class="export-option-item" data-format="json" onclick="selectExportFormat(this, 'json')">
-            <span class="export-option-icon">💾</span>
+          <button type="button" class="export-option-item" data-format="json" role="radio" aria-checked="false" onclick="selectExportFormat(this, 'json')">
+            <span class="export-option-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4c-2 0-2 2-2 4s-1 3-2 4c1 1 2 2 2 4s0 4 2 4"/><path d="M16 4c2 0 2 2 2 4s1 3 2 4c-1 1-2 2-2 4s0 4-2 4"/></svg></span>
             <span class="export-option-label">JSON</span>
-            <span class="export-option-desc">Estruturado</span>
+            <span class="export-option-desc">Os mesmos dados, para programas</span>
           </button>
         </div>
-      </div>
+      </fieldset>
 
-      <!-- Seleção de cards -->
-      <div class="export-option-group">
-        <div class="export-option-title">
-          <span>📌</span>
-          <span>Cards para Exportar</span>
-          <button type="button" class="rbtn" style="margin-left:auto" onclick="toggleAllCards()">
-            <span id="toggleAllText">Todos</span>
-          </button>
+      <fieldset class="export-option-group">
+        <legend class="export-option-title">Cards</legend>
+        <div class="export-quick" role="group" aria-label="Seleção rápida">
+          <button type="button" class="export-quick-btn" onclick="exportSelectPreset('all')">Todos</button>
+          <button type="button" class="export-quick-btn" onclick="exportSelectPreset('visible')">Os visíveis</button>
+          <button type="button" class="export-quick-btn" onclick="exportSelectPreset('none')">Nenhum</button>
         </div>
         <div class="export-cards-list" id="exportCardsList">
-          <!-- Será preenchido dinamicamente -->
+          <!-- Preenchido por renderExportCardsList(), agrupado por secção -->
         </div>
-      </div>
+      </fieldset>
 
       <!-- Progress bar -->
       <div class="export-progress" id="exportProgress">
@@ -1117,9 +1108,10 @@
  <script src="src/cards/geopolitics.js?v=20261126-4"></script>
  <script src="src/cards/gas-markets.js?v=20261123-26"></script>
  <script src="src/widgets/economic-calendar.js?v=20261127-24"></script>
+ <script src="src/export-data.js?v=20261127-26" integrity="sha384-RTcO/6jlx++xA/JLJMVtQUADWDaduZIX19eR60oMGX6TUWwfZpKA81Nc9nAVq2gB"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261127-24"></script>
+<script src="src/app.js?v=20261127-28"></script>
 <script src="src/layout.js?v=20261127-20" integrity="sha384-MvHLZ8K+C4rjxBSa0DVwZtlMW6IeZtgM/9mAt9RDxH45tatrzhbW05YrBeih11AY"></script>
 <!-- Cloudflare Web Analytics (sem cookies) -->
 <!-- [html-validate-disable require-sri] -->
