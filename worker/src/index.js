@@ -547,6 +547,73 @@ async function getStaleResponse(cache, key, route, headers, upstreamFailures) {
   }
 }
 
+/* Pontos de calor por satélite (NASA FIRMS, ficheiros públicos das últimas 24 h, sem chave).
+   Os ficheiros não têm CORS: o gateway lê-os e filtra Portugal (continente, Madeira e Açores). */
+const FIRMS_FILES = [
+  { url: "https://firms.modaps.eosdis.nasa.gov/data/active_fire/noaa-20-viirs-c2/csv/J1_VIIRS_C2_Europe_24h.csv", source: "VIIRS NOAA-20" },
+  { url: "https://firms.modaps.eosdis.nasa.gov/data/active_fire/suomi-npp-viirs-c2/csv/SUOMI_VIIRS_C2_Europe_24h.csv", source: "VIIRS S-NPP" },
+];
+/* Contorno simplificado do continente [lon, lat] (fronteira com erro de ~2–3 km; costa um pouco ao largo). */
+const PT_MAINLAND = [
+  [-8.92, 41.88], [-8.20, 42.16], [-8.05, 41.82], [-7.88, 41.87], [-7.60, 41.94], [-7.20, 41.89], [-6.98, 41.98],
+  [-6.56, 41.97], [-6.19, 41.58], [-6.48, 41.27], [-6.80, 41.04], [-6.93, 40.88], [-6.84, 40.61], [-6.95, 40.25],
+  [-6.98, 39.83], [-7.53, 39.66], [-7.23, 39.35], [-7.03, 39.07], [-7.05, 38.88], [-7.21, 38.62], [-7.32, 38.43],
+  [-6.93, 38.21], [-6.92, 38.06], [-7.25, 37.98], [-7.51, 37.54], [-7.41, 37.17], [-8.00, 36.93], [-9.03, 36.98], [-8.85, 37.95],
+  [-8.95, 38.45], [-9.53, 38.70], [-9.45, 39.36], [-8.90, 40.12], [-8.72, 41.00], [-8.92, 41.88],
+];
+function insidePolygon(lon, lat, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+const PT_ISLANDS = [
+  { region: "Madeira", s: 32.3, n: 33.2, w: -17.4, e: -16.1 },
+  { region: "Açores", s: 36.8, n: 39.8, w: -31.6, e: -24.9 },
+];
+export function ptRegion(lat, lon) {
+  if (insidePolygon(lon, lat, PT_MAINLAND)) return "continente";
+  return PT_ISLANDS.find(b => lat >= b.s && lat <= b.n && lon >= b.w && lon <= b.e)?.region || null;
+}
+/** Linhas do CSV do FIRMS dentro de Portugal: {lat, lon, at (ms UTC), sat, conf, frp, night, region}. */
+export function parseFirmsCsv(text, source) {
+  const lines = String(text).trim().split(/\r?\n/);
+  const head = (lines.shift() || "").split(",");
+  const col = name => head.indexOf(name);
+  const [iLat, iLon, iDate, iTime, iConf, iFrp, iDn] = ["latitude", "longitude", "acq_date", "acq_time", "confidence", "frp", "daynight"].map(col);
+  if (iLat < 0 || iLon < 0 || iDate < 0) return null;
+  return lines.map(line => line.split(",")).map(c => {
+    const lat = Number(c[iLat]), lon = Number(c[iLon]);
+    const region = Number.isFinite(lat) && Number.isFinite(lon) ? ptRegion(lat, lon) : null;
+    if (!region) return null;
+    const hhmm = String(c[iTime] || "0000").padStart(4, "0");
+    const at = Date.parse(`${c[iDate]}T${hhmm.slice(0, 2)}:${hhmm.slice(2)}:00Z`);
+    const conf = String(c[iConf] || "").toLowerCase();
+    return { lat: Math.round(lat * 1e4) / 1e4, lon: Math.round(lon * 1e4) / 1e4, at: Number.isFinite(at) ? at : null, sat: source,
+      conf: conf.startsWith("h") ? "alta" : conf.startsWith("l") ? "baixa" : "nominal", frp: Number(c[iFrp]) || 0, night: c[iDn] === "N", region };
+  }).filter(Boolean);
+}
+async function fetchFirmsHotspots(route) {
+  const points = [];
+  const sources = [];
+  for (const file of FIRMS_FILES) {
+    try {
+      const response = await fetchUpstream(file.url, route.accept, 9000);
+      if (!response.ok) continue;
+      const parsed = parseFirmsCsv(await readBoundedBody(response, route.maxBytes), file.source);
+      if (!parsed) continue;
+      sources.push(file.source);
+      points.push(...parsed);
+    } catch { /* o outro satélite pode responder */ }
+  }
+  if (!sources.length) return { status: 502 };
+  points.sort((a, b) => (b.at || 0) - (a.at || 0));
+  return { payload: { points: points.slice(0, 500), count: points.length, sources, ts: Date.now() } };
+}
+const isValidHotspots = p => Array.isArray(p?.points) && Array.isArray(p?.sources) && p.sources.length > 0;
+
 /** Configuração de cada rota: fornecedores por ordem, validação, cache e cópia de reserva. */
 function routeFor(url) {
   const path = url.pathname;
@@ -604,6 +671,12 @@ function routeFor(url) {
     return { key: path, ttl: 300, staleTtl: 4 * day, maxBytes: 250_000, accept: "application/json", valid: isValidIndicators,
       observedAt: p => Math.max(...p.quotes.map(q => q.marketTime || 0)) || undefined,
       upstreams: [{ source: "Yahoo Finance · índices, metais e energia", run: route => fetchYahooQuotes(route, INDICATOR_SYMBOLS) }] };
+  }
+  if (path === "/v1/hotspots") {
+    // Os ficheiros do FIRMS mudam a cada passagem dos satélites (~3 h); 30 min de cache chega.
+    return { key: path, ttl: 1800, staleTtl: 6 * 3600, maxBytes: 3_000_000, accept: "text/csv, text/plain", valid: isValidHotspots,
+      observedAt: p => p.ts,
+      upstreams: [{ source: "NASA FIRMS · VIIRS (24 h)", run: fetchFirmsHotspots }] };
   }
   if (path === "/v1/dams") {
     return { key: path, ttl: 6 * 3600, staleTtl: 45 * day, swrMaxAge: 3 * day, maxBytes: 200_000, accept: "text/html", valid: isValidDams,

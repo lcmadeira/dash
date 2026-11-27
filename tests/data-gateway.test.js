@@ -554,3 +554,25 @@ test("TTF route keeps three months of daily closes for the trend charts", () => 
   assert.equal(q.series.length, 3);
   assert.deepEqual(JSON.parse(JSON.stringify(q.series[0])), { date: new Date(1795000000 * 1000).toISOString().slice(0, 10), value: 29.5 });
 });
+
+test("FIRMS CSV keeps only points in Portugal (mainland, Madeira, Azores) with region and time", async () => {
+  const { parseFirmsCsv, ptRegion } = await import("../worker/src/index.js");
+  const csv = [
+    "latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,confidence,version,bright_ti5,frp,daynight",
+    "38.5665,-7.9073,330.1,0.4,0.4,2026-08-10,1342,N20,h,2.0NRT,290.0,12.5,D",
+    "32.70,-16.90,320.0,0.4,0.4,2026-08-10,0215,N20,n,2.0NRT,280.0,3.1,N",
+    "37.75,-25.60,315.0,0.4,0.4,2026-08-10,0215,N20,l,2.0NRT,280.0,1.0,N",
+    "40.4168,-3.7038,340.0,0.4,0.4,2026-08-10,1342,N20,h,2.0NRT,295.0,20.0,D",
+  ].join("\n");
+  const pts = JSON.parse(JSON.stringify(parseFirmsCsv(csv, "VIIRS NOAA-20")));
+  assert.deepEqual(pts.map(p => p.region), ["continente", "Madeira", "Açores"]);
+  assert.equal(pts[0].at, Date.parse("2026-08-10T13:42:00Z"));
+  assert.equal(pts[0].conf, "alta");
+  assert.equal(pts[1].night, true);
+  assert.equal(pts[2].conf, "baixa");
+  assert.equal(ptRegion(40.4168, -3.7038), null); // Madrid
+  assert.equal(ptRegion(39.0735, -6.9011), null); // perto de Badajoz (estava no retângulo antigo)
+  assert.equal(ptRegion(38.13, -6.98), "continente"); // Barrancos
+  assert.equal(ptRegion(37.21, -7.40), null); // Ayamonte
+  assert.equal(parseFirmsCsv("a,b\n1,2", "x"), null);
+});

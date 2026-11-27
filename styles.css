@@ -3765,3 +3765,11 @@ html.masonry .grid > *{grid-row-start:auto}
 .afr-bar span { width: 100%; max-width: 28px; background: color-mix(in srgb, var(--blue) 70%, transparent); border-radius: 3px 3px 0 0; }
 .afr-bar small { font-size: .66rem; color: var(--t3); font-family: var(--mono); }
 .afr-note { font-size: .74rem; color: var(--t3); margin-bottom: 6px; }
+
+/* Proteção Civil: perto de mim, pontos de calor, risco de amanhã (27-11-2026) */
+.anpc-km { font-family: var(--mono); font-size: .72rem; color: var(--blue); margin-left: 4px; }
+.anpc-hot { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .78rem; color: var(--t2); margin-bottom: 4px; }
+.anpc-hot b { color: var(--text); font-family: var(--mono); margin-right: 3px; }
+.anpc-next { font-style: normal; font-size: .72rem; margin-left: 3px; color: var(--t2); }
+.anpc-next[data-up="true"] { color: var(--red); }
+.anpc-next[data-up="false"] { color: var(--green); }
