@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel Pessoal · Portugal</title>
-<meta name="description" content="Indicadores de Portugal numa só página: eletricidade OMIE por hora, gasolina, Euribor, IHPC, PSI 20, meteorologia e atualidade, com fonte e data de cada dado."/>
+<title>Portugal hoje · combustíveis, Euribor, eletricidade, tempo e feriados</title>
+<meta name="description" content="Portugal hoje numa só página: preços dos combustíveis, eletricidade OMIE, Euribor, inflação, tempo, feriados e atualidade, com fonte e data de cada dado."/>
 <meta name="author" content="Luís Carlos Madeira"/>
 <link rel="canonical" href="https://lcmadeira.github.io/dash/"/>
 <link rel="author" href="https://lcmadeira.github.io/"/>
@@ -12,22 +12,22 @@
 <meta property="og:locale" content="pt_PT"/>
 <meta property="og:site_name" content="Luís Carlos Madeira"/>
 <meta property="og:url" content="https://lcmadeira.github.io/dash/"/>
-<meta property="og:title" content="Painel Pessoal · Portugal"/>
-<meta property="og:description" content="Indicadores de Portugal numa só página: eletricidade OMIE por hora, gasolina, Euribor, IHPC, PSI 20, meteorologia e atualidade, com fonte e data de cada dado."/>
+<meta property="og:title" content="Portugal hoje"/>
+<meta property="og:description" content="Portugal hoje numa só página: preços dos combustíveis, eletricidade OMIE, Euribor, inflação, tempo, feriados e atualidade, com fonte e data de cada dado."/>
 <meta property="og:image" content="https://lcmadeira.github.io/dash/og.png?v=1"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="Painel Pessoal · Portugal: indicadores de Portugal, dos mercados e da atualidade numa só página."/>
+<meta property="og:image:alt" content="Portugal hoje: combustíveis, energia, Euribor, tempo, feriados e atualidade numa só página."/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:creator" content="@lcmadeira"/>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Painel Pessoal · Portugal",
+  "name": "Portugal hoje",
   "url": "https://lcmadeira.github.io/dash/",
   "image": "https://lcmadeira.github.io/dash/og.png",
-  "description": "Indicadores de Portugal numa só página: eletricidade OMIE por hora, gasolina, Euribor, IHPC, PSI 20, meteorologia e atualidade, com fonte e data de cada dado.",
+  "description": "Portugal hoje numa só página: preços dos combustíveis, eletricidade OMIE, Euribor, inflação, tempo, feriados e atualidade, com fonte e data de cada dado.",
   "inLanguage": "pt-PT",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Any",
@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-11"/>
+<link rel="stylesheet" href="styles.css?v=20261127-15"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -56,22 +56,29 @@
 <!-- ═══════════════════ HEADER ═══════════════════ -->
 <header class="hdr">
   <div class="hdr-left">
-    <h1 class="brand">Painel Pessoal</h1>
-    <div class="brand-sub">Dashboard · Portugal</div>
+    <h1 class="brand">Portugal hoje</h1>
+    <p class="brand-sub">Combustíveis, energia, Euribor, tempo e feriados, com fonte e data</p>
   </div>
   <div class="hdr-center">
-    <div class="clk-time" id="clk"></div>
-    <div class="clk-date" id="clkd"></div>
+    <div class="clk-date"><span id="clkd"></span> · <time class="clk-time" id="clk"></time></div>
   </div>
   <div class="hdr-right">
-    <div class="pills" id="pills"></div>
-    <button type="button" class="export-btn" id="exportOpenBtn" onclick="openExportModal()" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
-      <span class="icon" aria-hidden="true">📥</span>
-      <span>Exportar</span>
+    <label class="hdr-city" title="Cidade usada na meteorologia, nos feriados municipais e na qualidade do ar">
+      <span aria-hidden="true">📍</span><span class="sr-only">Cidade</span>
+      <select id="hdrCity" aria-label="Cidade"></select>
+    </label>
+    <a class="hdr-status" id="hdrStatus" href="#dataOverview" title="Estado dos dados de cada card">
+      <span class="dot" aria-hidden="true"></span><span id="hdrStatusText">A verificar dados…</span>
+    </a>
+    <button type="button" class="hdr-btn" id="aboutOpenBtn" aria-haspopup="dialog" aria-controls="aboutDialog" title="O que é esta página, fontes e privacidade">
+      <span class="icon" aria-hidden="true">ⓘ</span><span class="hdr-btn-lbl">Sobre</span>
+    </button>
+    <button type="button" class="export-btn hdr-btn" id="exportOpenBtn" onclick="openExportModal()" title="Exportar dados do painel" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
+      <span class="icon" aria-hidden="true">📥</span><span class="hdr-btn-lbl">Exportar</span>
     </button>
     <div style="position:relative">
-      <button type="button" class="notif-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
-        <span class="notif-icon" aria-hidden="true">🔔</span>
+      <button type="button" class="notif-btn hdr-btn" id="notifBtn" onclick="toggleNotifications()" title="Notificações (sismos, notícias, energia)" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
+        <span class="notif-icon" aria-hidden="true">🔔</span><span class="hdr-btn-lbl">Alertas</span>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
       
@@ -115,11 +122,31 @@
         </div>
       </div>
     </div>
-    <button type="button" class="settings-icon-btn" id="settingsOpenBtn" onclick="openSettings()" aria-label="Abrir configurações do painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
-      <span class="settings-icon" aria-hidden="true">⚙️</span>
+    <button type="button" class="settings-icon-btn hdr-btn" id="settingsOpenBtn" onclick="openSettings()" title="Escolher cards, cidade e aparência" aria-label="Personalizar o painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
+      <span class="settings-icon" aria-hidden="true">⚙️</span><span class="hdr-btn-lbl">Personalizar</span>
     </button>
   </div>
 </header>
+
+<dialog class="about-dialog" id="aboutDialog" aria-labelledby="aboutTitle">
+  <div class="about-head">
+    <h2 id="aboutTitle">Sobre o Portugal hoje</h2>
+    <button type="button" class="about-close" id="aboutCloseBtn" aria-label="Fechar">✕</button>
+  </div>
+  <p>Uma página com os números do dia a dia em Portugal: preços dos combustíveis (incluindo os postos de Évora), eletricidade, gás, Euribor, inflação, meteorologia, feriados, mercados e atualidade. Cada card indica a fonte e a data dos dados.</p>
+  <h3>De onde vêm os dados</h3>
+  <ul class="about-sources">
+    <li>Combustíveis: <a href="https://precoscombustiveis.dgeg.gov.pt/" rel="noopener" target="_blank">DGEG</a> (via <a href="https://apiaberta.pt/" rel="noopener" target="_blank">API Aberta</a>) e <a href="https://geoportalgasolineras.es/geoportal-instalaciones/Inicio" rel="noopener" target="_blank">MITECO</a> para Espanha</li>
+    <li>Meteorologia e sismos: <a href="https://www.ipma.pt/" rel="noopener" target="_blank">IPMA</a> · Feriados: <a href="https://date.nager.at/" rel="noopener" target="_blank">date.nager.at</a></li>
+    <li>Eletricidade: <a href="https://www.omie.es/" rel="noopener" target="_blank">OMIE</a> · Euribor: <a href="https://data.ecb.europa.eu/" rel="noopener" target="_blank">BCE</a> · Inflação: <a href="https://ec.europa.eu/eurostat" rel="noopener" target="_blank">Eurostat</a> e INE</li>
+    <li>Mercados: Yahoo Finance e TradingView · Notícias: feeds RSS dos próprios jornais</li>
+  </ul>
+  <h3>Privacidade</h3>
+  <p id="aboutPrivacy">Não há contas nem cookies. A cidade, os cards escolhidos, os alertas e o histórico local ficam guardados apenas neste browser.</p>
+  <h3>Aviso</h3>
+  <p>Os valores são indicativos e podem ter atraso. Para decisões, consulte a fonte oficial indicada em cada card.</p>
+  <p class="about-foot">Código aberto no <a href="https://github.com/lcmadeira/dash" rel="noopener" target="_blank">GitHub</a>.</p>
+</dialog>
 
 <!-- TradingView Ticker Tape -->
 <div class="tv-tape-wrap"></div>
@@ -411,7 +438,7 @@
 
 <section class="portugal-briefing" aria-labelledby="briefingTitle">
   <div class="briefing-heading">
-    <div><h2 id="briefingTitle">Portugal hoje</h2><p>Resumo dos cards, com fonte e data.</p></div>
+    <div><h2 id="briefingTitle">Resumo do dia</h2><p>Resumo dos cards, com fonte e data.</p></div>
     <div class="briefing-heading-r">
       <span class="briefing-updated" id="briefingUpdated">A partir da cache disponível</span>
       <details class="briefing-preferences">
@@ -1057,7 +1084,7 @@
  <script src="src/core.js?v=20261123-30"></script>
  <script src="src/cache.js?v=20261127-6"></script>
  <script src="src/fetch.js?v=20261123-26"></script>
-<script src="src/ui.js?v=20261127-6" integrity="sha384-AKtriwQtub8GcgyjvLIuKr6nrr4lxDwynq4qv1Gcr3L8UmXQ/0/p7+Pvb/X9B1vh"></script>
+<script src="src/ui.js?v=20261127-15" integrity="sha384-FfuxkJX3jXSUI30bk0F0U9AnAoFMLSf0yEEEBGIRxAsYTl8/n/Z4ZmLKFU5v09w8"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261127-11" integrity="sha384-sG/5KoS10FD2+JlOnCXOwna1ekXggZPpC4uw3W/KrWjp+aB6G6kF4bHld+aYgkL0"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
@@ -1066,9 +1093,9 @@
  <script src="src/cards/seis.js?v=20261123-22"></script>
  <script src="src/cards/civil-protection.js?v=20261123-22" integrity="sha384-lAH7ujYTq3dULukn6HP0GVGw2A/T2GD2CvV8uFKCI1HrPR2WApczcQXSAw6rhaDs"></script>
  <script src="src/cards/dams.js?v=20261123-22"></script>
- <script src="src/cards/fuel.js?v=20261127-9"></script>
- <script src="src/cards/weather.js?v=20261127-9"></script>
- <script src="src/cards/holidays.js?v=20261127-9"></script>
+ <script src="src/cards/fuel.js?v=20261127-15"></script>
+ <script src="src/cards/weather.js?v=20261127-15"></script>
+ <script src="src/cards/holidays.js?v=20261127-15"></script>
  <script src="src/cards/air-quality.js?v=20261123-22"></script>
  <script src="src/cards/market-stats.js?v=20261123-26"></script>
  <script src="src/cards/real-estate.js?v=20261123-22"></script>
@@ -1093,7 +1120,7 @@
  <script src="src/widgets/economic-calendar.js?v=20261123-30"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261127-6"></script>
+<script src="src/app.js?v=20261127-15"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 </body>
 </html>

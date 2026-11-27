@@ -1,4 +1,4 @@
-# Painel Pessoal · Portugal
+# Portugal hoje
 
 Dashboard pessoal (single-page) focado em Portugal, mercados e contexto global — funciona sem backend próprio e usa um gateway serverless para um conjunto limitado de fontes. Mantém cache local (`localStorage`) com TTL por tipo; envelopes inválidos ou com datas futuras são ignorados.
 

@@ -25,7 +25,7 @@ try {
     hasBriefing: Boolean(document.querySelector("#briefingBody")),
     hasStatus: Boolean(document.querySelector("#dataOverviewItems")?.textContent.trim()),
   }));
-  if (!result.title.includes("Painel Pessoal") || result.cardCount < 20 || !result.hasBriefing || !result.hasStatus) {
+  if (!result.title.includes("Portugal hoje") || result.cardCount < 20 || !result.hasBriefing || !result.hasStatus) {
     throw new Error(`Inicialização incompleta: ${JSON.stringify(result)}`);
   }
   await page.setViewportSize({ width: 390, height: 844 });

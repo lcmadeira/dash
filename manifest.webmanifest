@@ -1,7 +1,7 @@
 {
-  "name": "Painel Pessoal · Portugal",
-  "short_name": "Painel PT",
-  "description": "Portugal, mercados e contexto global num painel pessoal.",
+  "name": "Portugal hoje",
+  "short_name": "Portugal hoje",
+  "description": "Combustíveis, energia, Euribor, tempo e feriados em Portugal, com fonte e data.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
