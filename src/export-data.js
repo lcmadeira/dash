@@ -141,6 +141,15 @@
       return [{ indicator: `Certificados de Aforro Série F · taxa bruta (${latest.month})`, value: num(latest.rate), unit: "%", source: "IGCP", observedAt: `${latest.month}-01` }];
     },
 
+    smn(ctx) {
+      const rows = [{ indicator: "Salário mínimo 2026 (14 meses)", value: 920, unit: "€/mês", source: "Decreto-Lei n.º 139/2025", observedAt: "2026-01-01" }];
+      const w = ctx.read("salarios_v1")?.d;
+      if (num(w?.avg12m) !== null) rows.push({ indicator: `Salário médio bruto · média de 12 meses até ${w.latest?.q || "?"}`, value: num(w.avg12m), unit: "€/mês", source: "INE", observedAt: w._meta?.observedAt || "" });
+      if (num(w?.latest?.total) !== null) rows.push({ indicator: `Salário médio bruto · ${w.latest.q}`, value: num(w.latest.total), unit: "€/mês", source: "INE", observedAt: w._meta?.observedAt || "" });
+      if (num(w?.latest?.yoy) !== null) rows.push({ indicator: `Salário médio bruto · variação homóloga ${w.latest.q}`, value: num(w.latest.yoy), unit: "%", source: "INE", observedAt: w._meta?.observedAt || "" });
+      return rows;
+    },
+
     fx(ctx) {
       const c = ctx.read("fx");
       const rates = c?.d?.rates || {};

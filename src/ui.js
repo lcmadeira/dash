@@ -19,7 +19,7 @@
     seis: "Sismos",
     anpc: "Proteção Civil",
     ormuz: "Estreito de Ormuz",
-    smn: "Salário mínimo",
+    smn: "Salário mínimo e médio",
     transp: "Transportes",
     psi20: "PSI20",
     fx: "Câmbio",
@@ -563,7 +563,7 @@
       // Só valores fixos: o estado vem de STATIC_REFERENCE_POLICY (data de referência e limite).
       exp: "exp_ine_v1",
       conflicts: null,
-      smn: null,
+      smn: "salarios_v1",
       transp: null,
       press: null,
     };

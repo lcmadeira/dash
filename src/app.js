@@ -1107,7 +1107,7 @@ const DEFAULT_CONFIG = {
     { id: 'air',        name: 'Tráfego Aéreo',             desc: 'ADS-B (adsb.lol) · Portugal continental',              visible: true, icon: '✈️' },
     { id: 'seis',       name: 'Sismos',                    desc: 'IPMA (alt. USGS) · continente, Madeira e Açores',           visible: true, icon: '🌍' },
     { id: 'ormuz',      name: 'Estreito de Ormuz',          desc: 'Simulação ilustrativa do tráfego marítimo',      visible: true, icon: '🚢' },
-    { id: 'smn',        name: 'Salário & Custo Vida',      desc: 'SMN, cabaz e poder de compra · PT',          visible: true, icon: '💼' },
+    { id: 'smn',        name: 'Salário Mínimo e Médio',    desc: 'SMN, salário médio INE e UE · PT',          visible: true, icon: '💼' },
     { id: 'transp',     name: 'Transportes PT',            desc: 'Tarifas de referência · horários CP',       visible: true, icon: '🚆' },
     { id: 'finance',    name: 'Gráfico de Mercados',       desc: 'TradingView · gráfico avançado',     visible: true, icon: '📈' },
     { id: 'psi20',      name: 'Bolsa de Lisboa',           desc: 'PSI 20 e constituintes · Yahoo Finance',       visible: true, icon: '💹' },

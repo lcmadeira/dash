@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-32"/>
+<link rel="stylesheet" href="styles.css?v=20261127-33"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -843,16 +843,16 @@
     <div class="src">✦ Simulação ilustrativa do tráfego (sem fonte AIS pública gratuita) · rotas e proporções por tipo de navio de referência · Golfo Pérsico</div>
   </div>
 
-<!-- ROW 5: Salário Mínimo & Custo de Vida (s2) + Transportes PT (s2) -->
-  <!-- Salário Mínimo & Custo de Vida -->
+<!-- ROW 5: Salário Mínimo e Médio (s2) + Transportes PT (s2) -->
+  <!-- Salário Mínimo e Médio -->
   <div class="card s2" id="smn-card">
     <div class="ch">
       <div class="ch-ico">💼</div>
-      <span class="ch-lbl">Salário Mínimo & Custo de Vida · PT</span>
+      <span class="ch-lbl">Salário Mínimo e Médio · PT</span>
       <div class="ch-r"><button type="button" class="rbtn ico" onclick="refreshCard('smn',null,this,loadSMN,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button></div>
     </div>
     <div id="smn-body"></div>
-    <div class="src">✦ <a href="https://diariodarepublica.pt/dr/detalhe/decreto-lei/139-2025-992879809" target="_blank" rel="noopener noreferrer">RMMG legal: Decreto-Lei n.º 139/2025</a> · <a href="https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20260130-2" target="_blank" rel="noopener noreferrer">Eurostat, salários mínimos jan. 2026</a></div>
+    <div class="src">✦ <a href="https://diariodarepublica.pt/dr/detalhe/decreto-lei/139-2025-992879809" target="_blank" rel="noopener noreferrer">RMMG legal: Decreto-Lei n.º 139/2025</a> · <a href="https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20260130-2" target="_blank" rel="noopener noreferrer">Eurostat, salários mínimos jan. 2026</a> · <a href="https://www.ine.pt/xportal/xmain?xpid=INE&amp;xpgid=ine_indicadores&amp;indOcorrCod=0011130&amp;contexto=bd&amp;selTab=tab2" target="_blank" rel="noopener noreferrer">INE, remuneração média</a> · <a href="https://ec.europa.eu/eurostat/databrowser/view/nama_10_fte/default/table" target="_blank" rel="noopener noreferrer">Eurostat, salário médio</a></div>
   </div>
 
   <!-- Transportes PT -->
@@ -1083,9 +1083,9 @@
 </div><!-- /wrap -->
 <script src="src/config.js?v=20261127-31"></script>
  <script src="src/core.js?v=20261123-30"></script>
- <script src="src/cache.js?v=20261127-31"></script>
+ <script src="src/cache.js?v=20261127-33"></script>
  <script src="src/fetch.js?v=20261123-26"></script>
-<script src="src/ui.js?v=20261127-31" integrity="sha384-dxNyfXYYDgtY0fMf0AH74I1n16WtD5SWqYSZxQYnWODPBPVvjNVq1ucDGYbYJN/c"></script>
+<script src="src/ui.js?v=20261127-33" integrity="sha384-vbU7AaU6Is8Mr0bagYGQWQbNotcs56ud+1RIXZMDYPTsRASBnwoTrJ8VxZX+Qvv+"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261127-11" integrity="sha384-sG/5KoS10FD2+JlOnCXOwna1ekXggZPpC4uw3W/KrWjp+aB6G6kF4bHld+aYgkL0"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
@@ -1111,7 +1111,7 @@
  <script src="src/cards/transport.js?v=20261127-19"></script>
  <script src="src/cards/press.js?v=20261123-22"></script>
  <script src="src/cards/aforro.js?v=20261127-31" integrity="sha384-1EoU8ZyxnWpcpDHNPextm1kJ3PcDMkq7DEW5xoTxdoNcDjjv0UZLmu0Ou7g/PMW9"></script>
- <script src="src/cards/smn.js?v=20261123-22"></script>
+ <script src="src/cards/smn.js?v=20261127-33"></script>
  <script src="src/cards/inflation.js?v=20261123-22"></script>
  <script src="src/cards/euribor.js?v=20261123-22"></script>
  <script src="src/cards/fx.js?v=20261123-22"></script>
@@ -1120,10 +1120,10 @@
  <script src="src/cards/geopolitics.js?v=20261126-4"></script>
  <script src="src/cards/gas-markets.js?v=20261123-26"></script>
  <script src="src/widgets/economic-calendar.js?v=20261127-31"></script>
- <script src="src/export-data.js?v=20261127-31" integrity="sha384-Ino3EepHfyboRRKgWhDH+yjKJLdYn4+Uf2QOz2JuwRGDb8DS+8z8FCXkmM5nMFx3"></script>
+ <script src="src/export-data.js?v=20261127-33" integrity="sha384-TK55W+5zZ/yR8ld5PMYogSdmoImbEo2EsZOkjcoODvS3cR1RefgXXx4M0OBBg5+h"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261127-31"></script>
+<script src="src/app.js?v=20261127-33"></script>
 <script src="src/layout.js?v=20261127-20" integrity="sha384-MvHLZ8K+C4rjxBSa0DVwZtlMW6IeZtgM/9mAt9RDxH45tatrzhbW05YrBeih11AY"></script>
 <!-- Cloudflare Web Analytics (sem cookies) -->
 <!-- [html-validate-disable require-sri] -->

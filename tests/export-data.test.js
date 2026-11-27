@@ -41,7 +41,7 @@ test("extractors read cached data with source and date", async () => {
 
 test("cards without extractor export their visible text, marked as such", async () => {
   const w = await load();
-  const rows = plain(w.buildExportRows([{ id: "smn", name: "Salário mínimo", section: "Economia", text: "  870 €\n  por mês " }], ctx));
+  const rows = plain(w.buildExportRows([{ id: "transp", name: "Transportes", section: "Economia", text: "  870 €\n  por mês " }], ctx));
   assert.equal(rows.length, 1);
   assert.equal(rows[0].value, "870 € por mês");
   assert.equal(rows[0].origin, "texto do ecrã");
@@ -66,4 +66,13 @@ test("JSON has the same rows and no HTML", async () => {
   assert.equal(json.rows.length, 1);
   assert.ok(!("html" in json.rows[0]));
   assert.match(json.source, /Portugal hoje/);
+});
+
+test("minimum and average wage export rows", async () => {
+  const w = await load();
+  const read = key => key === "salarios_v1" ? { d: { latest: { q: "2026-Q3", total: 1696, yoy: 4.9 }, avg12m: 1759, _meta: { observedAt: Date.UTC(2026, 8, 30) } } } : null;
+  const rows = plain(w.buildExportRows([{ id: "smn", name: "Salários", section: "Economia" }], { ...ctx, read }));
+  assert.deepEqual(rows.map(r => [r.value, r.unit]), [[920, "€/mês"], [1759, "€/mês"], [1696, "€/mês"], [4.9, "%"]]);
+  assert.equal(rows[1].observedAt, "2026-09-30T00:00:00.000Z");
+  assert.equal(rows[1].origin, "dados");
 });
