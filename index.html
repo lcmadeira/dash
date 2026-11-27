@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-15"/>
+<link rel="stylesheet" href="styles.css?v=20261127-16"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -64,21 +64,21 @@
   </div>
   <div class="hdr-right">
     <label class="hdr-city" title="Cidade usada na meteorologia, nos feriados municipais e na qualidade do ar">
-      <span aria-hidden="true">📍</span><span class="sr-only">Cidade</span>
+      <svg class="hdr-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span class="sr-only">Cidade</span>
       <select id="hdrCity" aria-label="Cidade"></select>
     </label>
     <a class="hdr-status" id="hdrStatus" href="#dataOverview" title="Estado dos dados de cada card">
       <span class="dot" aria-hidden="true"></span><span id="hdrStatusText">A verificar dados…</span>
     </a>
     <button type="button" class="hdr-btn" id="aboutOpenBtn" aria-haspopup="dialog" aria-controls="aboutDialog" title="O que é esta página, fontes e privacidade">
-      <span class="icon" aria-hidden="true">ⓘ</span><span class="hdr-btn-lbl">Sobre</span>
+      <svg class="hdr-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg><span class="hdr-btn-lbl">Sobre</span>
     </button>
     <button type="button" class="export-btn hdr-btn" id="exportOpenBtn" onclick="openExportModal()" title="Exportar dados do painel" aria-label="Exportar dados do painel" aria-haspopup="dialog" aria-controls="exportModal" aria-expanded="false">
-      <span class="icon" aria-hidden="true">📥</span><span class="hdr-btn-lbl">Exportar</span>
+      <svg class="hdr-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg><span class="hdr-btn-lbl">Exportar</span>
     </button>
     <div style="position:relative">
       <button type="button" class="notif-btn hdr-btn" id="notifBtn" onclick="toggleNotifications()" title="Notificações (sismos, notícias, energia)" aria-label="Abrir centro de notificações" aria-haspopup="dialog" aria-controls="notifPanel" aria-expanded="false">
-        <span class="notif-icon" aria-hidden="true">🔔</span><span class="hdr-btn-lbl">Alertas</span>
+        <svg class="hdr-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="hdr-btn-lbl">Alertas</span>
         <span class="notif-badge" id="notifBadge">0</span>
       </button>
       
@@ -123,7 +123,7 @@
       </div>
     </div>
     <button type="button" class="settings-icon-btn hdr-btn" id="settingsOpenBtn" onclick="openSettings()" title="Escolher cards, cidade e aparência" aria-label="Personalizar o painel" aria-haspopup="dialog" aria-controls="settingsOverlay" aria-expanded="false">
-      <span class="settings-icon" aria-hidden="true">⚙️</span><span class="hdr-btn-lbl">Personalizar</span>
+      <svg class="hdr-ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h4"/><path d="M12 17h8"/><circle cx="10" cy="17" r="2"/></svg><span class="hdr-btn-lbl">Personalizar</span>
     </button>
   </div>
 </header>
@@ -1084,7 +1084,7 @@
  <script src="src/core.js?v=20261123-30"></script>
  <script src="src/cache.js?v=20261127-6"></script>
  <script src="src/fetch.js?v=20261123-26"></script>
-<script src="src/ui.js?v=20261127-15" integrity="sha384-FfuxkJX3jXSUI30bk0F0U9AnAoFMLSf0yEEEBGIRxAsYTl8/n/Z4ZmLKFU5v09w8"></script>
+<script src="src/ui.js?v=20261127-16" integrity="sha384-FfuxkJX3jXSUI30bk0F0U9AnAoFMLSf0yEEEBGIRxAsYTl8/n/Z4ZmLKFU5v09w8"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
  <script src="src/cards/briefing.js?v=20261127-11" integrity="sha384-sG/5KoS10FD2+JlOnCXOwna1ekXggZPpC4uw3W/KrWjp+aB6G6kF4bHld+aYgkL0"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
@@ -1093,9 +1093,9 @@
  <script src="src/cards/seis.js?v=20261123-22"></script>
  <script src="src/cards/civil-protection.js?v=20261123-22" integrity="sha384-lAH7ujYTq3dULukn6HP0GVGw2A/T2GD2CvV8uFKCI1HrPR2WApczcQXSAw6rhaDs"></script>
  <script src="src/cards/dams.js?v=20261123-22"></script>
- <script src="src/cards/fuel.js?v=20261127-15"></script>
- <script src="src/cards/weather.js?v=20261127-15"></script>
- <script src="src/cards/holidays.js?v=20261127-15"></script>
+ <script src="src/cards/fuel.js?v=20261127-16"></script>
+ <script src="src/cards/weather.js?v=20261127-16"></script>
+ <script src="src/cards/holidays.js?v=20261127-16"></script>
  <script src="src/cards/air-quality.js?v=20261123-22"></script>
  <script src="src/cards/market-stats.js?v=20261123-26"></script>
  <script src="src/cards/real-estate.js?v=20261123-22"></script>
@@ -1120,7 +1120,7 @@
  <script src="src/widgets/economic-calendar.js?v=20261123-30"></script>
  <!-- Atualizar a versão para invalidar caches após alterações nestes scripts clássicos. -->
  <script src="src/widgets/market-clock.js?v=20261013-5"></script>
-<script src="src/app.js?v=20261127-15"></script>
+<script src="src/app.js?v=20261127-16"></script>
 <script src="src/layout.js?v=20261120-9" integrity="sha384-NmdGBFXVcLFktCx35CZLFHlkG0TmZR+992DSakkWXd0g3683rbdtsOdIvv7WblZU"></script>
 <!-- Cloudflare Web Analytics (sem cookies) -->
 <!-- [html-validate-disable require-sri] -->

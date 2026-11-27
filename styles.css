@@ -112,7 +112,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 .brand-sub{margin:5px 0 0;font-size:.78rem;color:var(--t3);line-height:1.4}
 .clk-time{font-family:var(--mono);color:var(--text);font-weight:600}
 .clk-date{font-size:.8rem;color:var(--t2);text-align:center;white-space:nowrap}
-.hdr-city{display:flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border:1px solid var(--b2);border-radius:8px;background:var(--surface);font-size:.8rem}
+.hdr-city{display:flex;align-items:center;gap:6px;padding:2px 4px 2px 9px;border:1px solid var(--b);border-radius:8px;background:transparent;font:500 .78rem var(--font);color:var(--t2)}
 .hdr-city select{background:transparent;border:0;color:var(--text);font:inherit;cursor:pointer;padding:3px 2px;outline:none}
 .hdr-city select option{background:var(--card);color:var(--text)}
 .hdr-city:focus-within{border-color:var(--accent)}
@@ -443,9 +443,10 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   gap: 8px;
 }
 /* Botões do cabeçalho com o mesmo aspeto: ícone + texto (o texto some em ecrãs estreitos) */
-.hdr-right .hdr-btn{display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--b);border-radius:8px;background:transparent;color:var(--t2);font:.76rem var(--sans,inherit);cursor:pointer;position:relative;transform:none}
+.hdr-right .hdr-btn{display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--b);border-radius:8px;background:transparent;color:var(--t2);font:500 .78rem var(--font);cursor:pointer;position:relative;transform:none}
 .hdr-right .hdr-btn:hover,.hdr-right .hdr-btn:focus-visible{background:var(--surface);border-color:var(--accent);color:var(--text);transform:none}
-.hdr-right .hdr-btn .icon,.hdr-right .hdr-btn .notif-icon,.hdr-right .hdr-btn .settings-icon{font-size:.95rem;line-height:1;animation:none}
+.hdr-ico{flex:none;display:block;color:var(--t3);transition:color .15s}
+.hdr-right .hdr-btn:hover .hdr-ico,.hdr-right .hdr-btn:focus-visible .hdr-ico,.hdr-city:focus-within .hdr-ico{color:var(--accent)}
 .hdr-right .settings-icon-btn::after{content:none}
 @media (max-width: 1599px){.hdr-btn-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 
