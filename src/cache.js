@@ -5,6 +5,7 @@
 
   const CACHE_TTL_MAP = {
     weather: 15 * 60 * 1000, // 15 min
+    hols_: 7 * 24 * 60 * 60 * 1000, // 7 dias (feriados de um ano, date.nager.at)
     ipma: 15 * 60 * 1000,
     aq_: 30 * 60 * 1000, // 30 min (air quality)
     rss: 10 * 60 * 1000, // 10 min (notícias)

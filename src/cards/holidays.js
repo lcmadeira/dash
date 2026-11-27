@@ -1,359 +1,237 @@
-/* global $, document, window, loadWeather, skeletonGeneric, lsGet, lsSet, fetchJsonFirstOk, er, notifyNonCriticalError */
+/* global $, document, window, localStorage, PFX, CFG, IPMA_CITIES, skeletonGeneric, lsGet, lsSet, fetchJsonFirstOk, er, notifyNonCriticalError */
 (() => {
-/* ── Feriados ── */
-function switchWxHol(tab,btn){
-  document.querySelectorAll("#wxhol-tab-wx,#wxhol-tab-res,#wxhol-tab-hol")
-    .forEach(b=>b.classList.remove("on"));
-  btn.classList.add("on");
-  document.getElementById("wxhol-wx").style.display=      tab==="wx"?"":"none";
-  document.getElementById("wxhol-resumo").style.display=  tab==="resumo"?"":"none";
-  document.getElementById("wxhol-feriados").style.display=tab==="feriados"?"":"none";
-  /* Lazy load: só carrega a tab quando é aberta pela 1ª vez */
-  if(tab==="resumo"&&!window._holLoaded){window._holLoaded=true;loadHolidays();}
-  if(tab==="feriados"&&!window._holListLoaded){window._holListLoaded=true;renderHolList();}
+/* ── Feriados & dias úteis ── */
+
+/* Feriados municipais (dia fixo) das cidades do seletor IPMA.
+ * Confirmados em santander.pt/salto/feriados-municipais-portugal-2026 (2026): Lisboa, Porto, Coimbra, Faro,
+ * Santarém, Sines, Viana do Castelo. Os restantes seguem a data tradicional do município.
+ * Cidades sem entrada: o card diz que não há feriado municipal registado. */
+const HOL_MUNIC = {
+  "Lisboa":           { month: 6, day: 13, name: "Santo António" },
+  "Porto":            { month: 6, day: 24, name: "São João" },
+  "Braga":            { month: 6, day: 24, name: "São João" },
+  "Évora":            { month: 6, day: 29, name: "São Pedro" },
+  "Coimbra":          { month: 7, day: 4,  name: "Rainha Santa Isabel" },
+  "Aveiro":           { month: 5, day: 12, name: "Santa Joana" },
+  "Viseu":            { month: 9, day: 21, name: "São Mateus" },
+  "Setúbal":          { month: 9, day: 15, name: "Dia de Bocage" },
+  "Faro":             { month: 9, day: 7,  name: "Dia do Município" },
+  "Santarém":         { month: 3, day: 19, name: "São José" },
+  "Sines":            { month: 11, day: 24, name: "Elevação a vila" },
+  "Viana do Castelo": { month: 8, day: 20, name: "Senhora da Agonia" },
+};
+
+const DOW = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const DOW_FULL = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+const MON = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const MON_FULL = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+/** Data local AAAA-MM-DD (toISOString usaria UTC e desviava um dia na hora de verão). */
+function ymd(d){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-function wxholRefresh(){
-  const active=document.querySelector("#wxhol-tab-wx.on")?"wx":
-                document.querySelector("#wxhol-tab-res.on")?"resumo":"feriados";
-  if(active==="wx") return loadWeather(true);
-  if(active==="resumo"){window._holLoaded=false;return loadHolidays(true);}
-  // feriados: garantir fetch antes de render
-  window._holListLoaded=false;
-  return loadHolidays(true).then(()=>{ window._holListLoaded=true; renderHolList(); });
+function parseYmd(s){
+  const [y, m, d] = String(s).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function dayDiff(a, b){ return Math.round((parseYmd(ymd(b)) - parseYmd(ymd(a))) / 864e5); }
+function fmtDayMonth(dateStr){ const d = parseYmd(dateStr); return `${d.getDate()} ${MON[d.getMonth()]}`; }
+function escHol(v){
+  return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
-function renderHolList(){
-  const el=document.getElementById("hol-list-body");
-  if(!el) return;
-  if(!window._holData){
-    el.innerHTML='<div style="padding:12px;text-align:center;font-size:.74rem;color:var(--t3)">A carregar...</div>';
-    loadHolidays().then(()=>{ window._holListLoaded=true; renderHolList(); });
-    return;
+/* Feriados regionais da date.nager.at (counties) que se aplicam à cidade escolhida. */
+const HOL_REGION = { "Funchal": "PT-30", "Ponta Delgada": "PT-20" };
+/** Feriado obrigatório que se aplica à cidade: nacional, ou regional da região da cidade. O Carnaval ("Optional") fica de fora. */
+function appliesTo(h, city){
+  if(Array.isArray(h?.types) && !h.types.includes("Public")) return false;
+  if(h?.global === false) return Array.isArray(h.counties) && h.counties.includes(HOL_REGION[city]);
+  return true;
+}
+
+function municipalFor(city, year){
+  const m = HOL_MUNIC[city];
+  if(!m) return [];
+  return [{ date: ymd(new Date(year, m.month - 1, m.day)), localName: m.name, type: "municipal", city }];
+}
+
+/**
+ * Calcula o resumo a partir dos feriados nacionais (date.nager.at) de um ou mais anos.
+ * Os dias úteis contam também o feriado municipal da cidade escolhida.
+ * @param {{holsByYear: Object<string, Array<{date:string, localName:string}>>, today: Date, city?: string}} input
+ */
+function computeHolidaySummary({ holsByYear, today, city }){
+  const t0 = parseYmd(ymd(today));
+  const todayStr = ymd(t0);
+  const years = Object.keys(holsByYear || {}).map(Number).filter(Number.isFinite).sort();
+  const all = [];
+  for(const y of years){
+    (holsByYear[y] || []).forEach(h => {
+      if(h?.date && appliesTo(h, city)) all.push({ date: h.date, localName: h.localName || h.name || "Feriado", type: h.global === false ? "regional" : "nacional" });
+    });
+    municipalFor(city, y).forEach(h => all.push(h));
   }
-  const {allHols,ptDow,ptMon,ptDowFull,today,todayStr,next,bridges,year}=window._holData;
-  const rows=allHols.map(h=>{
-    const hd=new Date(h.date+"T00:00:00");
-    const isPast=h.date<todayStr;
-    const isNext=h.date===next?.date&&h.type==="nacional";
-    const dow=ptDow[hd.getDay()];
-    const dowFull=ptDowFull[hd.getDay()];
-    const isBridge=bridges.some(b=>b.holDate===h.date);
-    const isMunic=h.type==="municipal";
-    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;
-          border-radius:6px;margin-bottom:2px;
-          ${isNext?"background:var(--accent)18;border:1px solid var(--accent)44;":
-            isPast?"opacity:.4;":"border:1px solid transparent;"}">
-      <div style="min-width:38px;text-align:right">
-        <div style="font-size:.74rem;font-weight:${isPast?400:600};
-             color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
-             ${isPast?"text-decoration:line-through;":""}">${hd.getDate()} ${window.nfr(ptMon[hd.getMonth()])}</div>
-      </div>
-      <div style="min-width:28px;background:${hd.getDay()===0||hd.getDay()===6?"#EF444422":"var(--b2)"};
-           border-radius:4px;padding:1px 4px;text-align:center">
-        <span style="font-size:.74rem;color:${hd.getDay()===0||hd.getDay()===6?"#EF4444":"var(--t2)"}">${window.nfr(dow)}</span>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.74rem;font-weight:${isNext?700:isPast?400:500};
-             color:${isPast?"var(--t3)":isNext?"var(--accent)":"var(--text)"};
-             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-             ${isPast?"text-decoration:line-through;":""}">
-          ${isMunic?`<span style="font-size:.74rem;background:#8B5CF622;color:var(--purple);
-            border-radius:3px;padding:1px 3px;margin-right:3px">${h.flag}${window.nfr(h.city)}</span>`:""}
-          ${h.localName}
-          ${isBridge&&!isPast?`<span style="font-size:.74rem;background:#F59E0B22;
-            color:var(--amber);border-radius:3px;padding:1px 4px;margin-left:3px">🌉 ponte</span>`:""}
-        </div>
-        <div style="font-size:.74rem;color:var(--t3)">${window.nfr(dowFull)}</div>
-      </div>
-      ${!isPast?`<span style="font-size:.74rem;color:var(--t3);white-space:nowrap">
-        +${Math.round((hd-today)/864e5)}d</span>`
-      :`<span style="font-size:.74rem;color:var(--t3)">✓</span>`}
-    </div>`;
-  }).join("");
-  el.innerHTML=`
-    <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:6px">
-      📋 Feriados · ${year}
-    </div>
-    <div>${window.nfr(rows)}</div>`;
+  all.sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
+  const holSet = new Set(all.map(h => h.date));
+  const isWorkday = d => d.getDay() !== 0 && d.getDay() !== 6 && !holSet.has(ymd(d));
+
+  // Mês atual
+  const year = t0.getFullYear(), month = t0.getMonth();
+  let monthTotal = 0, monthLeft = 0;
+  for(let d = new Date(year, month, 1); d.getMonth() === month; d = addDays(d, 1)){
+    if(isWorkday(d)){ monthTotal++; if(d >= t0) monthLeft++; }
+  }
+  // Até ao fim do ano
+  let yearLeft = 0;
+  for(let d = new Date(t0); d.getFullYear() === year; d = addDays(d, 1)) if(isWorkday(d)) yearLeft++;
+  // Semanas (segunda a sexta)
+  const monday = addDays(t0, -((t0.getDay() + 6) % 7));
+  let weekLeft = 0, nextWeek = 0;
+  for(let i = 0; i < 5; i++){
+    const d = addDays(monday, i);
+    if(isWorkday(d) && d >= t0) weekLeft++;
+    if(isWorkday(addDays(monday, i + 7))) nextWeek++;
+  }
+
+  // Próximos feriados (o primeiro é o destaque)
+  const upcoming = all.filter(h => h.date >= todayStr).slice(0, 5).map(h => {
+    const d = parseYmd(h.date);
+    return { ...h, days: dayDiff(t0, d), dow: DOW[d.getDay()], dowFull: DOW_FULL[d.getDay()], weekend: d.getDay() === 0 || d.getDay() === 6 };
+  });
+
+  // Pontes: feriado à terça (ponte na segunda) ou à quinta (ponte na sexta), nos próximos 6 meses
+  const horizon = ymd(addDays(t0, 183));
+  const bridges = [];
+  for(const h of all){
+    const d = parseYmd(h.date);
+    const dow = d.getDay();
+    if(dow !== 2 && dow !== 4) continue;
+    const b = addDays(d, dow === 2 ? -1 : 1);
+    const bStr = ymd(b);
+    if(bStr < todayStr || bStr > horizon || holSet.has(bStr)) continue;
+    bridges.push({ holiday: h.localName, holidayDate: h.date, type: h.type, bridgeDate: bStr, bridgeDow: DOW_FULL[b.getDay()] });
+  }
+
+  // Próximos 6 meses: dias úteis e feriados em dia de semana
+  const months = [];
+  for(let i = 0; i < 6; i++){
+    const first = new Date(year, month + i, 1);
+    const m = first.getMonth(), y = first.getFullYear();
+    if(!years.includes(y)) break;
+    let total = 0, hols = 0;
+    for(let d = new Date(first); d.getMonth() === m; d = addDays(d, 1)){
+      if(isWorkday(d)) total++;
+      else if(d.getDay() !== 0 && d.getDay() !== 6) hols++;
+    }
+    months.push({ label: `${MON[m]}${y !== year ? ` ${String(y).slice(2)}` : ""}`, total, hols, current: i === 0 });
+  }
+
+  const yearList = all.filter(h => h.date.startsWith(`${year}-`)).map(h => ({ ...h, past: h.date < todayStr }));
+  return { year, monthName: MON_FULL[month], monthTotal, monthLeft, yearLeft, weekLeft, nextWeek, upcoming, bridges, months, yearList, hasMunicipal: Boolean(HOL_MUNIC[city]) };
 }
 
-function switchHolTab(tab,btn){
-  document.querySelectorAll("#hol-tab-res,#hol-tab-hol").forEach(b=>b.classList.remove("on"));
-  if(btn)btn.classList.add("on");
-  const resumo=document.getElementById("hol-resumo");
-  const feriados=document.getElementById("hol-feriados");
-  if(resumo)resumo.style.display=tab==="resumo"?"":"none";
-  if(feriados)feriados.style.display=tab==="feriados"?"":"none";
+function readStale(key){
+  try{
+    const raw = localStorage.getItem(PFX + key);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed?.d) ? parsed.d : null;
+  }catch{ return null; }
+}
+async function fetchYear(year, force){
+  const key = `hols_${year}`;
+  if(!force){
+    const cached = lsGet(key);
+    if(Array.isArray(cached) && cached.length) return cached;
+  }
+  try{
+    const list = await fetchJsonFirstOk(`https://date.nager.at/api/v3/PublicHolidays/${year}/PT`, {}, 10000);
+    if(!Array.isArray(list) || !list.length) throw new Error("resposta sem feriados");
+    lsSet(key, list, { source: "date.nager.at", state: "live" });
+    return list;
+  }catch(e){
+    const stale = readStale(key);
+    if(stale) return stale;
+    throw e;
+  }
+}
+function getHolidaysCacheKey(){ return `hols_${new Date().getFullYear()}`; }
+function currentCity(){
+  try{ return IPMA_CITIES[CFG.IPMA_CITY_ID] || "Lisboa"; }catch{ return "Lisboa"; }
+}
+
+function renderHolidaySummary(s, city){
+  const next = s.upcoming[0];
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const hero = next ? `<div class="hol-hero">
+      <div class="hol-hero-num">${next.days}</div>
+      <div><div class="hol-hero-sub">${next.days === 0 ? "hoje é feriado" : next.days === 1 ? "dia para o próximo feriado" : "dias para o próximo feriado"}</div>
+        <div class="hol-hero-lbl">${escHol(next.localName)}${next.type === "municipal" ? ` <span class="hol-tag">municipal · ${escHol(city)}</span>` : ""}</div>
+        <div class="hol-hero-sub">${next.dowFull}, ${parseYmd(next.date).getDate()} de ${MON_FULL[parseYmd(next.date).getMonth()]}</div></div>
+    </div>` : "";
+
+  const kpis = [
+    [`${s.monthLeft}<small> de ${s.monthTotal}</small>`, `dias úteis restam em ${s.monthName}`],
+    [s.weekLeft, "dias úteis restam esta semana"],
+    [s.nextWeek, "dias úteis na próxima semana"],
+    [s.yearLeft, `dias úteis até ao fim de ${s.year}`],
+  ].map(([v, l]) => `<div class="hol-stat"><div class="hol-stat-val">${v}</div><div class="hol-stat-lbl">${l}</div></div>`).join("");
+
+  const bridges = s.bridges.length ? `<div class="hol-sec">Pontes nos próximos 6 meses</div>${s.bridges.slice(0, 3).map(b => `<div class="hol-bridge">
+      <b>${b.bridgeDow.replace(/^./, c => c.toUpperCase())}, ${fmtDayMonth(b.bridgeDate)}</b>
+      <span>${escHol(b.holiday)} (${fmtDayMonth(b.holidayDate)})${b.type === "municipal" ? ` · municipal` : ""}: tirando este dia, ficam 4 dias seguidos</span>
+    </div>`).join("")}${s.bridges.length > 3 ? `<div class="hol-more">+${s.bridges.length - 3} até ${fmtDayMonth(s.bridges[s.bridges.length - 1].bridgeDate)}</div>` : ""}` : "";
+
+  const maxTotal = Math.max(23, ...s.months.map(m => m.total));
+  const months = s.months.length ? `<div class="hol-sec">Próximos meses</div><div class="hol-months">${s.months.map(m => `
+      <div class="hol-month${m.current ? " on" : ""}">
+        <span class="hol-month-lbl">${m.label}</span>
+        <span class="hol-month-bar"><span style="width:${Math.round(m.total / maxTotal * 100)}%"></span></span>
+        <span class="hol-month-val">${plural(m.total, "útil", "úteis")}${m.hols ? ` · ${plural(m.hols, "feriado", "feriados")}` : ""}</span>
+      </div>`).join("")}</div>` : "";
+
+  const upcoming = s.upcoming.length ? `<div class="hol-sec">Próximos feriados</div><div class="hol-list">${s.upcoming.map(h => `
+      <div class="hol-item${h.type === "municipal" ? " munic" : ""}">
+        <span class="hol-date">${fmtDayMonth(h.date)}</span>
+        <span class="hol-dow${h.weekend ? " we" : ""}">${h.dow}</span>
+        <span class="hol-name">${escHol(h.localName)}${h.type !== "nacional" ? ` <span class="hol-tag">${h.type}</span>` : ""}</span>
+        <span class="hol-in">${h.days === 0 ? "hoje" : `+${h.days}d`}</span>
+      </div>`).join("")}</div>` : "";
+
+  const yearList = `<details class="hol-year"><summary>Todos os feriados de ${s.year} (${s.yearList.length})</summary><div class="hol-list">${s.yearList.map(h => {
+      const d = parseYmd(h.date);
+      return `<div class="hol-item${h.past ? " past" : ""}${h.type === "municipal" ? " munic" : ""}">
+        <span class="hol-date">${fmtDayMonth(h.date)}</span>
+        <span class="hol-dow${d.getDay() === 0 || d.getDay() === 6 ? " we" : ""}">${DOW[d.getDay()]}</span>
+        <span class="hol-name">${escHol(h.localName)}${h.type !== "nacional" ? ` <span class="hol-tag">${h.type}</span>` : ""}</span>
+        <span class="hol-in">${h.past ? "✓" : ""}</span>
+      </div>`;
+    }).join("")}</div></details>`;
+
+  const region = HOL_REGION[city] ? ` e regionais` : "";
+  const munic = s.hasMunicipal ? `inclui o feriado municipal de ${escHol(city)}` : `sem feriado municipal registado para ${escHol(city)}`;
+  return `${hero}<div class="hol-grid">${kpis}</div>${bridges}${months}${upcoming}${yearList}
+    <div class="src">✦ date.nager.at · feriados nacionais${region} · ${munic} · cidade escolhida na Meteorologia</div>`;
 }
 
 async function loadHolidays(force=false){
-  $("hol-body").innerHTML=skeletonGeneric(5);
+  const body = $("hol-body");
+  if(!body) return;
+  body.innerHTML = skeletonGeneric(5);
   try{
-    const year=new Date().getFullYear(), ck=`hols_${year}`;
-    let hols=force?null:lsGet(ck);
-    try {
-      const url = `https://date.nager.at/api/v3/PublicHolidays/${year}/PT`;
-      hols = await fetchJsonFirstOk(url, {}, 10000);
-      if (hols) lsSet(ck, hols);
-    } catch(e) {
-      console.warn("⚠️ Holidays API falhou:", e.message);
-    }
-
-    const today=new Date(); today.setHours(0,0,0,0);
-    const todayStr=today.toISOString().slice(0,10);
-
-    /* Feriados municipais fixos */
-    /* Feriados municipais — fontes: CM respectivas */
-    const MUNIC=[
-      {date:`${year}-06-13`,name:"S. António",          city:"Lisboa",  flag:"🏛️"},
-      {date:`${year}-06-24`,name:"S. João",             city:"Porto",   flag:"🎆"},
-      {date:`${year}-06-24`,name:"S. João",             city:"Braga",   flag:"⛪"},
-      {date:`${year}-06-29`,name:"Dia da Cidade",       city:"Évora",   flag:"🏛️"},
-      {date:`${year}-08-22`,name:"Feriado Municipal",   city:"Braga",   flag:"⛪"},
-      {date:`${year}-09-04`,name:"Feira de S. Mateus",  city:"Viseu",   flag:"🎪"},
-      {date:`${year}-09-07`,name:"Feriado Municipal",   city:"Aveiro",  flag:"🌊"},
-      {date:`${year}-11-27`,name:"Feriado Municipal",   city:"Coimbra", flag:"🎓"},
-      {date:`${year}-07-22`,name:"Dia da Cidade",       city:"Setúbal", flag:"⚓"},
-      {date:`${year}-08-01`,name:"Feriado Municipal",   city:"Faro",    flag:"🌊"},
-    ];
-
-    /* Juntar feriados nacionais + municipais */
-    const ptDow=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    const ptMon=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-    const ptMonFull=["janeiro","fevereiro","março","abril","maio","junho",
-                     "julho","agosto","setembro","outubro","novembro","dezembro"];
-    const ptDowFull=["Domingo","Segunda-feira","Terça-feira","Quarta-feira",
-                     "Quinta-feira","Sexta-feira","Sábado"];
-
-    /* Construir set de todos os feriados nacionais para cálculos */
-    const holSet=new Set(hols.map(h=>h.date));
-    /* Adicionar municipais ao set para dias úteis */
-    /* (não interferem nos dias úteis gerais — apenas locais) */
-
-    /* ── Dias úteis ──────────────────────────────────────── */
-    function isWorkday(d){
-      const dow=d.getDay();
-      if(dow===0||dow===6) return false;
-      return !holSet.has(d.toISOString().slice(0,10));
-    }
-
-    /* Dias úteis restantes no mês actual */
-    const firstOfMonth=new Date(today.getFullYear(),today.getMonth(),1);
-    const lastOfMonth=new Date(today.getFullYear(),today.getMonth()+1,0);
-    let wdMonth=0, wdMonthLeft=0;
-    for(let d=new Date(firstOfMonth);d<=lastOfMonth;d.setDate(d.getDate()+1)){
-      if(isWorkday(d)){
-        wdMonth++;
-        if(d>=today) wdMonthLeft++;
-      }
-    }
-
-    /* Dias úteis restantes no ano */
-    const lastOfYear=new Date(year,11,31);
-    let wdYearLeft=0;
-    for(let d=new Date(today);d<=lastOfYear;d.setDate(d.getDate()+1)){
-      if(isWorkday(d)) wdYearLeft++;
-    }
-
-    /* Dias úteis desta semana e próxima */
-    function weekWorkdays(refDate){
-      const dow=refDate.getDay();
-      const mon=new Date(refDate); mon.setDate(refDate.getDate()-(dow===0?6:dow-1));
-      let count=0;
-      for(let i=0;i<5;i++){
-        const d=new Date(mon); d.setDate(mon.getDate()+i);
-        if(isWorkday(d)&&d>=today) count++;
-      }
-      return count;
-    }
-    function weekWorkdaysTotal(refDate){
-      const dow=refDate.getDay();
-      const mon=new Date(refDate); mon.setDate(refDate.getDate()-(dow===0?6:dow-1));
-      let count=0;
-      for(let i=0;i<5;i++){
-        const d=new Date(mon); d.setDate(mon.getDate()+i);
-        if(isWorkday(d)) count++;
-      }
-      return count;
-    }
-    const nextWeek=new Date(today); nextWeek.setDate(today.getDate()+7);
-    const wdThisWeek=weekWorkdays(today);
-    const wdNextWeek=weekWorkdaysTotal(nextWeek);
-
-    /* ── Próximo feriado ──────────────────────────────────── */
-    const upcoming=hols.filter(h=>h.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date));
-    const next=upcoming[0];
-    let daysToNext=0;
-    if(next){
-      const nd=new Date(next.date+"T00:00:00");
-      daysToNext=Math.round((nd-today)/(1000*60*60*24));
-    }
-
-    /* ── Detectar pontes ─────────────────────────────────── */
-    const bridges=[];
-    hols.forEach(h=>{
-      const hd=new Date(h.date+"T00:00:00");
-      const dow=hd.getDay();
-      /* Feriado 5ª → 6ª é ponte */
-      if(dow===4){
-        const fri=new Date(hd); fri.setDate(hd.getDate()+1);
-        const friStr=fri.toISOString().slice(0,10);
-        if(friStr>=todayStr)
-          bridges.push({hol:h.localName,holDate:h.date,
-            bridge:"Sexta-feira",bridgeDate:friStr,type:"th-fr"});
-      }
-      /* Feriado 3ª → 2ª é ponte */
-      if(dow===2){
-        const mon=new Date(hd); mon.setDate(hd.getDate()-1);
-        const monStr=mon.toISOString().slice(0,10);
-        if(monStr>=todayStr)
-          bridges.push({hol:h.localName,holDate:h.date,
-            bridge:"Segunda-feira",bridgeDate:monStr,type:"tu-mo"});
-      }
-    });
-
-    /* ── Dias úteis por mês (restantes do ano) ───────────── */
-    const monthStats=[];
-    for(let m=today.getMonth();m<12;m++){
-      const first=new Date(year,m,1);
-      const last=new Date(year,m+1,0);
-      let total=0, left=0, holCount=0;
-      for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
-        const ds=d.toISOString().slice(0,10);
-        if(isWorkday(d)){ total++; if(d>=today) left++; }
-        if(holSet.has(ds)&&d.getDay()!==0&&d.getDay()!==6) holCount++;
-      }
-      monthStats.push({m,name:ptMon[m],total,left,holCount,
-        isCurrent:m===today.getMonth()});
-    }
-    const maxWd=Math.max(...monthStats.map(x=>x.total));
-
-    /* ── Feriados nacionais com estado past/future ──────── */
-    const allHols=[
-      ...hols.map(h=>({...h,type:"nacional"})),
-      ...MUNIC.map(h=>({date:h.date,localName:h.name,
-        name:h.name,type:"municipal",city:h.city,flag:h.flag}))
-    ].sort((a,b)=>a.date.localeCompare(b.date));
-    /* Guardar para renderHolList */
-    window._holData={allHols,ptDow,ptMon,ptDowFull,ptMonFull,today,todayStr,next,bridges,year};
-
-
-    /* ── Render ─────────────────────────────────────────── */
-    $("hol-body").innerHTML=`
-    <!-- Tabs -->
-    <div style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="rbtn on" id="hol-tab-res" onclick="switchHolTab('resumo',this)">Resumo</button>
-      <button class="rbtn"    id="hol-tab-hol" onclick="switchHolTab('feriados',this)">Feriados ${year}</button>
-    </div>
-    <!-- Tab Resumo -->
-    <div id="hol-resumo">
-
-
-    <!-- KPI: próximo feriado -->
-    ${next?`<div style="background:var(--b2);border-radius:10px;padding:10px 14px;
-         margin-bottom:10px;display:flex;align-items:center;gap:12px">
-      <div style="font-size:2.4rem;font-weight:900;color:var(--accent);
-           line-height:1;min-width:44px;text-align:center">${window.nfr(daysToNext)}</div>
-      <div>
-        <div style="font-size:.78rem;color:var(--t3)">dias para o próximo feriado</div>
-        <div style="font-size:.92rem;font-weight:700;color:var(--text);margin-top:1px">
-          ${next.localName}</div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:1px">
-          ${window.nfr(ptDowFull[new Date(next.date+"T00:00:00").getDay()])} · 
-          ${new Date(next.date+"T00:00:00").getDate()} de 
-          ${window.nfr(ptMonFull[new Date(next.date+"T00:00:00").getMonth()])}
-        </div>
-      </div>
-    </div>`:""}
-
-    <!-- KPIs: dias úteis -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px">
-      ${[
-        {lbl:"Dias úteis<br>este mês",    v:wdMonthLeft, sub:`de ${wdMonth} totais`, col:"#10B981"},
-        {lbl:"Dias úteis<br>este ano",    v:wdYearLeft,  sub:"restantes",            col:"#3B82F6"},
-        {lbl:"Esta semana",               v:wdThisWeek,  sub:"dias úteis restam",    col:"#F59E0B"},
-        {lbl:"Próxima semana",            v:wdNextWeek,  sub:"dias úteis",           col:"#8B5CF6"},
-      ].map(k=>`<div style="background:var(--b2);border-radius:7px;padding:7px 8px;text-align:center">
-        <div style="font-size:1.35rem;font-weight:700;color:var(--text);line-height:1">${window.nfr(k.v)}</div>
-        <div style="font-size:.74rem;color:var(--t3);line-height:1.3;margin-top:2px">${window.nfr(k.lbl)}</div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:1px">${window.nfr(k.sub)}</div>
-      </div>`).join("")}
-    </div>
-
-    <!-- Pontes detectadas -->
-    ${bridges.length?`
-    <div style="margin-bottom:8px">
-      <div style="font-size:.74rem;font-weight:700;color:var(--amber);margin-bottom:4px">
-        🌉 Pontes detectadas
-      </div>
-      ${bridges.map(b=>`
-        <div style="background:#F59E0B12;border:1px solid #F59E0B33;border-radius:7px;
-             padding:6px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:1rem">🌉</span>
-          <div>
-            <div style="font-size:.74rem;font-weight:700;color:var(--amber)">
-              ${window.nfr(b.bridge)} ${b.bridgeDate.slice(8)}/
-              ${b.bridgeDate.slice(5,7)} é ponte
-            </div>
-            <div style="font-size:.74rem;color:var(--t2)">
-              Feriado ${window.nfr(b.hol)} (${b.holDate.slice(8)}/${b.holDate.slice(5,7)}) 
-              cria fim-de-semana longo de 4 dias
-            </div>
-          </div>
-        </div>`).join("")}
-    </div>`:""}
-
-    <!-- Dias úteis por mês -->
-    <div style="margin-bottom:10px">
-      <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">
-        📊 Dias úteis por mês
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(${monthStats.length},1fr);
-           gap:3px;align-items:end;height:44px">
-        ${monthStats.map(ms=>{
-          const barH=Math.round((ms.left/maxWd)*38)+2;
-          const col=ms.isCurrent?"var(--accent)":ms.holCount>1?"#F59E0B":"#3B82F6";
-          return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
-            <div title="${ms.name}: ${window.nfr(ms.left)} úteis (${window.nfr(ms.holCount)} feriado${ms.holCount!==1?'s':''})"
-                 style="width:100%;height:${barH}px;background:${col};border-radius:2px 2px 0 0;
-                 opacity:${ms.isCurrent?1:0.7};cursor:default"></div>
-            <div style="font-size:.74rem;color:${ms.isCurrent?"var(--accent)":"var(--t3)"};
-                 font-weight:${ms.isCurrent?700:400}">${ms.name}</div>
-          </div>`;
-        }).join("")}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.74rem;
-           color:var(--t3);margin-top:3px">
-        <span>Barra destaca meses c/ ≥2 feriados <span style="color:var(--amber)">●</span></span>
-        <span>Mês actual <span style="color:var(--accent)">●</span></span>
-      </div>
-    </div>
-
-
-    </div>
-    <!-- Tab Feriados -->
-    <div id="hol-feriados" style="display:none">
-
-    <!-- Botão para ver feriados completos -->
-    <div style="margin-top:6px">
-      <button class="rbtn" style="width:100%;justify-content:center"
-        onclick="switchWxHol('feriados',document.getElementById('wxhol-tab-hol'))">
-        🗓 Ver lista completa de feriados →
-      </button>
-    </div>
-
-  </div>
-`;
-
+    const today = new Date();
+    const year = today.getFullYear();
+    const holsByYear = { [year]: await fetchYear(year, force) };
+    try{ holsByYear[year + 1] = await fetchYear(year + 1, force); }catch{ /* o ano seguinte é opcional */ }
+    const city = currentCity();
+    body.innerHTML = renderHolidaySummary(computeHolidaySummary({ holsByYear, today, city }), city);
   }catch(e){
-    $("hol-body").innerHTML=er(e,{context:"Feriados",action:"volte a carregar ou mude de cidade"});
-    notifyNonCriticalError("Feriados",e,"volte a carregar ou mude de cidade");
+    body.innerHTML = er(e, { context: "Feriados", action: "clique em ↺ para tentar novamente" });
+    notifyNonCriticalError("Feriados", e, "clique em ↺ para tentar novamente");
   }
 }
 
-  window.switchWxHol = switchWxHol;
-  window.wxholRefresh = wxholRefresh;
-  window.renderHolList = renderHolList;
   window.loadHolidays = loadHolidays;
-  window.switchHolTab = switchHolTab;
+  window.computeHolidaySummary = computeHolidaySummary;
+  window.getHolidaysCacheKey = getHolidaysCacheKey;
 })();
