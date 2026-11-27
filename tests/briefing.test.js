@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit, observationHistory, offline = false, storedPreferences }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit, observationHistory, offline = false, storedPreferences, fuelEvora = null, summarizeFuelEvora }) {
   const root = { innerHTML: "", dataset: {}, addEventListener() {} };
   const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
   const historyView = { innerHTML: "" };
@@ -25,7 +25,16 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const preferences = Object.fromEntries(["Weather", "Holidays", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
     "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
   ]));
-  const elements = { briefingBody: root, briefingChanges: changes, briefingHistory: historyView, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
+  const toolButtons = Object.fromEntries(["fuel_diesel", "fuel_gasoline_95", "ref_national", "ref_evora"].map(id => ["toolFuel_" + id, {
+    dataset: {}, classes: new Set(), attrs: {},
+    classList: { toggle(name, on) { on ? this.owner.classes.add(name) : this.owner.classes.delete(name); } },
+    setAttribute(name, value) { this.attrs[name] = value; },
+    addEventListener(event, handler) { this.handler = handler; },
+  }]));
+  Object.values(toolButtons).forEach(b => { b.classList.owner = b; });
+  const toolPrice = { textContent: "" };
+  const alertLabel = { textContent: "" };
+  const elements = { toolFuelPrice: toolPrice, fuelAlertLabel: alertLabel, ...toolButtons, briefingBody: root, briefingChanges: changes, briefingHistory: historyView, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
   const store = new Map();
   if (storedPreferences) store.set("dash_v15_briefing_preferences_v1", JSON.stringify(storedPreferences));
   if (previousVisit) store.set("dash_v15_briefing_last_visit_v1", JSON.stringify(previousVisit));
@@ -37,11 +46,12 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
     document: { getElementById: id => elements[id] || null },
     CFG: { IPMA_CITY_ID: 1060300 },
     IPMA_CITIES: { 1060300: city },
-    lsGet: key => key.startsWith("ipma_") ? weather : key === "fuel" ? fuel : key === "fuel_es" ? fuelEs :
+    lsGet: key => key.startsWith("ipma_") ? weather : key === "fuel" ? fuel : key === "fuel_es" ? fuelEs : key === "fuel_evora" ? fuelEvora :
       key === "inflation_eurostat_v2" ? inflation : key === "euribor_live_v1" ? euribor : null,
     getCacheMeta: () => null,
     fmtAgeShort: age => `${Math.round(age / 3600000)}h`,
     getCabazBriefingData: () => basket,
+    summarizeFuelEvora,
     localStorage: { getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value) },
     addNotification: (...args) => notices.push(args),
     window: {},
@@ -51,7 +61,7 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   context.window = context;
   vm.runInContext(await readFile("src/cards/briefing.js", "utf8"), context);
   context.renderPortugalBriefing(now);
-  return { html: root.innerHTML, root, changes: changes.innerHTML, history: historyView.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, costIncome, costFood, costElectricity, costOutput, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
+  return { toolButtons, toolPrice, alertLabel, html: root.innerHTML, root, changes: changes.innerHTML, history: historyView.innerHTML, updated: updated.textContent, impact: impact.textContent, impactEl: impact, input, costIncome, costFood, costElectricity, costOutput, threshold, toggle, desktopToggle, preferences, status, store, notices, pagehideHandler };
 }
 
 test("Portugal briefing includes only dated recent observations and escapes provider text", async () => {
@@ -196,8 +206,9 @@ test("Portugal briefing keeps a bounded local observation history with comparabl
       { timestamp: now - 200 * 86400000, date: "2026-04-12", snapshot: 1900, value: "Registo antigo" },
     ] },
   });
-  assert.match(result.history, /Tendência local \(até 90 dias/);
-  assert.ok(result.history.includes("-0,030 €/L desde 26/10/2026 · 2 observações locais"));
+  assert.match(result.history, /Tendência local · até 90 dias/);
+  assert.ok(result.history.includes("-0,030 €/L desde 26/10/2026"));
+  assert.match(result.history, /<svg class="briefing-spark"[^>]*aria-label="Gasolina 95 · média nacional: 2 observações/);
   const saved = JSON.parse(result.store.get("dash_v15_briefing_observation_history_v1"));
   assert.equal(saved.fuel.length, 2);
 });
@@ -326,4 +337,34 @@ test("old saved preferences (list of visible groups) keep new indicators visible
   assert.match(result.html, /Cabaz alimentar/);
   assert.equal(result.preferences.briefingPrefHolidays.checked, true, "new group visible by default");
   assert.equal(result.preferences.briefingPrefFuel.checked, false);
+});
+
+test("fuel tool switches between diesel/gasoline and national/Évora prices for the estimate and the alert", async () => {
+  const now = Date.parse("2026-11-27T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    fuelLitres: "100",
+    fuel: [
+      { fuel_slug: "gasoline_95", avg_price_eur: 1.907, updated_at: new Date(now - 3600000).toISOString() },
+      { fuel_slug: "diesel", avg_price_eur: 2.104, updated_at: new Date(now - 3600000).toISOString() },
+    ],
+    fuelEvora: { observedAt: now - 3600000, stations: [] },
+    summarizeFuelEvora: () => ({ diesel: { cheapest: { price: 2.018, stations: [{ name: "Auto Julio Évora" }] }, cheapestDelta: -0.086 }, gasoline_95: { cheapest: { price: 1.81, stations: [{ name: "Auto Julio Évora" }] }, cheapestDelta: -0.097 } }),
+  });
+  assert.match(result.toolPrice.textContent, /Gasolina 95 1,907 €\/L · média nacional/);
+  assert.match(result.impact, /190,70/);
+  assert.ok(result.toolButtons.toolFuel_fuel_gasoline_95.classes.has("on"));
+  result.toolButtons.toolFuel_fuel_diesel.handler();
+  assert.match(result.toolPrice.textContent, /Gasóleo 2,104 €\/L · média nacional/);
+  assert.match(result.impactEl.textContent, /210,40/);
+  assert.match(result.alertLabel.textContent, /o gasóleo/);
+  result.toolButtons.toolFuel_ref_evora.handler();
+  assert.match(result.toolPrice.textContent, /Gasóleo 2,018 €\/L · mais barato em Évora · Auto Julio Évora/);
+  assert.match(result.impactEl.textContent, /201,80/);
+  assert.equal(result.alertLabel.textContent, "Avisar quando o gasóleo mais barato em Évora ficar em ou abaixo de");
+  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_fuel_choice_v1")), { fuel: "diesel", ref: "evora" });
+  result.costIncome.value = "2000";
+  result.costFood.value = "400";
+  result.costIncome.handler();
+  assert.match(result.costOutput.textContent, /Alimentação 400,00\s€ · Combustível 201,80\s€ = 601,80\s€ · 30,1%/);
 });
