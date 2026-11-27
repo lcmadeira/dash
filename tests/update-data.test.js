@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { UPDATERS, failureReason } from "../scripts/update-data.mjs";
 
 test("data updater list includes every data/*.json producer", () => {
-  assert.deepEqual(UPDATERS, ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs", "update-exports.mjs", "update-aforro.mjs"]);
+  assert.deepEqual(UPDATERS, ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs", "update-exports.mjs", "update-aforro.mjs", "update-wages.mjs"]);
 });
 
 test("failure reason skips the Node version line and stack frames", () => {

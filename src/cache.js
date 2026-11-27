@@ -26,6 +26,8 @@
     div_eurostat: 24 * 60 * 60 * 1000, // 24h (dívida pública anual, Eurostat)
     exp_ine: 24 * 60 * 60 * 1000, // 24h (exportações, data/exports.json mensal)
     aforro_: 12 * 60 * 60 * 1000, // 12h (Certificados de Aforro, data/aforro.json mensal)
+    salarios_: 12 * 60 * 60 * 1000, // 12h (salário médio INE, data/salarios.json trimestral)
+    wage_eu_: 7 * 24 * 60 * 60 * 1000, // 7 dias (salário médio UE, Eurostat anual)
     hist: 6 * 60 * 60 * 1000, // 6h (históricos / séries)
     static: 7 * 24 * 60 * 60 * 1000, // 7 dias (dados estáticos)
   };
@@ -39,6 +41,7 @@
     fx: 4 * 24 * 60 * 60 * 1000,
     euribor_live_v1: 75 * 24 * 60 * 60 * 1000,
     inflation_eurostat_v2: 120 * 24 * 60 * 60 * 1000,
+    salarios_v1: 200 * 24 * 60 * 60 * 1000, // trimestral, publicado ~45 dias depois do fim do trimestre
   };
 
   /**
