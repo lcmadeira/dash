@@ -16,7 +16,8 @@ function tick(){
   if(clk && clk.textContent!==time){
     clk.textContent=time;
     clk.dateTime=n.toISOString();
-    document.getElementById("clkd").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const d=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
+    document.getElementById("clkd").textContent=d.charAt(0).toUpperCase()+d.slice(1);
   }
   tickMarkets();
 }
