@@ -87,6 +87,45 @@ function estimateEuropeanAqiFromPols(pols) {
   return Math.max(...scores);
 }
 
+/* Pólen (CAMS, grãos/m³). Limites indicativos: árvores toleram contagens maiores do que gramíneas e ervas. */
+const POLLEN = [
+  { key: "grass_pollen",   label: "Gramíneas", limits: [5, 25, 100] },
+  { key: "olive_pollen",   label: "Oliveira",  limits: [10, 50, 200] },
+  { key: "birch_pollen",   label: "Bétula",    limits: [10, 50, 200] },
+  { key: "alder_pollen",   label: "Amieiro",   limits: [10, 50, 200] },
+  { key: "mugwort_pollen", label: "Artemísia", limits: [5, 25, 100] },
+  { key: "ragweed_pollen", label: "Ambrósia",  limits: [5, 25, 100] },
+];
+const POLLEN_LEVELS = [
+  { label: "baixo", col: "#10B981" }, { label: "moderado", col: "#F59E0B" },
+  { label: "alto", col: "#F97316" }, { label: "muito alto", col: "#EF4444" },
+];
+
+/** Máximo de cada pólen nas horas pedidas, com nível. null quando a série não existe (fora da zona CAMS). */
+function pollenSummary(hourly, from = 0) {
+  const rows = POLLEN.map(p => {
+    const vals = (hourly?.[p.key] || []).slice(from).filter(v => Number.isFinite(v));
+    if (!vals.length) return null;
+    const max = Math.max(...vals);
+    const level = max < 1 ? -1 : p.limits.findIndex(l => max < l) === -1 ? 3 : p.limits.findIndex(l => max < l);
+    return { key: p.key, label: p.label, max, level };
+  }).filter(Boolean);
+  return rows.length ? rows : null;
+}
+
+function renderPollen(hourly, from) {
+  const rows = pollenSummary(hourly, from);
+  const title = `<div style="font-size:.74rem;font-weight:700;color:var(--t2);margin:8px 0 5px">Pólen · próximas 24 h
+    <span class="help-tip" title="Máximo previsto pelo CAMS (Copernicus), em grãos/m³. Níveis indicativos.">?</span></div>`;
+  if (!rows) return `${title}<div class="aqi-pollen-note">Sem previsão de pólen para esta localização.</div>`;
+  const active = rows.filter(r => r.level >= 0).sort((a, b) => b.level - a.level || b.max - a.max);
+  if (!active.length) return `${title}<div class="aqi-pollen-note">Níveis muito baixos (fora da época de polinização).</div>`;
+  return `${title}<div class="aqi-pollen">${active.map(r => {
+    const lv = POLLEN_LEVELS[r.level];
+    return `<span class="aqi-pollen-chip" style="color:${lv.col};border-color:${lv.col}44;background:${lv.col}12">${r.label} · ${lv.label} <small>${window.nf(r.max, 0)}</small></span>`;
+  }).join("")}</div>`;
+}
+
 function normalizeAirQualityPayload(data) {
   const hourly = data?.hourly;
   if (!hourly) return data;
@@ -104,7 +143,7 @@ async function loadAirQuality(force=false) {
   /* Coordenadas baseadas na cidade seleccionada */
   const cityId = CFG.IPMA_CITY_ID || 1110600;
   const coords = AQ_CITY_COORDS[cityId] || AQ_CITY_COORDS[1110600];
-  const ck = `aq_v3_${cityId}`;
+  const ck = `aq_v4_${cityId}`;
 
   let data = force ? null : lsGet(ck);
 
@@ -114,7 +153,7 @@ async function loadAirQuality(force=false) {
       const base = `https://air-quality-api.open-meteo.com/v1/air-quality`
         + `?latitude=${coords.lat}&longitude=${coords.lon}`
         + `&timezone=Europe%2FLisbon`;
-      const variables = "european_aqi,pm10,pm2_5,nitrogen_dioxide,ozone,sulphur_dioxide";
+      const variables = `european_aqi,pm10,pm2_5,nitrogen_dioxide,ozone,sulphur_dioxide,${POLLEN.map(p => p.key).join(",")}`;
       const url = `${base}&hourly=${encodeURIComponent(variables)}&forecast_hours=24`;
       data = await fetchJsonFirstOk(url, {}, 10000, ["local", "direct"],
         value => Boolean(value?.hourly?.time?.length));
@@ -133,7 +172,7 @@ async function loadAirQuality(force=false) {
 
       data = normalizeAirQualityPayload(data);
       const observedHour = data.hourly?.time?.filter(value => Number.isFinite(Date.parse(value)) && Date.parse(value) <= Date.now()).at(-1);
-      lsSet(ck, data, {source:"Open-Meteo · CAMS",state:"live",observedAt:observedHour,reason:"AQI pode ser estimado quando a série não fornece o índice europeu"});
+      lsSet(ck, data, {source:"Open-Meteo · CAMS (inclui pólen)",state:"live",observedAt:observedHour,reason:"AQI pode ser estimado quando a série não fornece o índice europeu"});
     } catch(e) {
       el.innerHTML = er(e, { context: "Qualidade do ar", action: "clique em ↺ para nova tentativa" });
       notifyNonCriticalError("Qualidade do ar", e, "clique em ↺ para nova tentativa");
@@ -285,6 +324,8 @@ async function loadAirQuality(force=false) {
     Próximas horas · AQI</div>
   <div class="aqi-forecast">${fcHtml}</div>` : ""}
 
+  ${renderPollen(hourly, hIdx)}
+
   <!-- Conselho de saúde -->
   <div class="aqi-health" style="color:${info.col};border-color:${info.col}33;background:${info.bg}">
     💬 ${info.desc}
@@ -292,4 +333,6 @@ async function loadAirQuality(force=false) {
 }
 
   window.loadAirQuality = loadAirQuality;
+  window.pollenSummary = pollenSummary;
+  window.AQ_CITY_COORDS = AQ_CITY_COORDS;
 })();

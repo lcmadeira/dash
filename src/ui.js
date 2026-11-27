@@ -435,7 +435,7 @@
 
   function getAirQualityCacheKey() {
     const id = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
-    return `aq_v3_${id}`;
+    return `aq_v4_${id}`;
   }
 
   /**
@@ -531,7 +531,7 @@
     const byId = {
       weather: `ipma_${cityId}`,
       hol: `hols_${new Date().getFullYear()}`,
-      airquality: `aq_v3_${cityId}`,
+      airquality: `aq_v4_${cityId}`,
       fuel: "fuel",
       dams: "dams_v1",
       "gas-eu": "ttf_live_v1",

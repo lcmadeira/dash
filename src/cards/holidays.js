@@ -55,6 +55,42 @@ function appliesTo(h, city){
   return true;
 }
 
+/* Calendário escolar do continente (ensino básico e secundário), Despacho n.º 8368/2024.
+   Datas 2026/27 lidas a 27-11-2026 em cgd.pt (Saldo Positivo) e rfm.pt, que coincidem.
+   Madeira e Açores têm calendário próprio. Válido até 30-06-2027: depois, acrescentar 2027/28. */
+const SCHOOL_YEARS = [{
+  label: "2026/27",
+  start: "2026-09-11",
+  breaks: [
+    { name: "Férias de Natal", from: "2026-12-16", to: "2026-12-31", back: "2027-01-04" },
+    { name: "Carnaval", from: "2027-02-08", to: "2027-02-10", back: "2027-02-11" },
+    { name: "Férias da Páscoa", from: "2027-03-22", to: "2027-04-02", back: "2027-04-05" },
+  ],
+  ends: [
+    { who: "9.º, 11.º e 12.º anos", date: "2027-06-04" },
+    { who: "5.º a 8.º e 10.º anos", date: "2027-06-11" },
+    { who: "pré-escolar e 1.º ciclo", date: "2027-06-30" },
+  ],
+}];
+
+/** Estado do calendário escolar em `today`: interrupção em curso, próxima interrupção e fim das aulas. */
+function schoolCalendarStatus(today, years = SCHOOL_YEARS){
+  const t = ymd(today);
+  const year = years.find(y => t >= addYmd(y.start, -75) && t <= y.ends[y.ends.length - 1].date);
+  if(!year) return null;
+  const current = year.breaks.find(b => t >= b.from && t < b.back) || null;
+  const next = year.breaks.find(b => b.from > t) || null;
+  const ends = year.ends.filter(e => e.date >= t).map(e => ({ ...e, days: dayDiff(today, parseYmd(e.date)) }));
+  return {
+    label: year.label,
+    beforeStart: t < year.start ? { date: year.start, days: dayDiff(today, parseYmd(year.start)) } : null,
+    current: current && { ...current, backIn: dayDiff(today, parseYmd(current.back)) },
+    next: next && { ...next, days: dayDiff(today, parseYmd(next.from)) },
+    ends,
+  };
+}
+function addYmd(s, n){ return ymd(addDays(parseYmd(s), n)); }
+
 function municipalFor(city, year){
   const m = HOL_MUNIC[city];
   if(!m) return [];
@@ -133,7 +169,7 @@ function computeHolidaySummary({ holsByYear, today, city }){
   }
 
   const yearList = all.filter(h => h.date.startsWith(`${year}-`)).map(h => ({ ...h, past: h.date < todayStr }));
-  return { year, monthName: MON_FULL[month], monthTotal, monthLeft, yearLeft, weekLeft, nextWeek, upcoming, bridges, months, yearList, hasMunicipal: Boolean(HOL_MUNIC[city]) };
+  return { today: todayStr, year, monthName: MON_FULL[month], monthTotal, monthLeft, yearLeft, weekLeft, nextWeek, upcoming, bridges, months, yearList, hasMunicipal: Boolean(HOL_MUNIC[city]) };
 }
 
 function readStale(key){
@@ -163,6 +199,19 @@ async function fetchYear(year, force){
 function getHolidaysCacheKey(){ return `hols_${new Date().getFullYear()}`; }
 function currentCity(){
   try{ return IPMA_CITIES[CFG.IPMA_CITY_ID] || "Lisboa"; }catch{ return "Lisboa"; }
+}
+
+function renderSchoolCalendar(st, city){
+  if(!st) return "";
+  if(HOL_REGION[city]) return `<div class="hol-sec">Calendário escolar</div><div class="hol-school-note">${escHol(city)} segue o calendário escolar regional (não incluído).</div>`;
+  const when = d => `${parseYmd(d).getDate()} de ${MON_FULL[parseYmd(d).getMonth()]}`;
+  const days = n => n === 0 ? "hoje" : n === 1 ? "amanhã" : `daqui a ${n} dias`;
+  const rows = [];
+  if(st.beforeStart) rows.push(`<div class="hol-school"><b>Início das aulas</b><span>a partir de ${when(st.beforeStart.date)} · ${days(st.beforeStart.days)}</span></div>`);
+  if(st.current) rows.push(`<div class="hol-school on"><b>${escHol(st.current.name)}</b><span>${when(st.current.from)} a ${when(st.current.to)} · aulas a ${when(st.current.back)} (${days(st.current.backIn)})</span></div>`);
+  if(st.next) rows.push(`<div class="hol-school"><b>${escHol(st.next.name)}</b><span>${when(st.next.from)} a ${when(st.next.to)} · começa ${days(st.next.days)} · aulas a ${when(st.next.back)}</span></div>`);
+  if(st.ends.length) rows.push(`<div class="hol-school"><b>Fim das aulas</b><span>${st.ends.map(e => `${escHol(e.who)}: ${when(e.date)}`).join(" · ")}</span></div>`);
+  return `<div class="hol-sec">Calendário escolar ${st.label} · continente</div>${rows.join("")}`;
 }
 
 function renderHolidaySummary(s, city){
@@ -213,10 +262,12 @@ function renderHolidaySummary(s, city){
       </div>`;
     }).join("")}</div></details>`;
 
+  const school = renderSchoolCalendar(schoolCalendarStatus(s.today ? parseYmd(s.today) : new Date()), city);
+
   const region = HOL_REGION[city] ? ` e regionais` : "";
   const munic = s.hasMunicipal ? `inclui o feriado municipal de ${escHol(city)}` : `sem feriado municipal registado para ${escHol(city)}`;
-  return `${hero}<div class="hol-grid">${kpis}</div>${bridges}${months}${upcoming}${yearList}
-    <div class="src">✦ date.nager.at · feriados nacionais${region} · ${munic} · cidade escolhida no topo da página</div>`;
+  return `${hero}<div class="hol-grid">${kpis}</div>${bridges}${school}${months}${upcoming}${yearList}
+    <div class="src">✦ date.nager.at · feriados nacionais${region} · calendário escolar: Despacho 8368/2024 · ${munic} · cidade escolhida no topo da página</div>`;
 }
 
 async function loadHolidays(force=false){
@@ -239,5 +290,6 @@ async function loadHolidays(force=false){
 
   window.loadHolidays = loadHolidays;
   window.computeHolidaySummary = computeHolidaySummary;
+  window.schoolCalendarStatus = schoolCalendarStatus;
   window.getHolidaysCacheKey = getHolidaysCacheKey;
 })();
