@@ -10,7 +10,7 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-export const UPDATERS = ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs", "update-exports.mjs"];
+export const UPDATERS = ["update-dams.mjs", "update-cabaz.mjs", "update-imob.mjs", "update-exports.mjs", "update-aforro.mjs"];
 
 /** Linha mais útil do erro de um processo Node (a última é "Node.js vXX", que não diz nada). */
 export function failureReason(lines) {

@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,loadAforro,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
 /* Globais chamados a partir do index.html (onclick) ou de outros scripts clássicos: */
 /* exported
    addToHistory, clearAllNotifications, dismissNotification, executeExport,
@@ -415,6 +415,7 @@ setTimeout(()=>loadAir(),         4000);
 setTimeout(()=>loadOrmuz(),       4300);
 setTimeout(()=>loadCO2(),         4600);
 setTimeout(()=>loadSMN(),         5000);
+setTimeout(()=>loadAforro(),      5200);
 setTimeout(()=>initInflation(),   5500);
 setTimeout(()=>loadImob(),        5300);
 setTimeout(()=>loadTransp(),      5600);
@@ -1096,6 +1097,7 @@ const DEFAULT_CONFIG = {
     { id: 'anpc',       name: 'Proteção Civil',            desc: 'Ocorrências ANEPC e risco de incêndio · API Aberta', visible: true, icon: '🚒' },
     { id: 'dams',       name: 'Barragens',                 desc: 'Armazenamento bacias · SNIRH/APA',           visible: true, icon: '💧' },
     { id: 'euribor',    name: 'Euribor',                   desc: 'BCE · médias mensais · spread bancário PT',        visible: true, icon: '📐' },
+    { id: 'aforro',     name: 'Certificados de Aforro',    desc: 'Taxa da Série F · IGCP',                     visible: true, icon: '🐷' },
     { id: 'imob',       name: 'Imobiliário',               desc: 'Habitação Portugal · INE',                   visible: true, icon: '🏠' },
     { id: 'fng',        name: 'Fear & Greed',              desc: 'Sentimento cripto · Alternative.me',          visible: true, icon: '😰' },
     { id: 'rec',        name: 'Recessão EUA',              desc: 'US 10Y-2Y Spread · Tesouro dos EUA',          visible: true, icon: '📉' },
@@ -1914,6 +1916,7 @@ function autoIdentifyCards() {
     { text: 'Eletricidade',           id: 'elec' },
     { text: 'Qualidade do Ar',        id: 'airquality' },
     { text: 'Barragens',              id: 'dams' },
+    { text: 'Certificados de Aforro', id: 'aforro' },
     { text: 'Euribor',                id: 'euribor' },
     { text: 'Imobiliário',            id: 'imob' },
     { text: 'Fear',                   id: 'fng' },
@@ -2458,7 +2461,7 @@ function resetSettings() {
 const CARD_SECTIONS = {
   weather: 'portugal', hol: 'portugal', airquality: 'portugal', fuel: 'portugal', elec: 'portugal', 'gas-pt': 'portugal',
   cabaz: 'portugal', transp: 'portugal', dams: 'portugal', anpc: 'portugal', seis: 'portugal', air: 'portugal', 'news-pt': 'portugal',
-  euribor: 'economia', inf: 'economia', imob: 'economia', smn: 'economia', exp: 'economia', div: 'economia',
+  euribor: 'economia', aforro: 'economia', inf: 'economia', imob: 'economia', smn: 'economia', exp: 'economia', div: 'economia',
   co2: 'economia', cal: 'economia',
   psi20: 'mercados', fx: 'mercados', crypto: 'mercados', oil: 'mercados', 'gas-eu': 'mercados', agri: 'mercados',
   mstats: 'mercados', fng: 'mercados', rec: 'mercados', finance: 'mercados', heatmap: 'mercados',

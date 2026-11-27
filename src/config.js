@@ -24,8 +24,8 @@ const STATIC_REFERENCE_POLICY = {
   co2: { source: "DGEG/REN · relatório 2024", observedAt: "2024-12-31", maxAgeDays: 455 },
   conflicts: { source: "ACLED/CFR/Crisis Group · revisto nov 2026", observedAt: "2026-11-23", maxAgeDays: 120 },
   smn: { source: "DL 139/2025 · SMN 2026", observedAt: "2026-01-01", maxAgeDays: 395 },
-  /* Calendário: datas fixas Fed/BCE até 16-12-2027 (src/widgets/economic-calendar.js); fica "antiga" depois. */
-  cal: { source: "datas oficiais Fed, BCE e INE", observedAt: "2027-01-01", maxAgeDays: 350 },
+  /* Calendário: datas fixas Fed/BCE até 16-12-2027 (src/widgets/economic-calendar.js), revistas a 27-11-2026; fica "antiga" a 16-12-2027. observedAt nunca no futuro (dá "data inválida"). */
+  cal: { source: "datas oficiais Fed, BCE e INE", observedAt: "2026-11-27", maxAgeDays: 384 },
   ormuz: { source: "simulação (sem fonte AIS gratuita)", observedAt: "2026-11-27", maxAgeDays: 3650 },
   transp: { source: "Tarifas de 2026", observedAt: "2026-01-01", maxAgeDays: 395 },
   press: { source: "RSF 2026 · EIU", observedAt: "2026-05-01", maxAgeDays: 400 },

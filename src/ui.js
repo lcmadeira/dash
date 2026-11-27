@@ -10,6 +10,7 @@
     elec: "Eletricidade",
     airquality: "Qualidade do ar",
     euribor: "Euribor",
+    aforro: "Certificados de Aforro",
     imob: "Imobiliário",
     fng: "Fear & Greed",
     rec: "Curva de rendimentos",
@@ -338,7 +339,7 @@
   const DASHBOARD_PROFILES = {
     all: null,
     portugal: new Set(["weather", "hol", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "anpc", "seis", "air", "news-pt"]),
-    economy: new Set(["euribor", "inf", "imob", "smn", "exp", "div", "co2", "cal"]),
+    economy: new Set(["euribor", "aforro", "inf", "imob", "smn", "exp", "div", "co2", "cal"]),
     markets: new Set(["psi20", "fx", "crypto", "oil", "gas-eu", "agri", "mstats", "fng", "rec", "finance", "heatmap"]),
     world: new Set(["news-world", "conflicts", "geo", "press", "ormuz"]),
   };
@@ -538,6 +539,7 @@
       "gas-pt": "ttf_live_v1",
       elec: "elec_v3",
       euribor: "euribor_live_v1",
+      aforro: "aforro_v1",
       imob: "imob_ine_v1",
       fng: "fng_v4",
       rec: "rec_v5",

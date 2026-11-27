@@ -25,6 +25,7 @@
     air_: 3 * 60 * 1000, // 3 min (tráfego aéreo; o gateway também guarda 3 min)
     div_eurostat: 24 * 60 * 60 * 1000, // 24h (dívida pública anual, Eurostat)
     exp_ine: 24 * 60 * 60 * 1000, // 24h (exportações, data/exports.json mensal)
+    aforro_: 12 * 60 * 60 * 1000, // 12h (Certificados de Aforro, data/aforro.json mensal)
     hist: 6 * 60 * 60 * 1000, // 6h (históricos / séries)
     static: 7 * 24 * 60 * 60 * 1000, // 7 dias (dados estáticos)
   };

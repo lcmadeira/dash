@@ -150,6 +150,9 @@ function buildCalendarEvents(){
 }
 
 let CAL_TAB="upcoming";
+const CAL_VISIBLE=6;
+let CAL_EXPANDED=false;
+window.onCalMoreToggle=el=>{ CAL_EXPANDED=el.open; window.relayoutDashboardGrid?.(); };
 let CAL_EVENTS=buildCalendarEvents(); /* gerado uma vez, regenerado no ↺ */
 
 function switchCal(tab,btn){
@@ -182,7 +185,9 @@ function renderCalendar(){
     return;
   }
 
-  const rows=items.map(e=>{
+  /* Concluídos: os mais recentes primeiro. Lista curta (CAL_VISIBLE) e o resto num bloco recolhível com scroll. */
+  const ordered=CAL_TAB==="past"?items.slice().reverse():items;
+  const row=e=>{
     const dotCol=CAL_TAB==="past"?"var(--green)":e.imp==="h"?"var(--red)":e.imp==="m"?"var(--accent)":"var(--green)";
     return`<div class="ev">
       <div class="ev-dot" style="background:${dotCol}"></div>
@@ -196,9 +201,15 @@ function renderCalendar(){
         </div>
       </div>
     </div>`;
-  }).join("");
+  };
+  const head=ordered.slice(0,CAL_VISIBLE).map(row).join("");
+  const rest=ordered.slice(CAL_VISIBLE);
+  const more=rest.length?`<details class="ev-more"${CAL_EXPANDED?" open":""} ontoggle="window.onCalMoreToggle(this)">
+      <summary><span class="ev-more-open">Ver mais ${rest.length} eventos${CAL_TAB==="past"?"":` até ${rest[rest.length-1].date}`}</span><span class="ev-more-close">Mostrar menos</span></summary>
+      <div class="ev-list ev-list-scroll">${rest.map(row).join("")}</div>
+    </details>`:"";
 
-  $("cal-body").innerHTML=banner+`<div class="ev-list">${rows}</div>`;
+  $("cal-body").innerHTML=banner+`<div class="ev-list">${head}</div>${more}`;
 }
 
 function openCalendarSettings(){

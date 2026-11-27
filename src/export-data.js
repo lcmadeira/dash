@@ -134,6 +134,13 @@
       });
     },
 
+    aforro(ctx) {
+      const c = ctx.read("aforro_v1");
+      const latest = c?.d?.latest;
+      if (!latest || num(latest.rate) === null) return [];
+      return [{ indicator: `Certificados de Aforro Série F · taxa bruta (${latest.month})`, value: num(latest.rate), unit: "%", source: "IGCP", observedAt: `${latest.month}-01` }];
+    },
+
     fx(ctx) {
       const c = ctx.read("fx");
       const rates = c?.d?.rates || {};
