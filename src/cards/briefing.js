@@ -7,7 +7,10 @@
   const BRIEFING_PREF_KEY = (window.PFX || "dash_v15_") + "briefing_preferences_v1";
   const LAST_VISIT_KEY = (window.PFX || "dash_v15_") + "briefing_last_visit_v1";
   const OBSERVATION_HISTORY_KEY = (window.PFX || "dash_v15_") + "briefing_observation_history_v1";
-  const BRIEFING_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
+  const BRIEFING_GROUPS = ["weather", "holidays", "fuel", "basket", "inflation", "euribor"];
+  /* Grupos que existiam quando as preferências eram guardadas como lista de visíveis. */
+  const LEGACY_GROUPS = ["weather", "fuel", "basket", "inflation", "euribor"];
+  const GROUP_LABELS = { weather: "Meteorologia", holidays: "Feriados", fuel: "Combustível", basket: "Cabaz alimentar", inflation: "Inflação", euribor: "Euribor" };
   const OBSERVATION_HISTORY_DAYS = 90;
   let briefingPreferencesMemory = null;
   let currentFuelPrice = null;
@@ -104,6 +107,8 @@
       : "Histórico local: a reunir observações diárias com fonte e data; guardado apenas neste browser.";
   }
   const MATERIAL_CHANGE = { weather: [2, 20], fuel: 10, basket: 100, inflation: 0.1, euribor: 0.05 };
+  const eur = (value, digits = 2) => `${Number(value).toFixed(digits).replace(".", ",")} €`;
+  const signedEur = (value, digits = 2) => `${value > 0 ? "+" : value < 0 ? "−" : ""}${eur(Math.abs(value), digits)}`;
 
   function isMaterialChange(group, previous, current) {
     const threshold = MATERIAL_CHANGE[group];
@@ -126,14 +131,17 @@
     const today = weather?.data?.[0];
     const forecastDate = String(today?.forecastDate || "");
     const tempMax = Number(today?.tMax);
+    const tempMin = Number(today?.tMin);
     const rain = Number(today?.precipitaProb);
     if (weather && Number.isFinite(weatherObserved) && now >= weatherObserved && now - weatherObserved <= MAX_WEATHER_AGE_HOURS * 3600000 &&
         /^\d{4}-\d{2}-\d{2}$/.test(forecastDate) && Number.isFinite(tempMax)) {
       observations.push({
         group: "weather",
         title: "Meteorologia",
-        value: `${Math.round(tempMax)}°C de máxima${Number.isFinite(rain) ? ` · ${Math.round(rain)}% de precipitação` : ""}`,
-        detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · previsão ${formatDate(forecastDate)} · IPMA atualizada ${formatDateTime(weatherObserved)}`,
+        value: `${Number.isFinite(tempMin) ? `${Math.round(tempMin)}° / ` : ""}${Math.round(tempMax)}°C${Number.isFinite(rain) ? ` · ${Math.round(rain)}% de chuva` : ""}`,
+        extra: weatherWarningText(cityId, now),
+        warn: Boolean(weatherWarningText(cityId, now)),
+        detail: `${window.IPMA_CITIES?.[cityId] || "Portugal"} · IPMA · ${formatDateTime(weatherObserved)}`,
         href: "#card-weather",
         snapshot: [Math.round(tempMax), Number.isFinite(rain) ? Math.round(rain) : null],
         observedAt: weatherObserved,
@@ -141,6 +149,9 @@
     } else if (weatherCache?.age > MAX_WEATHER_AGE_HOURS * 3600000) {
       observations.push({ group: "weather", title: "Meteorologia", value: "Previsão desatualizada", detail: `Cache local há ${window.fmtAgeShort?.(weatherCache.age) || "mais de 36h"}`, href: "#card-weather", stale: true });
     }
+
+    const holidays = holidaysObservation(cityId, now);
+    if (holidays) observations.push(holidays);
 
     const fuel = window.lsGet?.("fuel");
     const fuelEs = window.lsGet?.("fuel_es");
@@ -155,16 +166,23 @@
       currentFuelObserved = fuelObserved;
       checkFuelAlert(fuelPrice, fuelObserved);
       const esObserved = Number(fuelEs?.ts);
-      const esPrice = Number(fuelEs?.items?.gasoline_95?.avg);
-      const esIsFresh = Number.isFinite(esObserved) && now >= esObserved && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000 && Number.isFinite(esPrice) && esPrice > 0;
-      const comparison = esIsFresh
-        ? ` · ${fuelPrice >= esPrice ? "+" : "−"}€${Math.abs(fuelPrice - esPrice).toFixed(3).replace(".", ",")}/L vs Espanha`
-        : "";
+      // Margem de 2 h: caches antigas guardaram a hora de Madrid como se fosse de Lisboa.
+      const esIsFresh = Number.isFinite(esObserved) && now >= esObserved - 2 * 3600000 && now - esObserved <= MAX_FUEL_AGE_HOURS * 3600000;
+      const diesel = Array.isArray(fuel) ? fuel.find(item => item?.fuel_slug === "diesel") : null;
+      const dieselPrice = Number(diesel?.avg_price_eur);
+      const parts = [];
+      if (Number.isFinite(dieselPrice) && dieselPrice > 0) parts.push(`Gasóleo ${dieselPrice.toFixed(3).replace(".", ",")}`);
+      parts.push(`Gasolina 95 ${fuelPrice.toFixed(3).replace(".", ",")} €/L`);
+      const spain = [["diesel", dieselPrice, "gasóleo"], ["gasoline_95", fuelPrice, "gasolina"]].flatMap(([slug, ptPrice, label]) => {
+        const esPrice = Number(fuelEs?.items?.[slug]?.avg);
+        return esIsFresh && Number.isFinite(esPrice) && esPrice > 0 && Number.isFinite(ptPrice) ? [`${label} ${signedEur(esPrice - ptPrice, 3)}`] : [];
+      });
       observations.push({
         group: "fuel",
-        title: "Combustível",
-        value: `Gasolina 95 · ${fuelPrice.toFixed(3).replace(".", ",")} €/L${comparison}`,
-        detail: `${Number(gas95.station_count) || 0} postos${esIsFresh ? ` · média espanhola ${esPrice.toFixed(3).replace(".", ",")} €/L (${formatDate(esObserved)})` : ""} · API Aberta · observada ${formatDateTime(fuelObserved)}`,
+        title: "Combustível · média nacional",
+        value: parts.join(" · "),
+        extra: fuelLocalText(fuel),
+        detail: `${spain.length ? `Espanha: ${spain.join(", ")} · ` : ""}API Aberta · ${formatDateTime(fuelObserved)}`,
         href: "#card-fuel",
         snapshot: Math.round(fuelPrice * 1000),
         observedAt: fuelObserved,
@@ -194,7 +212,7 @@
         group: "inflation",
         title: "Inflação · IHPC",
         value: `Portugal ${latestInflation.pt.toFixed(1).replace(".", ",")}% · zona euro ${latestInflation.eu.toFixed(1).replace(".", ",")}%`,
-        detail: `${formatDate(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
+        detail: `${formatMonth(inflationPeriod)} · ${gapText}${monthlyText ? ` · ${monthlyText}` : ""} · Eurostat`,
         href: "#card-inf",
         snapshot: [latestInflation.pt, latestInflation.eu],
         observedAt: inflationPeriod,
@@ -202,7 +220,7 @@
     }
 
     const euribor = window.lsGet?.("euribor_live_v1");
-    const euriborDate = parseMonthLabel(euribor?.updated);
+    const euriborDate = Number.isFinite(euribor?._observedAt) && euribor._observedAt > 0 ? euribor._observedAt : parseMonthLabel(euribor?.updated);
     const threeMonth = euribor?.rates?.find(rate => rate?.term === "3M")?.val;
     const twelveMonth = euribor?.rates?.find(rate => rate?.term === "12M")?.val;
     if (euribor?._source === "bce_live" && euriborDate && now >= euriborDate && now - euriborDate <= 75 * 86400000 &&
@@ -211,7 +229,7 @@
         group: "euribor",
         title: "Euribor",
         value: `3M ${threeMonth.toFixed(3).replace(".", ",")}% · 12M ${twelveMonth.toFixed(3).replace(".", ",")}%`,
-        detail: `BCE · observação ${formatDate(euriborDate)}`,
+        detail: `Média de ${formatMonth(euriborDate)} · BCE`,
         href: "#card-euribor",
         snapshot: [threeMonth, twelveMonth],
         observedAt: euriborDate,
@@ -227,12 +245,12 @@
       if (Number.isFinite(date) && now >= date && now - date <= MAX_CABAZ_AGE_DAYS * 86400000 &&
           Number.isFinite(currentValue) && Number.isFinite(previousValue) && previousValue > 0) {
         const delta = currentValue - previousValue;
-        const change = delta > 0 ? `+€${delta.toFixed(2).replace(".", ",")}` : delta < 0 ? `−€${Math.abs(delta).toFixed(2).replace(".", ",")}` : "sem variação";
+        const change = delta === 0 ? "sem variação" : signedEur(delta);
         observations.push({
           group: "basket",
           title: "Cabaz alimentar",
-          value: `€${currentValue.toFixed(2).replace(".", ",")} · ${change} face ao registo anterior`,
-          detail: `Observação ${formatDate(latest[0])} · registo do histórico do painel`,
+          value: `${eur(currentValue)} · ${change} face ao registo anterior`,
+          detail: `DECO PROteste · ${formatDate(latest[0])}`,
           href: "#card-cabaz",
           snapshot: Math.round(currentValue * 100),
           observedAt: date,
@@ -247,22 +265,22 @@
       if (item.snapshot !== undefined) currentVisitSnapshot[item.group] = { snapshot: item.snapshot, value: item.value, observedAt: item.observedAt };
     });
     renderObservationHistory(observations, visibleObservations);
-    renderVisitChanges(visibleObservations);
     bindBriefingNavigation();
     const offlineSnapshot = window.navigator?.onLine === false && lastVisitSnapshot && lastVisitSnapshotSavedAt > 0 &&
       now >= lastVisitSnapshotSavedAt && now - lastVisitSnapshotSavedAt <= OBSERVATION_HISTORY_DAYS * 86400000
-      ? Object.entries(lastVisitSnapshot).map(([group, item]) => `${({ weather: "Meteorologia", fuel: "Combustível", basket: "Cabaz alimentar", inflation: "Inflação", euribor: "Euribor" })[group] || group}: ${item.value}`).slice(0, BRIEFING_GROUPS.length)
+      ? Object.entries(lastVisitSnapshot).map(([group, item]) => `${GROUP_LABELS[group] || group}: ${item.value}`).slice(0, BRIEFING_GROUPS.length)
       : [];
     const snapshotMarkup = offlineSnapshot.length
       ? `<div class="briefing-offline-snapshot"><strong>Último snapshot guardado · ${formatDateTime(lastVisitSnapshotSavedAt)}</strong><span>Observações recentes da última sessão, apenas para consulta offline:</span><ul>${offlineSnapshot.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ul><span>Podem já não refletir os valores atuais.</span></div>`
       : "";
     root.innerHTML = visibleObservations.length
-      ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong><span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("") + snapshotMarkup
+      ? visibleObservations.map(item => `<a class="briefing-item${item.stale ? " is-stale" : ""}${item.warn ? " has-warning" : ""}" href="${item.href}"><span class="briefing-title">${escapeHTML(item.title)}</span><strong>${escapeHTML(item.value)}</strong>${item.extra ? `<span class="briefing-extra">${escapeHTML(item.extra)}</span>` : ""}<span class="briefing-detail">${escapeHTML(item.detail)}</span></a>`).join("") + snapshotMarkup
       : snapshotMarkup || (observations.length
         ? '<p class="briefing-empty">Nenhum indicador recente está selecionado. Altere as preferências do resumo.</p>'
         : '<p class="briefing-empty">Ainda não há observações recentes suficientes. Os cards individuais continuam disponíveis abaixo.</p>');
+    const changeCount = renderVisitChanges(visibleObservations);
     const updated = document.getElementById("briefingUpdated");
-    if (updated) updated.textContent = `Síntese gerada ${formatDateTime(now)}`;
+    if (updated) updated.textContent = `${formatDateTime(now)}${lastVisitSnapshot && !changeCount ? " · sem alterações desde a última visita" : ""}`;
     updateFuelImpact();
     bindFuelAlert();
     bindCostOfLivingCalculator();
@@ -294,14 +312,18 @@
       const hasNewObservation = !Number.isFinite(previous?.observedAt) || item.observedAt > previous.observedAt;
       return previous && hasNewObservation && isMaterialChange(item.group, previous.snapshot, item.snapshot);
     }) : [];
-    root.innerHTML = changes.length
-      ? `<strong>Alterações desde a visita anterior</strong><ul>${changes.map(item => {
+    if (changes.length) {
+      root.innerHTML = `<strong>Alterações desde a visita anterior</strong><ul>${changes.map(item => {
         const previous = lastVisitSnapshot[item.group];
         return `<li><a href="${item.href}">${escapeHTML(item.title)}</a>: ${escapeHTML(previous.value)} → ${escapeHTML(item.value)}${Number.isFinite(previous.observedAt) ? ` · observação renovada ${formatDateTime(item.observedAt)}` : ""}</li>`;
-      }).join("")}</ul>`
-      : lastVisitSnapshot
-        ? "Sem alterações relevantes nos indicadores recentes desde a visita anterior."
-        : "As alterações entre visitas aparecem aqui após a próxima visita.";
+      }).join("")}</ul>`;
+      root.hidden = false;
+    } else {
+      // Sem alterações: a faixa desaparece; o cabeçalho diz "sem alterações desde a última visita".
+      root.innerHTML = "";
+      root.hidden = true;
+    }
+    return changes.length;
   }
 
   function bindCostOfLivingCalculator() {
@@ -340,10 +362,13 @@
     output.textContent = `${new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(total)} em custos indicados · ${share.toFixed(1).replace(".", ",")}% do rendimento líquido.${fuelNote}`;
   }
 
+  /** Indicadores visíveis. Guarda-se a lista dos escondidos para que um indicador novo apareça por omissão;
+   * o formato antigo (lista de visíveis) é convertido. */
   function readBriefingPreferences() {
     try {
       const value = JSON.parse(window.localStorage?.getItem(BRIEFING_PREF_KEY) || "null");
-      if (Array.isArray(value)) return BRIEFING_GROUPS.filter(group => value.includes(group));
+      if (Array.isArray(value)) return BRIEFING_GROUPS.filter(group => !LEGACY_GROUPS.includes(group) || value.includes(group));
+      if (value && Array.isArray(value.hidden)) return BRIEFING_GROUPS.filter(group => !value.hidden.includes(group));
     } catch {}
     return briefingPreferencesMemory ? [...briefingPreferencesMemory] : [...BRIEFING_GROUPS];
   }
@@ -358,11 +383,73 @@
       control.addEventListener("change", () => {
         const next = controls.flatMap((item, index) => item.checked ? [BRIEFING_GROUPS[index]] : []);
         briefingPreferencesMemory = next;
-        try { window.localStorage?.setItem(BRIEFING_PREF_KEY, JSON.stringify(next)); } catch {}
+        try { window.localStorage?.setItem(BRIEFING_PREF_KEY, JSON.stringify({ hidden: BRIEFING_GROUPS.filter(group => !next.includes(group)) })); } catch {}
         renderPortugalBriefing(now);
       });
       control.dataset.bound = "true";
     });
+  }
+
+  /** Aviso IPMA ativo para a área da cidade (cache do card de meteorologia), do mais grave. */
+  function weatherWarningText(cityId, now) {
+    try {
+      const area = window.IPMA_WARNING_AREA?.[cityId];
+      const list = window.lsGet?.("ipma_warnings_v1");
+      if (!area || !Array.isArray(list) || typeof window.activeWarnings !== "function") return "";
+      const local = window.activeWarnings(list, now).filter(w => w.idAreaAviso === area);
+      if (!local.length) return "";
+      const levels = { yellow: "amarelo", orange: "laranja", red: "vermelho" };
+      const first = local[0];
+      return `⚠ Aviso ${levels[first.awarenessLevelID] || ""} · ${first.awarenessTypeName || "IPMA"}${local.length > 1 ? ` (+${local.length - 1})` : ""}`;
+    } catch { return ""; }
+  }
+
+  /** Próximo feriado e dias úteis, com a mesma lógica do card de feriados. */
+  function holidaysObservation(cityId, now) {
+    try {
+      if (typeof window.computeHolidaySummary !== "function") return null;
+      const today = new Date(now);
+      const year = today.getFullYear();
+      const current = window.lsGet?.(`hols_${year}`);
+      if (!Array.isArray(current) || !current.length) return null;
+      const holsByYear = { [year]: current };
+      const next = window.lsGet?.(`hols_${year + 1}`);
+      if (Array.isArray(next) && next.length) holsByYear[year + 1] = next;
+      const city = window.IPMA_CITIES?.[cityId] || "Lisboa";
+      const s = window.computeHolidaySummary({ holsByYear, today, city });
+      const h = s.upcoming?.[0];
+      if (!h) return null;
+      const when = h.days === 0 ? "hoje" : h.days === 1 ? "amanhã" : `daqui a ${h.days} dias`;
+      const d = new Date(`${h.date}T12:00:00`);
+      const bridge = s.bridges?.[0];
+      const bridgeSoon = bridge ? Math.round((new Date(`${bridge.bridgeDate}T12:00:00`) - new Date(`${ymdLocal(today)}T12:00:00`)) / 864e5) <= 31 : false;
+      return {
+        group: "holidays",
+        title: "Feriados",
+        value: `${h.localName} · ${when}`,
+        extra: `${s.monthLeft} de ${s.monthTotal} dias úteis restam em ${s.monthName}${bridgeSoon ? ` · ponte ${new Intl.DateTimeFormat("pt-PT", { weekday: "short", day: "numeric", month: "short" }).format(new Date(`${bridge.bridgeDate}T12:00:00`))}` : ""}`,
+        detail: `${new Intl.DateTimeFormat("pt-PT", { weekday: "long", day: "numeric", month: "long" }).format(d)}${h.type !== "nacional" ? ` · ${h.type}` : ""} · date.nager.at`,
+        href: "#card-hol",
+      };
+    } catch { return null; }
+  }
+  function ymdLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  /** Gasóleo mais barato no município de Évora (cache do separador Évora do card de combustíveis). */
+  function fuelLocalText(nationalRows) {
+    try {
+      const ev = window.lsGet?.("fuel_evora");
+      if (!Array.isArray(ev?.stations) || typeof window.summarizeFuelEvora !== "function") return "";
+      const national = {};
+      (Array.isArray(nationalRows) ? nationalRows : []).forEach(row => { if (row?.fuel_slug) national[row.fuel_slug] = row; });
+      const s = window.summarizeFuelEvora(ev.stations, national);
+      const d = s?.diesel;
+      if (!d?.cheapest) return "";
+      const delta = Number.isFinite(d.cheapestDelta) ? ` (${signedEur(d.cheapestDelta, 3)} vs média)` : "";
+      return `Évora: gasóleo desde ${d.cheapest.price.toFixed(3).replace(".", ",")} € · ${d.cheapest.stations[0]?.name || ""}${delta}`;
+    } catch { return ""; }
   }
 
   function updateFuelImpact() {
@@ -487,6 +574,10 @@
   function formatDate(value) {
     const date = typeof value === "number" ? new Date(value) : new Date(`${value}T12:00:00`);
     return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "short", year: "numeric", timeZone: "Europe/Lisbon" }).format(date) : "data indisponível";
+  }
+  function formatMonth(value) {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("pt-PT", { month: "long", year: "numeric", timeZone: "UTC" }).format(date) : "data indisponível";
   }
   function parseMonthLabel(value) {
     const match = /^([A-Za-zÀ-ÿ]{3})\.?\s+(?:de\s+)?(\d{4})$/i.exec(String(value || "").trim());

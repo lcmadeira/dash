@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261127-6"/>
+<link rel="stylesheet" href="styles.css?v=20261127-9"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -411,23 +411,26 @@
 
 <section class="portugal-briefing" aria-labelledby="briefingTitle">
   <div class="briefing-heading">
-    <div><h2 id="briefingTitle">Portugal hoje</h2><p>Observações recentes com fonte e data; sem recomendações automáticas.</p></div>
-    <span class="briefing-updated" id="briefingUpdated">Atualizado a partir da cache disponível</span>
+    <div><h2 id="briefingTitle">Portugal hoje</h2><p>Resumo dos cards, com fonte e data.</p></div>
+    <div class="briefing-heading-r">
+      <span class="briefing-updated" id="briefingUpdated">A partir da cache disponível</span>
+      <details class="briefing-preferences">
+        <summary aria-label="Escolher indicadores do resumo" title="Escolher indicadores do resumo">⚙ Indicadores</summary>
+        <div class="briefing-preference-options" role="group" aria-label="Indicadores visíveis no resumo">
+          <label><input type="checkbox" id="briefingPrefWeather" checked> Meteorologia</label>
+          <label><input type="checkbox" id="briefingPrefHolidays" checked> Feriados</label>
+          <label><input type="checkbox" id="briefingPrefFuel" checked> Combustível</label>
+          <label><input type="checkbox" id="briefingPrefBasket" checked> Cabaz</label>
+          <label><input type="checkbox" id="briefingPrefInflation" checked> Inflação</label>
+          <label><input type="checkbox" id="briefingPrefEuribor" checked> Euribor</label>
+        </div>
+      </details>
+    </div>
   </div>
   <div class="briefing-grid" id="briefingBody"><p class="briefing-empty">A recolher observações recentes…</p></div>
-  <div class="briefing-changes" id="briefingChanges" aria-live="polite">As alterações entre visitas aparecem aqui após a próxima visita.</div>
+  <div class="briefing-changes" id="briefingChanges" aria-live="polite" hidden></div>
   <details class="briefing-tools">
-    <summary>Ferramentas, alertas e histórico local</summary>
-  <details class="briefing-preferences">
-    <summary>Escolher indicadores deste resumo</summary>
-    <div class="briefing-preference-options" role="group" aria-label="Indicadores visíveis no resumo">
-      <label><input type="checkbox" id="briefingPrefWeather" checked> Meteorologia</label>
-      <label><input type="checkbox" id="briefingPrefFuel" checked> Combustível</label>
-      <label><input type="checkbox" id="briefingPrefBasket" checked> Cabaz</label>
-      <label><input type="checkbox" id="briefingPrefInflation" checked> IHPC</label>
-      <label><input type="checkbox" id="briefingPrefEuribor" checked> Euribor</label>
-    </div>
-  </details>
+    <summary>Ferramentas: estimativas, alerta de preço e histórico local</summary>
   <div class="briefing-history" id="briefingHistory" aria-live="polite">O histórico local começa a reunir observações recentes.</div>
   <div class="briefing-impact" aria-labelledby="fuelImpactTitle">
     <label for="fuelMonthlyLitres"><strong id="fuelImpactTitle">Estimativa mensal de gasolina 95</strong><span>Calculada no browser; o consumo não é guardado.</span></label>
@@ -1038,16 +1041,16 @@
  <script src="src/fetch.js?v=20261123-26"></script>
 <script src="src/ui.js?v=20261127-6" integrity="sha384-AKtriwQtub8GcgyjvLIuKr6nrr4lxDwynq4qv1Gcr3L8UmXQ/0/p7+Pvb/X9B1vh"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
- <script src="src/cards/briefing.js?v=20261120-16" integrity="sha384-iF03Hd+mJOAT7RC0XRqA14IGxxOg3FPBa4F8FMuNOyEWRpEpiYHDx3WwGJgoabIB"></script>
+ <script src="src/cards/briefing.js?v=20261127-9" integrity="sha384-tk+fWVBJZovORWu1N2A8M0MFFNSkkgLPuwuC9BosxnOCqkUusF9nC3Nu3iatGgwj"></script>
  <script src="src/offline.js?v=20261029-2" integrity="sha384-xNxRTbPSnEkNtZ0nSqscdT5Ia0+/d6RqzHXkt4ZjcJTGqMhlUOtZye07+aYT/v71"></script>
  <script src="src/cards/elec.js?v=20261123-22"></script>
  <script src="src/cards/news.js?v=20261029-4"></script>
  <script src="src/cards/seis.js?v=20261123-22"></script>
  <script src="src/cards/civil-protection.js?v=20261123-22" integrity="sha384-lAH7ujYTq3dULukn6HP0GVGw2A/T2GD2CvV8uFKCI1HrPR2WApczcQXSAw6rhaDs"></script>
  <script src="src/cards/dams.js?v=20261123-22"></script>
- <script src="src/cards/fuel.js?v=20261127-3"></script>
- <script src="src/cards/weather.js?v=20261127-6"></script>
- <script src="src/cards/holidays.js?v=20261127-6"></script>
+ <script src="src/cards/fuel.js?v=20261127-9"></script>
+ <script src="src/cards/weather.js?v=20261127-9"></script>
+ <script src="src/cards/holidays.js?v=20261127-9"></script>
  <script src="src/cards/air-quality.js?v=20261123-22"></script>
  <script src="src/cards/market-stats.js?v=20261123-26"></script>
  <script src="src/cards/real-estate.js?v=20261123-22"></script>

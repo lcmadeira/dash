@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import vm from "node:vm";
 
-async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit, observationHistory, offline = false }) {
+async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor, now, city = "Lisboa", fuelLitres = "", notificationApi, previousVisit, observationHistory, offline = false, storedPreferences }) {
   const root = { innerHTML: "", dataset: {}, addEventListener() {} };
   const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
   const historyView = { innerHTML: "" };
@@ -22,11 +22,12 @@ async function loadBriefing({ weather, fuel, fuelEs, basket, inflation, euribor,
   const toggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
   const desktopToggle = { dataset: {}, addEventListener(event, handler) { this.handler = handler; }, setAttribute(name, value) { this[name] = value; } };
   const status = { textContent: "" };
-  const preferences = Object.fromEntries(["Weather", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
+  const preferences = Object.fromEntries(["Weather", "Holidays", "Fuel", "Basket", "Inflation", "Euribor"].map(name => [
     "briefingPref" + name, { checked: true, dataset: {}, addEventListener(event, handler) { this.handler = handler; } },
   ]));
   const elements = { briefingBody: root, briefingChanges: changes, briefingHistory: historyView, briefingUpdated: updated, fuelMonthlyLitres: input, fuelMonthlyCost: impact, fuelAlertThreshold: threshold, fuelAlertToggle: toggle, fuelDesktopToggle: desktopToggle, fuelAlertStatus: status, costMonthlyIncome: costIncome, costMonthlyFood: costFood, costMonthlyElectricity: costElectricity, costOfLivingResult: costOutput, ...preferences };
   const store = new Map();
+  if (storedPreferences) store.set("dash_v15_briefing_preferences_v1", JSON.stringify(storedPreferences));
   if (previousVisit) store.set("dash_v15_briefing_last_visit_v1", JSON.stringify(previousVisit));
   if (observationHistory) store.set("dash_v15_briefing_observation_history_v1", JSON.stringify(observationHistory));
   let pagehideHandler = null;
@@ -67,10 +68,10 @@ test("Portugal briefing includes only dated recent observations and escapes prov
     city: '<img src=x onerror="alert(1)">',
   });
   assert.match(result.html, /Meteorologia/);
-  assert.ok(result.html.includes("Gasolina 95 · 1,720 €/L"));
-  assert.ok(result.html.includes("+€0,110/L vs Espanha"));
-  assert.match(result.html, /−€0,44 face ao registo anterior/);
-  assert.ok(result.html.includes("Observação 28/10/2026"));
+  assert.ok(result.html.includes("Gasolina 95 1,720 €/L"));
+  assert.ok(result.html.includes("Espanha: gasolina −0,110 €"));
+  assert.match(result.html, /253,55 € · −0,44 € face ao registo anterior/);
+  assert.ok(result.html.includes("DECO PROteste · 28/10/2026"));
   assert.ok(result.html.includes("Inflação · IHPC"));
   assert.ok(result.html.includes("-0,2 pp vs zona euro"));
   assert.ok(result.html.includes("0,0 pp face ao mês anterior"));
@@ -78,7 +79,7 @@ test("Portugal briefing includes only dated recent observations and escapes prov
   assert.ok(result.html.includes("3M 2,682% · 12M 3,326%"));
   assert.ok(result.html.includes("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;"));
   assert.ok(!result.html.includes("<img"));
-  assert.match(result.updated, /Síntese gerada/);
+  assert.match(result.updated, /\d{2}:\d{2}/);
   assert.match(result.impact, /172,00/);
   result.input.value = "120";
   result.input.handler();
@@ -116,10 +117,10 @@ test("Portugal briefing indicators can be selected locally", async () => {
   assert.match(result.html, /Gasolina 95/);
   result.preferences.briefingPrefFuel.checked = false;
   result.preferences.briefingPrefFuel.handler();
-  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")), ["weather", "basket", "inflation", "euribor"]);
+  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")), { hidden: ["fuel"] });
   assert.doesNotMatch(result.root.innerHTML, /Gasolina 95/);
   assert.match(result.root.innerHTML, /Cabaz alimentar/);
-  assert.deepEqual(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")).includes("fuel"), false);
+  assert.ok(JSON.parse(result.store.get("dash_v15_briefing_preferences_v1")).hidden.includes("fuel"));
 });
 
 test("desktop fuel notifications require a user click and browser permission", async () => {
@@ -177,7 +178,7 @@ test("Portugal briefing compares fresh observations with the previous visit and 
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
   });
   assert.match(result.changes, /Alterações desde a visita anterior/);
-  assert.ok(result.changes.includes("1,750 €/L → Gasolina 95 · 1,720 €/L"));
+  assert.ok(result.changes.includes("1,750 €/L → Gasolina 95 1,720 €/L"));
   result.pagehideHandler();
   const saved = JSON.parse(result.store.get("dash_v15_briefing_last_visit_v1"));
   assert.equal(saved.observations.fuel.snapshot, 1720);
@@ -224,7 +225,8 @@ test("visit summary suppresses insignificant changes and local budget math never
     previousVisit: { observations: { fuel: { snapshot: 1715, value: "Gasolina 95 · 1,715 €/L" } } },
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
   });
-  assert.match(result.changes, /Sem alterações relevantes/);
+  assert.equal(result.changes, "");
+  assert.match(result.updated, /sem alterações desde a última visita/);
   result.costIncome.value = "2200";
   result.costFood.value = "450";
   result.costElectricity.value = "75";
@@ -244,12 +246,84 @@ test("visit summary only reports material changes after a newer observation", as
     now, previousVisit,
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(savedAt).toISOString() }],
   });
-  assert.match(sameObservation.changes, /Sem alterações relevantes/);
+  assert.equal(sameObservation.changes, "");
+  assert.match(sameObservation.updated, /sem alterações desde a última visita/);
 
   const newerObservation = await loadBriefing({
     now, previousVisit,
     fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now).toISOString() }],
   });
-  assert.ok(newerObservation.changes.includes("1,700 €/L → Gasolina 95 · 1,720 €/L"));
+  assert.ok(newerObservation.changes.includes("1,700 €/L → Gasolina 95 1,720 €/L"));
   assert.match(newerObservation.changes, /observação renovada/);
+});
+
+test("briefing adds holidays, minimum temperature, IPMA warning, diesel and the cheapest Évora station", async () => {
+  const now = Date.parse("2026-11-27T11:00:00Z");
+  const { readFile: rf } = await import("node:fs/promises");
+  const vmMod = await import("node:vm");
+  const holidaysSrc = await rf("src/cards/holidays.js", "utf8");
+  const fuelSrc = await rf("src/cards/fuel.js", "utf8");
+  const root = { innerHTML: "", dataset: {}, addEventListener() {} };
+  const changes = { innerHTML: "", dataset: {}, addEventListener() {} };
+  const updated = { textContent: "" };
+  const els = { briefingBody: root, briefingChanges: changes, briefingUpdated: updated };
+  const store = new Map();
+  const cache = {
+    "ipma_1070500": { dataUpdate: new Date(now - 3600000).toISOString(), data: [{ forecastDate: "2026-11-27", tMin: "7.0", tMax: "18.1", precipitaProb: "0" }] },
+    "ipma_warnings_v1": [{ idAreaAviso: "EVR", awarenessLevelID: "yellow", awarenessTypeName: "Vento", startTime: new Date(now - 3600000).toISOString(), endTime: new Date(now + 3600000).toISOString() }],
+    "hols_2026": [{ date: "2026-12-01", localName: "Restauração da Independência", global: true, types: ["Public"] }, { date: "2026-12-08", localName: "Imaculada Conceição", global: true, types: ["Public"] }],
+    fuel: [
+      { fuel_slug: "gasoline_95", avg_price_eur: 1.907, updated_at: new Date(now - 7200000).toISOString() },
+      { fuel_slug: "diesel", avg_price_eur: 2.104, updated_at: new Date(now - 7200000).toISOString() },
+    ],
+    fuel_es: { ts: now - 3600000, items: { diesel: { avg: 1.735 }, gasoline_95: { avg: 1.503 } } },
+    fuel_evora: { stations: [
+      { id: 1, name: "Auto Julio Évora", prices: { diesel: 2.018, gasoline_95: 1.81 } },
+      { id: 2, name: "AUCHAN Évora", prices: { diesel: 2.049, gasoline_95: 1.829 } },
+    ] },
+    euribor_live_v1: { _source: "bce_live", updated: "out. de 2026", _observedAt: Date.parse("2026-10-01T00:00:00Z"), rates: [{ term: "3M", val: 2.1 }, { term: "12M", val: 2.5 }] },
+  };
+  const context = vmMod.createContext({
+    Date, Intl, Number, String, Math, Array, JSON, Object, Set, Map, console,
+    document: { getElementById: id => els[id] || null },
+    CFG: { IPMA_CITY_ID: 1070500 },
+    IPMA_CITIES: { 1070500: "Évora" },
+    IPMA_WARNING_AREA: { 1070500: "EVR" },
+    activeWarnings: (list, t) => list.filter(w => Date.parse(w.endTime) > t),
+    lsGet: key => cache[key] ?? null,
+    getCacheMeta: () => null,
+    localStorage: { getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value) },
+    navigator: { onLine: true },
+    addEventListener() {},
+  });
+  context.window = context;
+  vmMod.runInContext(holidaysSrc, context);
+  vmMod.runInContext(fuelSrc, context);
+  vmMod.runInContext(await rf("src/cards/briefing.js", "utf8"), context);
+  context.renderPortugalBriefing(now);
+  const html = root.innerHTML;
+  assert.ok(html.includes("7° / 18°C · 0% de chuva"), html);
+  assert.ok(html.includes("⚠ Aviso amarelo · Vento"));
+  assert.match(html, /has-warning/);
+  assert.ok(html.includes("Restauração da Independência · daqui a 4 dias"));
+  assert.ok(html.includes("2 de 21 dias úteis restam em novembro · ponte"));
+  assert.ok(html.includes("Gasóleo 2,104 · Gasolina 95 1,907 €/L"));
+  assert.ok(html.includes("Espanha: gasóleo −0,369 €, gasolina −0,404 €"));
+  assert.ok(html.includes("Évora: gasóleo desde 2,018 € · Auto Julio Évora (−0,086 € vs média)"));
+  assert.ok(html.includes("Média de outubro de 2026 · BCE"), "Euribor usa _observedAt");
+  assert.ok(html.indexOf("Feriados") < html.indexOf("Combustível"));
+});
+
+test("old saved preferences (list of visible groups) keep new indicators visible", async () => {
+  const now = Date.parse("2026-10-29T11:00:00Z");
+  const result = await loadBriefing({
+    now,
+    storedPreferences: ["weather", "basket"],
+    fuel: [{ fuel_slug: "gasoline_95", avg_price_eur: 1.72, updated_at: new Date(now - 3600000).toISOString() }],
+    basket: [["2026-10-21", 253], ["2026-10-28", 254]],
+  });
+  assert.doesNotMatch(result.html, /Gasolina 95/, "fuel stays hidden");
+  assert.match(result.html, /Cabaz alimentar/);
+  assert.equal(result.preferences.briefingPrefHolidays.checked, true, "new group visible by default");
+  assert.equal(result.preferences.briefingPrefFuel.checked, false);
 });

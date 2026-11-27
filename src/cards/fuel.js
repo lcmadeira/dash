@@ -136,8 +136,15 @@ function parseESFechaToTs(s){
   const d=Number(m[1]), mo=Number(m[2]), y=Number(m[3]);
   const hh=Number(m[4]||0), mm=Number(m[5]||0), ss=Number(m[6]||0);
   if(!(y>2000 && mo>=1 && mo<=12 && d>=1 && d<=31)) return null;
-  const dt=new Date(y, mo-1, d, hh, mm, ss);
-  const ts=dt.getTime();
+  // A hora do MITECO é a de Madrid (CET/CEST), uma hora à frente de Lisboa: não ler como hora local.
+  const guess=Date.UTC(y, mo-1, d, hh, mm, ss);
+  let ts=guess;
+  try{
+    const parts=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Madrid",hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).formatToParts(new Date(guess));
+    const get=t=>Number(parts.find(p=>p.type===t)?.value);
+    const asMadrid=Date.UTC(get("year"), get("month")-1, get("day"), get("hour"), get("minute"), get("second"));
+    if(Number.isFinite(asMadrid)) ts=guess-(asMadrid-guess);
+  }catch{}
   return Number.isFinite(ts)?ts:null;
 }
 function computeFuelESAgg(payload){
@@ -290,6 +297,8 @@ async function renderFuel(force=false){
     }).join("")}</div>
     <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${window.nfr(esLbl)}</div>`;
     window.renderPortugalBriefing?.();
+    // A síntese "Portugal hoje" mostra o gasóleo mais barato de Évora: carregar em segundo plano (cache 3 h).
+    loadFuelEvora(false).then(() => window.renderPortugalBriefing?.()).catch(() => {});
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }
 
@@ -516,4 +525,5 @@ function setFuelEvoraSort(col){
   window.syncFuelDeltaBtn = syncFuelDeltaBtn;
   window.toggleFuelDeltaMode = toggleFuelDeltaMode;
   window.renderFuel = renderFuel;
+  window.parseESFechaToTs = parseESFechaToTs;
 })();
