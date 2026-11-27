@@ -297,7 +297,7 @@ async function renderFuel(force=false){
     }).join("")}</div>
     <div class="src">✦ PT: API Aberta · ${ptDate}${ptUpd?` · às ${ptUpd}`:""} · ES: MITECO/MINETUR · ${window.nfr(esLbl)}</div>`;
     window.renderPortugalBriefing?.();
-    // A síntese "Portugal hoje" mostra o gasóleo mais barato de Évora: carregar em segundo plano (cache 3 h).
+    // O "Resumo do dia" mostra o gasóleo mais barato de Évora: carregar em segundo plano (cache 3 h).
     loadFuelEvora(false).then(() => window.renderPortugalBriefing?.()).catch(() => {});
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }

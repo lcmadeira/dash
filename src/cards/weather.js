@@ -89,7 +89,7 @@ async function loadWeather(force=false){
     const opts=Object.entries(IPMA_CITIES).sort((a,b)=>a[1].localeCompare(b[1])).map(([cid,n])=>`<option value="${cid}"${Number(cid)===id?" selected":""}>${window.nfr(n)}</option>`).join("");
     const todayStr=new Date().toLocaleDateString("sv-SE");
     $("wx-body").innerHTML=`
-      <div style="margin-bottom:10px"><select aria-label="Cidade" onchange="CFG.IPMA_CITY_ID=Number(this.value);loadWeather(true);window.loadCivilProtection?.();window.loadHolidays?.()"
+      <div style="margin-bottom:10px"><select aria-label="Cidade" onchange="window.onWeatherCityChange(this)"
         style="background:var(--surface);border:1px solid var(--b2);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:.74rem;padding:4px 8px;width:100%;cursor:pointer;outline:none">${window.nfr(opts)}</select></div>
       <div class="wx-top"><span class="wx-ico">${ico}</span><div>
         <div class="wx-temp"><span class="wx-tmin">${window.nfr(tMin)}°</span><span class="wx-tsep">/</span>${window.nfr(tMax)}<span class="wx-unit">°C</span></div>
@@ -111,6 +111,15 @@ async function loadWeather(force=false){
 }
 
   window.loadWeather = loadWeather;
+  /** Cidade escolhida no card: se existir no seletor do cabeçalho, fica guardada; senão muda só nesta sessão. */
+  window.onWeatherCityChange = sel => {
+    const name = sel.options[sel.selectedIndex]?.text || "";
+    if (window.setDashboardCityByName?.(name)) return;
+    CFG.IPMA_CITY_ID = Number(sel.value);
+    loadWeather(true);
+    window.loadCivilProtection?.();
+    window.loadHolidays?.();
+  };
   window.activeWarnings = activeWarnings;
   window.IPMA_WARNING_AREA = IPMA_WARNING_AREA;
 })();

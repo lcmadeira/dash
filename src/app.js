@@ -8,16 +8,16 @@
    skeletonKPIs, skeletonNews, skeletonTable, switchOil, switchSettingsTab, toggleAllCards,
    toggleCardSelection, toggleCardVisibility, toggleNotifications */
 /* Relógios das praças financeiras movidos para src/widgets/market-clock.js */
-/* Pills */
-document.getElementById("pills").innerHTML=
-  ["IPMA","TradingView","CoinGecko","Google News","BCE/ECB"].map(n=>
-    `<span class="pill ok"><span class="dot"></span>${window.nfr(n)}</span>`).join("");
-
-/* Clock */
+/* Relógio do cabeçalho: data e hora sem segundos (só reescreve quando muda) */
 function tick(){
   const n=new Date();
-  document.getElementById("clk").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  document.getElementById("clkd").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const time=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+  const clk=document.getElementById("clk");
+  if(clk && clk.textContent!==time){
+    clk.textContent=time;
+    clk.dateTime=n.toISOString();
+    document.getElementById("clkd").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  }
   tickMarkets();
 }
 tick();setInterval(tick,1000);
@@ -1748,6 +1748,38 @@ function renderLocationGrid() {
   updateSettingsDirtyUI();
 }
 
+/* ── Cidade no cabeçalho: muda e guarda já (meteorologia, feriados municipais, qualidade do ar) ── */
+function syncHeaderCity() {
+  const sel = document.getElementById('hdrCity');
+  if (!sel) return;
+  if (!sel.options.length) {
+    sel.innerHTML = LOCATIONS.map(loc => `<option value="${loc.id}">${loc.name}</option>`).join('');
+    sel.addEventListener('change', () => setHeaderLocation(sel.value));
+  }
+  sel.value = currentConfig?.location || DEFAULT_CONFIG.location;
+}
+
+/** Guarda só a cidade (não grava outras alterações por guardar no painel de personalização). */
+function setHeaderLocation(locationId) {
+  if (!LOCATIONS.some(loc => loc.id === locationId)) return false;
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem('dashboardConfig') || 'null'); } catch {}
+  const prev = { location: currentConfig?.location };
+  const next = { ...(stored && typeof stored === 'object' ? stored : currentConfig), location: locationId };
+  try { localStorage.setItem('dashboardConfig', JSON.stringify(next)); } catch {}
+  currentConfig.location = locationId;
+  applyConfigSideEffects(prev, { ...prev, location: locationId });
+  // Painel de personalização aberto: a cidade nova não conta como alteração por guardar.
+  if (settingsSnapshot !== null) { try { settingsSnapshot = snapshotEditableConfig(); } catch {} }
+  return true;
+}
+window.setHeaderLocation = setHeaderLocation;
+/** Usado pelo seletor do card de meteorologia: se a cidade existir na lista do cabeçalho, passa a ser a escolhida. */
+window.setDashboardCityByName = name => {
+  const loc = LOCATIONS.find(l => normalizeStr(l.name) === normalizeStr(name));
+  return loc ? setHeaderLocation(loc.id) : false;
+};
+
 function selectLocation(locationId) {
   currentConfig.location = locationId;
   renderLocationGrid();
@@ -2040,6 +2072,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Aplicar configurações salvas
   applySettings();
   applyLocationToCfg(currentConfig.location);
+  syncHeaderCity();
+  bindHeaderExtras();
   renderTvTickerTape(currentConfig.tickers);
   renderTvAdvancedChart(currentConfig.tickers);
   refreshAllCardStatuses();
@@ -2298,6 +2332,8 @@ function applyConfigSideEffects(prevConfig, nextConfig) {
     const nextLoc = nextConfig?.location;
     if (prevLoc !== nextLoc) {
       applyLocationToCfg(nextLoc);
+      syncHeaderCity();
+      window.loadCivilProtection?.();
       if (isCardVisible('weather')) loadWeather(true);
       if (isCardVisible('hol')) loadHolidays();
       if (isCardVisible('airquality')) loadAirQuality(true);
@@ -4171,3 +4207,28 @@ document.getElementById("cabaz-modal")?.addEventListener("click",function(e){
 renderCabaz();
 loadCabazAuto();
 
+
+
+/* ── Cabeçalho: janela "Sobre" e ligação ao estado dos dados ── */
+function bindHeaderExtras() {
+  const dialog = document.getElementById('aboutDialog');
+  const open = document.getElementById('aboutOpenBtn');
+  if (dialog && open && !open.dataset.bound) {
+    open.addEventListener('click', () => {
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    });
+    document.getElementById('aboutCloseBtn')?.addEventListener('click', () => dialog.close?.());
+    // Clicar fora do conteúdo (no fundo) fecha.
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close?.(); });
+    open.dataset.bound = 'true';
+  }
+  const status = document.getElementById('hdrStatus');
+  if (status && !status.dataset.bound) {
+    status.addEventListener('click', () => {
+      const details = document.querySelector('#dataOverview .data-overview-details');
+      if (details) details.open = true;
+    });
+    status.dataset.bound = 'true';
+  }
+}

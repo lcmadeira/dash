@@ -211,7 +211,7 @@ function renderHolidaySummary(s, city){
   const region = HOL_REGION[city] ? ` e regionais` : "";
   const munic = s.hasMunicipal ? `inclui o feriado municipal de ${escHol(city)}` : `sem feriado municipal registado para ${escHol(city)}`;
   return `${hero}<div class="hol-grid">${kpis}</div>${bridges}${months}${upcoming}${yearList}
-    <div class="src">✦ date.nager.at · feriados nacionais${region} · ${munic} · cidade escolhida na Meteorologia</div>`;
+    <div class="src">✦ date.nager.at · feriados nacionais${region} · ${munic} · cidade escolhida no topo da página</div>`;
 }
 
 async function loadHolidays(force=false){

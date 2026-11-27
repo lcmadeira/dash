@@ -289,6 +289,16 @@
       if (source) affectedSources.add(source.trim());
     });
     setCount("dataCountSourceIssues", affectedSources.size);
+    const hdrStatus = document.getElementById("hdrStatus");
+    const hdrStatusText = document.getElementById("hdrStatusText");
+    if (hdrStatus && hdrStatusText && statuses.length) {
+      hdrStatusText.textContent = `${available}/${statuses.length} com dados`;
+      hdrStatus.dataset.state = counts.error ? "error" : attention ? "warn" : "ok";
+      hdrStatus.title = `${available} de ${statuses.length} cards com dados atuais ou em cache`
+        + (attention ? ` · ${attention} a verificar` : "")
+        + (counts.loading + counts.idle ? ` · ${counts.loading + counts.idle} a carregar` : "")
+        + ` · verificado às ${new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}. Clique para ver o estado de cada card.`;
+    }
     const sourceSummary = document.getElementById("dataSourceHealth");
     if (sourceSummary) {
       const checkedAt = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
