@@ -107,13 +107,19 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 /* ── Layout ── */
 .wrap{max-width:1520px;margin:0 auto;padding:var(--wrap-pad-top) var(--wrap-pad-x) var(--wrap-pad-bottom);box-sizing:border-box}
 
-.hdr{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
+.hdr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--b)}
 .brand{margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-.5px;line-height:1}
 .brand-sub{margin:5px 0 0;font-size:.78rem;color:var(--t3);line-height:1.4}
 .clk-time{font-family:var(--mono);color:var(--text);font-weight:600}
+.hdr-dateline{margin:0 0 6px;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.hdr-dateline time{font-variant-numeric:tabular-nums;color:var(--t2)}
 .clk-date{font-size:.8rem;color:var(--t2);text-align:center;white-space:nowrap}
 .hdr-city{display:flex;align-items:center;gap:6px;padding:2px 4px 2px 9px;border:1px solid var(--b);border-radius:8px;background:transparent;font:500 .78rem var(--font);color:var(--t2)}
 .hdr-city select{background:transparent;border:0;color:var(--text);font:inherit;cursor:pointer;padding:3px 2px;outline:none}
+.hdr-locate{display:flex;align-items:center;justify-content:center;padding:3px 4px;margin-left:2px;border:0;border-left:1px solid var(--b);border-radius:0;background:transparent;color:var(--t3);cursor:pointer}
+.hdr-locate:hover,.hdr-locate:focus-visible{color:var(--accent)}
+.hdr-locate .hdr-ico{color:inherit}
+.hdr-locate[aria-busy="true"] .hdr-ico{animation:spin 1s linear infinite}
 .hdr-city select option{background:var(--card);color:var(--text)}
 .hdr-city:focus-within{border-color:var(--accent)}
 .hdr-status{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--b);border-radius:20px;font:.74rem var(--mono);color:var(--t2);text-decoration:none;white-space:nowrap}

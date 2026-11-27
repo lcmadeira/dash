@@ -16,7 +16,8 @@ function tick(){
   if(clk && clk.textContent!==time){
     clk.textContent=time;
     clk.dateTime=n.toISOString();
-    document.getElementById("clkd").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const d=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
+    document.getElementById("clkd").textContent=d.charAt(0).toUpperCase()+d.slice(1);
   }
   tickMarkets();
 }
@@ -1774,6 +1775,38 @@ function setHeaderLocation(locationId) {
   return true;
 }
 window.setHeaderLocation = setHeaderLocation;
+
+/** Cidade da lista mais próxima de (lat, lon), por distância em círculo máximo. */
+function nearestLocation(lat, lon) {
+  const rad = d => d * Math.PI / 180;
+  const dist = loc => {
+    const dLat = rad(loc.lat - lat), dLon = rad(loc.lon - lon);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat)) * Math.cos(rad(loc.lat)) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(a));
+  };
+  return LOCATIONS.map(loc => ({ loc, km: dist(loc) })).sort((a, b) => a.km - b.km)[0];
+}
+window.nearestLocation = nearestLocation;
+
+/** Botão de localização: a posição só serve para escolher a cidade; não é guardada nem enviada. */
+function locateHeaderCity(btn) {
+  if (!navigator.geolocation) {
+    window.showNotice?.('Localização', 'Este browser não permite obter a localização.', 'warn');
+    return;
+  }
+  btn?.setAttribute('aria-busy', 'true');
+  navigator.geolocation.getCurrentPosition(pos => {
+    btn?.removeAttribute('aria-busy');
+    const near = nearestLocation(pos.coords.latitude, pos.coords.longitude);
+    if (!near) return;
+    setHeaderLocation(near.loc.id);
+    window.showNotice?.('Cidade escolhida', `${near.loc.name} (a cerca de ${Math.round(near.km)} km). A posição não foi guardada.`, 'ok');
+  }, err => {
+    btn?.removeAttribute('aria-busy');
+    const msg = err?.code === 1 ? 'A localização não foi autorizada. Pode escolher a cidade na lista.' : 'Não foi possível obter a localização. Pode escolher a cidade na lista.';
+    window.showNotice?.('Localização', msg, 'warn');
+  }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+}
 /** Usado pelo seletor do card de meteorologia: se a cidade existir na lista do cabeçalho, passa a ser a escolhida. */
 window.setDashboardCityByName = name => {
   const loc = LOCATIONS.find(l => normalizeStr(l.name) === normalizeStr(name));
@@ -4222,6 +4255,11 @@ function bindHeaderExtras() {
     // Clicar fora do conteúdo (no fundo) fecha.
     dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close?.(); });
     open.dataset.bound = 'true';
+  }
+  const locate = document.getElementById('hdrLocateBtn');
+  if (locate && !locate.dataset.bound) {
+    locate.addEventListener('click', event => { event.preventDefault(); locateHeaderCity(locate); });
+    locate.dataset.bound = 'true';
   }
   const status = document.getElementById('hdrStatus');
   if (status && !status.dataset.bound) {

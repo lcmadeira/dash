@@ -20,13 +20,22 @@
    - CPI PT / INE: ~10 do mês seguinte
    ─────────────────────────────────────────────────────────── */
 
-/* Datas fixas Fed/BCE 2025-2026 (publicadas antecipadamente) */
+/* Datas fixas Fed/BCE 2025-2027 (publicadas antecipadamente).
+   2027: Fed, calendário revisto a 12-11-2026 (federalreserve.gov, monetary20261112a; a reunião
+   de 26-27 out. é só de estratégia, sem decisão); BCE, calendário de 30-06-2026 (ecb.pr260630). */
 const FOMC_DATES_2025=["2025-01-29","2025-03-19","2025-05-07","2025-06-18","2025-07-30","2025-09-17","2025-10-29","2025-12-10"];
 const FOMC_DATES_2026=["2026-01-28","2026-03-19","2026-05-06","2026-06-17","2026-07-29","2026-09-16","2026-10-28","2026-12-09"];
+const FOMC_DATES_2027=["2027-01-27","2027-03-17","2027-04-28","2027-06-09","2027-07-28","2027-09-15","2027-11-17"];
 const BCE_DATES_2025= ["2025-01-30","2025-03-06","2025-04-17","2025-06-05","2025-07-24","2025-09-11","2025-10-30","2025-12-18"];
 const BCE_DATES_2026= ["2026-01-30","2026-03-05","2026-04-17","2026-06-04","2026-07-23","2026-09-10","2026-10-29","2026-12-17"];
+const BCE_DATES_2027= ["2027-02-04","2027-03-18","2027-04-29","2027-06-10","2027-07-22","2027-09-09","2027-10-28","2027-12-16"];
 /* Partilhadas com o card da Euribor (próxima reunião do BCE). */
-window.ECB_MEETING_DATES = [...BCE_DATES_2025, ...BCE_DATES_2026];
+window.ECB_MEETING_DATES = [...BCE_DATES_2025, ...BCE_DATES_2026, ...BCE_DATES_2027];
+
+/* AAAA-MM-DD em hora local (toISOString usa UTC e recua um dia na hora de verão). */
+function ymdLocal(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
 
 /* Primeira sexta-feira de um mês */
 function firstFriday(year,month){
@@ -44,7 +53,7 @@ function fmtDate(d){
 /* Gerar eventos para os próximos N meses + passado recente */
 function buildCalendarEvents(){
   const today=new Date(); today.setHours(0,0,0,0);
-  const todayStr=today.toISOString().slice(0,10);
+  const todayStr=ymdLocal(today);
   const events=[];
 
   /* Janela: 2 meses atrás → 6 meses à frente */
@@ -66,60 +75,60 @@ function buildCalendarEvents(){
   }
 
   /* ── FOMC ── */
-  [...FOMC_DATES_2025,...FOMC_DATES_2026].forEach(dt=>{
+  [...FOMC_DATES_2025,...FOMC_DATES_2026,...FOMC_DATES_2027].forEach(dt=>{
     addEv(dt,"FOMC · Decisão taxas Fed ★","🇺🇸","h","19:00");
   });
 
   /* ── BCE ── */
-  [...BCE_DATES_2025,...BCE_DATES_2026].forEach(dt=>{
+  [...BCE_DATES_2025,...BCE_DATES_2026,...BCE_DATES_2027].forEach(dt=>{
     addEv(dt,"BCE · Decisão taxas ★","🇪🇺","h","13:45");
   });
 
   /* ── NFP (1.ª sexta-feira) + CPI EUA (~12 dias depois) ── */
-  for(let y=2025;y<=2026;y++){
+  for(let y=today.getFullYear()-1;y<=today.getFullYear()+1;y++){
     for(let m=0;m<12;m++){
       /* NFP: 1.ª sexta-feira = dados do mês anterior */
       const nfp=firstFriday(y,m);
-      const nfpStr=nfp.toISOString().slice(0,10);
+      const nfpStr=ymdLocal(nfp);
       const refMonth=new Date(y,m-1,1).toLocaleDateString("pt-PT",{month:"long"});
       addEv(nfpStr,`NFP EUA (emprego ${refMonth})`,"🇺🇸","h","13:30");
 
       /* CPI EUA: ~dia 12 do mês seguinte ao de referência */
       const cpiDate=new Date(y,m,12);
-      addEv(cpiDate.toISOString().slice(0,10),`IPC EUA (${refMonth})`,"🇺🇸","h","13:30");
+      addEv(ymdLocal(cpiDate),`IPC EUA (${refMonth})`,"🇺🇸","h","13:30");
 
       /* CPI PT/INE: ~dia 9 */
       const ineDate=new Date(y,m,9);
-      addEv(ineDate.toISOString().slice(0,10),`IPC Portugal (${refMonth}) · INE`,"🇵🇹","m","11:00");
+      addEv(ymdLocal(ineDate),`IPC Portugal (${refMonth}) · INE`,"🇵🇹","m","11:00");
 
       /* PMI Flash ZE: ~dia 23 */
       const pmiDate=new Date(y,m,23);
       const pmiMonth=new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long"});
-      addEv(pmiDate.toISOString().slice(0,10),`PMI Flash Zona Euro (${pmiMonth})`,"🇪🇺","m","09:00");
+      addEv(ymdLocal(pmiDate),`PMI Flash Zona Euro (${pmiMonth})`,"🇪🇺","m","09:00");
 
       /* Vendas a retalho EUA: ~dia 16 */
       const retDate=new Date(y,m,16);
-      addEv(retDate.toISOString().slice(0,10),`Vendas a retalho EUA (${refMonth})`,"🇺🇸","m","13:30");
+      addEv(ymdLocal(retDate),`Vendas a retalho EUA (${refMonth})`,"🇺🇸","m","13:30");
 
       /* PIB EUA: última semana do 1.º mês de cada trimestre (Jan, Abr, Jul, Out) */
       if([0,3,6,9].includes(m)){
         const quarter=["Q4","Q1","Q2","Q3"][m/3|0];
         const prevYear=m===0?y-1:y;
         const qDate=new Date(y,m,29);
-        addEv(qDate.toISOString().slice(0,10),`PIB EUA ${quarter} ${prevYear} · 1.ª leitura`,"🇺🇸","h","13:30");
+        addEv(ymdLocal(qDate),`PIB EUA ${quarter} ${prevYear} · 1.ª leitura`,"🇺🇸","h","13:30");
       }
 
       /* PIB Portugal: INE publica ~55 dias após fim do trimestre */
       if([2,5,8,11].includes(m)){
         const quarter=["Q1","Q2","Q3","Q4"][[2,5,8,11].indexOf(m)];
         const gdpDate=new Date(y,m,28);
-        addEv(gdpDate.toISOString().slice(0,10),`PIB Portugal ${quarter} ${y} · INE`,"🇵🇹","m","11:00");
+        addEv(ymdLocal(gdpDate),`PIB Portugal ${quarter} ${y} · INE`,"🇵🇹","m","11:00");
       }
 
       /* Eurostat IPC ZE flash: último dia do mês */
       const ipcZeDate=new Date(y,m+1,0); /* último dia do mês m */
       const ipcZeMonth=new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long"});
-      addEv(ipcZeDate.toISOString().slice(0,10),`IPC Zona Euro ${ipcZeMonth} · flash`,"🇪🇺","h","11:00");
+      addEv(ymdLocal(ipcZeDate),`IPC Zona Euro ${ipcZeMonth} · flash`,"🇪🇺","h","11:00");
     }
   }
 
