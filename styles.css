@@ -2716,6 +2716,29 @@ textarea.nta::placeholder{color:var(--t3)}
 .oil-tabs{display:flex;gap:6px;margin-bottom:10px}
 .oil-tab{font-family:var(--mono);font-size:.74rem;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .15s}
 .oil-tab.on{background:var(--orange);border-color:var(--orange);color:#0a0d1c;font-weight:700}
+/* Fuel tabs + Évora */
+.fuel-tabs{display:flex;gap:6px;margin-bottom:10px}
+.fuel-tab{font-family:var(--mono);font-size:.74rem;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface);color:var(--t2);cursor:pointer;transition:all .15s}
+.fuel-tab.on{background:var(--orange);border-color:var(--orange);color:#0a0d1c;font-weight:700}
+.fev-cheapest{font-size:.74rem;color:var(--t2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fev-tile .fi-delta{margin-top:5px}
+.fev-cheap{color:var(--green)}
+.fev-dear{color:var(--red)}
+.fev-neu{color:var(--t3)}
+.fev-wrap{margin-top:9px;max-height:320px;overflow-y:auto;border:1px solid var(--b);border-radius:var(--rs)}
+.fev-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.fev-table thead th{position:sticky;top:0;background:var(--surface);text-align:left;font-family:var(--mono);font-size:.74rem;color:var(--t2);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--b)}
+.fev-table td,.fev-table tbody th{padding:6px 8px;border-bottom:1px solid var(--b);font-weight:400;text-align:left}
+.fev-table tbody tr:last-child td,.fev-table tbody tr:last-child th{border-bottom:0}
+.fev-table .fev-num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.fev-name{min-width:0;max-width:0;width:100%}
+.fev-name span,.fev-name small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fev-name small{color:var(--t3);font-size:.7rem}
+.fev-best{color:var(--green);font-weight:700}
+.fev-sort{all:unset;cursor:pointer;color:inherit;white-space:nowrap}
+.fev-sort.on{color:var(--text)}
+.fev-sort:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:3px}
+@media (hover:none){.fev-sort{padding:8px 0}}
 /* Fuel range */
 .fi-lbl{font-family:var(--mono);font-size:.74rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .fi-unit{font-family:var(--mono);font-size:.74rem;color:var(--t2);margin-top:2px}

@@ -40,7 +40,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20261126-3"/>
+<link rel="stylesheet" href="styles.css?v=20261127-3"/>
 <!-- [html-validate-disable require-sri] -->
 <link rel="manifest" href="./manifest.webmanifest"/>
 <!-- [html-validate-enable require-sri] -->
@@ -516,13 +516,17 @@
 
   <div class="card" id="card-fuel">
     <div class="ch"><div class="ch-ico">⛽</div>
-      <span class="ch-lbl">Combustíveis · PT vs ES</span>
+      <span class="ch-lbl" id="fuelTitle">Combustíveis · PT vs ES</span>
       <div class="ch-r">
         <button type="button" class="rbtn" id="fuelDetailBtn" onclick="openFuelModal()" title="Detalhe (postos / timestamps)" aria-haspopup="dialog" aria-controls="fuelModal" aria-expanded="false">Detalhe</button>
         <button type="button" class="rbtn" id="fuelDeltaBtn" onclick="toggleFuelDeltaMode()" title="Alternar Δ entre € e %" aria-label="Alternar delta">Δ€</button>
         <button type="button" class="rbtn ico" onclick="refreshCard('fuel','fuel',this,renderFuel,true)" title="Atualizar" aria-label="Atualizar"><span class="refresh-glyph" aria-hidden="true">↺</span></button>
       </div></div>
-    <div id="fuel-body"><div class="ld"><div class="spin"></div></div></div>
+    <div class="fuel-tabs" role="tablist" aria-label="Vista dos combustíveis">
+      <button type="button" class="fuel-tab on" role="tab" data-view="ptes" aria-selected="true" aria-controls="fuel-body" onclick="setFuelView('ptes')">PT vs ES</button>
+      <button type="button" class="fuel-tab" role="tab" data-view="evora" aria-selected="false" aria-controls="fuel-body" onclick="setFuelView('evora')">Évora</button>
+    </div>
+    <div id="fuel-body" role="tabpanel"><div class="ld"><div class="spin"></div></div></div>
   </div>
 
   <!-- Cabaz Alimentar DECO PROteste -->
@@ -1033,7 +1037,7 @@
 </div><!-- /wrap -->
 <script src="src/config.js?v=20261123-34"></script>
  <script src="src/core.js?v=20261123-30"></script>
- <script src="src/cache.js?v=20261123-29"></script>
+ <script src="src/cache.js?v=20261127-3"></script>
  <script src="src/fetch.js?v=20261123-26"></script>
 <script src="src/ui.js?v=20261126-4" integrity="sha384-q5dIkKMFVKa+86AKPqZWJPnQqANMz4EoODjuiHDzvYXP2NjABHsSBmpT06ibaAdb"></script>
  <script src="src/market-calendar.js?v=20261029-1" integrity="sha384-yJK/LAbvZnS13+ZHroHFKhfOWo+fXm1uM4Y+gmS76BpgPoDtZ/3nnhvsgIgnlBk3"></script>
@@ -1044,7 +1048,7 @@
  <script src="src/cards/seis.js?v=20261123-22"></script>
  <script src="src/cards/civil-protection.js?v=20261123-22" integrity="sha384-lAH7ujYTq3dULukn6HP0GVGw2A/T2GD2CvV8uFKCI1HrPR2WApczcQXSAw6rhaDs"></script>
  <script src="src/cards/dams.js?v=20261123-22"></script>
- <script src="src/cards/fuel.js?v=20261123-22"></script>
+ <script src="src/cards/fuel.js?v=20261127-3"></script>
  <script src="src/cards/weather.js?v=20261123-22"></script>
  <script src="src/cards/holidays.js?v=20261123-22"></script>
  <script src="src/cards/air-quality.js?v=20261123-22"></script>

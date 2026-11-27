@@ -12,6 +12,13 @@ const FUEL_SLUGS=[
 
 const FUEL_ES_URL="https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
 const FUEL_PREFS_KEY = "fuel_prefs_v1";
+/* Separador Évora: postos do município, por combustível (API Aberta, dados DGEG). */
+const FUEL_EVORA_URL = "https://api.apiaberta.pt/v1/fuel/stations?municipality=Evora&limit=100"; // máximo aceite pela API
+const FUEL_EVORA_CACHE_KEY = "fuel_evora";
+const FUEL_EVORA_FUELS = [
+  { key: "diesel", slug: "diesel", label: "Gasóleo simples", short: "Gasóleo", param: "diesel", fuelName: /gas[oó]leo simples/i },
+  { key: "gasoline_95", slug: "gasoline_95", label: "Gasolina simples 95", short: "Gasolina 95", param: "gasoline_95", fuelName: /gasolina simples 95/i },
+];
 function getFuelPrefs(){
   try{
     const raw = localStorage.getItem(PFX + FUEL_PREFS_KEY);
@@ -20,9 +27,12 @@ function getFuelPrefs(){
     const esGas95 = (p?.esGas95 === "e5" || p?.esGas95 === "e10" || p?.esGas95 === "auto") ? p.esGas95 : "auto";
     const esGas98 = (p?.esGas98 === "e5" || p?.esGas98 === "e10" || p?.esGas98 === "auto") ? p.esGas98 : "auto";
     const showColored = typeof p?.showColored === "boolean" ? p.showColored : true;
-    return { deltaMode, esGas95, esGas98, showColored };
+    const view = p?.view === "evora" ? "evora" : "ptes";
+    const evSortCol = FUEL_EVORA_FUELS.some(f => f.key === p?.evSortCol) ? p.evSortCol : "diesel";
+    const evSortDir = p?.evSortDir === "desc" ? "desc" : "asc";
+    return { deltaMode, esGas95, esGas98, showColored, view, evSortCol, evSortDir };
   }catch{
-    return { deltaMode:"abs", esGas95:"auto", esGas98:"auto", showColored:true };
+    return { deltaMode:"abs", esGas95:"auto", esGas98:"auto", showColored:true, view:"ptes", evSortCol:"diesel", evSortDir:"asc" };
   }
 }
 function setFuelPrefs(patch){
@@ -177,6 +187,8 @@ function computeFuelESAgg(payload){
   return {fecha, ts: parseESFechaToTs(fecha), items:out};
 }
 async function renderFuel(force=false){
+  syncFuelView();
+  if(getFuelPrefs().view === "evora") return renderFuelEvora(force);
   $("fuel-body").innerHTML=skeletonTable(8);
   try{
     const prefs = getFuelPrefs();
@@ -281,7 +293,224 @@ async function renderFuel(force=false){
   }catch(e){$("fuel-body").innerHTML=er(e,{context:"Combustíveis PT/ES",action:"clique em ↺ para tentar novamente"});notifyNonCriticalError("Combustíveis PT/ES",e);}
 }
 
+/* ── Separador Évora ── */
+function escFuel(value){
+  return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
+}
+function finitePrice(v){
+  const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+/** Junta as listas por combustível numa linha por posto (chave: station_id). */
+function mergeFuelEvoraStations(rowsByFuel){
+  const byId = new Map();
+  for(const fuel of FUEL_EVORA_FUELS){
+    const rows = Array.isArray(rowsByFuel?.[fuel.key]) ? rowsByFuel[fuel.key] : [];
+    for(const row of rows){
+      if(!row || (row.fuel_name && !fuel.fuelName.test(row.fuel_name))) continue;
+      const price = finitePrice(row.price_eur);
+      const id = row.station_id ?? `${row.name}|${row.address}`;
+      if(price === null || id === undefined) continue;
+      let st = byId.get(id);
+      if(!st){
+        st = { id, name: row.name || "Posto", brand: row.brand || "", address: row.address || "", locality: row.locality || "", prices: {}, updatedAt: null };
+        FUEL_EVORA_FUELS.forEach(f => { st.prices[f.key] = null; });
+        byId.set(id, st);
+      }
+      st.prices[fuel.key] = price;
+      const ts = Date.parse(row.updated_at || "");
+      if(Number.isFinite(ts) && (!st.updatedAt || ts > st.updatedAt)) st.updatedAt = ts;
+    }
+  }
+  return [...byId.values()];
+}
+/** Ordena pelo preço de uma coluna; postos sem esse combustível ficam sempre no fim. */
+function sortFuelEvoraStations(list, col, dir){
+  const sign = dir === "desc" ? -1 : 1;
+  return [...(list || [])].sort((a, b) => {
+    const va = a?.prices?.[col] ?? null, vb = b?.prices?.[col] ?? null;
+    if(va === null && vb === null) return String(a?.name || "").localeCompare(String(b?.name || ""), "pt");
+    if(va === null) return 1;
+    if(vb === null) return -1;
+    return (va - vb) * sign || String(a.name).localeCompare(String(b.name), "pt");
+  });
+}
+/** Mais barato, média do município e diferença para a média nacional, por combustível. */
+function summarizeFuelEvora(stations, nationalBySlug){
+  const out = {};
+  for(const fuel of FUEL_EVORA_FUELS){
+    const priced = (stations || []).filter(s => s?.prices?.[fuel.key] !== null && s?.prices?.[fuel.key] !== undefined);
+    if(!priced.length){ out[fuel.key] = { n: 0, cheapest: null, avg: null, national: null }; continue; }
+    const min = Math.min(...priced.map(s => s.prices[fuel.key]));
+    const cheapest = priced.filter(s => s.prices[fuel.key] === min);
+    const avg = priced.reduce((a, s) => a + s.prices[fuel.key], 0) / priced.length;
+    const nat = finitePrice(nationalBySlug?.[fuel.slug]?.avg_price_eur);
+    out[fuel.key] = {
+      n: priced.length,
+      cheapest: { price: min, stations: cheapest },
+      avg,
+      national: nat,
+      cheapestDelta: nat === null ? null : min - nat,
+      avgDelta: nat === null ? null : avg - nat,
+    };
+  }
+  return out;
+}
+function readStaleCache(key){
+  try{
+    const raw = localStorage.getItem(PFX + key);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === "object" && parsed.d ? { data: parsed.d, ts: Number(parsed.ts) || null } : null;
+  }catch{ return null; }
+}
+async function loadFuelEvora(force){
+  if(!force){
+    const cached = lsGet(FUEL_EVORA_CACHE_KEY);
+    if(cached?.stations) return { ...cached, stale: false };
+  }
+  try{
+    const rowsByFuel = {};
+    const fetchAll = async f => {
+      const base = `${FUEL_EVORA_URL}&fuel=${encodeURIComponent(f.param)}`;
+      const first = await fetchJsonFirstOk(base, {}, 12000);
+      const rows = Array.isArray(first?.data) ? [...first.data] : [];
+      const pages = Math.min(Number(first?.meta?.pages) || 1, 5);
+      for(let page = 2; page <= pages; page++){
+        const next = await fetchJsonFirstOk(`${base}&page=${page}`, {}, 12000);
+        if(Array.isArray(next?.data)) rows.push(...next.data);
+      }
+      return rows;
+    };
+    const replies = await Promise.all(FUEL_EVORA_FUELS.map(fetchAll));
+    FUEL_EVORA_FUELS.forEach((f, i) => { rowsByFuel[f.key] = replies[i]; });
+    const stations = mergeFuelEvoraStations(rowsByFuel);
+    if(!stations.length) throw new Error("sem postos na resposta");
+    const observedAt = stations.map(s => s.updatedAt).filter(Number.isFinite).sort((a, b) => b - a)[0] || null;
+    const payload = { stations, observedAt };
+    lsSet(FUEL_EVORA_CACHE_KEY, payload, { source: "API Aberta", state: "live", observedAt });
+    return { ...payload, stale: false };
+  }catch(e){
+    const stale = readStaleCache(FUEL_EVORA_CACHE_KEY);
+    if(stale?.data?.stations) return { ...stale.data, stale: true, error: e };
+    throw e;
+  }
+}
+async function loadFuelNational(force){
+  let pt = force ? null : lsGet("fuel");
+  if(!Array.isArray(pt)){
+    try{
+      const j = await fetchJsonFirstOk("https://api.apiaberta.pt/v1/fuel/prices", {}, 12000);
+      pt = j.data || j;
+      if(Array.isArray(pt)) lsSet("fuel", pt, {
+        source: "API Aberta",
+        state: "live",
+        observedAt: pt.map(item => Date.parse(item?.updated_at || "")).filter(Number.isFinite).sort((a, b) => b - a)[0],
+      });
+    }catch{
+      pt = readStaleCache("fuel")?.data;
+    }
+  }
+  const by = {};
+  (Array.isArray(pt) ? pt : []).forEach(f => { if(f?.fuel_slug) by[f.fuel_slug] = f; });
+  return by;
+}
+function fmtFuelDelta(delta, base, mode){
+  if(!Number.isFinite(delta)) return { txt: "—", cls: "neu" };
+  if(mode === "pct" && Number.isFinite(base) && base > 0){
+    const pct = delta / base * 100;
+    return { txt: `${pct > 0 ? "+" : ""}${window.nf(pct, 2)}%`, cls: pct < -0.05 ? "cheap" : pct > 0.05 ? "dear" : "neu" };
+  }
+  return { txt: `${delta > 0 ? "+" : ""}${window.nf(delta, 3)}`, cls: delta < -0.0005 ? "cheap" : delta > 0.0005 ? "dear" : "neu" };
+}
+async function renderFuelEvora(force=false){
+  const body = $("fuel-body");
+  body.innerHTML = skeletonTable(8);
+  try{
+    syncFuelDeltaBtn();
+    const [ev, national] = await Promise.all([loadFuelEvora(force), loadFuelNational(force)]);
+    const prefs = getFuelPrefs();
+    if(prefs.view !== "evora") return;
+    const fmt = v => Number.isFinite(v) ? window.nf(v, 3) : "—";
+    const summary = summarizeFuelEvora(ev.stations, national);
+    const sorted = sortFuelEvoraStations(ev.stations, prefs.evSortCol, prefs.evSortDir);
+
+    const tiles = FUEL_EVORA_FUELS.map(f => {
+      const s = summary[f.key];
+      if(!s.n) return `<div class="fi"><div class="fi-lbl">${f.label} <span class="fi-unit-inline">€/L</span></div><div class="fi-meta">sem postos com preço</div></div>`;
+      const names = s.cheapest.stations.map(st => escFuel(st.name)).join(" · ");
+      const dMin = fmtFuelDelta(s.cheapestDelta, s.national, prefs.deltaMode);
+      const dAvg = fmtFuelDelta(s.avgDelta, s.national, prefs.deltaMode);
+      return `<div class="fi fev-tile">
+        <div class="fi-lbl">${f.label} <span class="fi-unit-inline">€/L</span></div>
+        <div class="fi-cty">Mais barato</div>
+        <div class="fi-price">${fmt(s.cheapest.price)}</div>
+        <div class="fev-cheapest" title="${names}">${names}</div>
+        <div class="fi-delta"><span>vs média PT ${fmt(s.national)}</span><span class="fev-${dMin.cls}">${dMin.txt}</span></div>
+        <div class="fi-delta"><span>média Évora ${fmt(s.avg)} · ${s.n} postos</span><span class="fev-${dAvg.cls}">${dAvg.txt}</span></div>
+      </div>`;
+    }).join("");
+
+    const th = f => {
+      const on = prefs.evSortCol === f.key;
+      const dir = on ? prefs.evSortDir : null;
+      const aria = dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none";
+      const arrow = dir === "asc" ? "▲" : dir === "desc" ? "▼" : "↕";
+      const next = on && dir === "asc" ? "descendente" : "ascendente";
+      return `<th scope="col" class="fev-num" aria-sort="${aria}"><button type="button" class="fev-sort${on ? " on" : ""}" onclick="setFuelEvoraSort('${f.key}')" title="Ordenar por ${f.label} (${next})">${f.short} <span aria-hidden="true">${arrow}</span></button></th>`;
+    };
+    const rows = sorted.map(st => {
+      const place = [st.address, st.locality].filter(Boolean).join(" · ");
+      const cells = FUEL_EVORA_FUELS.map(f => {
+        const v = st.prices[f.key];
+        const best = v !== null && v === summary[f.key]?.cheapest?.price;
+        return `<td class="fev-num${best ? " fev-best" : ""}"${best ? ' title="Mais barato do município"' : ""}>${v === null ? "—" : fmt(v)}</td>`;
+      }).join("");
+      return `<tr><th scope="row" class="fev-name" title="${escFuel(place)}"><span>${escFuel(st.name)}</span>${st.brand ? `<small>${escFuel(st.brand)}</small>` : ""}</th>${cells}</tr>`;
+    }).join("");
+
+    const obs = Number.isFinite(ev.observedAt)
+      ? new Date(ev.observedAt).toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : "—";
+    const staleNote = ev.stale ? ` · <span class="fev-dear">sem ligação, última leitura guardada</span>` : "";
+    body.innerHTML = `<div class="fuel-grid">${tiles}</div>
+      <div class="fev-wrap"><table class="fev-table">
+        <caption class="sr-only">Postos do município de Évora, preço por litro</caption>
+        <thead><tr><th scope="col">Posto</th>${FUEL_EVORA_FUELS.map(th).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      <div class="src">✦ API Aberta (DGEG) · município de Évora · ${ev.stations.length} postos · ${obs}${staleNote}</div>`;
+  }catch(e){
+    body.innerHTML = er(e, { context: "Combustíveis Évora", action: "clique em ↺ para tentar novamente" });
+    notifyNonCriticalError("Combustíveis Évora", e);
+  }
+}
+function syncFuelView(){
+  const view = getFuelPrefs().view;
+  document.querySelectorAll?.(".fuel-tab").forEach(btn => {
+    const on = btn.dataset.view === view;
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  const title = document.getElementById("fuelTitle");
+  if(title) title.textContent = view === "evora" ? "Combustíveis · Évora" : "Combustíveis · PT vs ES";
+  const detail = document.getElementById("fuelDetailBtn");
+  if(detail) detail.style.display = view === "evora" ? "none" : ""; // .rbtn define display: o atributo hidden não chega
+}
+function setFuelView(view){
+  setFuelPrefs({ view: view === "evora" ? "evora" : "ptes" });
+}
+function setFuelEvoraSort(col){
+  const p = getFuelPrefs();
+  const dir = p.evSortCol === col && p.evSortDir === "asc" ? "desc" : "asc";
+  setFuelPrefs({ evSortCol: col, evSortDir: dir });
+}
+
   window.FUEL_SLUGS = FUEL_SLUGS;
+  window.setFuelView = setFuelView;
+  window.setFuelEvoraSort = setFuelEvoraSort;
+  window.mergeFuelEvoraStations = mergeFuelEvoraStations;
+  window.sortFuelEvoraStations = sortFuelEvoraStations;
+  window.summarizeFuelEvora = summarizeFuelEvora;
   window.getFuelPrefs = getFuelPrefs;
   window.setFuelPrefs = setFuelPrefs;
   window.syncFuelDeltaBtn = syncFuelDeltaBtn;
