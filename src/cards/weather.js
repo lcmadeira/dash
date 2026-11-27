@@ -57,6 +57,7 @@ async function loadWeatherWarnings(cityId, cityName, force = false) {
           <span class="wx-warning-when">${fmtWarningWhen(w.startTime, w.endTime)}</span>
         </div>`).join("") + `<div class="wx-warning-note">${local.length > 3 ? `+${local.length - 3} avisos · ` : ""}${window.nfr(national)}</div>`
       : `<div class="wx-warning-note">Sem avisos para ${escapeText(cityName)} · ${window.nfr(national)}</div>`;
+    window.renderPortugalBriefing?.();
   } catch {
     box.innerHTML = `<div class="wx-warning-note">Avisos IPMA indisponíveis de momento.</div>`;
   }
@@ -111,4 +112,5 @@ async function loadWeather(force=false){
 
   window.loadWeather = loadWeather;
   window.activeWarnings = activeWarnings;
+  window.IPMA_WARNING_AREA = IPMA_WARNING_AREA;
 })();

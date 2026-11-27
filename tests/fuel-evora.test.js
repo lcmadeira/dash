@@ -144,3 +144,9 @@ test("Évora view follows pagination when the municipality has more than one pag
   assert.ok(requested.some(u => u.includes("fuel=diesel") && u.includes("page=2")));
   assert.match(body.innerHTML, /Gama &lt;b&gt;/);
 });
+
+test("MITECO timestamps are Madrid time, not Lisbon time", async () => {
+  const { context } = await loadFuel();
+  assert.equal(context.parseESFechaToTs("27/11/2026 13:01:47"), Date.parse("2026-11-27T12:01:47Z"));
+  assert.equal(context.parseESFechaToTs("15/07/2026 10:00:00"), Date.parse("2026-07-15T08:00:00Z"));
+});

@@ -146,12 +146,15 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--b)}
 	.portugal-briefing h2{margin:0;color:var(--text);font-size:1.08rem;font-weight:800;letter-spacing:-.35px}
 	.briefing-heading p{margin:4px 0 0;color:var(--t3);font-size:.74rem;line-height:1.5}
-	.briefing-preferences{margin:0 0 9px;color:var(--t3);font-size:.74rem}
-	.briefing-preferences summary{width:max-content;max-width:100%;cursor:pointer;color:var(--blue)}
-	.briefing-preference-options{display:flex;flex-wrap:wrap;gap:5px 12px;padding:7px 0}
+	.briefing-heading-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:relative}
+	.briefing-preferences{color:var(--t3);font-size:.74rem}
+	.briefing-preferences summary{cursor:pointer;color:var(--t2);padding:3px 8px;border:1px solid var(--b2);border-radius:var(--rs);list-style:none}
+	.briefing-preferences summary::-webkit-details-marker{display:none}
+	.briefing-preferences[open] summary{color:var(--text);border-color:var(--accent)}
+	.briefing-preference-options{display:flex;flex-direction:column;gap:6px;padding:9px 11px;position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--card);border:1px solid var(--b2);border-radius:var(--rs);box-shadow:0 8px 24px #0005;min-width:170px}
 	.briefing-preference-options label{display:flex;align-items:center;gap:4px}
 	.briefing-preference-options input{accent-color:var(--accent)}
-	.briefing-updated{color:var(--t3);font: .59rem var(--mono)}
+	.briefing-updated{color:var(--t3);font: .66rem var(--mono)}
 	.briefing-changes{margin-top:10px;padding:10px 12px;border:1px solid var(--b);border-left:2px solid var(--blue);border-radius:var(--rs);background:var(--surface);color:var(--t2);font-size:.74rem;line-height:1.5}
 	.briefing-changes ul{margin:5px 0 0;padding-left:18px}.briefing-changes li+li{margin-top:3px}.briefing-changes a{color:var(--blue)}
 	.briefing-history{margin:9px 0;padding:10px 12px;border:1px solid var(--b);border-radius:var(--rs);background:var(--surface);color:var(--t3);font-size:.74rem;line-height:1.55}
@@ -186,7 +189,12 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 	.briefing-item:hover,.briefing-item:focus-visible{border-color:var(--accent);transform:translateY(-1px);outline:2px solid transparent}
 	.briefing-title{color:var(--blue);font-size:.74rem;text-transform:uppercase;letter-spacing:.65px;font-weight:750}
 	.briefing-item strong{color:var(--text);font-size:.9rem;line-height:1.45}
-	.briefing-detail{color:var(--t3);font-size:.74rem;line-height:1.55}
+	.briefing-detail{color:var(--t3);font-size:.72rem;line-height:1.5;margin-top:auto}
+	.briefing-extra{color:var(--t2);font-size:.78rem;line-height:1.45}
+	.briefing-item.has-warning{border-color:color-mix(in srgb,var(--amber) 55%,var(--b))}
+	.briefing-item.has-warning .briefing-extra{color:var(--amber);font-weight:600}
+	.briefing-changes[hidden]{display:none}
+	@media (max-width: 767px){.briefing-preference-options{left:0;right:auto}}
 	.briefing-item.is-stale strong{color:var(--accent)}
 	.briefing-empty{grid-column:1/-1;margin:0;padding:8px 2px;color:var(--t3);font-size:.74rem}
 

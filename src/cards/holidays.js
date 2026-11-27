@@ -225,6 +225,7 @@ async function loadHolidays(force=false){
     try{ holsByYear[year + 1] = await fetchYear(year + 1, force); }catch{ /* o ano seguinte é opcional */ }
     const city = currentCity();
     body.innerHTML = renderHolidaySummary(computeHolidaySummary({ holsByYear, today, city }), city);
+    window.renderPortugalBriefing?.();
   }catch(e){
     body.innerHTML = er(e, { context: "Feriados", action: "clique em ↺ para tentar novamente" });
     notifyNonCriticalError("Feriados", e, "clique em ↺ para tentar novamente");
