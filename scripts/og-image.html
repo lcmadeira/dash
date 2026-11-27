@@ -5,6 +5,9 @@
     python3 -m http.server 8000
     chrome --headless --hide-scrollbars --window-size=1200,630 --virtual-time-budget=5000 \
       --screenshot=og.png "http://localhost:8000/scripts/og-image.html"
+  Sem Chrome, o Firefox também serve (perfil temporário, porque pode estar aberto):
+    firefox --headless --no-remote --profile "$(mktemp -d -p ~)" --window-size=1200,630 \
+      --screenshot ~/og.png "http://localhost:8000/scripts/og-image.html"
   Depois de mudar a imagem, subir o ?v= de og:image em index.html.
 -->
 <html lang="pt-PT">
@@ -29,7 +32,7 @@
   .pills { display: flex; gap: 12px; }
   .pills span { font: 500 20px/1 "Inter", sans-serif; color: #B7BFCC; border: 1px solid #2E3442; border-radius: 999px; padding: 9px 16px; display: flex; align-items: center; gap: 10px; }
   .pills i { width: 10px; height: 10px; border-radius: 50%; background: #6EA8FE; }
-  .domain { font: 600 24px/1 "Inter", sans-serif; color: #6EA8FE; }
+  .domain { font: 600 24px/1 "Inter", sans-serif; color: #6EA8FE; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -39,11 +42,11 @@
     <div>
       <p class="kicker">Painel público</p>
       <h1>Portugal hoje</h1>
-      <p class="lede">Indicadores de Portugal, dos mercados e da atualidade numa só página, com a fonte e a data de cada dado.</p>
+      <p class="lede">Combustíveis, energia, Euribor, tempo e feriados numa só página, com a fonte e a data de cada dado.</p>
     </div>
   </div>
   <div class="foot">
-    <div class="pills"><span><i></i>Eletricidade</span><span><i></i>Combustíveis</span><span><i></i>Euribor</span><span><i></i>PSI 20</span></div>
+    <div class="pills"><span><i></i>Combustíveis</span><span><i></i>Eletricidade</span><span><i></i>Euribor</span><span><i></i>Tempo</span></div>
     <span class="domain">lcmadeira.github.io/dash</span>
   </div>
 </div>
