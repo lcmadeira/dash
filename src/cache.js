@@ -17,6 +17,7 @@
     euribor: 24 * 60 * 60 * 1000, // 24h (taxas)
     bdp_: 6 * 60 * 60 * 1000, // 6h (taxas Banco de Portugal)
     anpc_: 10 * 60 * 1000, // 10 min (Proteção Civil)
+    fuel_evora: 3 * 60 * 60 * 1000, // 3h (postos do município de Évora)
     fuel_es: 12 * 60 * 60 * 1000, // 12h (combustíveis ES)
     fuel: 24 * 60 * 60 * 1000, // 24h (combustíveis)
     co2: 60 * 60 * 1000, // 1h (emissões)
@@ -32,6 +33,7 @@
     ipma: 36 * 60 * 60 * 1000,
     fuel: 72 * 60 * 60 * 1000,
     fuel_es: 72 * 60 * 60 * 1000,
+    fuel_evora: 72 * 60 * 60 * 1000,
     fx: 4 * 24 * 60 * 60 * 1000,
     euribor_live_v1: 75 * 24 * 60 * 60 * 1000,
     inflation_eurostat_v2: 120 * 24 * 60 * 60 * 1000,
