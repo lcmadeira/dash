@@ -2,6 +2,7 @@
 (function () {
   const CARD_LABELS = {
     weather: "Meteorologia",
+    hol: "Feriados",
     fuel: "Combustíveis",
     cabaz: "Cabaz alimentar",
     "gas-eu": "Gás natural Europa",
@@ -323,7 +324,7 @@
   // Cada vista mostra uma secção do painel (ver CARD_SECTIONS em app.js).
   const DASHBOARD_PROFILES = {
     all: null,
-    portugal: new Set(["weather", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "anpc", "seis", "air", "news-pt"]),
+    portugal: new Set(["weather", "hol", "airquality", "fuel", "elec", "gas-pt", "cabaz", "transp", "dams", "anpc", "seis", "air", "news-pt"]),
     economy: new Set(["euribor", "inf", "imob", "smn", "exp", "div", "co2", "cal"]),
     markets: new Set(["psi20", "fx", "crypto", "oil", "gas-eu", "agri", "mstats", "fng", "rec", "finance", "heatmap"]),
     world: new Set(["news-world", "conflicts", "geo", "press", "ormuz"]),
@@ -516,6 +517,7 @@
     const cityId = (typeof CFG !== "undefined" && CFG?.IPMA_CITY_ID) ? CFG.IPMA_CITY_ID : 1110600;
     const byId = {
       weather: `ipma_${cityId}`,
+      hol: `hols_${new Date().getFullYear()}`,
       airquality: `aq_v3_${cityId}`,
       fuel: "fuel",
       dams: "dams_v1",

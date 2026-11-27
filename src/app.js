@@ -1,4 +1,4 @@
-/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,wxholRefresh,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
+/* global CFG,REF_DATE,IPMA_CITIES,CACHE_TTL,lsGet,fmtAgeShort,getCacheMeta,refreshAllCardStatuses,applyStickyScrollCards,$,loadElec,loadNews,loadSeis,loadCivilProtection,loadDams,loadAndRenderCalendar,loadHolidays,loadAirQuality,loadWeather,getFuelPrefs,syncFuelDeltaBtn,renderFuel,FUEL_SLUGS,tickMarkets,loadMarketStats,loadImob,loadFng,loadAgri,renderExp,renderDiv,loadRec,loadAir,loadOrmuz,loadCO2,loadTransp,loadPress,loadSMN,initInflation,renderInflation,initEuribor,loadFX,loadCrypto,loadPSI20,loadGeo,loadTTF,loadGasPT */
 /* Globais chamados a partir do index.html (onclick) ou de outros scripts clássicos: */
 /* exported
    addToHistory, clearAllNotifications, dismissNotification, executeExport,
@@ -1083,7 +1083,8 @@ console.log('⚡ Sistema de Performance carregado!');
 // Configurações padrão
 const DEFAULT_CONFIG = {
   cards: [
-    { id: 'weather',    name: 'Meteorologia & Feriados',  desc: 'IPMA · previsão 5 dias e feriados PT',        visible: true, icon: '🌡️' },
+    { id: 'weather',    name: 'Meteorologia',              desc: 'IPMA · previsão 5 dias e avisos',             visible: true, icon: '🌡️' },
+    { id: 'hol',        name: 'Feriados & dias úteis',     desc: 'Feriados PT, pontes e dias úteis · date.nager.at', visible: true, icon: '🗓️' },
     { id: 'fuel',       name: 'Combustíveis',              desc: 'Preços gasolina/gasóleo · API Aberta PT',     visible: true, icon: '⛽' },
     { id: 'cabaz',      name: 'Cabaz Alimentar',           desc: '63 produtos essenciais · DECO PROteste',      visible: true, icon: '🛒' },
     { id: 'oil',        name: 'Petróleo',                  desc: 'Brent & WTI · TradingView live',              visible: true, icon: '🛢️' },
@@ -1136,10 +1137,15 @@ function syncDashboardConfig(userConfig) {
   const userCardIds = new Set(updatedCards.map(c => c.id));
   
   // Adicionar cards que existem no DEFAULT mas não no utilizador
-  DEFAULT_CONFIG.cards.forEach(defaultCard => {
+  DEFAULT_CONFIG.cards.forEach((defaultCard, defaultIndex) => {
     if (!userCardIds.has(defaultCard.id)) {
       console.log(`🆕 Sincronização: Adicionando novo card "${defaultCard.id}"`);
-      updatedCards.push({ ...defaultCard });
+      // Fica logo a seguir ao card que o precede no DEFAULT_CONFIG (ex.: Feriados depois de Meteorologia)
+      const prevId = DEFAULT_CONFIG.cards[defaultIndex - 1]?.id;
+      const prevPos = prevId ? updatedCards.findIndex(c => c.id === prevId) : -1;
+      if (prevPos >= 0) updatedCards.splice(prevPos + 1, 0, { ...defaultCard });
+      else updatedCards.push({ ...defaultCard });
+      userCardIds.add(defaultCard.id);
     }
   });
   
@@ -1834,6 +1840,7 @@ function autoIdentifyCards() {
   // Mapeamento de texto → ID
   const cardMappings = [
     { text: 'Meteorologia',           id: 'weather' },
+    { text: 'Feriados',               id: 'hol' },
     { text: 'Combustíveis',           id: 'fuel' },
     { text: 'Cabaz',                  id: 'cabaz' },
     { text: 'Petróleo',               id: 'oil' },
@@ -2038,7 +2045,8 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshAllCardStatuses();
   applyStickyScrollCards();
   setInterval(refreshAllCardStatuses, 30 * 1000);
-  if (isCardVisible('weather')) wxholRefresh();
+  if (isCardVisible('weather')) loadWeather(true);
+  if (isCardVisible('hol')) loadHolidays();
   if (isCardVisible('airquality')) loadAirQuality(true);
   
   console.log('Sistema de personalização carregado!');
@@ -2290,7 +2298,8 @@ function applyConfigSideEffects(prevConfig, nextConfig) {
     const nextLoc = nextConfig?.location;
     if (prevLoc !== nextLoc) {
       applyLocationToCfg(nextLoc);
-      if (isCardVisible('weather')) wxholRefresh();
+      if (isCardVisible('weather')) loadWeather(true);
+      if (isCardVisible('hol')) loadHolidays();
       if (isCardVisible('airquality')) loadAirQuality(true);
     }
 
@@ -2378,7 +2387,7 @@ function resetSettings() {
 
 /** Secção do painel onde cada card aparece; a ordem dentro da secção segue a configuração do utilizador. */
 const CARD_SECTIONS = {
-  weather: 'portugal', airquality: 'portugal', fuel: 'portugal', elec: 'portugal', 'gas-pt': 'portugal',
+  weather: 'portugal', hol: 'portugal', airquality: 'portugal', fuel: 'portugal', elec: 'portugal', 'gas-pt': 'portugal',
   cabaz: 'portugal', transp: 'portugal', dams: 'portugal', anpc: 'portugal', seis: 'portugal', air: 'portugal', 'news-pt': 'portugal',
   euribor: 'economia', inf: 'economia', imob: 'economia', smn: 'economia', exp: 'economia', div: 'economia',
   co2: 'economia', cal: 'economia',

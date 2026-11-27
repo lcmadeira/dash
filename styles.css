@@ -2751,9 +2751,9 @@ textarea.nta::placeholder{color:var(--t3)}
 .hol-hero{display:flex;gap:14px;align-items:center;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--b);margin-bottom:9px;background:var(--surface)}
 .hol-hero-num{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--accent);min-width:34px;text-align:center}
 .hol-hero-lbl{font-size:.74rem;font-weight:600}.hol-hero-sub{font-size:.74rem;color:var(--t2);margin-top:2px}
-.hol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:9px}
+.hol-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}
 .hol-stat{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:7px 8px;text-align:center}
-.hol-stat-val{font-size:1.1rem;font-weight:700}.hol-stat-lbl{font-size:.74rem;color:var(--t2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+.hol-stat-val{font-size:1.1rem;font-weight:700}.hol-stat-val small{font-size:.74rem;font-weight:400;color:var(--t3)}.hol-stat-lbl{font-size:.72rem;color:var(--t2);line-height:1.3;margin-top:3px}
 .hol-list{display:flex;flex-direction:column;gap:4px;max-height:165px;overflow-y:auto;padding-right:2px}
 .hol-item{display:flex;align-items:center;gap:9px;padding:5px 9px;border-radius:var(--rs);border:1px solid var(--b);background:var(--surface)}
 .hol-item.past{opacity:.38}.hol-item.today{border-color:var(--accent);background:var(--ad)}.hol-item.next{border-color:var(--blue);background:var(--bd)}
@@ -2761,6 +2761,33 @@ textarea.nta::placeholder{color:var(--t3)}
 .hol-name{font-size:.74rem;font-weight:500;flex:1}
 .hol-tag{font-family:var(--mono);font-size:.74rem;padding:2px 6px;border-radius:4px;background:var(--b);color:var(--t3);white-space:nowrap}
 .hol-item.next .hol-tag{background:var(--bd);color:var(--blue)}.hol-item.today .hol-tag{background:var(--ad);color:var(--accent)}
+.hol-sec{font-family:var(--mono);font-size:.74rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 5px}
+.hol-hero-lbl{font-size:.92rem}
+.hol-hero .hol-tag{font-size:.7rem;color:var(--purple)}
+.hol-bridge{display:flex;flex-direction:column;gap:2px;padding:6px 10px;margin-bottom:4px;border:1px solid #F59E0B33;background:#F59E0B12;border-radius:var(--rs);font-size:.74rem}
+.hol-bridge b{color:var(--amber)}.hol-bridge span{color:var(--t2)}
+.hol-more{font-size:.72rem;color:var(--t3);margin:-1px 0 4px 2px}
+.hol-months{display:flex;flex-direction:column;gap:3px}
+.hol-month{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;font-size:.74rem;color:var(--t2)}
+.hol-month-lbl{font-family:var(--mono)}
+.hol-month.on .hol-month-lbl{color:var(--accent);font-weight:700}
+.hol-month-bar{height:6px;background:var(--b);border-radius:3px;overflow:hidden}
+.hol-month-bar span{display:block;height:100%;background:var(--blue);border-radius:3px}
+.hol-month.on .hol-month-bar span{background:var(--accent)}
+.hol-month-val{font-family:var(--mono);white-space:nowrap}
+.hol-dow{font-family:var(--mono);font-size:.72rem;color:var(--t2);background:var(--b2);border-radius:4px;padding:1px 4px;min-width:28px;text-align:center}
+.hol-dow.we{color:var(--red);background:#EF444422}
+.hol-in{font-family:var(--mono);font-size:.72rem;color:var(--t3);white-space:nowrap}
+.hol-item.munic .hol-tag{color:var(--purple);background:#8B5CF622}
+.hol-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hol-year{margin-top:8px;font-size:.74rem}
+.hol-year summary{cursor:pointer;color:var(--blue);margin-bottom:5px}
+.hol-year .hol-list{max-height:220px}
+@media (max-width: 520px){.hol-grid{grid-template-columns:1fr 1fr}}
+.wx-tmin{color:var(--t2);font-weight:500}
+.wx-tsep{color:var(--t3);font-weight:300;margin:0 4px}
+.wx-tlbl{font-size:.72rem;color:var(--t3);margin-top:3px}
+.wx-line{display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 10px;margin-bottom:8px;background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);font-size:.8rem;color:var(--text)}
 /* Crypto 2-col */
 .crypto-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .ci2{background:var(--surface);border:1px solid var(--b);border-radius:var(--rs);padding:10px 12px}
