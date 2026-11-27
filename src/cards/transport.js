@@ -177,7 +177,7 @@ function loadTransp(_force){
 
   /* Tab 1: Passes */
   const htmlPasses=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px">
       <div>
         <div style="font-size:.74rem;font-weight:700;color:var(--t2);margin-bottom:5px">🎫 Passe Navegante 2026</div>
         ${PASSES.map(p=>`<div style="background:var(--b2);border-radius:7px;padding:7px 9px;margin-bottom:4px">
@@ -222,7 +222,7 @@ function loadTransp(_force){
       🚆 Horários CP Lisboa↔Évora
       <span style="font-size:.74rem;font-weight:400;color:var(--t3)"> · horário publicado para vigorar desde 14 Dez 2025 · confirmar alterações na CP</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px">
       <div>
         <div style="font-size:.74rem;font-weight:600;color:var(--amber);margin-bottom:4px">Lisboa Or. → Évora</div>
         ${HORARIOS_LX_EV.map(t=>trainRow(t,nextLX,"#F59E0B")).join("")}
